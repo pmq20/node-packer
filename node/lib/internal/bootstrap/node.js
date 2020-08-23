@@ -3,13 +3,11 @@
 // This file is invoked by `node::RunBootstrapping()` in `src/node.cc`, and is
 // responsible for setting up node.js core before executing main scripts
 // under `lib/internal/main/`.
-// This file is currently run to bootstrap both the main thread and the worker
-// threads. Some setups are conditional, controlled with isMainThread and
-// ownsProcessState.
+//
 // This file is expected not to perform any asynchronous operations itself
 // when being executed - those should be done in either
 // `lib/internal/bootstrap/pre_execution.js` or in main scripts. The majority
-// of the code here focus on setting up the global proxy and the process
+// of the code here focuses on setting up the global proxy and the process
 // object in a synchronous manner.
 // As special caution is given to the performance of the startup process,
 // many dependencies are invoked lazily.
@@ -22,20 +20,31 @@
 //   module loaders, including `process.binding()`, `process._linkedBinding()`,
 //   `internalBinding()` and `NativeModule`.
 //
-// After this file is run, one of the main scripts under `lib/internal/main/`
-// will be selected by C++ to start the actual execution. The main scripts may
-// run additional setups exported by `lib/internal/bootstrap/pre_execution.js`,
-// depending on the execution mode.
+// This file is run to bootstrap both the main thread and the worker threads.
+// After this file is run, certain properties are setup according to the
+// configuration of the Node.js instance using the files in
+// `lib/internal/bootstrap/switches/`.
+//
+// Then, depending on how the Node.js instance is launched, one of the main
+// scripts in `lib/internal/main` will be selected by C++ to start the actual
+// execution. They may run additional setups exported by
+// `lib/internal/bootstrap/pre_execution.js` depending on the runtime states.
 
 'use strict';
 
 // This file is compiled as if it's wrapped in a function with arguments
 // passed by node::RunBootstrapping()
-/* global process, require, internalBinding, isMainThread, ownsProcessState */
+/* global process, require, internalBinding, primordials */
 
 setupPrepareStackTrace();
 
-const { JSON, Object, Symbol } = primordials;
+const {
+  JSONParse,
+  ObjectDefineProperty,
+  ObjectGetPrototypeOf,
+  ObjectSetPrototypeOf,
+  SymbolToStringTag,
+} = primordials;
 const config = internalBinding('config');
 const { deprecate } = require('internal/util');
 
@@ -47,48 +56,13 @@ setupBuffer();
 process.domain = null;
 process._exiting = false;
 
+// process.config is serialized config.gypi
+process.config = JSONParse(internalBinding('native_module').config);
+require('internal/worker/js_transferable').setup();
+
 // Bootstrappers for all threads, including worker threads and main thread
 const perThreadSetup = require('internal/process/per_thread');
-// Bootstrappers for the main thread only
-let mainThreadSetup;
-// Bootstrappers for the worker threads only
-let workerThreadSetup;
-if (ownsProcessState) {
-  mainThreadSetup = require(
-    'internal/process/main_thread_only'
-  );
-} else {
-  workerThreadSetup = require(
-    'internal/process/worker_thread_only'
-  );
-}
-
-// process.config is serialized config.gypi
-process.config = JSON.parse(internalBinding('native_module').config);
-
 const rawMethods = internalBinding('process_methods');
-// Set up methods and events on the process object for the main thread
-if (isMainThread) {
-  process.abort = rawMethods.abort;
-  const wrapped = mainThreadSetup.wrapProcessMethods(rawMethods);
-  process.umask = wrapped.umask;
-  process.chdir = wrapped.chdir;
-  process.cwd = wrapped.cwd;
-
-  // TODO(joyeecheung): deprecate and remove these underscore methods
-  process._debugProcess = rawMethods._debugProcess;
-  process._debugEnd = rawMethods._debugEnd;
-  process._startProfilerIdleNotifier =
-    rawMethods._startProfilerIdleNotifier;
-  process._stopProfilerIdleNotifier = rawMethods._stopProfilerIdleNotifier;
-} else {
-  const wrapped = workerThreadSetup.wrapProcessMethods(rawMethods);
-
-  process.abort = workerThreadSetup.unavailable('process.abort()');
-  process.chdir = workerThreadSetup.unavailable('process.chdir()');
-  process.umask = wrapped.umask;
-  process.cwd = rawMethods.cwd;
-}
 
 // Set up methods on the process object for all threads
 {
@@ -112,6 +86,11 @@ if (isMainThread) {
   process.memoryUsage = wrapped.memoryUsage;
   process.kill = wrapped.kill;
   process.exit = wrapped.exit;
+
+  process.openStdin = function() {
+    process.stdin.resume();
+    return process.stdin;
+  };
 }
 
 const credentials = internalBinding('credentials');
@@ -121,34 +100,6 @@ if (credentials.implementsPosixCredentials) {
   process.getgid = credentials.getgid;
   process.getegid = credentials.getegid;
   process.getgroups = credentials.getgroups;
-
-  if (ownsProcessState) {
-    const wrapped = mainThreadSetup.wrapPosixCredentialSetters(credentials);
-    process.initgroups = wrapped.initgroups;
-    process.setgroups = wrapped.setgroups;
-    process.setegid = wrapped.setegid;
-    process.seteuid = wrapped.seteuid;
-    process.setgid = wrapped.setgid;
-    process.setuid = wrapped.setuid;
-  } else {
-    process.initgroups =
-      workerThreadSetup.unavailable('process.initgroups()');
-    process.setgroups = workerThreadSetup.unavailable('process.setgroups()');
-    process.setegid = workerThreadSetup.unavailable('process.setegid()');
-    process.seteuid = workerThreadSetup.unavailable('process.seteuid()');
-    process.setgid = workerThreadSetup.unavailable('process.setgid()');
-    process.setuid = workerThreadSetup.unavailable('process.setuid()');
-  }
-}
-
-if (isMainThread) {
-  const { getStdout, getStdin, getStderr } =
-    require('internal/process/stdio').getMainThreadStdio();
-  setupProcessStdio(getStdout, getStdin, getStderr);
-} else {
-  const { getStdout, getStdin, getStderr } =
-    workerThreadSetup.createStdioGetters();
-  setupProcessStdio(getStdout, getStdin, getStderr);
 }
 
 // Setup the callbacks that node::AsyncWrap will call when there are hooks to
@@ -205,7 +156,7 @@ const { setTraceCategoryStateUpdateHandler } = internalBinding('trace_events');
 setTraceCategoryStateUpdateHandler(perThreadSetup.toggleTraceCategoryState);
 
 // process.allowedNodeEnvironmentFlags
-Object.defineProperty(process, 'allowedNodeEnvironmentFlags', {
+ObjectDefineProperty(process, 'allowedNodeEnvironmentFlags', {
   get() {
     const flags = perThreadSetup.buildAllowedFlags();
     process.allowedNodeEnvironmentFlags = flags;
@@ -214,7 +165,7 @@ Object.defineProperty(process, 'allowedNodeEnvironmentFlags', {
   // If the user tries to set this to another value, override
   // this completely to that value.
   set(value) {
-    Object.defineProperty(this, 'allowedNodeEnvironmentFlags', {
+    ObjectDefineProperty(this, 'allowedNodeEnvironmentFlags', {
       value,
       configurable: true,
       enumerable: true,
@@ -234,7 +185,7 @@ process.assert = deprecate(
 // TODO(joyeecheung): this property has not been well-maintained, should we
 // deprecate it in favor of a better API?
 const { isDebugBuild, hasOpenSSL, hasInspector } = config;
-Object.defineProperty(process, 'features', {
+ObjectDefineProperty(process, 'features', {
   enumerable: true,
   writable: false,
   configurable: false,
@@ -318,17 +269,17 @@ function setupPrepareStackTrace() {
 
 function setupProcessObject() {
   const EventEmitter = require('events');
-  const origProcProto = Object.getPrototypeOf(process);
-  Object.setPrototypeOf(origProcProto, EventEmitter.prototype);
+  const origProcProto = ObjectGetPrototypeOf(process);
+  ObjectSetPrototypeOf(origProcProto, EventEmitter.prototype);
   EventEmitter.call(process);
-  Object.defineProperty(process, Symbol.toStringTag, {
+  ObjectDefineProperty(process, SymbolToStringTag, {
     enumerable: false,
     writable: true,
     configurable: false,
     value: 'process'
   });
   // Make process globally available to users by putting it on the global proxy
-  Object.defineProperty(global, 'process', {
+  ObjectDefineProperty(global, 'process', {
     value: process,
     enumerable: false,
     writable: true,
@@ -336,67 +287,12 @@ function setupProcessObject() {
   });
 }
 
-function setupProcessStdio(getStdout, getStdin, getStderr) {
-  Object.defineProperty(process, 'stdout', {
-    configurable: true,
-    enumerable: true,
-    get: getStdout
-  });
-
-  Object.defineProperty(process, 'stderr', {
-    configurable: true,
-    enumerable: true,
-    get: getStderr
-  });
-
-  Object.defineProperty(process, 'stdin', {
-    configurable: true,
-    enumerable: true,
-    get: getStdin
-  });
-
-  process.openStdin = function() {
-    process.stdin.resume();
-    return process.stdin;
-  };
-}
-
 function setupGlobalProxy() {
-  Object.defineProperty(global, Symbol.toStringTag, {
+  ObjectDefineProperty(global, SymbolToStringTag, {
     value: 'global',
     writable: false,
     enumerable: false,
     configurable: true
-  });
-
-  function makeGetter(name) {
-    return deprecate(function() {
-      return this;
-    }, `'${name}' is deprecated, use 'global'`, 'DEP0016');
-  }
-
-  function makeSetter(name) {
-    return deprecate(function(value) {
-      Object.defineProperty(this, name, {
-        configurable: true,
-        writable: true,
-        enumerable: true,
-        value: value
-      });
-    }, `'${name}' is deprecated, use 'global'`, 'DEP0016');
-  }
-
-  Object.defineProperties(global, {
-    GLOBAL: {
-      configurable: true,
-      get: makeGetter('GLOBAL'),
-      set: makeSetter('GLOBAL')
-    },
-    root: {
-      configurable: true,
-      get: makeGetter('root'),
-      set: makeSetter('root')
-    }
   });
 }
 
@@ -409,7 +305,7 @@ function setupBuffer() {
   delete bufferBinding.setBufferPrototype;
   delete bufferBinding.zeroFill;
 
-  Object.defineProperty(global, 'Buffer', {
+  ObjectDefineProperty(global, 'Buffer', {
     value: Buffer,
     enumerable: false,
     writable: true,
@@ -436,7 +332,7 @@ function createGlobalConsole(consoleFromVM) {
 
 // https://heycam.github.io/webidl/#es-namespaces
 function exposeNamespace(target, name, namespaceObject) {
-  Object.defineProperty(target, name, {
+  ObjectDefineProperty(target, name, {
     writable: true,
     enumerable: false,
     configurable: true,
@@ -446,7 +342,7 @@ function exposeNamespace(target, name, namespaceObject) {
 
 // https://heycam.github.io/webidl/#es-interfaces
 function exposeInterface(target, name, interfaceObject) {
-  Object.defineProperty(target, name, {
+  ObjectDefineProperty(target, name, {
     writable: true,
     enumerable: false,
     configurable: true,
@@ -456,7 +352,7 @@ function exposeInterface(target, name, interfaceObject) {
 
 // https://heycam.github.io/webidl/#define-the-operations
 function defineOperation(target, name, method) {
-  Object.defineProperty(target, name, {
+  ObjectDefineProperty(target, name, {
     writable: true,
     enumerable: true,
     configurable: true,

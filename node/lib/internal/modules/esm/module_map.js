@@ -2,9 +2,11 @@
 
 const ModuleJob = require('internal/modules/esm/module_job');
 const {
-  SafeMap
+  SafeMap,
 } = primordials;
-const debug = require('internal/util/debuglog').debuglog('esm');
+let debug = require('internal/util/debuglog').debuglog('esm', (fn) => {
+  debug = fn;
+});
 const { ERR_INVALID_ARG_TYPE } = require('internal/errors').codes;
 const { validateString } = require('internal/validators');
 
@@ -16,7 +18,8 @@ class ModuleMap extends SafeMap {
   }
   set(url, job) {
     validateString(url, 'url');
-    if (job instanceof ModuleJob !== true) {
+    if (job instanceof ModuleJob !== true &&
+        typeof job !== 'function') {
       throw new ERR_INVALID_ARG_TYPE('job', 'ModuleJob', job);
     }
     debug(`Storing ${url} in ModuleMap`);

@@ -3,7 +3,14 @@
 // An implementation of the WHATWG Encoding Standard
 // https://encoding.spec.whatwg.org
 
-const { Object } = primordials;
+const {
+  Map,
+  ObjectCreate,
+  ObjectDefineProperties,
+  ObjectGetOwnPropertyDescriptors,
+  Symbol,
+  SymbolToStringTag,
+} = primordials;
 
 const {
   ERR_ENCODING_INVALID_ENCODED_DATA,
@@ -24,7 +31,7 @@ const {
 } = require('internal/util');
 
 const {
-  isArrayBuffer,
+  isAnyArrayBuffer,
   isArrayBufferView,
   isUint8Array
 } = require('internal/util/types');
@@ -36,7 +43,7 @@ const {
   encodeUtf8String
 } = internalBinding('buffer');
 
-var Buffer;
+let Buffer;
 function lazyBuffer() {
   if (Buffer === undefined)
     Buffer = require('buffer').Buffer;
@@ -281,8 +288,8 @@ const encodings = new Map([
 // Unfortunately, String.prototype.trim also removes non-ascii whitespace,
 // so we have to do this manually
 function trimAsciiWhitespace(label) {
-  var s = 0;
-  var e = label.length;
+  let s = 0;
+  let e = label.length;
   while (s < e && (
     label[s] === '\u0009' ||
     label[s] === '\u000a' ||
@@ -339,7 +346,7 @@ class TextEncoder {
     if (typeof depth === 'number' && depth < 0)
       return this;
     const ctor = getConstructorOf(this);
-    const obj = Object.create({
+    const obj = ObjectCreate({
       constructor: ctor === null ? TextEncoder : ctor
     });
     obj.encoding = this.encoding;
@@ -348,12 +355,12 @@ class TextEncoder {
   }
 }
 
-Object.defineProperties(
+ObjectDefineProperties(
   TextEncoder.prototype, {
     'encode': { enumerable: true },
     'encodeInto': { enumerable: true },
     'encoding': { enumerable: true },
-    [Symbol.toStringTag]: {
+    [SymbolToStringTag]: {
       configurable: true,
       value: 'TextEncoder'
     } });
@@ -378,7 +385,7 @@ function makeTextDecoderICU() {
       if (enc === undefined)
         throw new ERR_ENCODING_NOT_SUPPORTED(encoding);
 
-      var flags = 0;
+      let flags = 0;
       if (options !== null) {
         flags |= options.fatal ? CONVERTER_FLAGS_FATAL : 0;
         flags |= options.ignoreBOM ? CONVERTER_FLAGS_IGNORE_BOM : 0;
@@ -397,7 +404,7 @@ function makeTextDecoderICU() {
 
     decode(input = empty, options = {}) {
       validateDecoder(this);
-      if (isArrayBuffer(input)) {
+      if (isAnyArrayBuffer(input)) {
         input = lazyBuffer().from(input);
       } else if (!isArrayBufferView(input)) {
         throw new ERR_INVALID_ARG_TYPE('input',
@@ -406,7 +413,7 @@ function makeTextDecoderICU() {
       }
       validateArgument(options, 'object', 'options', 'Object');
 
-      var flags = 0;
+      let flags = 0;
       if (options !== null)
         flags |= options.stream ? 0 : CONVERTER_FLAGS_FLUSH;
 
@@ -422,7 +429,7 @@ function makeTextDecoderICU() {
 }
 
 function makeTextDecoderJS() {
-  var StringDecoder;
+  let StringDecoder;
   function lazyStringDecoder() {
     if (StringDecoder === undefined)
       ({ StringDecoder } = require('string_decoder'));
@@ -444,7 +451,7 @@ function makeTextDecoderJS() {
       if (enc === undefined || !hasConverter(enc))
         throw new ERR_ENCODING_NOT_SUPPORTED(encoding);
 
-      var flags = 0;
+      let flags = 0;
       if (options !== null) {
         if (options.fatal) {
           throw new ERR_NO_ICU('"fatal" option');
@@ -462,7 +469,7 @@ function makeTextDecoderJS() {
 
     decode(input = empty, options = {}) {
       validateDecoder(this);
-      if (isArrayBuffer(input)) {
+      if (isAnyArrayBuffer(input)) {
         input = lazyBuffer().from(input);
       } else if (isArrayBufferView(input)) {
         input = lazyBuffer().from(input.buffer, input.byteOffset,
@@ -484,25 +491,22 @@ function makeTextDecoderJS() {
         this[kFlags] |= CONVERTER_FLAGS_FLUSH;
       }
 
-      if (!this[kBOMSeen] && !(this[kFlags] & CONVERTER_FLAGS_IGNORE_BOM)) {
-        if (this[kEncoding] === 'utf-8') {
-          if (input.length >= 3 &&
-              input[0] === 0xEF && input[1] === 0xBB && input[2] === 0xBF) {
-            input = input.slice(3);
-          }
-        } else if (this[kEncoding] === 'utf-16le') {
-          if (input.length >= 2 && input[0] === 0xFF && input[1] === 0xFE) {
-            input = input.slice(2);
-          }
+      let result = this[kFlags] & CONVERTER_FLAGS_FLUSH ?
+        this[kHandle].end(input) :
+        this[kHandle].write(input);
+
+      if (result.length > 0 &&
+          !this[kBOMSeen] &&
+          !(this[kFlags] & CONVERTER_FLAGS_IGNORE_BOM)) {
+        // If the very first result in the stream is a BOM, and we are not
+        // explicitly told to ignore it, then we discard it.
+        if (result[0] === '\ufeff') {
+          result = result.slice(1);
         }
         this[kBOMSeen] = true;
       }
 
-      if (this[kFlags] & CONVERTER_FLAGS_FLUSH) {
-        return this[kHandle].end(input);
-      }
-
-      return this[kHandle].write(input);
+      return result;
     }
   }
 
@@ -510,54 +514,53 @@ function makeTextDecoderJS() {
 }
 
 // Mix in some shared properties.
-{
-  Object.defineProperties(
-    TextDecoder.prototype,
-    Object.getOwnPropertyDescriptors({
-      get encoding() {
-        validateDecoder(this);
-        return this[kEncoding];
-      },
+ObjectDefineProperties(
+  TextDecoder.prototype,
+  ObjectGetOwnPropertyDescriptors({
+    get encoding() {
+      validateDecoder(this);
+      return this[kEncoding];
+    },
 
-      get fatal() {
-        validateDecoder(this);
-        return (this[kFlags] & CONVERTER_FLAGS_FATAL) === CONVERTER_FLAGS_FATAL;
-      },
+    get fatal() {
+      validateDecoder(this);
+      return (this[kFlags] & CONVERTER_FLAGS_FATAL) === CONVERTER_FLAGS_FATAL;
+    },
 
-      get ignoreBOM() {
-        validateDecoder(this);
-        return (this[kFlags] & CONVERTER_FLAGS_IGNORE_BOM) ===
-               CONVERTER_FLAGS_IGNORE_BOM;
-      },
+    get ignoreBOM() {
+      validateDecoder(this);
+      return (this[kFlags] & CONVERTER_FLAGS_IGNORE_BOM) ===
+              CONVERTER_FLAGS_IGNORE_BOM;
+    },
 
-      [inspect](depth, opts) {
-        validateDecoder(this);
-        if (typeof depth === 'number' && depth < 0)
-          return this;
-        const ctor = getConstructorOf(this);
-        const obj = Object.create({
-          constructor: ctor === null ? TextDecoder : ctor
-        });
-        obj.encoding = this.encoding;
-        obj.fatal = this.fatal;
-        obj.ignoreBOM = this.ignoreBOM;
-        if (opts.showHidden) {
-          obj[kFlags] = this[kFlags];
-          obj[kHandle] = this[kHandle];
-        }
-        // Lazy to avoid circular dependency
-        return require('internal/util/inspect').inspect(obj, opts);
+    [inspect](depth, opts) {
+      validateDecoder(this);
+      if (typeof depth === 'number' && depth < 0)
+        return this;
+      const constructor = getConstructorOf(this) || TextDecoder;
+      const obj = ObjectCreate({ constructor });
+      obj.encoding = this.encoding;
+      obj.fatal = this.fatal;
+      obj.ignoreBOM = this.ignoreBOM;
+      if (opts.showHidden) {
+        obj[kFlags] = this[kFlags];
+        obj[kHandle] = this[kHandle];
       }
-    }));
-  Object.defineProperties(TextDecoder.prototype, {
-    decode: { enumerable: true },
-    [inspect]: { enumerable: false },
-    [Symbol.toStringTag]: {
-      configurable: true,
-      value: 'TextDecoder'
+      // Lazy to avoid circular dependency
+      const { inspect } = require('internal/util/inspect');
+      return `${constructor.name} ${inspect(obj)}`;
     }
-  });
-}
+  })
+);
+
+ObjectDefineProperties(TextDecoder.prototype, {
+  decode: { enumerable: true },
+  [inspect]: { enumerable: false },
+  [SymbolToStringTag]: {
+    configurable: true,
+    value: 'TextDecoder'
+  }
+});
 
 module.exports = {
   getEncodingFromLabel,

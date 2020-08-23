@@ -31,7 +31,7 @@ function main({ n, type }) {
 
 // setImmediate tail recursion, 0 arguments
 function depth(N) {
-  var n = 0;
+  let n = 0;
   bench.start();
   setImmediate(cb);
   function cb() {
@@ -45,7 +45,7 @@ function depth(N) {
 
 // setImmediate tail recursion, 1 argument
 function depth1(N) {
-  var n = 0;
+  let n = 0;
   bench.start();
   setImmediate(cb, 1);
   function cb(a1) {
@@ -59,28 +59,28 @@ function depth1(N) {
 
 // Concurrent setImmediate, 0 arguments
 function breadth(N) {
-  var n = 0;
+  let n = 0;
   bench.start();
   function cb() {
     n++;
     if (n === N)
       bench.end(N);
   }
-  for (var i = 0; i < N; i++) {
+  for (let i = 0; i < N; i++) {
     setImmediate(cb);
   }
 }
 
 // Concurrent setImmediate, 1 argument
 function breadth1(N) {
-  var n = 0;
+  let n = 0;
   bench.start();
   function cb(a1) {
     n++;
     if (n === N)
       bench.end(n);
   }
-  for (var i = 0; i < N; i++) {
+  for (let i = 0; i < N; i++) {
     setImmediate(cb, 1);
   }
 }
@@ -88,14 +88,14 @@ function breadth1(N) {
 // Concurrent setImmediate, 4 arguments
 function breadth4(N) {
   N /= 2;
-  var n = 0;
+  let n = 0;
   bench.start();
   function cb(a1, a2, a3, a4) {
     n++;
     if (n === N)
       bench.end(n);
   }
-  for (var i = 0; i < N; i++) {
+  for (let i = 0; i < N; i++) {
     setImmediate(cb, 1, 2, 3, 4);
   }
 }
@@ -107,7 +107,7 @@ function clear(N) {
     if (a1 === 2)
       bench.end(N);
   }
-  for (var i = 0; i < N; i++) {
+  for (let i = 0; i < N; i++) {
     clearImmediate(setImmediate(cb, 1));
   }
   setImmediate(cb, 2);

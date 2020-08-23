@@ -3,10 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Punycode | Node.js v12.13.0 Documentation</title>
+  <meta name="nodejs.org:node-version" content="v14.8.0">
+  <title>Punycode | Node.js v14.8.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
-  <link rel="stylesheet" href="assets/sh.css">
+  <link rel="stylesheet" href="assets/hljs.css">
   <link rel="canonical" href="https://nodejs.org/api/punycode.html">
 </head>
 <body class="alt apidoc" id="api-section-punycode">
@@ -18,29 +19,30 @@
         </a>
       </div>
       <ul>
-<li><a href="documentation.html" class="nav-documentation">About these Docs</a></li>
-<li><a href="synopsis.html" class="nav-synopsis">Usage &#x26; Example</a></li>
+<li><a href="documentation.html" class="nav-documentation">About this documentation</a></li>
+<li><a href="synopsis.html" class="nav-synopsis">Usage and example</a></li>
 </ul>
 <div class="line"></div>
 <ul>
-<li><a href="assert.html" class="nav-assert">Assertion Testing</a></li>
-<li><a href="async_hooks.html" class="nav-async_hooks">Async Hooks</a></li>
+<li><a href="assert.html" class="nav-assert">Assertion testing</a></li>
+<li><a href="async_hooks.html" class="nav-async_hooks">Async hooks</a></li>
 <li><a href="buffer.html" class="nav-buffer">Buffer</a></li>
-<li><a href="addons.html" class="nav-addons">C++ Addons</a></li>
-<li><a href="n-api.html" class="nav-n-api">C/C++ Addons - N-API</a></li>
-<li><a href="child_process.html" class="nav-child_process">Child Processes</a></li>
+<li><a href="addons.html" class="nav-addons">C++ addons</a></li>
+<li><a href="n-api.html" class="nav-n-api">C/C++ addons with N-API</a></li>
+<li><a href="embedding.html" class="nav-embedding">C++ embedder API</a></li>
+<li><a href="child_process.html" class="nav-child_process">Child processes</a></li>
 <li><a href="cluster.html" class="nav-cluster">Cluster</a></li>
-<li><a href="cli.html" class="nav-cli">Command Line Options</a></li>
+<li><a href="cli.html" class="nav-cli">Command line options</a></li>
 <li><a href="console.html" class="nav-console">Console</a></li>
 <li><a href="crypto.html" class="nav-crypto">Crypto</a></li>
 <li><a href="debugger.html" class="nav-debugger">Debugger</a></li>
 <li><a href="deprecations.html" class="nav-deprecations">Deprecated APIs</a></li>
 <li><a href="dns.html" class="nav-dns">DNS</a></li>
 <li><a href="domain.html" class="nav-domain">Domain</a></li>
-<li><a href="esm.html" class="nav-esm">ECMAScript Modules</a></li>
+<li><a href="esm.html" class="nav-esm">ECMAScript modules</a></li>
 <li><a href="errors.html" class="nav-errors">Errors</a></li>
 <li><a href="events.html" class="nav-events">Events</a></li>
-<li><a href="fs.html" class="nav-fs">File System</a></li>
+<li><a href="fs.html" class="nav-fs">File system</a></li>
 <li><a href="globals.html" class="nav-globals">Globals</a></li>
 <li><a href="http.html" class="nav-http">HTTP</a></li>
 <li><a href="http2.html" class="nav-http2">HTTP/2</a></li>
@@ -51,37 +53,38 @@
 <li><a href="net.html" class="nav-net">Net</a></li>
 <li><a href="os.html" class="nav-os">OS</a></li>
 <li><a href="path.html" class="nav-path">Path</a></li>
-<li><a href="perf_hooks.html" class="nav-perf_hooks">Performance Hooks</a></li>
+<li><a href="perf_hooks.html" class="nav-perf_hooks">Performance hooks</a></li>
 <li><a href="policy.html" class="nav-policy">Policies</a></li>
 <li><a href="process.html" class="nav-process">Process</a></li>
 <li><a href="punycode.html" class="nav-punycode active">Punycode</a></li>
-<li><a href="querystring.html" class="nav-querystring">Query Strings</a></li>
+<li><a href="querystring.html" class="nav-querystring">Query strings</a></li>
 <li><a href="readline.html" class="nav-readline">Readline</a></li>
 <li><a href="repl.html" class="nav-repl">REPL</a></li>
 <li><a href="report.html" class="nav-report">Report</a></li>
 <li><a href="stream.html" class="nav-stream">Stream</a></li>
-<li><a href="string_decoder.html" class="nav-string_decoder">String Decoder</a></li>
+<li><a href="string_decoder.html" class="nav-string_decoder">String decoder</a></li>
 <li><a href="timers.html" class="nav-timers">Timers</a></li>
 <li><a href="tls.html" class="nav-tls">TLS/SSL</a></li>
-<li><a href="tracing.html" class="nav-tracing">Trace Events</a></li>
+<li><a href="tracing.html" class="nav-tracing">Trace events</a></li>
 <li><a href="tty.html" class="nav-tty">TTY</a></li>
-<li><a href="dgram.html" class="nav-dgram">UDP/Datagram</a></li>
+<li><a href="dgram.html" class="nav-dgram">UDP/datagram</a></li>
 <li><a href="url.html" class="nav-url">URL</a></li>
 <li><a href="util.html" class="nav-util">Utilities</a></li>
 <li><a href="v8.html" class="nav-v8">V8</a></li>
 <li><a href="vm.html" class="nav-vm">VM</a></li>
-<li><a href="worker_threads.html" class="nav-worker_threads">Worker Threads</a></li>
+<li><a href="wasi.html" class="nav-wasi">WASI</a></li>
+<li><a href="worker_threads.html" class="nav-worker_threads">Worker threads</a></li>
 <li><a href="zlib.html" class="nav-zlib">Zlib</a></li>
 </ul>
 <div class="line"></div>
 <ul>
-<li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">GitHub Repo &#x26; Issue Tracker</a></li>
+<li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">Code repository and issue tracker</a></li>
 </ul>
     </div>
 
     <div id="column1" data-id="punycode" class="interior">
       <header>
-        <h1>Node.js v12.13.0 Documentation</h1>
+        <h1>Node.js v14.8.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -96,11 +99,13 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v12.x/api/punycode.html">12.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v14.x/api/punycode.html">14.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v13.x/api/punycode.html">13.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v12.x/api/punycode.html">12.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v11.x/api/punycode.html">11.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v10.x/api/punycode.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/punycode.html">9.x</a></li>
-<li><a href="https://nodejs.org/docs/latest-v8.x/api/punycode.html">8.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v8.x/api/punycode.html">8.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/punycode.html">7.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v6.x/api/punycode.html">6.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v5.x/api/punycode.html">5.x</a></li>
@@ -121,18 +126,18 @@
 <li>
 <p><span class="stability_0"><a href="#punycode_punycode">Punycode</a></span></p>
 <ul>
-<li><a href="#punycode_punycode_decode_string">punycode.decode(string)</a></li>
-<li><a href="#punycode_punycode_encode_string">punycode.encode(string)</a></li>
-<li><a href="#punycode_punycode_toascii_domain">punycode.toASCII(domain)</a></li>
-<li><a href="#punycode_punycode_tounicode_domain">punycode.toUnicode(domain)</a></li>
+<li><a href="#punycode_punycode_decode_string"><code>punycode.decode(string)</code></a></li>
+<li><a href="#punycode_punycode_encode_string"><code>punycode.encode(string)</code></a></li>
+<li><a href="#punycode_punycode_toascii_domain"><code>punycode.toASCII(domain)</code></a></li>
+<li><a href="#punycode_punycode_tounicode_domain"><code>punycode.toUnicode(domain)</code></a></li>
 <li>
-<p><a href="#punycode_punycode_ucs2">punycode.ucs2</a></p>
+<p><a href="#punycode_punycode_ucs2"><code>punycode.ucs2</code></a></p>
 <ul>
-<li><a href="#punycode_punycode_ucs2_decode_string">punycode.ucs2.decode(string)</a></li>
-<li><a href="#punycode_punycode_ucs2_encode_codepoints">punycode.ucs2.encode(codePoints)</a></li>
+<li><a href="#punycode_punycode_ucs2_decode_string"><code>punycode.ucs2.decode(string)</code></a></li>
+<li><a href="#punycode_punycode_ucs2_encode_codepoints"><code>punycode.ucs2.encode(codePoints)</code></a></li>
 </ul>
 </li>
-<li><a href="#punycode_punycode_version">punycode.version</a></li>
+<li><a href="#punycode_punycode_version"><code>punycode.version</code></a></li>
 </ul>
 </li>
 </ul>
@@ -151,14 +156,14 @@
 </div>
 
 <p></p><div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated</div><p></p>
+<p><strong>Source Code:</strong> <a href="https://github.com/nodejs/node/blob/v14.8.0/lib/punycode.js">lib/punycode.js</a></p>
 <p><strong>The version of the punycode module bundled in Node.js is being deprecated</strong>.
 In a future major version of Node.js this module will be removed. Users
 currently depending on the <code>punycode</code> module should switch to using the
 userland-provided <a href="https://github.com/bestiejs/punycode.js">Punycode.js</a> module instead.</p>
 <p>The <code>punycode</code> module is a bundled version of the <a href="https://github.com/bestiejs/punycode.js">Punycode.js</a> module. It
 can be accessed using:</p>
-<pre><code class="language-js">const punycode = require('punycode');
-</code></pre>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> punycode = <span class="hljs-built_in">require</span>(<span class="hljs-string">'punycode'</span>);</code></pre>
 <p><a href="https://tools.ietf.org/html/rfc3492">Punycode</a> is a character encoding scheme defined by RFC 3492 that is
 primarily intended for use in Internationalized Domain Names. Because host
 names in URLs are limited to ASCII characters only, Domain Names that contain
@@ -171,7 +176,7 @@ to <code>'example.com'</code>) is represented by Punycode as the ASCII string
 <p>The <code>punycode</code> module is a third-party dependency used by Node.js and
 made available to developers as a convenience. Fixes or other modifications to
 the module must be directed to the <a href="https://github.com/bestiejs/punycode.js">Punycode.js</a> project.</p>
-<h2>punycode.decode(string)<span><a class="mark" href="#punycode_punycode_decode_string" id="punycode_punycode_decode_string">#</a></span></h2>
+<h2><code>punycode.decode(string)</code><span><a class="mark" href="#punycode_punycode_decode_string" id="punycode_punycode_decode_string">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.5.1</span>
 </div>
@@ -180,10 +185,9 @@ the module must be directed to the <a href="https://github.com/bestiejs/punycode
 </ul>
 <p>The <code>punycode.decode()</code> method converts a <a href="https://tools.ietf.org/html/rfc3492">Punycode</a> string of ASCII-only
 characters to the equivalent string of Unicode codepoints.</p>
-<pre><code class="language-js">punycode.decode('maana-pta'); // 'mañana'
-punycode.decode('--dqo34k'); // '☃-⌘'
-</code></pre>
-<h2>punycode.encode(string)<span><a class="mark" href="#punycode_punycode_encode_string" id="punycode_punycode_encode_string">#</a></span></h2>
+<pre><code class="language-js">punycode.decode(<span class="hljs-string">'maana-pta'</span>); <span class="hljs-comment">// 'mañana'</span>
+punycode.decode(<span class="hljs-string">'--dqo34k'</span>); <span class="hljs-comment">// '☃-⌘'</span></code></pre>
+<h2><code>punycode.encode(string)</code><span><a class="mark" href="#punycode_punycode_encode_string" id="punycode_punycode_encode_string">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.5.1</span>
 </div>
@@ -192,10 +196,9 @@ punycode.decode('--dqo34k'); // '☃-⌘'
 </ul>
 <p>The <code>punycode.encode()</code> method converts a string of Unicode codepoints to a
 <a href="https://tools.ietf.org/html/rfc3492">Punycode</a> string of ASCII-only characters.</p>
-<pre><code class="language-js">punycode.encode('mañana'); // 'maana-pta'
-punycode.encode('☃-⌘'); // '--dqo34k'
-</code></pre>
-<h2>punycode.toASCII(domain)<span><a class="mark" href="#punycode_punycode_toascii_domain" id="punycode_punycode_toascii_domain">#</a></span></h2>
+<pre><code class="language-js">punycode.encode(<span class="hljs-string">'mañana'</span>); <span class="hljs-comment">// 'maana-pta'</span>
+punycode.encode(<span class="hljs-string">'☃-⌘'</span>); <span class="hljs-comment">// '--dqo34k'</span></code></pre>
+<h2><code>punycode.toASCII(domain)</code><span><a class="mark" href="#punycode_punycode_toascii_domain" id="punycode_punycode_toascii_domain">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.6.1</span>
 </div>
@@ -206,12 +209,11 @@ punycode.encode('☃-⌘'); // '--dqo34k'
 Internationalized Domain Name to <a href="https://tools.ietf.org/html/rfc3492">Punycode</a>. Only the non-ASCII parts of the
 domain name will be converted. Calling <code>punycode.toASCII()</code> on a string that
 already only contains ASCII characters will have no effect.</p>
-<pre><code class="language-js">// encode domain names
-punycode.toASCII('mañana.com');  // 'xn--maana-pta.com'
-punycode.toASCII('☃-⌘.com');   // 'xn----dqo34k.com'
-punycode.toASCII('example.com'); // 'example.com'
-</code></pre>
-<h2>punycode.toUnicode(domain)<span><a class="mark" href="#punycode_punycode_tounicode_domain" id="punycode_punycode_tounicode_domain">#</a></span></h2>
+<pre><code class="language-js"><span class="hljs-comment">// encode domain names</span>
+punycode.toASCII(<span class="hljs-string">'mañana.com'</span>);  <span class="hljs-comment">// 'xn--maana-pta.com'</span>
+punycode.toASCII(<span class="hljs-string">'☃-⌘.com'</span>);   <span class="hljs-comment">// 'xn----dqo34k.com'</span>
+punycode.toASCII(<span class="hljs-string">'example.com'</span>); <span class="hljs-comment">// 'example.com'</span></code></pre>
+<h2><code>punycode.toUnicode(domain)</code><span><a class="mark" href="#punycode_punycode_tounicode_domain" id="punycode_punycode_tounicode_domain">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.6.1</span>
 </div>
@@ -221,16 +223,15 @@ punycode.toASCII('example.com'); // 'example.com'
 <p>The <code>punycode.toUnicode()</code> method converts a string representing a domain name
 containing <a href="https://tools.ietf.org/html/rfc3492">Punycode</a> encoded characters into Unicode. Only the <a href="https://tools.ietf.org/html/rfc3492">Punycode</a>
 encoded parts of the domain name are be converted.</p>
-<pre><code class="language-js">// decode domain names
-punycode.toUnicode('xn--maana-pta.com'); // 'mañana.com'
-punycode.toUnicode('xn----dqo34k.com');  // '☃-⌘.com'
-punycode.toUnicode('example.com');       // 'example.com'
-</code></pre>
-<h2>punycode.ucs2<span><a class="mark" href="#punycode_punycode_ucs2" id="punycode_punycode_ucs2">#</a></span></h2>
+<pre><code class="language-js"><span class="hljs-comment">// decode domain names</span>
+punycode.toUnicode(<span class="hljs-string">'xn--maana-pta.com'</span>); <span class="hljs-comment">// 'mañana.com'</span>
+punycode.toUnicode(<span class="hljs-string">'xn----dqo34k.com'</span>);  <span class="hljs-comment">// '☃-⌘.com'</span>
+punycode.toUnicode(<span class="hljs-string">'example.com'</span>);       <span class="hljs-comment">// 'example.com'</span></code></pre>
+<h2><code>punycode.ucs2</code><span><a class="mark" href="#punycode_punycode_ucs2" id="punycode_punycode_ucs2">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.7.0</span>
 </div>
-<h3>punycode.ucs2.decode(string)<span><a class="mark" href="#punycode_punycode_ucs2_decode_string" id="punycode_punycode_ucs2_decode_string">#</a></span></h3>
+<h3><code>punycode.ucs2.decode(string)</code><span><a class="mark" href="#punycode_punycode_ucs2_decode_string" id="punycode_punycode_ucs2_decode_string">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.7.0</span>
 </div>
@@ -239,11 +240,10 @@ punycode.toUnicode('example.com');       // 'example.com'
 </ul>
 <p>The <code>punycode.ucs2.decode()</code> method returns an array containing the numeric
 codepoint values of each Unicode symbol in the string.</p>
-<pre><code class="language-js">punycode.ucs2.decode('abc'); // [0x61, 0x62, 0x63]
-// surrogate pair for U+1D306 tetragram for centre:
-punycode.ucs2.decode('\uD834\uDF06'); // [0x1D306]
-</code></pre>
-<h3>punycode.ucs2.encode(codePoints)<span><a class="mark" href="#punycode_punycode_ucs2_encode_codepoints" id="punycode_punycode_ucs2_encode_codepoints">#</a></span></h3>
+<pre><code class="language-js">punycode.ucs2.decode(<span class="hljs-string">'abc'</span>); <span class="hljs-comment">// [0x61, 0x62, 0x63]</span>
+<span class="hljs-comment">// surrogate pair for U+1D306 tetragram for centre:</span>
+punycode.ucs2.decode(<span class="hljs-string">'\uD834\uDF06'</span>); <span class="hljs-comment">// [0x1D306]</span></code></pre>
+<h3><code>punycode.ucs2.encode(codePoints)</code><span><a class="mark" href="#punycode_punycode_ucs2_encode_codepoints" id="punycode_punycode_ucs2_encode_codepoints">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.7.0</span>
 </div>
@@ -252,10 +252,9 @@ punycode.ucs2.decode('\uD834\uDF06'); // [0x1D306]
 </ul>
 <p>The <code>punycode.ucs2.encode()</code> method returns a string based on an array of
 numeric code point values.</p>
-<pre><code class="language-js">punycode.ucs2.encode([0x61, 0x62, 0x63]); // 'abc'
-punycode.ucs2.encode([0x1D306]); // '\uD834\uDF06'
-</code></pre>
-<h2>punycode.version<span><a class="mark" href="#punycode_punycode_version" id="punycode_punycode_version">#</a></span></h2>
+<pre><code class="language-js">punycode.ucs2.encode([<span class="hljs-number">0x61</span>, <span class="hljs-number">0x62</span>, <span class="hljs-number">0x63</span>]); <span class="hljs-comment">// 'abc'</span>
+punycode.ucs2.encode([<span class="hljs-number">0x1D306</span>]); <span class="hljs-comment">// '\uD834\uDF06'</span></code></pre>
+<h2><code>punycode.version</code><span><a class="mark" href="#punycode_punycode_version" id="punycode_punycode_version">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.6.1</span>
 </div>
@@ -263,11 +262,9 @@ punycode.ucs2.encode([0x1D306]); // '\uD834\uDF06'
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
 <p>Returns a string identifying the current <a href="https://github.com/bestiejs/punycode.js">Punycode.js</a> version number.</p>
+        <!-- API END -->
       </div>
     </div>
   </div>
-  <script src="assets/sh_main.js"></script>
-  <script src="assets/sh_javascript.min.js"></script>
-  <script>highlight(undefined, undefined, 'pre');</script>
 </body>
 </html>

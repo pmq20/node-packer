@@ -40,6 +40,7 @@
 #ifndef V8_CODEGEN_S390_ASSEMBLER_S390_H_
 #define V8_CODEGEN_S390_ASSEMBLER_S390_H_
 #include <stdio.h>
+#include <memory>
 #if V8_HOST_ARCH_S390
 // elf.h include is required for auxv check for STFLE facility used
 // for hardware detection, which is sensible only on s390 hosts.
@@ -265,27 +266,30 @@ class V8_EXPORT_PRIVATE Assembler : public AssemblerBase {
   // Otherwise, returns the current pc_offset().
   int link(Label* L);
 
-  // Determines if Label is bound and near enough so that a single
-  // branch instruction can be used to reach it.
-  bool is_near(Label* L, Condition cond);
-
   // Returns the branch offset to the given label from the current code position
   // Links the label to the current position if it is still unbound
   int branch_offset(Label* L) { return link(L) - pc_offset(); }
 
-  // Puts a labels target address at the given position.
-  // The high 8 bits are set to zero.
-  void label_at_put(Label* L, int at_offset);
   void load_label_offset(Register r1, Label* L);
 
   // Read/Modify the code target address in the branch/call instruction at pc.
   // The isolate argument is unused (and may be nullptr) when skipping flushing.
   V8_INLINE static Address target_address_at(Address pc, Address constant_pool);
+
+  // Read/Modify the code target address in the branch/call instruction at pc.
+  inline static Tagged_t target_compressed_address_at(Address pc,
+                                                      Address constant_pool);
   V8_INLINE static void set_target_address_at(
       Address pc, Address constant_pool, Address target,
       ICacheFlushMode icache_flush_mode = FLUSH_ICACHE_IF_NEEDED);
 
+  inline static void set_target_compressed_address_at(
+      Address pc, Address constant_pool, Tagged_t target,
+      ICacheFlushMode icache_flush_mode = FLUSH_ICACHE_IF_NEEDED);
+
   inline Handle<Object> code_target_object_handle_at(Address pc);
+  inline Handle<HeapObject> compressed_embedded_object_handle_at(
+      Address pc, Address constant_pool);
   // This sets the branch destination.
   // This is for calls and branches within generated code.
   inline static void deserialization_set_special_target_at(
@@ -1145,6 +1149,19 @@ class V8_EXPORT_PRIVATE Assembler : public AssemblerBase {
   S390_VRR_E_OPCODE_LIST(DECLARE_VRR_E_INSTRUCTIONS)
 #undef DECLARE_VRR_E_INSTRUCTIONS
 
+#define DECLARE_VRR_F_INSTRUCTIONS(name, opcode_name, opcode_value)        \
+  void name(DoubleRegister v1, Register r1, Register r2) {                 \
+    uint64_t code = (static_cast<uint64_t>(opcode_value & 0xFF00)) * B32 | \
+                    (static_cast<uint64_t>(v1.code())) * B36 |             \
+                    (static_cast<uint64_t>(r1.code())) * B32 |             \
+                    (static_cast<uint64_t>(r2.code())) * B28 |             \
+                    (static_cast<uint64_t>(0)) * B8 |                      \
+                    (static_cast<uint64_t>(opcode_value & 0x00FF));        \
+    emit6bytes(code);                                                      \
+  }
+  S390_VRR_F_OPCODE_LIST(DECLARE_VRR_F_INSTRUCTIONS)
+#undef DECLARE_VRR_E_INSTRUCTIONS
+
 #define DECLARE_VRX_INSTRUCTIONS(name, opcode_name, opcode_value)       \
   void name(DoubleRegister v1, const MemOperand& opnd, Condition m3) {  \
     uint64_t code =                                                     \
@@ -1370,6 +1387,7 @@ class V8_EXPORT_PRIVATE Assembler : public AssemblerBase {
   // not have to check for overflow. The same is true for writes of large
   // relocation info entries.
   static constexpr int kGap = 32;
+  STATIC_ASSERT(AssemblerBase::kMinimalBufferSize >= 2 * kGap);
 
   // Relocation info generation
   // Each relocation is encoded as a variable size value

@@ -4,6 +4,7 @@
 
 #include <iomanip>
 
+#include "src/execution/isolate-utils.h"
 #include "src/objects/code.h"
 
 #include "src/codegen/assembler-inl.h"
@@ -101,7 +102,6 @@ void Code::CopyFromNoFlush(Heap* heap, const CodeDesc& desc) {
 
   // Unbox handles and relocate.
   Assembler* origin = desc.origin;
-  AllowDeferredHandleDereference embedding_raw_address;
   const int mode_mask = RelocInfo::PostCodegenRelocationMask();
   for (RelocIterator it(*this, mode_mask); !it.done(); it.next()) {
     RelocInfo::Mode mode = it.rinfo()->rmode();
@@ -155,69 +155,17 @@ Address Code::OffHeapInstructionEnd() const {
          d.InstructionSizeOfBuiltin(builtin_index());
 }
 
-namespace {
-template <typename Code>
-void SetStackFrameCacheCommon(Isolate* isolate, Handle<Code> code,
-                              Handle<SimpleNumberDictionary> cache) {
-  Handle<Object> maybe_table(code->source_position_table(), isolate);
-  if (maybe_table->IsException(isolate) || maybe_table->IsUndefined()) return;
-  if (maybe_table->IsSourcePositionTableWithFrameCache()) {
-    Handle<SourcePositionTableWithFrameCache>::cast(maybe_table)
-        ->set_stack_frame_cache(*cache);
-    return;
-  }
-  DCHECK(maybe_table->IsByteArray());
-  Handle<ByteArray> table(Handle<ByteArray>::cast(maybe_table));
-  Handle<SourcePositionTableWithFrameCache> table_with_cache =
-      isolate->factory()->NewSourcePositionTableWithFrameCache(table, cache);
-  code->set_source_position_table(*table_with_cache);
-}
-}  // namespace
-
-// static
-void AbstractCode::SetStackFrameCache(Handle<AbstractCode> abstract_code,
-                                      Handle<SimpleNumberDictionary> cache) {
-  if (abstract_code->IsCode()) {
-    SetStackFrameCacheCommon(
-        abstract_code->GetIsolate(),
-        handle(abstract_code->GetCode(), abstract_code->GetIsolate()), cache);
-  } else {
-    SetStackFrameCacheCommon(
-        abstract_code->GetIsolate(),
-        handle(abstract_code->GetBytecodeArray(), abstract_code->GetIsolate()),
-        cache);
-  }
-}
-
-namespace {
-template <typename Code>
-void DropStackFrameCacheCommon(Code code) {
-  i::Object maybe_table = code.source_position_table();
-  if (maybe_table.IsUndefined() || maybe_table.IsByteArray()) return;
-  DCHECK(maybe_table.IsSourcePositionTableWithFrameCache());
-  code.set_source_position_table(
-      i::SourcePositionTableWithFrameCache::cast(maybe_table)
-          .source_position_table());
-}
-}  // namespace
-
-void AbstractCode::DropStackFrameCache() {
-  if (IsCode()) {
-    DropStackFrameCacheCommon(GetCode());
-  } else {
-    DropStackFrameCacheCommon(GetBytecodeArray());
-  }
-}
-
 int AbstractCode::SourcePosition(int offset) {
   Object maybe_table = source_position_table();
   if (maybe_table.IsException()) return kNoSourcePosition;
 
   ByteArray source_position_table = ByteArray::cast(maybe_table);
-  int position = 0;
   // Subtract one because the current PC is one instruction after the call site.
   if (IsCode()) offset--;
-  for (SourcePositionTableIterator iterator(source_position_table);
+  int position = 0;
+  for (SourcePositionTableIterator iterator(
+           source_position_table, SourcePositionTableIterator::kJavaScriptOnly,
+           SourcePositionTableIterator::kDontSkipFunctionEntry);
        !iterator.done() && iterator.code_offset() <= offset;
        iterator.Advance()) {
     position = iterator.source_position().ScriptOffset();
@@ -655,8 +603,6 @@ inline void DisassembleCodeRange(Isolate* isolate, std::ostream& os, Code code,
                                  Address begin, size_t size,
                                  Address current_pc) {
   Address end = begin + size;
-  // TODO(mstarzinger): Refactor CodeReference to avoid the
-  // unhandlified->handlified transition.
   AllowHandleAllocation allow_handles;
   DisallowHeapAllocation no_gc;
   HandleScope handle_scope(isolate);
@@ -667,8 +613,8 @@ inline void DisassembleCodeRange(Isolate* isolate, std::ostream& os, Code code,
 
 }  // namespace
 
-void Code::Disassemble(const char* name, std::ostream& os, Address current_pc) {
-  Isolate* isolate = GetIsolate();
+void Code::Disassemble(const char* name, std::ostream& os, Isolate* isolate,
+                       Address current_pc) {
   os << "kind = " << Kind2String(kind()) << "\n";
   if (name == nullptr) {
     name = GetName(isolate);
@@ -680,7 +626,7 @@ void Code::Disassemble(const char* name, std::ostream& os, Address current_pc) {
     os << "stack_slots = " << stack_slots() << "\n";
   }
   os << "compiler = " << (is_turbofanned() ? "turbofan" : "unknown") << "\n";
-  os << "address = " << static_cast<const void*>(this) << "\n\n";
+  os << "address = " << reinterpret_cast<void*>(ptr()) << "\n\n";
 
   if (is_off_heap_trampoline()) {
     int trampoline_size = raw_instruction_size();
@@ -869,6 +815,14 @@ void BytecodeArray::Disassemble(std::ostream& os) {
     table.HandlerTableRangePrint(os);
   }
 #endif
+
+  os << "Source Position Table (size = "
+     << SourcePositionTableIfCollected().length() << ")\n";
+#ifdef OBJECT_PRINT
+  if (SourcePositionTableIfCollected().length() > 0) {
+    os << Brief(SourcePositionTableIfCollected()) << std::endl;
+  }
+#endif
 }
 
 void BytecodeArray::CopyBytecodesTo(BytecodeArray to) {
@@ -883,8 +837,7 @@ void BytecodeArray::MakeOlder() {
   // BytecodeArray is aged in concurrent marker.
   // The word must be completely within the byte code array.
   Address age_addr = address() + kBytecodeAgeOffset;
-  DCHECK_LE(RoundDown(age_addr, kSystemPointerSize) + kSystemPointerSize,
-            address() + Size());
+  DCHECK_LE(RoundDown(age_addr, kTaggedSize) + kTaggedSize, address() + Size());
   Age age = bytecode_age();
   if (age < kLastBytecodeAge) {
     base::AsAtomic8::Release_CompareAndSwap(reinterpret_cast<byte*>(age_addr),
@@ -988,8 +941,7 @@ Handle<DependentCode> DependentCode::EnsureSpace(
   int capacity = kCodesStartIndex + DependentCode::Grow(entries->count());
   int grow_by = capacity - entries->length();
   return Handle<DependentCode>::cast(
-      isolate->factory()->CopyWeakFixedArrayAndGrow(entries, grow_by,
-                                                    AllocationType::kOld));
+      isolate->factory()->CopyWeakFixedArrayAndGrow(entries, grow_by));
 }
 
 bool DependentCode::Compact() {
@@ -1012,14 +964,14 @@ bool DependentCode::Compact() {
 }
 
 bool DependentCode::MarkCodeForDeoptimization(
-    Isolate* isolate, DependentCode::DependencyGroup group) {
+    DependentCode::DependencyGroup group) {
   if (this->length() == 0 || this->group() > group) {
     // There is no such group.
     return false;
   }
   if (this->group() < group) {
     // The group comes later in the list.
-    return next_link().MarkCodeForDeoptimization(isolate, group);
+    return next_link().MarkCodeForDeoptimization(group);
   }
   DCHECK_EQ(group, this->group());
   DisallowHeapAllocation no_allocation_scope;
@@ -1043,12 +995,12 @@ bool DependentCode::MarkCodeForDeoptimization(
 }
 
 void DependentCode::DeoptimizeDependentCodeGroup(
-    Isolate* isolate, DependentCode::DependencyGroup group) {
+    DependentCode::DependencyGroup group) {
   DisallowHeapAllocation no_allocation_scope;
-  bool marked = MarkCodeForDeoptimization(isolate, group);
+  bool marked = MarkCodeForDeoptimization(group);
   if (marked) {
     DCHECK(AllowCodeDependencyChange::IsAllowed());
-    Deoptimizer::DeoptimizeMarkedCode(isolate);
+    Deoptimizer::DeoptimizeMarkedCode(GetIsolateFromWritableObject(*this));
   }
 }
 
@@ -1074,8 +1026,12 @@ const char* DependentCode::DependencyGroupName(DependencyGroup group) {
       return "prototype-check";
     case kPropertyCellChangedGroup:
       return "property-cell-changed";
-    case kFieldOwnerGroup:
-      return "field-owner";
+    case kFieldConstGroup:
+      return "field-const";
+    case kFieldTypeGroup:
+      return "field-type";
+    case kFieldRepresentationGroup:
+      return "field-representation";
     case kInitialMapChangedGroup:
       return "initial-map-changed";
     case kAllocationSiteTenuringChangedGroup:
@@ -1084,16 +1040,6 @@ const char* DependentCode::DependencyGroupName(DependencyGroup group) {
       return "allocation-site-transition-changed";
   }
   UNREACHABLE();
-}
-
-bool BytecodeArray::IsBytecodeEqual(const BytecodeArray other) const {
-  if (length() != other.length()) return false;
-
-  for (int i = 0; i < length(); ++i) {
-    if (get(i) != other.get(i)) return false;
-  }
-
-  return true;
 }
 
 }  // namespace internal

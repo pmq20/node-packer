@@ -4,7 +4,6 @@ Portable, user-land SquashFS that can be easily linked and embedded within your 
 
 [![Build status: Linux and Darwin](https://travis-ci.org/pmq20/libsquash.svg?branch=master)](https://travis-ci.org/pmq20/libsquash)
 [![Build status: Windows](https://ci.appveyor.com/api/projects/status/f4htq948gag3l2k8/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/libsquash/branch/master)
-[![GitHub version](https://badge.fury.io/gh/pmq20%2Flibsquash.svg)](https://badge.fury.io/gh/pmq20%2Flibsquash)
 
 ## Design
 
@@ -170,11 +169,24 @@ Upon successful completion the path of the extracted temporary file is returned.
 Otherwise, a value of `NULL` is returned and `errno` is set to the reason of the error.
 The returned path is referenced by an internal cache and must not be freed.
 
+## To-do
+
+- Test Wide character directories and file names on Windows
+- Benchmark and tweet cache size and block size of libsquash
+- Organize core API's and freeze
+- Make public struct's opaque
+- Seperate headers into private headers and public headers
+- Make intercepting system calls a core functionality instead of in the sample/
+- Test under ARM architecture as well
+- Support Unicode paths
+- Embed mksquashfs logic instead of relying on outside tool
+- Intercept dynamically without compiling via the LD_PRELOAD trick
+
 ## Acknowledgment
 
 Thank you [Dave Vasilevsky](https://github.com/vasi) for the excellent work of squashfuse!
 
 ## See Also
 
-- [Node.js Compiler](https://github.com/pmq20/node-compiler): Ahead-of-time (AOT) Compiler designed for Node.js, that just works.
-- [Ruby Compiler](https://github.com/pmq20/ruby-compiler): Ahead-of-time (AOT) Compiler designed for Ruby, that just works.
+- [Node.js Packer](https://github.com/pmq20/node-packer): Packing your Node.js application into a single executable.
+- [Ruby Packer](https://github.com/pmq20/ruby-packer): Packing your Ruby application into a single executable.

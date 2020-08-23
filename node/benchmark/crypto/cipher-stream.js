@@ -3,16 +3,15 @@ const common = require('../common.js');
 
 const bench = common.createBenchmark(main, {
   writes: [500],
-  cipher: [ 'AES192', 'AES256' ],
+  cipher: ['AES192', 'AES256'],
   type: ['asc', 'utf', 'buf'],
   len: [2, 1024, 102400, 1024 * 1024],
   api: ['legacy', 'stream']
+}, {
+  flags: ['--no-warnings']
 });
 
 function main({ api, cipher, type, len, writes }) {
-  // Default cipher for tests.
-  if (cipher === '')
-    cipher = 'AES192';
   if (api === 'stream' && /^v0\.[0-8]\./.test(process.version)) {
     console.error('Crypto streams not available until v0.10');
     // Use the legacy, just so that we can compare them.
@@ -27,7 +26,6 @@ function main({ api, cipher, type, len, writes }) {
   alice.generateKeys();
   bob.generateKeys();
 
-
   const pubEnc = /^v0\.[0-8]/.test(process.version) ? 'binary' : null;
   const alice_secret = alice.computeSecret(bob.getPublicKey(), pubEnc, 'hex');
   const bob_secret = bob.computeSecret(alice.getPublicKey(), pubEnc, 'hex');
@@ -38,8 +36,8 @@ function main({ api, cipher, type, len, writes }) {
   const alice_cipher = crypto.createCipher(cipher, alice_secret);
   const bob_cipher = crypto.createDecipher(cipher, bob_secret);
 
-  var message;
-  var encoding;
+  let message;
+  let encoding;
   switch (type) {
     case 'asc':
       message = 'a'.repeat(len);
@@ -65,7 +63,7 @@ function main({ api, cipher, type, len, writes }) {
 }
 
 function streamWrite(alice, bob, message, encoding, writes) {
-  var written = 0;
+  let written = 0;
   bob.on('data', (c) => {
     written += c.length;
   });
@@ -86,9 +84,9 @@ function streamWrite(alice, bob, message, encoding, writes) {
 }
 
 function legacyWrite(alice, bob, message, encoding, writes) {
-  var written = 0;
-  var enc, dec;
-  for (var i = 0; i < writes; i++) {
+  let written = 0;
+  let enc, dec;
+  for (let i = 0; i < writes; i++) {
     enc = alice.update(message, encoding);
     dec = bob.update(enc);
     written += dec.length;

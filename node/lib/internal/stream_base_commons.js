@@ -1,5 +1,10 @@
 'use strict';
 
+const {
+  Array,
+  Symbol,
+} = primordials;
+
 const { Buffer } = require('buffer');
 const { FastBuffer } = require('internal/buffer');
 const {
@@ -32,7 +37,9 @@ const kAfterAsyncWrite = Symbol('kAfterAsyncWrite');
 const kHandle = Symbol('kHandle');
 const kSession = Symbol('kSession');
 
-const debug = require('internal/util/debuglog').debuglog('stream');
+let debug = require('internal/util/debuglog').debuglog('stream', (fn) => {
+  debug = fn;
+});
 const kBuffer = Symbol('kBuffer');
 const kBufferGen = Symbol('kBufferGen');
 const kBufferCb = Symbol('kBufferCb');
@@ -111,16 +118,15 @@ function createWriteWrap(handle) {
 function writevGeneric(self, data, cb) {
   const req = createWriteWrap(self[kHandle]);
   const allBuffers = data.allBuffers;
-  var chunks;
-  var i;
+  let chunks;
   if (allBuffers) {
     chunks = data;
-    for (i = 0; i < data.length; i++)
+    for (let i = 0; i < data.length; i++)
       data[i] = data[i].chunk;
   } else {
     chunks = new Array(data.length << 1);
-    for (i = 0; i < data.length; i++) {
-      var entry = data[i];
+    for (let i = 0; i < data.length; i++) {
+      const entry = data[i];
       chunks[i * 2] = entry.chunk;
       chunks[i * 2 + 1] = entry.encoding;
     }
@@ -198,7 +204,9 @@ function onStreamRead(arrayBuffer) {
   }
 
   if (nread !== UV_EOF) {
-    return stream.destroy(errnoException(nread, 'read'));
+    // #34375 CallJSOnreadMethod expects the return value to be a buffer.
+    stream.destroy(errnoException(nread, 'read'));
+    return;
   }
 
   // Defer this until we actually emit end
@@ -208,6 +216,19 @@ function onStreamRead(arrayBuffer) {
   } else {
     if (stream[kMaybeDestroy])
       stream.on('end', stream[kMaybeDestroy]);
+
+    // TODO(ronag): Without this `readStop`, `onStreamRead`
+    // will be called once more (i.e. after Readable.ended)
+    // on Windows causing a ECONNRESET, failing the
+    // test-https-truncate test.
+    if (handle.readStop) {
+      const err = handle.readStop();
+      if (err) {
+        // #34375 CallJSOnreadMethod expects the return value to be a buffer.
+        stream.destroy(errnoException(err, 'read'));
+        return;
+      }
+    }
 
     // Push a null to signal the end of data.
     // Do it before `maybeDestroy` for correct order of events:
@@ -219,7 +240,7 @@ function onStreamRead(arrayBuffer) {
 
 function setStreamTimeout(msecs, callback) {
   if (this.destroyed)
-    return;
+    return this;
 
   this.timeout = msecs;
 

@@ -59,7 +59,6 @@ namespace internal {
 
 // Register list in load/store instructions
 // Note that the bit values must match those used in actual instruction encoding
-const int kNumRegs = 32;
 
 // Caller-saved/arguments registers
 const RegList kJSCallerSaved = 1 << 3 |   // r3  a1
@@ -138,10 +137,6 @@ const RegList kCalleeSavedDoubles = 1 << 14 |  // d14
 
 const int kNumCalleeSavedDoubles = 18;
 
-// Number of registers for which space is reserved in safepoints. Must be a
-// multiple of 8.
-const int kNumSafepointRegisters = 32;
-
 // The following constants describe the stack frame linkage area as
 // defined by the ABI.  Note that kNumRequiredStackFrameSlots must
 // satisfy alignment requirements (rounding up if required).
@@ -177,12 +172,6 @@ const int kStackFrameLRSlot = 2;
 const int kStackFrameExtraParamSlot = 14;
 #endif
 
-// Define the list of registers actually saved at safepoints.
-// Note that the number of saved registers may be smaller than the reserved
-// space, i.e. kNumSafepointSavedRegisters <= kNumSafepointRegisters.
-const RegList kSafepointSavedRegisters = kJSCallerSaved | kCalleeSaved;
-const int kNumSafepointSavedRegisters = kNumJSCallerSaved + kNumCalleeSaved;
-
 enum RegisterCode {
 #define REGISTER_CODE(R) kRegCode_##R,
   GENERAL_REGISTERS(REGISTER_CODE)
@@ -210,7 +199,7 @@ static_assert(sizeof(Register) == sizeof(int),
               "Register can efficiently be passed by value");
 
 #define DEFINE_REGISTER(R) \
-  constexpr Register R = Register::from_code<kRegCode_##R>();
+  constexpr Register R = Register::from_code(kRegCode_##R);
 GENERAL_REGISTERS(DEFINE_REGISTER)
 #undef DEFINE_REGISTER
 constexpr Register no_reg = Register::no_reg();
@@ -256,7 +245,7 @@ using FloatRegister = DoubleRegister;
 using Simd128Register = DoubleRegister;
 
 #define DEFINE_REGISTER(R) \
-  constexpr DoubleRegister R = DoubleRegister::from_code<kDoubleCode_##R>();
+  constexpr DoubleRegister R = DoubleRegister::from_code(kDoubleCode_##R);
 DOUBLE_REGISTERS(DEFINE_REGISTER)
 #undef DEFINE_REGISTER
 constexpr DoubleRegister no_dreg = DoubleRegister::no_reg();
@@ -283,7 +272,7 @@ class CRegister : public RegisterBase<CRegister, kCAfterLast> {
 
 constexpr CRegister no_creg = CRegister::no_reg();
 #define DECLARE_C_REGISTER(R) \
-  constexpr CRegister R = CRegister::from_code<kCCode_##R>();
+  constexpr CRegister R = CRegister::from_code(kCCode_##R);
 C_REGISTERS(DECLARE_C_REGISTER)
 #undef DECLARE_C_REGISTER
 
@@ -316,6 +305,8 @@ constexpr Register kRuntimeCallArgCountRegister = r3;
 constexpr Register kRuntimeCallArgvRegister = r5;
 constexpr Register kWasmInstanceRegister = r10;
 constexpr Register kWasmCompileLazyFuncIndexRegister = r15;
+
+constexpr DoubleRegister kFPReturnRegister0 = d1;
 
 }  // namespace internal
 }  // namespace v8

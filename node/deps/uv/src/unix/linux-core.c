@@ -85,11 +85,6 @@ static uint64_t read_cpufreq(unsigned int cpunum);
 
 int uv__platform_loop_init(uv_loop_t* loop) {
   int fd;
-
-  /* It was reported that EPOLL_CLOEXEC is not defined on Android API < 21,
-   * a.k.a. Lollipop. Since EPOLL_CLOEXEC is an alias for O_CLOEXEC on all
-   * architectures, we just use that instead.
-   */
   fd = epoll_create1(O_CLOEXEC);
 
   /* epoll_create1() can fail either because it's not implemented (old kernel)
@@ -203,6 +198,10 @@ void uv__io_poll(uv_loop_t* loop, int timeout) {
    * that being the largest value I have seen in the wild (and only once.)
    */
   static const int max_safe_timeout = 1789569;
+  static int no_epoll_pwait_cached;
+  static int no_epoll_wait_cached;
+  int no_epoll_pwait;
+  int no_epoll_wait;
   struct epoll_event events[1024];
   struct epoll_event* pe;
   struct epoll_event e;
@@ -210,7 +209,7 @@ void uv__io_poll(uv_loop_t* loop, int timeout) {
   QUEUE* q;
   uv__io_t* w;
   sigset_t sigset;
-  sigset_t* psigset;
+  uint64_t sigmask;
   uint64_t base;
   int have_signals;
   int nevents;
@@ -262,17 +261,26 @@ void uv__io_poll(uv_loop_t* loop, int timeout) {
     w->events = w->pevents;
   }
 
-  psigset = NULL;
+  sigmask = 0;
   if (loop->flags & UV_LOOP_BLOCK_SIGPROF) {
     sigemptyset(&sigset);
     sigaddset(&sigset, SIGPROF);
-    psigset = &sigset;
+    sigmask |= 1 << (SIGPROF - 1);
   }
 
   assert(timeout >= -1);
   base = loop->time;
   count = 48; /* Benchmarks suggest this gives the best throughput. */
   real_timeout = timeout;
+
+  /* You could argue there is a dependency between these two but
+   * ultimately we don't care about their ordering with respect
+   * to one another. Worst case, we make a few system calls that
+   * could have been avoided because another thread already knows
+   * they fail with ENOSYS. Hardly the end of the world.
+   */
+  no_epoll_pwait = uv__load_relaxed(&no_epoll_pwait_cached);
+  no_epoll_wait = uv__load_relaxed(&no_epoll_wait_cached);
 
   for (;;) {
     /* See the comment for max_safe_timeout for an explanation of why
@@ -281,11 +289,34 @@ void uv__io_poll(uv_loop_t* loop, int timeout) {
     if (sizeof(int32_t) == sizeof(long) && timeout >= max_safe_timeout)
       timeout = max_safe_timeout;
 
-    nfds = epoll_pwait(loop->backend_fd,
-                       events,
-                       ARRAY_SIZE(events),
-                       timeout,
-                       psigset);
+    if (sigmask != 0 && no_epoll_pwait != 0)
+      if (pthread_sigmask(SIG_BLOCK, &sigset, NULL))
+        abort();
+
+    if (no_epoll_wait != 0 || (sigmask != 0 && no_epoll_pwait == 0)) {
+      nfds = epoll_pwait(loop->backend_fd,
+                         events,
+                         ARRAY_SIZE(events),
+                         timeout,
+                         &sigset);
+      if (nfds == -1 && errno == ENOSYS) {
+        uv__store_relaxed(&no_epoll_pwait_cached, 1);
+        no_epoll_pwait = 1;
+      }
+    } else {
+      nfds = epoll_wait(loop->backend_fd,
+                        events,
+                        ARRAY_SIZE(events),
+                        timeout);
+      if (nfds == -1 && errno == ENOSYS) {
+        uv__store_relaxed(&no_epoll_wait_cached, 1);
+        no_epoll_wait = 1;
+      }
+    }
+
+    if (sigmask != 0 && no_epoll_pwait != 0)
+      if (pthread_sigmask(SIG_UNBLOCK, &sigset, NULL))
+        abort();
 
     /* Update loop->time unconditionally. It's tempting to skip the update when
      * timeout == 0 (i.e. non-blocking poll) but there is no guarantee that the
@@ -306,6 +337,12 @@ void uv__io_poll(uv_loop_t* loop, int timeout) {
     }
 
     if (nfds == -1) {
+      if (errno == ENOSYS) {
+        /* epoll_wait() or epoll_pwait() failed, try the other system call. */
+        assert(no_epoll_wait == 0 || no_epoll_pwait == 0);
+        continue;
+      }
+
       if (errno != EINTR)
         abort();
 
@@ -322,9 +359,19 @@ void uv__io_poll(uv_loop_t* loop, int timeout) {
     have_signals = 0;
     nevents = 0;
 
-    assert(loop->watchers != NULL);
-    loop->watchers[loop->nwatchers] = (void*) events;
-    loop->watchers[loop->nwatchers + 1] = (void*) (uintptr_t) nfds;
+    {
+      /* Squelch a -Waddress-of-packed-member warning with gcc >= 9. */
+      union {
+        struct epoll_event* events;
+        uv__io_t* watchers;
+      } x;
+
+      x.events = events;
+      assert(loop->watchers != NULL);
+      loop->watchers[loop->nwatchers] = x.watchers;
+      loop->watchers[loop->nwatchers + 1] = (void*) (uintptr_t) nfds;
+    }
+
     for (i = 0; i < nfds; i++) {
       pe = events + i;
       fd = pe->data.fd;
@@ -721,7 +768,8 @@ static int read_times(FILE* statfile_fp,
                       unsigned int numcpus,
                       uv_cpu_info_t* ci) {
   struct uv_cpu_times_s ts;
-  uint64_t clock_ticks;
+  unsigned int ticks;
+  unsigned int multiplier;
   uint64_t user;
   uint64_t nice;
   uint64_t sys;
@@ -732,9 +780,10 @@ static int read_times(FILE* statfile_fp,
   uint64_t len;
   char buf[1024];
 
-  clock_ticks = sysconf(_SC_CLK_TCK);
-  assert(clock_ticks != (uint64_t) -1);
-  assert(clock_ticks != 0);
+  ticks = (unsigned int)sysconf(_SC_CLK_TCK);
+  multiplier = ((uint64_t)1000L / ticks);
+  assert(ticks != (unsigned int) -1);
+  assert(ticks != 0);
 
   rewind(statfile_fp);
 
@@ -776,11 +825,11 @@ static int read_times(FILE* statfile_fp,
                     &irq))
       abort();
 
-    ts.user = clock_ticks * user;
-    ts.nice = clock_ticks * nice;
-    ts.sys  = clock_ticks * sys;
-    ts.idle = clock_ticks * idle;
-    ts.irq  = clock_ticks * irq;
+    ts.user = user * multiplier;
+    ts.nice = nice * multiplier;
+    ts.sys  = sys * multiplier;
+    ts.idle = idle * multiplier;
+    ts.irq  = irq * multiplier;
     ci[num++].cpu_times = ts;
   }
   assert(num == numcpus);
@@ -933,43 +982,51 @@ void uv__set_process_title(const char* title) {
 }
 
 
-static uint64_t uv__read_proc_meminfo(const char* what) {
-  uint64_t rc;
+static int uv__slurp(const char* filename, char* buf, size_t len) {
   ssize_t n;
-  char* p;
   int fd;
-  char buf[4096];  /* Large enough to hold all of /proc/meminfo. */
 
-  rc = 0;
-  fd = uv__open_cloexec("/proc/meminfo", O_RDONLY);
+  assert(len > 0);
 
-  if (fd == -1)
-    return 0;
+  fd = uv__open_cloexec(filename, O_RDONLY);
+  if (fd < 0)
+    return fd;
 
-  n = read(fd, buf, sizeof(buf) - 1);
-
-  if (n <= 0)
-    goto out;
-
-  buf[n] = '\0';
-  p = strstr(buf, what);
-
-  if (p == NULL)
-    goto out;
-
-  p += strlen(what);
-
-  if (1 != sscanf(p, "%" PRIu64 " kB", &rc))
-    goto out;
-
-  rc *= 1024;
-
-out:
+  do
+    n = read(fd, buf, len - 1);
+  while (n == -1 && errno == EINTR);
 
   if (uv__close_nocheckstdio(fd))
     abort();
 
-  return rc;
+  if (n < 0)
+    return UV__ERR(errno);
+
+  buf[n] = '\0';
+
+  return 0;
+}
+
+
+static uint64_t uv__read_proc_meminfo(const char* what) {
+  uint64_t rc;
+  char* p;
+  char buf[4096];  /* Large enough to hold all of /proc/meminfo. */
+
+  if (uv__slurp("/proc/meminfo", buf, sizeof(buf)))
+    return 0;
+
+  p = strstr(buf, what);
+
+  if (p == NULL)
+    return 0;
+
+  p += strlen(what);
+
+  rc = 0;
+  sscanf(p, "%" PRIu64 " kB", &rc);
+
+  return rc * 1024;
 }
 
 
@@ -1007,28 +1064,13 @@ uint64_t uv_get_total_memory(void) {
 
 static uint64_t uv__read_cgroups_uint64(const char* cgroup, const char* param) {
   char filename[256];
-  uint64_t rc;
-  int fd;
-  ssize_t n;
   char buf[32];  /* Large enough to hold an encoded uint64_t. */
-
-  snprintf(filename, 256, "/sys/fs/cgroup/%s/%s", cgroup, param);
+  uint64_t rc;
 
   rc = 0;
-  fd = uv__open_cloexec(filename, O_RDONLY);
-
-  if (fd < 0)
-    return 0;
-
-  n = read(fd, buf, sizeof(buf) - 1);
-
-  if (n > 0) {
-    buf[n] = '\0';
+  snprintf(filename, sizeof(filename), "/sys/fs/cgroup/%s/%s", cgroup, param);
+  if (0 == uv__slurp(filename, buf, sizeof(buf)))
     sscanf(buf, "%" PRIu64, &rc);
-  }
-
-  if (uv__close_nocheckstdio(fd))
-    abort();
 
   return rc;
 }
@@ -1041,4 +1083,21 @@ uint64_t uv_get_constrained_memory(void) {
    * limit is unknown.
    */
   return uv__read_cgroups_uint64("memory", "memory.limit_in_bytes");
+}
+
+
+void uv_loadavg(double avg[3]) {
+  struct sysinfo info;
+  char buf[128];  /* Large enough to hold all of /proc/loadavg. */
+
+  if (0 == uv__slurp("/proc/loadavg", buf, sizeof(buf)))
+    if (3 == sscanf(buf, "%lf %lf %lf", &avg[0], &avg[1], &avg[2]))
+      return;
+
+  if (sysinfo(&info) < 0)
+    return;
+
+  avg[0] = (double) info.loads[0] / 65536.0;
+  avg[1] = (double) info.loads[1] / 65536.0;
+  avg[2] = (double) info.loads[2] / 65536.0;
 }

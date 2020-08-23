@@ -3,9 +3,15 @@ const {
   ERR_INVALID_ARG_TYPE,
   ERR_SYNTHETIC
 } = require('internal/errors').codes;
-const { validateSignalName, validateString } = require('internal/validators');
+const {
+  validateSignalName,
+  validateString,
+  validateBoolean,
+} = require('internal/validators');
 const nr = internalBinding('report');
-const { JSON } = primordials;
+const {
+  JSONParse,
+} = primordials;
 const report = {
   writeReport(file, err) {
     if (typeof file === 'object' && file !== null) {
@@ -19,7 +25,7 @@ const report = {
       throw new ERR_INVALID_ARG_TYPE('err', 'Object', err);
     }
 
-    return nr.writeReport('JavaScript API', 'API', file, err.stack);
+    return nr.writeReport('JavaScript API', 'API', file, err);
   },
   getReport(err) {
     if (err === undefined)
@@ -27,7 +33,7 @@ const report = {
     else if (err === null || typeof err !== 'object')
       throw new ERR_INVALID_ARG_TYPE('err', 'Object', err);
 
-    return JSON.parse(nr.getReport(err.stack));
+    return JSONParse(nr.getReport(err));
   },
   get directory() {
     return nr.getDirectory();
@@ -42,6 +48,13 @@ const report = {
   set filename(name) {
     validateString(name, 'filename');
     nr.setFilename(name);
+  },
+  get compact() {
+    return nr.getCompact();
+  },
+  set compact(b) {
+    validateBoolean(b, 'compact');
+    nr.setCompact(b);
   },
   get signal() {
     return nr.getSignal();

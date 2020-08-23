@@ -1,9 +1,10 @@
 #include "inspector_profiler.h"
 #include "base_object-inl.h"
-#include "debug_utils.h"
+#include "debug_utils-inl.h"
 #include "diagnosticfilename-inl.h"
 #include "memory_tracker-inl.h"
 #include "node_file.h"
+#include "node_errors.h"
 #include "node_internals.h"
 #include "util-inl.h"
 #include "v8-inspector.h"
@@ -13,6 +14,7 @@
 namespace node {
 namespace profiler {
 
+using errors::TryCatchScope;
 using v8::Context;
 using v8::Function;
 using v8::FunctionCallbackInfo;
@@ -105,9 +107,9 @@ void V8ProfilerConnection::V8ProfilerSessionDelegate::SendMessageToFrontend(
 }
 
 static bool EnsureDirectory(const std::string& directory, const char* type) {
-  uv_fs_t req;
-  int ret = fs::MKDirpSync(nullptr, &req, directory, 0777, nullptr);
-  uv_fs_req_cleanup(&req);
+  fs::FSReqWrapSync req_wrap_sync;
+  int ret = fs::MKDirpSync(nullptr, &req_wrap_sync.req, directory, 0777,
+                           nullptr);
   if (ret < 0 && ret != UV_EEXIST) {
     char err_buf[128];
     uv_err_name_r(ret, err_buf, sizeof(err_buf));
@@ -207,6 +209,16 @@ void V8CoverageConnection::WriteProfile(Local<String> message) {
   HandleScope handle_scope(isolate);
   Context::Scope context_scope(context);
 
+  // This is only set up during pre-execution (when the environment variables
+  // becomes available in the JS land). If it's empty, we don't have coverage
+  // directory path (which is resolved in JS land at the moment) either, so
+  // the best we could to is to just discard the profile and do nothing.
+  // This should only happen in half-baked Environments created using the
+  // embedder API.
+  if (env_->source_map_cache_getter().IsEmpty()) {
+    return;
+  }
+
   // Get message.result from the response.
   Local<Object> result;
   if (!ParseProfile(env_, message, type()).ToLocal(&result)) {
@@ -219,12 +231,21 @@ void V8CoverageConnection::WriteProfile(Local<String> message) {
   }
 
   // append source-map cache information to coverage object:
-  Local<Function> source_map_cache_getter = env_->source_map_cache_getter();
   Local<Value> source_map_cache_v;
-  if (!source_map_cache_getter->Call(env()->context(),
-      Undefined(isolate), 0, nullptr)
-      .ToLocal(&source_map_cache_v)) {
-    return;
+  {
+    TryCatchScope try_catch(env());
+    {
+      Isolate::AllowJavascriptExecutionScope allow_js_here(isolate);
+      Local<Function> source_map_cache_getter = env_->source_map_cache_getter();
+      if (!source_map_cache_getter->Call(
+              context, Undefined(isolate), 0, nullptr)
+              .ToLocal(&source_map_cache_v)) {
+        return;
+      }
+    }
+    if (try_catch.HasCaught() && !try_catch.HasTerminated()) {
+      PrintCaughtException(isolate, context, try_catch);
+    }
   }
   // Avoid writing to disk if no source-map data:
   if (!source_map_cache_v->IsUndefined()) {
@@ -351,7 +372,7 @@ void V8HeapProfilerConnection::End() {
 
 // For now, we only support coverage profiling, but we may add more
 // in the future.
-void EndStartedProfilers(Environment* env) {
+static void EndStartedProfilers(Environment* env) {
   Debug(env, DebugCategory::INSPECTOR_PROFILER, "EndStartedProfilers\n");
   V8ProfilerConnection* connection = env->cpu_profiler_connection();
   if (connection != nullptr && !connection->ending()) {
@@ -390,6 +411,10 @@ std::string GetCwd(Environment* env) {
 }
 
 void StartProfilers(Environment* env) {
+  AtExit(env, [](void* env) {
+    EndStartedProfilers(static_cast<Environment*>(env));
+  }, env);
+
   Isolate* isolate = env->isolate();
   Local<String> coverage_str = env->env_vars()->Get(
       isolate, FIXED_ONE_BYTE_STRING(isolate, "NODE_V8_COVERAGE"))

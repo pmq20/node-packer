@@ -21,7 +21,10 @@
 
 'use strict';
 
-const { Math } = primordials;
+const {
+  MathTrunc,
+  Promise,
+} = primordials;
 
 const {
   immediateInfo,
@@ -43,14 +46,17 @@ const {
   timerListQueue,
   immediateQueue,
   active,
-  unrefActive
+  unrefActive,
+  insert
 } = require('internal/timers');
 const {
   promisify: { custom: customPromisify },
   deprecate
 } = require('internal/util');
-const { ERR_INVALID_CALLBACK } = require('internal/errors').codes;
-const debug = require('internal/util/debuglog').debuglog('timer');
+let debug = require('internal/util/debuglog').debuglog('timer', (fn) => {
+  debug = fn;
+});
+const { validateCallback } = require('internal/validators');
 
 const {
   destroyHooksExist,
@@ -60,13 +66,14 @@ const {
 
 // Remove a timer. Cancels the timeout and resets the relevant timer properties.
 function unenroll(item) {
-  // Fewer checks may be possible, but these cover everything.
-  if (destroyHooksExist() &&
-      item[async_id_symbol] !== undefined &&
-      !item._destroyed) {
-    emitDestroy(item[async_id_symbol]);
-  }
+  if (item._destroyed)
+    return;
+
   item._destroyed = true;
+
+  // Fewer checks may be possible, but these cover everything.
+  if (destroyHooksExist() && item[async_id_symbol] !== undefined)
+    emitDestroy(item[async_id_symbol]);
 
   L.remove(item);
 
@@ -77,7 +84,7 @@ function unenroll(item) {
   // That function could then be used by http and other similar modules.
   if (item[kRefed]) {
     // Compliment truncation during insert().
-    const msecs = Math.trunc(item._idleTimeout);
+    const msecs = MathTrunc(item._idleTimeout);
     const list = timerListMap[msecs];
     if (list !== undefined && L.isEmpty(list)) {
       debug('unenroll: list empty');
@@ -87,7 +94,6 @@ function unenroll(item) {
 
     decRefCount();
   }
-  item[kRefed] = null;
 
   // If active is called later, then we want to make sure not to insert again
   item._idleTimeout = -1;
@@ -114,11 +120,9 @@ function enroll(item, msecs) {
 
 
 function setTimeout(callback, after, arg1, arg2, arg3) {
-  if (typeof callback !== 'function') {
-    throw new ERR_INVALID_CALLBACK(callback);
-  }
+  validateCallback(callback);
 
-  var i, args;
+  let i, args;
   switch (arguments.length) {
     // fast cases
     case 1:
@@ -139,8 +143,8 @@ function setTimeout(callback, after, arg1, arg2, arg3) {
       break;
   }
 
-  const timeout = new Timeout(callback, after, args, false);
-  active(timeout);
+  const timeout = new Timeout(callback, after, args, false, true);
+  insert(timeout, timeout._idleTimeout);
 
   return timeout;
 }
@@ -148,7 +152,8 @@ function setTimeout(callback, after, arg1, arg2, arg3) {
 setTimeout[customPromisify] = function(after, value) {
   const args = value !== undefined ? [value] : value;
   return new Promise((resolve) => {
-    active(new Timeout(resolve, after, args, false));
+    const timeout = new Timeout(resolve, after, args, false, true);
+    insert(timeout, timeout._idleTimeout);
   });
 };
 
@@ -160,11 +165,9 @@ function clearTimeout(timer) {
 }
 
 function setInterval(callback, repeat, arg1, arg2, arg3) {
-  if (typeof callback !== 'function') {
-    throw new ERR_INVALID_CALLBACK(callback);
-  }
+  validateCallback(callback);
 
-  var i, args;
+  let i, args;
   switch (arguments.length) {
     // fast cases
     case 1:
@@ -185,8 +188,8 @@ function setInterval(callback, repeat, arg1, arg2, arg3) {
       break;
   }
 
-  const timeout = new Timeout(callback, repeat, args, true);
-  active(timeout);
+  const timeout = new Timeout(callback, repeat, args, true, true);
+  insert(timeout, timeout._idleTimeout);
 
   return timeout;
 }
@@ -244,11 +247,9 @@ const Immediate = class Immediate {
 };
 
 function setImmediate(callback, arg1, arg2, arg3) {
-  if (typeof callback !== 'function') {
-    throw new ERR_INVALID_CALLBACK(callback);
-  }
+  validateCallback(callback);
 
-  var i, args;
+  let i, args;
   switch (arguments.length) {
     // fast cases
     case 1:

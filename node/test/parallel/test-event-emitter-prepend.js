@@ -18,17 +18,6 @@ myEE.prependOnceListener('foo',
 
 myEE.emit('foo');
 
-// Verify that the listener must be a function
-common.expectsError(() => {
-  const ee = new EventEmitter();
-  ee.prependOnceListener('foo', null);
-}, {
-  code: 'ERR_INVALID_ARG_TYPE',
-  type: TypeError,
-  message: 'The "listener" argument must be of type Function. ' +
-           'Received type object'
-});
-
 // Test fallback if prependListener is undefined.
 const stream = require('stream');
 

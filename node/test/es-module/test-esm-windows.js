@@ -1,6 +1,5 @@
 'use strict';
 
-// Flags: --experimental-modules
 // This test ensures that JavaScript file that includes
 // a reserved Windows word can be loaded as ESM module
 
@@ -15,9 +14,8 @@ const imp = (file) => {
 };
 
 (async () => {
-  const tmp = tmpdir.path;
-  await fs.mkdir(tmp).catch(() => {});
-  const rel = (file) => path.join(tmp, file);
+  tmpdir.refresh();
+  const rel = (file) => path.join(tmpdir.path, file);
 
   { // Load a single script
     const file = rel('con.mjs');

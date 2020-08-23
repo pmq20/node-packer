@@ -31,7 +31,8 @@ void EmbeddedFileWriter::WriteBuiltin(PlatformEmbeddedFileWriterBase* w,
   // Isolate::SetEmbeddedBlob that the blob layout remains unchanged, i.e.
   // that labels do not insert bytes into the middle of the blob byte
   // stream.
-  w->DeclareFunctionBegin(builtin_symbol.begin());
+  w->DeclareFunctionBegin(builtin_symbol.begin(),
+                          blob->InstructionSizeOfBuiltin(builtin_id));
   const std::vector<byte>& current_positions = source_positions_[builtin_id];
 
   // The code below interleaves bytes of assembly code for the builtin
@@ -39,6 +40,10 @@ void EmbeddedFileWriter::WriteBuiltin(PlatformEmbeddedFileWriterBase* w,
   Vector<const byte> vpos(current_positions.data(), current_positions.size());
   v8::internal::SourcePositionTableIterator positions(
       vpos, SourcePositionTableIterator::kExternalOnly);
+
+#ifndef DEBUG
+  CHECK(positions.done());  // Release builds must not contain debug infos.
+#endif
 
   const uint8_t* data = reinterpret_cast<const uint8_t*>(
       blob->InstructionStartOfBuiltin(builtin_id));
@@ -92,7 +97,7 @@ void EmbeddedFileWriter::WriteFileEpilogue(PlatformEmbeddedFileWriterBase* w,
     w->Newline();
   }
 
-#if defined(V8_OS_WIN_X64)
+#if defined(V8_OS_WIN64)
   {
     i::EmbeddedVector<char, kTemporaryStringLength> unwind_info_symbol;
     i::SNPrintF(unwind_info_symbol, "%s_Builtins_UnwindInfo",
@@ -102,7 +107,7 @@ void EmbeddedFileWriter::WriteFileEpilogue(PlatformEmbeddedFileWriterBase* w,
                            EmbeddedBlobDataSymbol().c_str(), blob,
                            reinterpret_cast<const void*>(&unwind_infos_[0]));
   }
-#endif
+#endif  // V8_OS_WIN64
 
   w->FileEpilogue();
 }

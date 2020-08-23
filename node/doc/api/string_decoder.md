@@ -1,8 +1,10 @@
-# String Decoder
+# String decoder
 
 <!--introduced_in=v0.10.0-->
 
 > Stability: 2 - Stable
+
+<!-- source_link=lib/string_decoder.js -->
 
 The `string_decoder` module provides an API for decoding `Buffer` objects into
 strings in a manner that preserves encoded multi-byte UTF-8 and UTF-16
@@ -42,19 +44,19 @@ decoder.write(Buffer.from([0x82]));
 console.log(decoder.end(Buffer.from([0xAC])));
 ```
 
-## Class: StringDecoder
+## Class: `StringDecoder`
 
-### new StringDecoder(\[encoding\])
+### `new StringDecoder([encoding])`
 <!-- YAML
 added: v0.1.99
 -->
 
-* `encoding` {string} The character encoding the `StringDecoder` will use.
+* `encoding` {string} The character [encoding][] the `StringDecoder` will use.
   **Default:** `'utf8'`.
 
 Creates a new `StringDecoder` instance.
 
-### stringDecoder.end(\[buffer\])
+### `stringDecoder.end([buffer])`
 <!-- YAML
 added: v0.9.3
 -->
@@ -70,7 +72,7 @@ substitution characters appropriate for the character encoding.
 If the `buffer` argument is provided, one final call to `stringDecoder.write()`
 is performed before returning the remaining input.
 
-### stringDecoder.write(buffer)
+### `stringDecoder.write(buffer)`
 <!-- YAML
 added: v0.1.99
 changes:
@@ -88,3 +90,5 @@ Returns a decoded string, ensuring that any incomplete multibyte characters at
  the end of the `Buffer`, or `TypedArray`, or `DataView` are omitted from the
  returned string and stored in an internal buffer for the next call to
  `stringDecoder.write()` or `stringDecoder.end()`.
+
+[encoding]: buffer.html#buffer_buffers_and_character_encodings

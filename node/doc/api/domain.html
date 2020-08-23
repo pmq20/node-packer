@@ -3,10 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Domain | Node.js v12.13.0 Documentation</title>
+  <meta name="nodejs.org:node-version" content="v14.8.0">
+  <title>Domain | Node.js v14.8.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
-  <link rel="stylesheet" href="assets/sh.css">
+  <link rel="stylesheet" href="assets/hljs.css">
   <link rel="canonical" href="https://nodejs.org/api/domain.html">
 </head>
 <body class="alt apidoc" id="api-section-domain">
@@ -18,29 +19,30 @@
         </a>
       </div>
       <ul>
-<li><a href="documentation.html" class="nav-documentation">About these Docs</a></li>
-<li><a href="synopsis.html" class="nav-synopsis">Usage &#x26; Example</a></li>
+<li><a href="documentation.html" class="nav-documentation">About this documentation</a></li>
+<li><a href="synopsis.html" class="nav-synopsis">Usage and example</a></li>
 </ul>
 <div class="line"></div>
 <ul>
-<li><a href="assert.html" class="nav-assert">Assertion Testing</a></li>
-<li><a href="async_hooks.html" class="nav-async_hooks">Async Hooks</a></li>
+<li><a href="assert.html" class="nav-assert">Assertion testing</a></li>
+<li><a href="async_hooks.html" class="nav-async_hooks">Async hooks</a></li>
 <li><a href="buffer.html" class="nav-buffer">Buffer</a></li>
-<li><a href="addons.html" class="nav-addons">C++ Addons</a></li>
-<li><a href="n-api.html" class="nav-n-api">C/C++ Addons - N-API</a></li>
-<li><a href="child_process.html" class="nav-child_process">Child Processes</a></li>
+<li><a href="addons.html" class="nav-addons">C++ addons</a></li>
+<li><a href="n-api.html" class="nav-n-api">C/C++ addons with N-API</a></li>
+<li><a href="embedding.html" class="nav-embedding">C++ embedder API</a></li>
+<li><a href="child_process.html" class="nav-child_process">Child processes</a></li>
 <li><a href="cluster.html" class="nav-cluster">Cluster</a></li>
-<li><a href="cli.html" class="nav-cli">Command Line Options</a></li>
+<li><a href="cli.html" class="nav-cli">Command line options</a></li>
 <li><a href="console.html" class="nav-console">Console</a></li>
 <li><a href="crypto.html" class="nav-crypto">Crypto</a></li>
 <li><a href="debugger.html" class="nav-debugger">Debugger</a></li>
 <li><a href="deprecations.html" class="nav-deprecations">Deprecated APIs</a></li>
 <li><a href="dns.html" class="nav-dns">DNS</a></li>
 <li><a href="domain.html" class="nav-domain active">Domain</a></li>
-<li><a href="esm.html" class="nav-esm">ECMAScript Modules</a></li>
+<li><a href="esm.html" class="nav-esm">ECMAScript modules</a></li>
 <li><a href="errors.html" class="nav-errors">Errors</a></li>
 <li><a href="events.html" class="nav-events">Events</a></li>
-<li><a href="fs.html" class="nav-fs">File System</a></li>
+<li><a href="fs.html" class="nav-fs">File system</a></li>
 <li><a href="globals.html" class="nav-globals">Globals</a></li>
 <li><a href="http.html" class="nav-http">HTTP</a></li>
 <li><a href="http2.html" class="nav-http2">HTTP/2</a></li>
@@ -51,37 +53,38 @@
 <li><a href="net.html" class="nav-net">Net</a></li>
 <li><a href="os.html" class="nav-os">OS</a></li>
 <li><a href="path.html" class="nav-path">Path</a></li>
-<li><a href="perf_hooks.html" class="nav-perf_hooks">Performance Hooks</a></li>
+<li><a href="perf_hooks.html" class="nav-perf_hooks">Performance hooks</a></li>
 <li><a href="policy.html" class="nav-policy">Policies</a></li>
 <li><a href="process.html" class="nav-process">Process</a></li>
 <li><a href="punycode.html" class="nav-punycode">Punycode</a></li>
-<li><a href="querystring.html" class="nav-querystring">Query Strings</a></li>
+<li><a href="querystring.html" class="nav-querystring">Query strings</a></li>
 <li><a href="readline.html" class="nav-readline">Readline</a></li>
 <li><a href="repl.html" class="nav-repl">REPL</a></li>
 <li><a href="report.html" class="nav-report">Report</a></li>
 <li><a href="stream.html" class="nav-stream">Stream</a></li>
-<li><a href="string_decoder.html" class="nav-string_decoder">String Decoder</a></li>
+<li><a href="string_decoder.html" class="nav-string_decoder">String decoder</a></li>
 <li><a href="timers.html" class="nav-timers">Timers</a></li>
 <li><a href="tls.html" class="nav-tls">TLS/SSL</a></li>
-<li><a href="tracing.html" class="nav-tracing">Trace Events</a></li>
+<li><a href="tracing.html" class="nav-tracing">Trace events</a></li>
 <li><a href="tty.html" class="nav-tty">TTY</a></li>
-<li><a href="dgram.html" class="nav-dgram">UDP/Datagram</a></li>
+<li><a href="dgram.html" class="nav-dgram">UDP/datagram</a></li>
 <li><a href="url.html" class="nav-url">URL</a></li>
 <li><a href="util.html" class="nav-util">Utilities</a></li>
 <li><a href="v8.html" class="nav-v8">V8</a></li>
 <li><a href="vm.html" class="nav-vm">VM</a></li>
-<li><a href="worker_threads.html" class="nav-worker_threads">Worker Threads</a></li>
+<li><a href="wasi.html" class="nav-wasi">WASI</a></li>
+<li><a href="worker_threads.html" class="nav-worker_threads">Worker threads</a></li>
 <li><a href="zlib.html" class="nav-zlib">Zlib</a></li>
 </ul>
 <div class="line"></div>
 <ul>
-<li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">GitHub Repo &#x26; Issue Tracker</a></li>
+<li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">Code repository and issue tracker</a></li>
 </ul>
     </div>
 
     <div id="column1" data-id="domain" class="interior">
       <header>
-        <h1>Node.js v12.13.0 Documentation</h1>
+        <h1>Node.js v14.8.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -96,11 +99,13 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v12.x/api/domain.html">12.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v14.x/api/domain.html">14.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v13.x/api/domain.html">13.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v12.x/api/domain.html">12.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v11.x/api/domain.html">11.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v10.x/api/domain.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/domain.html">9.x</a></li>
-<li><a href="https://nodejs.org/docs/latest-v8.x/api/domain.html">8.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v8.x/api/domain.html">8.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/domain.html">7.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v6.x/api/domain.html">6.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v5.x/api/domain.html">5.x</a></li>
@@ -121,25 +126,25 @@
 <li>
 <p><span class="stability_0"><a href="#domain_domain">Domain</a></span></p>
 <ul>
-<li><a href="#domain_warning_don_t_ignore_errors">Warning: Don't Ignore Errors!</a></li>
-<li><a href="#domain_additions_to_error_objects">Additions to Error objects</a></li>
-<li><a href="#domain_implicit_binding">Implicit Binding</a></li>
-<li><a href="#domain_explicit_binding">Explicit Binding</a></li>
-<li><a href="#domain_domain_create">domain.create()</a></li>
+<li><a href="#domain_warning_don_t_ignore_errors">Warning: Don't ignore errors!</a></li>
+<li><a href="#domain_additions_to_error_objects">Additions to <code>Error</code> objects</a></li>
+<li><a href="#domain_implicit_binding">Implicit binding</a></li>
+<li><a href="#domain_explicit_binding">Explicit binding</a></li>
+<li><a href="#domain_domain_create"><code>domain.create()</code></a></li>
 <li>
-<p><a href="#domain_class_domain">Class: Domain</a></p>
+<p><a href="#domain_class_domain">Class: <code>Domain</code></a></p>
 <ul>
-<li><a href="#domain_domain_members">domain.members</a></li>
-<li><a href="#domain_domain_add_emitter">domain.add(emitter)</a></li>
-<li><a href="#domain_domain_bind_callback">domain.bind(callback)</a></li>
-<li><a href="#domain_domain_enter">domain.enter()</a></li>
-<li><a href="#domain_domain_exit">domain.exit()</a></li>
-<li><a href="#domain_domain_intercept_callback">domain.intercept(callback)</a></li>
-<li><a href="#domain_domain_remove_emitter">domain.remove(emitter)</a></li>
-<li><a href="#domain_domain_run_fn_args">domain.run(fn[, ...args])</a></li>
+<li><a href="#domain_domain_members"><code>domain.members</code></a></li>
+<li><a href="#domain_domain_add_emitter"><code>domain.add(emitter)</code></a></li>
+<li><a href="#domain_domain_bind_callback"><code>domain.bind(callback)</code></a></li>
+<li><a href="#domain_domain_enter"><code>domain.enter()</code></a></li>
+<li><a href="#domain_domain_exit"><code>domain.exit()</code></a></li>
+<li><a href="#domain_domain_intercept_callback"><code>domain.intercept(callback)</code></a></li>
+<li><a href="#domain_domain_remove_emitter"><code>domain.remove(emitter)</code></a></li>
+<li><a href="#domain_domain_run_fn_args"><code>domain.run(fn[, ...args])</code></a></li>
 </ul>
 </li>
-<li><a href="#domain_domains_and_promises">Domains and Promises</a></li>
+<li><a href="#domain_domains_and_promises">Domains and promises</a></li>
 </ul>
 </li>
 </ul>
@@ -160,6 +165,7 @@
 </div>
 
 <p></p><div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated</div><p></p>
+<p><strong>Source Code:</strong> <a href="https://github.com/nodejs/node/blob/v14.8.0/lib/domain.js">lib/domain.js</a></p>
 <p><strong>This module is pending deprecation</strong>. Once a replacement API has been
 finalized, this module will be fully deprecated. Most end users should
 <strong>not</strong> have cause to use this module. Users who absolutely must have
@@ -172,7 +178,7 @@ domain emit an <code>'error'</code> event, or throw an error, then the domain ob
 will be notified, rather than losing the context of the error in the
 <code>process.on('uncaughtException')</code> handler, or causing the program to
 exit immediately with an error code.</p>
-<h2>Warning: Don't Ignore Errors!<span><a class="mark" href="#domain_warning_don_t_ignore_errors" id="domain_warning_don_t_ignore_errors">#</a></span></h2>
+<h2>Warning: Don't ignore errors!<span><a class="mark" href="#domain_warning_don_t_ignore_errors" id="domain_warning_don_t_ignore_errors">#</a></span></h2>
 
 <p>Domain error handlers are not a substitute for closing down a
 process when an error occurs.</p>
@@ -192,128 +198,126 @@ encounters an error. For Node.js programs that scale to multiple
 machines, the terminating proxy or service registry can take note of
 the failure, and react accordingly.</p>
 <p>For example, this is not a good idea:</p>
-<pre><code class="language-js">// XXX WARNING! BAD IDEA!
+<pre><code class="language-js"><span class="hljs-comment">// XXX WARNING! BAD IDEA!</span>
 
-const d = require('domain').create();
-d.on('error', (er) => {
-  // The error won't crash the process, but what it does is worse!
-  // Though we've prevented abrupt process restarting, we are leaking
-  // resources like crazy if this ever happens.
-  // This is no better than process.on('uncaughtException')!
-  console.log(`error, but oh well ${er.message}`);
+<span class="hljs-keyword">const</span> d = <span class="hljs-built_in">require</span>(<span class="hljs-string">'domain'</span>).create();
+d.on(<span class="hljs-string">'error'</span>, (er) => {
+  <span class="hljs-comment">// The error won't crash the process, but what it does is worse!</span>
+  <span class="hljs-comment">// Though we've prevented abrupt process restarting, we are leaking</span>
+  <span class="hljs-comment">// resources like crazy if this ever happens.</span>
+  <span class="hljs-comment">// This is no better than process.on('uncaughtException')!</span>
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`error, but oh well <span class="hljs-subst">${er.message}</span>`</span>);
 });
-d.run(() => {
-  require('http').createServer((req, res) => {
+d.run(<span class="hljs-function"><span class="hljs-params">()</span> =></span> {
+  <span class="hljs-built_in">require</span>(<span class="hljs-string">'http'</span>).createServer(<span class="hljs-function">(<span class="hljs-params">req, res</span>) =></span> {
     handleRequest(req, res);
   }).listen(PORT);
-});
-</code></pre>
+});</code></pre>
 <p>By using the context of a domain, and the resilience of separating our
 program into multiple worker processes, we can react more
 appropriately, and handle errors with much greater safety.</p>
-<pre><code class="language-js">// Much better!
+<pre><code class="language-js"><span class="hljs-comment">// Much better!</span>
 
-const cluster = require('cluster');
-const PORT = +process.env.PORT || 1337;
+<span class="hljs-keyword">const</span> cluster = <span class="hljs-built_in">require</span>(<span class="hljs-string">'cluster'</span>);
+<span class="hljs-keyword">const</span> PORT = +process.env.PORT || <span class="hljs-number">1337</span>;
 
-if (cluster.isMaster) {
-  // A more realistic scenario would have more than 2 workers,
-  // and perhaps not put the master and worker in the same file.
-  //
-  // It is also possible to get a bit fancier about logging, and
-  // implement whatever custom logic is needed to prevent DoS
-  // attacks and other bad behavior.
-  //
-  // See the options in the cluster documentation.
-  //
-  // The important thing is that the master does very little,
-  // increasing our resilience to unexpected errors.
+<span class="hljs-keyword">if</span> (cluster.isMaster) {
+  <span class="hljs-comment">// A more realistic scenario would have more than 2 workers,</span>
+  <span class="hljs-comment">// and perhaps not put the master and worker in the same file.</span>
+  <span class="hljs-comment">//</span>
+  <span class="hljs-comment">// It is also possible to get a bit fancier about logging, and</span>
+  <span class="hljs-comment">// implement whatever custom logic is needed to prevent DoS</span>
+  <span class="hljs-comment">// attacks and other bad behavior.</span>
+  <span class="hljs-comment">//</span>
+  <span class="hljs-comment">// See the options in the cluster documentation.</span>
+  <span class="hljs-comment">//</span>
+  <span class="hljs-comment">// The important thing is that the master does very little,</span>
+  <span class="hljs-comment">// increasing our resilience to unexpected errors.</span>
 
   cluster.fork();
   cluster.fork();
 
-  cluster.on('disconnect', (worker) => {
-    console.error('disconnect!');
+  cluster.on(<span class="hljs-string">'disconnect'</span>, (worker) => {
+    <span class="hljs-built_in">console</span>.error(<span class="hljs-string">'disconnect!'</span>);
     cluster.fork();
   });
 
-} else {
-  // the worker
-  //
-  // This is where we put our bugs!
+} <span class="hljs-keyword">else</span> {
+  <span class="hljs-comment">// the worker</span>
+  <span class="hljs-comment">//</span>
+  <span class="hljs-comment">// This is where we put our bugs!</span>
 
-  const domain = require('domain');
+  <span class="hljs-keyword">const</span> domain = <span class="hljs-built_in">require</span>(<span class="hljs-string">'domain'</span>);
 
-  // See the cluster documentation for more details about using
-  // worker processes to serve requests. How it works, caveats, etc.
+  <span class="hljs-comment">// See the cluster documentation for more details about using</span>
+  <span class="hljs-comment">// worker processes to serve requests. How it works, caveats, etc.</span>
 
-  const server = require('http').createServer((req, res) => {
-    const d = domain.create();
-    d.on('error', (er) => {
-      console.error(`error ${er.stack}`);
+  <span class="hljs-keyword">const</span> server = <span class="hljs-built_in">require</span>(<span class="hljs-string">'http'</span>).createServer(<span class="hljs-function">(<span class="hljs-params">req, res</span>) =></span> {
+    <span class="hljs-keyword">const</span> d = domain.create();
+    d.on(<span class="hljs-string">'error'</span>, (er) => {
+      <span class="hljs-built_in">console</span>.error(<span class="hljs-string">`error <span class="hljs-subst">${er.stack}</span>`</span>);
 
-      // We're in dangerous territory!
-      // By definition, something unexpected occurred,
-      // which we probably didn't want.
-      // Anything can happen now! Be very careful!
+      <span class="hljs-comment">// We're in dangerous territory!</span>
+      <span class="hljs-comment">// By definition, something unexpected occurred,</span>
+      <span class="hljs-comment">// which we probably didn't want.</span>
+      <span class="hljs-comment">// Anything can happen now! Be very careful!</span>
 
-      try {
-        // Make sure we close down within 30 seconds
-        const killtimer = setTimeout(() => {
-          process.exit(1);
-        }, 30000);
-        // But don't keep the process open just for that!
+      <span class="hljs-keyword">try</span> {
+        <span class="hljs-comment">// Make sure we close down within 30 seconds</span>
+        <span class="hljs-keyword">const</span> killtimer = setTimeout(<span class="hljs-function"><span class="hljs-params">()</span> =></span> {
+          process.exit(<span class="hljs-number">1</span>);
+        }, <span class="hljs-number">30000</span>);
+        <span class="hljs-comment">// But don't keep the process open just for that!</span>
         killtimer.unref();
 
-        // Stop taking new requests.
+        <span class="hljs-comment">// Stop taking new requests.</span>
         server.close();
 
-        // Let the master know we're dead. This will trigger a
-        // 'disconnect' in the cluster master, and then it will fork
-        // a new worker.
+        <span class="hljs-comment">// Let the master know we're dead. This will trigger a</span>
+        <span class="hljs-comment">// 'disconnect' in the cluster master, and then it will fork</span>
+        <span class="hljs-comment">// a new worker.</span>
         cluster.worker.disconnect();
 
-        // Try to send an error to the request that triggered the problem
-        res.statusCode = 500;
-        res.setHeader('content-type', 'text/plain');
-        res.end('Oops, there was a problem!\n');
-      } catch (er2) {
-        // Oh well, not much we can do at this point.
-        console.error(`Error sending 500! ${er2.stack}`);
+        <span class="hljs-comment">// Try to send an error to the request that triggered the problem</span>
+        res.statusCode = <span class="hljs-number">500</span>;
+        res.setHeader(<span class="hljs-string">'content-type'</span>, <span class="hljs-string">'text/plain'</span>);
+        res.end(<span class="hljs-string">'Oops, there was a problem!\n'</span>);
+      } <span class="hljs-keyword">catch</span> (er2) {
+        <span class="hljs-comment">// Oh well, not much we can do at this point.</span>
+        <span class="hljs-built_in">console</span>.error(<span class="hljs-string">`Error sending 500! <span class="hljs-subst">${er2.stack}</span>`</span>);
       }
     });
 
-    // Because req and res were created before this domain existed,
-    // we need to explicitly add them.
-    // See the explanation of implicit vs explicit binding below.
+    <span class="hljs-comment">// Because req and res were created before this domain existed,</span>
+    <span class="hljs-comment">// we need to explicitly add them.</span>
+    <span class="hljs-comment">// See the explanation of implicit vs explicit binding below.</span>
     d.add(req);
     d.add(res);
 
-    // Now run the handler function in the domain.
-    d.run(() => {
+    <span class="hljs-comment">// Now run the handler function in the domain.</span>
+    d.run(<span class="hljs-function"><span class="hljs-params">()</span> =></span> {
       handleRequest(req, res);
     });
   });
   server.listen(PORT);
 }
 
-// This part is not important. Just an example routing thing.
-// Put fancy application logic here.
-function handleRequest(req, res) {
-  switch (req.url) {
-    case '/error':
-      // We do some async stuff, and then...
-      setTimeout(() => {
-        // Whoops!
+<span class="hljs-comment">// This part is not important. Just an example routing thing.</span>
+<span class="hljs-comment">// Put fancy application logic here.</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">handleRequest</span>(<span class="hljs-params">req, res</span>) </span>{
+  <span class="hljs-keyword">switch</span> (req.url) {
+    <span class="hljs-keyword">case</span> <span class="hljs-string">'/error'</span>:
+      <span class="hljs-comment">// We do some async stuff, and then...</span>
+      setTimeout(<span class="hljs-function"><span class="hljs-params">()</span> =></span> {
+        <span class="hljs-comment">// Whoops!</span>
         flerb.bark();
       }, timeout);
-      break;
-    default:
-      res.end('ok');
+      <span class="hljs-keyword">break</span>;
+    <span class="hljs-keyword">default</span>:
+      res.end(<span class="hljs-string">'ok'</span>);
   }
-}
-</code></pre>
-<h2>Additions to Error objects<span><a class="mark" href="#domain_additions_to_error_objects" id="domain_additions_to_error_objects">#</a></span></h2>
+}</code></pre>
+<h2>Additions to <code>Error</code> objects<span><a class="mark" href="#domain_additions_to_error_objects" id="domain_additions_to_error_objects">#</a></span></h2>
 
 <p>Any time an <code>Error</code> object is routed through a domain, a few extra fields
 are added to it.</p>
@@ -326,7 +330,7 @@ domain, and passed an error as its first argument.</li>
 <li><code>error.domainThrown</code> A boolean indicating whether the error was
 thrown, emitted, or passed to a bound callback function.</li>
 </ul>
-<h2>Implicit Binding<span><a class="mark" href="#domain_implicit_binding" id="domain_implicit_binding">#</a></span></h2>
+<h2>Implicit binding<span><a class="mark" href="#domain_implicit_binding" id="domain_implicit_binding">#</a></span></h2>
 
 <p>If domains are in use, then all <strong>new</strong> <code>EventEmitter</code> objects (including
 Stream objects, requests, responses, etc.) will be implicitly bound to
@@ -345,7 +349,7 @@ explicitly added.</p>
 <code>Domain</code>'s <code>'error'</code> event, but does not register the <code>EventEmitter</code> on the
 <code>Domain</code>.
 Implicit binding only takes care of thrown errors and <code>'error'</code> events.</p>
-<h2>Explicit Binding<span><a class="mark" href="#domain_explicit_binding" id="domain_explicit_binding">#</a></span></h2>
+<h2>Explicit binding<span><a class="mark" href="#domain_explicit_binding" id="domain_explicit_binding">#</a></span></h2>
 
 <p>Sometimes, the domain in use is not the one that ought to be used for a
 specific event emitter. Or, the event emitter could have been created
@@ -354,50 +358,49 @@ other domain.</p>
 <p>For example, there could be one domain in use for an HTTP server, but
 perhaps we would like to have a separate domain to use for each request.</p>
 <p>That is possible via explicit binding.</p>
-<pre><code class="language-js">// Create a top-level domain for the server
-const domain = require('domain');
-const http = require('http');
-const serverDomain = domain.create();
+<pre><code class="language-js"><span class="hljs-comment">// Create a top-level domain for the server</span>
+<span class="hljs-keyword">const</span> domain = <span class="hljs-built_in">require</span>(<span class="hljs-string">'domain'</span>);
+<span class="hljs-keyword">const</span> http = <span class="hljs-built_in">require</span>(<span class="hljs-string">'http'</span>);
+<span class="hljs-keyword">const</span> serverDomain = domain.create();
 
-serverDomain.run(() => {
-  // Server is created in the scope of serverDomain
-  http.createServer((req, res) => {
-    // Req and res are also created in the scope of serverDomain
-    // however, we'd prefer to have a separate domain for each request.
-    // create it first thing, and add req and res to it.
-    const reqd = domain.create();
+serverDomain.run(<span class="hljs-function"><span class="hljs-params">()</span> =></span> {
+  <span class="hljs-comment">// Server is created in the scope of serverDomain</span>
+  http.createServer(<span class="hljs-function">(<span class="hljs-params">req, res</span>) =></span> {
+    <span class="hljs-comment">// Req and res are also created in the scope of serverDomain</span>
+    <span class="hljs-comment">// however, we'd prefer to have a separate domain for each request.</span>
+    <span class="hljs-comment">// create it first thing, and add req and res to it.</span>
+    <span class="hljs-keyword">const</span> reqd = domain.create();
     reqd.add(req);
     reqd.add(res);
-    reqd.on('error', (er) => {
-      console.error('Error', er, req.url);
-      try {
-        res.writeHead(500);
-        res.end('Error occurred, sorry.');
-      } catch (er2) {
-        console.error('Error sending 500', er2, req.url);
+    reqd.on(<span class="hljs-string">'error'</span>, (er) => {
+      <span class="hljs-built_in">console</span>.error(<span class="hljs-string">'Error'</span>, er, req.url);
+      <span class="hljs-keyword">try</span> {
+        res.writeHead(<span class="hljs-number">500</span>);
+        res.end(<span class="hljs-string">'Error occurred, sorry.'</span>);
+      } <span class="hljs-keyword">catch</span> (er2) {
+        <span class="hljs-built_in">console</span>.error(<span class="hljs-string">'Error sending 500'</span>, er2, req.url);
       }
     });
-  }).listen(1337);
-});
-</code></pre>
-<h2>domain.create()<span><a class="mark" href="#domain_domain_create" id="domain_domain_create">#</a></span></h2>
+  }).listen(<span class="hljs-number">1337</span>);
+});</code></pre>
+<h2><code>domain.create()</code><span><a class="mark" href="#domain_domain_create" id="domain_domain_create">#</a></span></h2>
 <ul>
 <li>Returns: <a href="domain.html#domain_class_domain" class="type">&#x3C;Domain></a></li>
 </ul>
-<h2>Class: Domain<span><a class="mark" href="#domain_class_domain" id="domain_class_domain">#</a></span></h2>
+<h2>Class: <code>Domain</code><span><a class="mark" href="#domain_class_domain" id="domain_class_domain">#</a></span></h2>
 <ul>
 <li>Extends: <a href="events.html#events_class_eventemitter" class="type">&#x3C;EventEmitter></a></li>
 </ul>
 <p>The <code>Domain</code> class encapsulates the functionality of routing errors and
 uncaught exceptions to the active <code>Domain</code> object.</p>
 <p>To handle the errors that it catches, listen to its <code>'error'</code> event.</p>
-<h3>domain.members<span><a class="mark" href="#domain_domain_members" id="domain_domain_members">#</a></span></h3>
+<h3><code>domain.members</code><span><a class="mark" href="#domain_domain_members" id="domain_domain_members">#</a></span></h3>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&#x3C;Array></a></li>
 </ul>
 <p>An array of timers and event emitters that have been explicitly added
 to the domain.</p>
-<h3>domain.add(emitter)<span><a class="mark" href="#domain_domain_add_emitter" id="domain_domain_add_emitter">#</a></span></h3>
+<h3><code>domain.add(emitter)</code><span><a class="mark" href="#domain_domain_add_emitter" id="domain_domain_add_emitter">#</a></span></h3>
 <ul>
 <li><code>emitter</code> <a href="events.html#events_class_eventemitter" class="type">&#x3C;EventEmitter></a> | <a href="timers.html#timers_timers" class="type">&#x3C;Timer></a> emitter or timer to be added to the domain</li>
 </ul>
@@ -410,7 +413,7 @@ binding.</p>
 the domain <code>'error'</code> handler.</p>
 <p>If the Timer or <code>EventEmitter</code> was already bound to a domain, it is removed
 from that one, and bound to this one instead.</p>
-<h3>domain.bind(callback)<span><a class="mark" href="#domain_domain_bind_callback" id="domain_domain_bind_callback">#</a></span></h3>
+<h3><code>domain.bind(callback)</code><span><a class="mark" href="#domain_domain_bind_callback" id="domain_domain_bind_callback">#</a></span></h3>
 <ul>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> The callback function</li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> The bound function</li>
@@ -418,21 +421,20 @@ from that one, and bound to this one instead.</p>
 <p>The returned function will be a wrapper around the supplied callback
 function. When the returned function is called, any errors that are
 thrown will be routed to the domain's <code>'error'</code> event.</p>
-<pre><code class="language-js">const d = domain.create();
+<pre><code class="language-js"><span class="hljs-keyword">const</span> d = domain.create();
 
-function readSomeFile(filename, cb) {
-  fs.readFile(filename, 'utf8', d.bind((er, data) => {
-    // If this throws, it will also be passed to the domain.
-    return cb(er, data ? JSON.parse(data) : null);
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">readSomeFile</span>(<span class="hljs-params">filename, cb</span>) </span>{
+  fs.readFile(filename, <span class="hljs-string">'utf8'</span>, d.bind(<span class="hljs-function">(<span class="hljs-params">er, data</span>) =></span> {
+    <span class="hljs-comment">// If this throws, it will also be passed to the domain.</span>
+    <span class="hljs-keyword">return</span> cb(er, data ? <span class="hljs-built_in">JSON</span>.parse(data) : <span class="hljs-literal">null</span>);
   }));
 }
 
-d.on('error', (er) => {
-  // An error occurred somewhere. If we throw it now, it will crash the program
-  // with the normal line number and stack message.
-});
-</code></pre>
-<h3>domain.enter()<span><a class="mark" href="#domain_domain_enter" id="domain_domain_enter">#</a></span></h3>
+d.on(<span class="hljs-string">'error'</span>, (er) => {
+  <span class="hljs-comment">// An error occurred somewhere. If we throw it now, it will crash the program</span>
+  <span class="hljs-comment">// with the normal line number and stack message.</span>
+});</code></pre>
+<h3><code>domain.enter()</code><span><a class="mark" href="#domain_domain_enter" id="domain_domain_enter">#</a></span></h3>
 <p>The <code>enter()</code> method is plumbing used by the <code>run()</code>, <code>bind()</code>, and
 <code>intercept()</code> methods to set the active domain. It sets <code>domain.active</code> and
 <code>process.domain</code> to the domain, and implicitly pushes the domain onto the domain
@@ -442,7 +444,7 @@ asynchronous calls and I/O operations bound to a domain.</p>
 <p>Calling <code>enter()</code> changes only the active domain, and does not alter the domain
 itself. <code>enter()</code> and <code>exit()</code> can be called an arbitrary number of times on a
 single domain.</p>
-<h3>domain.exit()<span><a class="mark" href="#domain_domain_exit" id="domain_domain_exit">#</a></span></h3>
+<h3><code>domain.exit()</code><span><a class="mark" href="#domain_domain_exit" id="domain_domain_exit">#</a></span></h3>
 <p>The <code>exit()</code> method exits the current domain, popping it off the domain stack.
 Any time execution is going to switch to the context of a different chain of
 asynchronous calls, it's important to ensure that the current domain is exited.
@@ -453,7 +455,7 @@ of asynchronous calls and I/O operations bound to a domain.</p>
 <p>Calling <code>exit()</code> changes only the active domain, and does not alter the domain
 itself. <code>enter()</code> and <code>exit()</code> can be called an arbitrary number of times on a
 single domain.</p>
-<h3>domain.intercept(callback)<span><a class="mark" href="#domain_domain_intercept_callback" id="domain_domain_intercept_callback">#</a></span></h3>
+<h3><code>domain.intercept(callback)</code><span><a class="mark" href="#domain_domain_intercept_callback" id="domain_domain_intercept_callback">#</a></span></h3>
 <ul>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> The callback function</li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> The intercepted function</li>
@@ -463,34 +465,33 @@ addition to catching thrown errors, it will also intercept <a href="errors.html#
 objects sent as the first argument to the function.</p>
 <p>In this way, the common <code>if (err) return callback(err);</code> pattern can be replaced
 with a single error handler in a single place.</p>
-<pre><code class="language-js">const d = domain.create();
+<pre><code class="language-js"><span class="hljs-keyword">const</span> d = domain.create();
 
-function readSomeFile(filename, cb) {
-  fs.readFile(filename, 'utf8', d.intercept((data) => {
-    // Note, the first argument is never passed to the
-    // callback since it is assumed to be the 'Error' argument
-    // and thus intercepted by the domain.
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">readSomeFile</span>(<span class="hljs-params">filename, cb</span>) </span>{
+  fs.readFile(filename, <span class="hljs-string">'utf8'</span>, d.intercept(<span class="hljs-function">(<span class="hljs-params">data</span>) =></span> {
+    <span class="hljs-comment">// Note, the first argument is never passed to the</span>
+    <span class="hljs-comment">// callback since it is assumed to be the 'Error' argument</span>
+    <span class="hljs-comment">// and thus intercepted by the domain.</span>
 
-    // If this throws, it will also be passed to the domain
-    // so the error-handling logic can be moved to the 'error'
-    // event on the domain instead of being repeated throughout
-    // the program.
-    return cb(null, JSON.parse(data));
+    <span class="hljs-comment">// If this throws, it will also be passed to the domain</span>
+    <span class="hljs-comment">// so the error-handling logic can be moved to the 'error'</span>
+    <span class="hljs-comment">// event on the domain instead of being repeated throughout</span>
+    <span class="hljs-comment">// the program.</span>
+    <span class="hljs-keyword">return</span> cb(<span class="hljs-literal">null</span>, <span class="hljs-built_in">JSON</span>.parse(data));
   }));
 }
 
-d.on('error', (er) => {
-  // An error occurred somewhere. If we throw it now, it will crash the program
-  // with the normal line number and stack message.
-});
-</code></pre>
-<h3>domain.remove(emitter)<span><a class="mark" href="#domain_domain_remove_emitter" id="domain_domain_remove_emitter">#</a></span></h3>
+d.on(<span class="hljs-string">'error'</span>, (er) => {
+  <span class="hljs-comment">// An error occurred somewhere. If we throw it now, it will crash the program</span>
+  <span class="hljs-comment">// with the normal line number and stack message.</span>
+});</code></pre>
+<h3><code>domain.remove(emitter)</code><span><a class="mark" href="#domain_domain_remove_emitter" id="domain_domain_remove_emitter">#</a></span></h3>
 <ul>
 <li><code>emitter</code> <a href="events.html#events_class_eventemitter" class="type">&#x3C;EventEmitter></a> | <a href="timers.html#timers_timers" class="type">&#x3C;Timer></a> emitter or timer to be removed from the domain</li>
 </ul>
 <p>The opposite of <a href="#domain_domain_add_emitter"><code>domain.add(emitter)</code></a>. Removes domain handling from the
 specified emitter.</p>
-<h3>domain.run(fn[, ...args])<span><a class="mark" href="#domain_domain_run_fn_args" id="domain_domain_run_fn_args">#</a></span></h3>
+<h3><code>domain.run(fn[, ...args])</code><span><a class="mark" href="#domain_domain_run_fn_args" id="domain_domain_run_fn_args">#</a></span></h3>
 <ul>
 <li><code>fn</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
 <li><code>...args</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types" class="type">&#x3C;any></a></li>
@@ -500,65 +501,60 @@ binding all event emitters, timers, and lowlevel requests that are
 created in that context. Optionally, arguments can be passed to
 the function.</p>
 <p>This is the most basic way to use a domain.</p>
-<pre><code class="language-js">const domain = require('domain');
-const fs = require('fs');
-const d = domain.create();
-d.on('error', (er) => {
-  console.error('Caught error!', er);
+<pre><code class="language-js"><span class="hljs-keyword">const</span> domain = <span class="hljs-built_in">require</span>(<span class="hljs-string">'domain'</span>);
+<span class="hljs-keyword">const</span> fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'fs'</span>);
+<span class="hljs-keyword">const</span> d = domain.create();
+d.on(<span class="hljs-string">'error'</span>, (er) => {
+  <span class="hljs-built_in">console</span>.error(<span class="hljs-string">'Caught error!'</span>, er);
 });
-d.run(() => {
-  process.nextTick(() => {
-    setTimeout(() => { // Simulating some various async stuff
-      fs.open('non-existent file', 'r', (er, fd) => {
-        if (er) throw er;
-        // proceed...
+d.run(<span class="hljs-function"><span class="hljs-params">()</span> =></span> {
+  process.nextTick(<span class="hljs-function"><span class="hljs-params">()</span> =></span> {
+    setTimeout(<span class="hljs-function"><span class="hljs-params">()</span> =></span> { <span class="hljs-comment">// Simulating some various async stuff</span>
+      fs.open(<span class="hljs-string">'non-existent file'</span>, <span class="hljs-string">'r'</span>, (er, fd) => {
+        <span class="hljs-keyword">if</span> (er) <span class="hljs-keyword">throw</span> er;
+        <span class="hljs-comment">// proceed...</span>
       });
-    }, 100);
+    }, <span class="hljs-number">100</span>);
   });
-});
-</code></pre>
+});</code></pre>
 <p>In this example, the <code>d.on('error')</code> handler will be triggered, rather
 than crashing the program.</p>
-<h2>Domains and Promises<span><a class="mark" href="#domain_domains_and_promises" id="domain_domains_and_promises">#</a></span></h2>
-<p>As of Node.js 8.0.0, the handlers of Promises are run inside the domain in
+<h2>Domains and promises<span><a class="mark" href="#domain_domains_and_promises" id="domain_domains_and_promises">#</a></span></h2>
+<p>As of Node.js 8.0.0, the handlers of promises are run inside the domain in
 which the call to <code>.then()</code> or <code>.catch()</code> itself was made:</p>
-<pre><code class="language-js">const d1 = domain.create();
-const d2 = domain.create();
+<pre><code class="language-js"><span class="hljs-keyword">const</span> d1 = domain.create();
+<span class="hljs-keyword">const</span> d2 = domain.create();
 
-let p;
-d1.run(() => {
-  p = Promise.resolve(42);
+<span class="hljs-keyword">let</span> p;
+d1.run(<span class="hljs-function"><span class="hljs-params">()</span> =></span> {
+  p = <span class="hljs-built_in">Promise</span>.resolve(<span class="hljs-number">42</span>);
 });
 
-d2.run(() => {
-  p.then((v) => {
-    // running in d2
+d2.run(<span class="hljs-function"><span class="hljs-params">()</span> =></span> {
+  p.then(<span class="hljs-function">(<span class="hljs-params">v</span>) =></span> {
+    <span class="hljs-comment">// running in d2</span>
   });
-});
-</code></pre>
+});</code></pre>
 <p>A callback may be bound to a specific domain using <a href="#domain_domain_bind_callback"><code>domain.bind(callback)</code></a>:</p>
-<pre><code class="language-js">const d1 = domain.create();
-const d2 = domain.create();
+<pre><code class="language-js"><span class="hljs-keyword">const</span> d1 = domain.create();
+<span class="hljs-keyword">const</span> d2 = domain.create();
 
-let p;
-d1.run(() => {
-  p = Promise.resolve(42);
+<span class="hljs-keyword">let</span> p;
+d1.run(<span class="hljs-function"><span class="hljs-params">()</span> =></span> {
+  p = <span class="hljs-built_in">Promise</span>.resolve(<span class="hljs-number">42</span>);
 });
 
-d2.run(() => {
-  p.then(p.domain.bind((v) => {
-    // running in d1
+d2.run(<span class="hljs-function"><span class="hljs-params">()</span> =></span> {
+  p.then(p.domain.bind(<span class="hljs-function">(<span class="hljs-params">v</span>) =></span> {
+    <span class="hljs-comment">// running in d1</span>
   }));
-});
-</code></pre>
+});</code></pre>
 <p>Domains will not interfere with the error handling mechanisms for
-Promises. In other words, no <code>'error'</code> event will be emitted for unhandled
+promises. In other words, no <code>'error'</code> event will be emitted for unhandled
 <code>Promise</code> rejections.</p>
+        <!-- API END -->
       </div>
     </div>
   </div>
-  <script src="assets/sh_main.js"></script>
-  <script src="assets/sh_javascript.min.js"></script>
-  <script>highlight(undefined, undefined, 'pre');</script>
 </body>
 </html>

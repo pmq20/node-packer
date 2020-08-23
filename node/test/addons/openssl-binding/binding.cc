@@ -12,8 +12,8 @@ inline void RandomBytes(const v8::FunctionCallbackInfo<v8::Value>& info) {
   auto byte_length = view->ByteLength();
   assert(view->HasBuffer());
   auto buffer = view->Buffer();
-  auto contents = buffer->GetContents();
-  auto data = static_cast<unsigned char*>(contents.Data()) + byte_offset;
+  auto contents = buffer->GetBackingStore();
+  auto data = static_cast<unsigned char*>(contents->Data()) + byte_offset;
   assert(RAND_poll());
   auto rval = RAND_bytes(data, static_cast<int>(byte_length));
   info.GetReturnValue().Set(rval > 0);
@@ -24,7 +24,7 @@ inline void Initialize(v8::Local<v8::Object> exports,
                        v8::Local<v8::Context> context) {
   auto isolate = context->GetIsolate();
   auto key = v8::String::NewFromUtf8(
-      isolate, "randomBytes", v8::NewStringType::kNormal).ToLocalChecked();
+      isolate, "randomBytes").ToLocalChecked();
   auto value = v8::FunctionTemplate::New(isolate, RandomBytes)
                    ->GetFunction(context)
                    .ToLocalChecked();

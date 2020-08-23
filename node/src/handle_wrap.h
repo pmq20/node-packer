@@ -61,7 +61,9 @@ class HandleWrap : public AsyncWrap {
   static void HasRef(const v8::FunctionCallbackInfo<v8::Value>& args);
 
   static inline bool IsAlive(const HandleWrap* wrap) {
-    return wrap != nullptr && wrap->state_ != kClosed;
+    return wrap != nullptr &&
+        wrap->IsDoneInitializing() &&
+        wrap->state_ != kClosed;
   }
 
   static inline bool HasRef(const HandleWrap* wrap) {
@@ -76,14 +78,13 @@ class HandleWrap : public AsyncWrap {
   static v8::Local<v8::FunctionTemplate> GetConstructorTemplate(
       Environment* env);
 
-  void MakeWeak();  // This hides BaseObject::MakeWeak()
-
  protected:
   HandleWrap(Environment* env,
              v8::Local<v8::Object> object,
              uv_handle_t* handle,
              AsyncWrap::ProviderType provider);
   virtual void OnClose() {}
+  void OnGCCollect() final;
 
   void MarkAsInitialized();
   void MarkAsUninitialized();

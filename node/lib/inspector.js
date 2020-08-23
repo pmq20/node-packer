@@ -1,8 +1,14 @@
 'use strict';
 
-const { JSON } = primordials;
+const {
+  JSONParse,
+  JSONStringify,
+  Map,
+  Symbol,
+} = primordials;
 
 const {
+  ERR_INSPECTOR_ALREADY_ACTIVATED,
   ERR_INSPECTOR_ALREADY_CONNECTED,
   ERR_INSPECTOR_CLOSED,
   ERR_INSPECTOR_COMMAND,
@@ -19,6 +25,7 @@ if (!hasInspector)
   throw new ERR_INSPECTOR_NOT_AVAILABLE();
 
 const EventEmitter = require('events');
+const { queueMicrotask } = require('internal/process/task_queues');
 const { validateString } = require('internal/validators');
 const { isMainThread } = require('worker_threads');
 
@@ -27,6 +34,7 @@ const {
   MainThreadConnection,
   open,
   url,
+  isEnabled,
   waitForDebugger
 } = internalBinding('inspector');
 
@@ -61,7 +69,7 @@ class Session extends EventEmitter {
   }
 
   [onMessageSymbol](message) {
-    const parsed = JSON.parse(message);
+    const parsed = JSONParse(message);
     try {
       if (parsed.id) {
         const callback = this[messageCallbacksSymbol].get(parsed.id);
@@ -107,7 +115,7 @@ class Session extends EventEmitter {
     if (callback) {
       this[messageCallbacksSymbol].set(id, callback);
     }
-    this[connectionSymbol].dispatch(JSON.stringify(message));
+    this[connectionSymbol].dispatch(JSONStringify(message));
   }
 
   disconnect() {
@@ -125,6 +133,9 @@ class Session extends EventEmitter {
 }
 
 function inspectorOpen(port, host, wait) {
+  if (isEnabled()) {
+    throw new ERR_INSPECTOR_ALREADY_ACTIVATED();
+  }
   open(port, host);
   if (wait)
     waitForDebugger();

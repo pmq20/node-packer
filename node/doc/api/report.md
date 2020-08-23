@@ -1,9 +1,9 @@
-# Diagnostic Report
+# Diagnostic report
 
 <!--introduced_in=v11.8.0-->
 <!-- type=misc -->
 
-> Stability: 1 - Experimental
+> Stability: 2 - Stable
 
 <!-- name=report -->
 
@@ -32,7 +32,6 @@ is provided below for reference.
     "cwd": "/home/nodeuser/project/node",
     "commandLine": [
       "/home/nodeuser/project/node/out/Release/node",
-      "--experimental-report",
       "--report-uncaught-exception",
       "/home/nodeuser/project/node/test/report/test-exception.js",
       "child"
@@ -53,7 +52,6 @@ is provided below for reference.
       "nghttp2": "1.34.0",
       "napi": "3",
       "llhttp": "1.0.1",
-      "http_parser": "2.8.0",
       "openssl": "1.1.0j"
     },
     "release": {
@@ -297,6 +295,7 @@ is provided below for reference.
       "address": "0x000055fc7b2cb180"
     }
   ],
+  "workers": [],
   "environmentVariables": {
     "REMOTEHOST": "REMOVED",
     "MANPATH": "/opt/rh/devtoolset-3/root/usr/share/man:",
@@ -392,13 +391,9 @@ is provided below for reference.
 ## Usage
 
 ```bash
-node --experimental-report --report-uncaught-exception \
-  --report-on-signal --report-on-fatalerror app.js
+node --report-uncaught-exception --report-on-signal \
+--report-on-fatalerror app.js
 ```
-
-* `--experimental-report` Enables the diagnostic report feature.
- In the absence of this flag, use of all other related options will result in
- an error.
 
 * `--report-uncaught-exception` Enables report to be generated on
 un-caught exceptions. Useful when inspecting JavaScript stack in conjunction
@@ -424,6 +419,10 @@ that leads to termination of the application. Useful to inspect various
 diagnostic data elements such as heap, stack, event loop state, resource
 consumption etc. to reason about the fatal error.
 
+* `--report-compact` Write reports in a compact format, single-line JSON, more
+easily consumable by log processing systems than the default multi-line format
+designed for human consumption.
+
 * `--report-directory` Location at which the report will be
 generated.
 
@@ -446,11 +445,11 @@ the name of a file into which the report is written.
 process.report.writeReport('./foo.json');
 ```
 
-This function takes an optional additional argument `err` - an `Error` object
-that will be used as the context for the JavaScript stack printed in the report.
-When using report to handle errors in a callback or an exception handler, this
-allows the report to include the location of the original error as well
-as where it was handled.
+This function takes an optional additional argument `err` which is an `Error`
+object that will be used as the context for the JavaScript stack printed in the
+report. When using report to handle errors in a callback or an exception
+handler, this allows the report to include the location of the original error as
+well as where it was handled.
 
 ```js
 try {
@@ -484,8 +483,9 @@ console.log(typeof report === 'object'); // true
 console.log(JSON.stringify(report, null, 2));
 ```
 
-This function takes an optional additional argument `err` - an `Error` object
-that will be used as the context for the JavaScript stack printed in the report.
+This function takes an optional additional argument `err`, which is an `Error`
+object that will be used as the context for the JavaScript stack printed in the
+report.
 
 ```js
 const report = process.report.getReport(new Error('custom error'));
@@ -503,7 +503,7 @@ containing `libuv` handle information and an OS platform information section
 showing CPU and memory usage and system limits. An example report can be
 triggered using the Node.js REPL:
 
-```raw
+```console
 $ node
 > process.report.writeReport();
 Writing Node.js report to file: report.20181126.091102.8480.0.001.json
@@ -568,7 +568,7 @@ Configuration on module initialization is also available via
 environment variables:
 
 ```bash
-NODE_OPTIONS="--experimental-report --report-uncaught-exception \
+NODE_OPTIONS="--report-uncaught-exception \
   --report-on-fatalerror --report-on-signal \
   --report-signal=SIGUSR2  --report-filename=./report.json \
   --report-directory=/home/nodeuser"
@@ -577,4 +577,26 @@ NODE_OPTIONS="--experimental-report --report-uncaught-exception \
 Specific API documentation can be found under
 [`process API documentation`][] section.
 
+## Interaction with workers
+<!-- YAML
+changes:
+  - version:
+      - v13.9.0
+      - v12.16.2
+    pr-url: https://github.com/nodejs/node/pull/31386
+    description: Workers are now included in the report.
+-->
+
+[`Worker`][] threads can create reports in the same way that the main thread
+does.
+
+Reports will include information on any Workers that are children of the current
+thread as part of the `workers` section, with each Worker generating a report
+in the standard report format.
+
+The thread which is generating the report will wait for the reports from Worker
+threads to finish. However, the latency for this will usually be low, as both
+running JavaScript and the event loop are interrupted to generate the report.
+
 [`process API documentation`]: process.html
+[`Worker`]: worker_threads.html

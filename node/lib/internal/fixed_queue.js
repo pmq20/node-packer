@@ -1,5 +1,9 @@
 'use strict';
 
+const {
+  Array,
+} = primordials;
+
 // Currently optimal queue size, tested on V8 6.0 - 6.6. Must be power of two.
 const kSize = 2048;
 const kMask = kSize - 1;
@@ -52,7 +56,7 @@ const kMask = kSize - 1;
 // `top + 1 === bottom` it's full. This wastes a single space of storage
 // but allows much quicker checks.
 
-const FixedCircularBuffer = class FixedCircularBuffer {
+class FixedCircularBuffer {
   constructor() {
     this.bottom = 0;
     this.top = 0;
@@ -81,7 +85,7 @@ const FixedCircularBuffer = class FixedCircularBuffer {
     this.bottom = (this.bottom + 1) & kMask;
     return nextItem;
   }
-};
+}
 
 module.exports = class FixedQueue {
   constructor() {

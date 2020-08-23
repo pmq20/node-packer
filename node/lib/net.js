@@ -21,25 +21,36 @@
 
 'use strict';
 
-const { Object } = primordials;
+const {
+  ArrayIsArray,
+  Boolean,
+  Error,
+  Number,
+  NumberIsNaN,
+  ObjectDefineProperty,
+  ObjectSetPrototypeOf,
+  Symbol,
+} = primordials;
 
 const EventEmitter = require('events');
 const stream = require('stream');
 const { inspect } = require('internal/util/inspect');
-const debug = require('internal/util/debuglog').debuglog('net');
+let debug = require('internal/util/debuglog').debuglog('net', (fn) => {
+  debug = fn;
+});
 const { deprecate } = require('internal/util');
 const {
   isIP,
   isIPv4,
   isIPv6,
-  isLegalPort,
   normalizedArgsSymbol,
   makeSyncWrite
 } = require('internal/net');
 const assert = require('internal/assert');
 const {
   UV_EADDRINUSE,
-  UV_EINVAL
+  UV_EINVAL,
+  UV_ENOTCONN
 } = internalBinding('uv');
 
 const { Buffer } = require('buffer');
@@ -82,7 +93,6 @@ const {
     ERR_INVALID_OPT_VALUE,
     ERR_SERVER_ALREADY_LISTEN,
     ERR_SERVER_NOT_RUNNING,
-    ERR_SOCKET_BAD_PORT,
     ERR_SOCKET_CLOSED
   },
   errnoException,
@@ -90,7 +100,11 @@ const {
   uvExceptionWithHostPort
 } = require('internal/errors');
 const { isUint8Array } = require('internal/util/types');
-const { validateInt32, validateString } = require('internal/validators');
+const {
+  validateInt32,
+  validatePort,
+  validateString
+} = require('internal/validators');
 const kLastWriteQueueSize = Symbol('lastWriteQueueSize');
 const {
   DTRACE_NET_SERVER_CONNECTION,
@@ -106,6 +120,8 @@ const { kTimeout } = require('internal/timers');
 
 const DEFAULT_IPV4_ADDR = '0.0.0.0';
 const DEFAULT_IPV6_ADDR = '::';
+
+const isWindows = process.platform === 'win32';
 
 function noop() {}
 
@@ -149,7 +165,7 @@ function createServer(options, connectionListener) {
 
 // Target API:
 //
-// var s = net.connect({port: 80, host: 'google.com'}, function() {
+// let s = net.connect({port: 80, host: 'google.com'}, function() {
 //   ...
 // });
 //
@@ -184,7 +200,7 @@ function connect(...args) {
 // For Server.prototype.listen(), the [...] part is [, backlog]
 // but will not be handled here (handled in listen())
 function normalizeArgs(args) {
-  var arr;
+  let arr;
 
   if (args.length === 0) {
     arr = [{}, null];
@@ -193,7 +209,7 @@ function normalizeArgs(args) {
   }
 
   const arg0 = args[0];
-  var options = {};
+  let options = {};
   if (typeof arg0 === 'object' && arg0 !== null) {
     // (options[...][, cb])
     options = arg0;
@@ -247,7 +263,7 @@ function initSocketHandle(self) {
 
 const kBytesRead = Symbol('kBytesRead');
 const kBytesWritten = Symbol('kBytesWritten');
-
+const kSetNoDelay = Symbol('kSetNoDelay');
 
 function Socket(options) {
   if (!(this instanceof Socket)) return new Socket(options);
@@ -261,6 +277,7 @@ function Socket(options) {
   this[kHandle] = null;
   this._parent = null;
   this._host = null;
+  this[kSetNoDelay] = false;
   this[kLastWriteQueueSize] = 0;
   this[kTimeout] = null;
   this[kBuffer] = null;
@@ -272,14 +289,13 @@ function Socket(options) {
   else
     options = { ...options };
 
-  options.readable = options.readable || false;
-  options.writable = options.writable || false;
   const { allowHalfOpen } = options;
 
   // Prevent the "no-half-open enforcer" from being inherited from `Duplex`.
   options.allowHalfOpen = true;
   // For backwards compat do not emit close on destroy.
   options.emitClose = false;
+  options.autoDestroy = false;
   // Handle strings directly.
   options.decodeStrings = false;
   stream.Duplex.call(this, options);
@@ -323,8 +339,7 @@ function Socket(options) {
       this[async_id_symbol] = this._handle.getAsyncId();
 
       if ((fd === 1 || fd === 2) &&
-          (this._handle instanceof Pipe) &&
-          process.platform === 'win32') {
+          (this._handle instanceof Pipe) && isWindows) {
         // Make stdout and stderr blocking on Windows
         err = this._handle.setBlocking(true);
         if (err)
@@ -335,7 +350,7 @@ function Socket(options) {
         // makeSyncWrite adjusts this value like the original handle would, so
         // we need to let it do that by turning it into a writable, own
         // property.
-        Object.defineProperty(this._handle, 'bytesWritten', {
+        ObjectDefineProperty(this._handle, 'bytesWritten', {
           value: 0, writable: true
         });
       }
@@ -371,12 +386,12 @@ function Socket(options) {
   this[kBytesRead] = 0;
   this[kBytesWritten] = 0;
 }
-Object.setPrototypeOf(Socket.prototype, stream.Duplex.prototype);
-Object.setPrototypeOf(Socket, stream.Duplex);
+ObjectSetPrototypeOf(Socket.prototype, stream.Duplex.prototype);
+ObjectSetPrototypeOf(Socket, stream.Duplex);
 
 // Refresh existing timeouts.
 Socket.prototype._unrefTimer = function _unrefTimer() {
-  for (var s = this; s !== null; s = s._parent) {
+  for (let s = this; s !== null; s = s._parent) {
     if (s[kTimeout])
       s[kTimeout].refresh();
   }
@@ -403,7 +418,7 @@ Socket.prototype._final = function(cb) {
   req.callback = cb;
   const err = this._handle.shutdown(req);
 
-  if (err === 1)  // synchronous finish
+  if (err === 1 || err === UV_ENOTCONN)  // synchronous finish
     return afterShutdown.call(req, 0);
   else if (err !== 0)
     return this.destroy(errnoException(err, 'shutdown'));
@@ -477,8 +492,11 @@ Socket.prototype.setNoDelay = function(enable) {
   }
 
   // Backwards compatibility: assume true when `enable` is omitted
-  if (this._handle.setNoDelay)
-    this._handle.setNoDelay(enable === undefined ? true : !!enable);
+  const newValue = enable === undefined ? true : !!enable;
+  if (this._handle.setNoDelay && newValue !== this[kSetNoDelay]) {
+    this[kSetNoDelay] = newValue;
+    this._handle.setNoDelay(newValue);
+  }
 
   return this;
 };
@@ -502,13 +520,13 @@ Socket.prototype.address = function() {
 };
 
 
-Object.defineProperty(Socket.prototype, '_connecting', {
+ObjectDefineProperty(Socket.prototype, '_connecting', {
   get: function() {
     return this.connecting;
   }
 });
 
-Object.defineProperty(Socket.prototype, 'pending', {
+ObjectDefineProperty(Socket.prototype, 'pending', {
   get() {
     return !this._handle || this.connecting;
   },
@@ -516,7 +534,7 @@ Object.defineProperty(Socket.prototype, 'pending', {
 });
 
 
-Object.defineProperty(Socket.prototype, 'readyState', {
+ObjectDefineProperty(Socket.prototype, 'readyState', {
   get: function() {
     if (this.connecting) {
       return 'opening';
@@ -526,22 +544,21 @@ Object.defineProperty(Socket.prototype, 'readyState', {
       return 'readOnly';
     } else if (!this.readable && this.writable) {
       return 'writeOnly';
-    } else {
-      return 'closed';
     }
+    return 'closed';
   }
 });
 
 
-Object.defineProperty(Socket.prototype, 'bufferSize', {
-  get: function() { // eslint-disable-line getter-return
+ObjectDefineProperty(Socket.prototype, 'bufferSize', {
+  get: function() {
     if (this._handle) {
-      return this[kLastWriteQueueSize] + this.writableLength;
+      return this.writableLength;
     }
   }
 });
 
-Object.defineProperty(Socket.prototype, kUpdateTimer, {
+ObjectDefineProperty(Socket.prototype, kUpdateTimer, {
   get: function() {
     return this._unrefTimer;
   }
@@ -552,7 +569,7 @@ function tryReadStart(socket) {
   // Not already reading, start the flow
   debug('Socket._handle.readStart');
   socket._handle.reading = true;
-  var err = socket._handle.readStart();
+  const err = socket._handle.readStart();
   if (err)
     socket.destroy(errnoException(err, 'read'));
 }
@@ -615,9 +632,9 @@ function onReadableStreamEnd() {
     this.write = writeAfterFIN;
     if (this.writable)
       this.end();
-  }
-
-  if (!this.destroyed && !this.writable && !this.writableLength)
+    else if (!this.writableLength)
+      this.destroy();
+  } else if (!this.destroyed && !this.writable && !this.writableLength)
     this.destroy();
 }
 
@@ -638,9 +655,7 @@ Socket.prototype._destroy = function(exception, cb) {
 
   this.connecting = false;
 
-  this.readable = this.writable = false;
-
-  for (var s = this; s !== null; s = s._parent) {
+  for (let s = this; s !== null; s = s._parent) {
     clearTimeout(s[kTimeout]);
   }
 
@@ -648,7 +663,7 @@ Socket.prototype._destroy = function(exception, cb) {
   if (this._handle) {
     if (this !== process.stderr)
       debug('close handle');
-    var isException = exception ? true : false;
+    const isException = exception ? true : false;
     // `bytesRead` and `kBytesWritten` should be accessible after `.destroy()`
     this[kBytesRead] = this._handle.bytesRead;
     this[kBytesWritten] = this._handle.bytesWritten;
@@ -680,8 +695,8 @@ Socket.prototype._getpeername = function() {
     if (!this._handle || !this._handle.getpeername) {
       return {};
     }
-    var out = {};
-    var err = this._handle.getpeername(out);
+    const out = {};
+    const err = this._handle.getpeername(out);
     if (err) return {};  // FIXME(bnoordhuis) Throw?
     this._peername = out;
   }
@@ -689,7 +704,7 @@ Socket.prototype._getpeername = function() {
 };
 
 function protoGetter(name, callback) {
-  Object.defineProperty(Socket.prototype, name, {
+  ObjectDefineProperty(Socket.prototype, name, {
     configurable: false,
     enumerable: true,
     get: callback
@@ -718,8 +733,8 @@ Socket.prototype._getsockname = function() {
     return {};
   }
   if (!this._sockname) {
-    var out = {};
-    var err = this._handle.getsockname(out);
+    const out = {};
+    const err = this._handle.getsockname(out);
     if (err) return {};  // FIXME(bnoordhuis) Throw?
     this._sockname = out;
   }
@@ -790,7 +805,7 @@ protoGetter('_bytesDispatched', function _bytesDispatched() {
 });
 
 protoGetter('bytesWritten', function bytesWritten() {
-  var bytes = this._bytesDispatched;
+  let bytes = this._bytesDispatched;
   const state = this._writableState;
   const data = this._pendingData;
   const encoding = this._pendingEncoding;
@@ -805,9 +820,9 @@ protoGetter('bytesWritten', function bytesWritten() {
       bytes += Buffer.byteLength(el.chunk, el.encoding);
   });
 
-  if (Array.isArray(data)) {
+  if (ArrayIsArray(data)) {
     // Was a writev, iterate over chunks to get total length
-    for (var i = 0; i < data.length; i++) {
+    for (let i = 0; i < data.length; i++) {
       const chunk = data[i];
 
       if (data.allBuffers || chunk instanceof Buffer)
@@ -837,7 +852,7 @@ function checkBindError(err, port, handle) {
   // getsockname() method. Non-issue for now, the cluster module doesn't
   // really support pipes anyway.
   if (err === 0 && port > 0 && handle.getsockname) {
-    var out = {};
+    const out = {};
     err = handle.getsockname(out);
     if (err === 0 && port !== out.port) {
       debug(`checkBindError, bound to ${out.port} instead of ${port}`);
@@ -855,7 +870,7 @@ function internalConnect(
 
   assert(self.connecting);
 
-  var err;
+  let err;
 
   if (localAddress || localPort) {
     if (addressType === 4) {
@@ -897,8 +912,8 @@ function internalConnect(
   }
 
   if (err) {
-    var sockname = self._getsockname();
-    var details;
+    const sockname = self._getsockname();
+    let details;
 
     if (sockname) {
       details = sockname.address + ':' + sockname.port;
@@ -916,7 +931,7 @@ Socket.prototype.connect = function(...args) {
   // already been normalized (so we don't normalize more than once). This has
   // been solved before in https://github.com/nodejs/node/pull/12342, but was
   // reverted as it had unintended side effects.
-  if (Array.isArray(args[0]) && args[0][normalizedArgsSymbol]) {
+  if (ArrayIsArray(args[0]) && args[0][normalizedArgsSymbol]) {
     normalized = args[0];
   } else {
     normalized = normalizeArgs(args);
@@ -928,7 +943,6 @@ Socket.prototype.connect = function(...args) {
     this.write = Socket.prototype.write;
 
   if (this.destroyed) {
-    this._undestroy();
     this._handle = null;
     this._peername = null;
     this._sockname = null;
@@ -984,9 +998,7 @@ function lookupAndConnect(self, options) {
       throw new ERR_INVALID_ARG_TYPE('options.port',
                                      ['number', 'string'], port);
     }
-    if (!isLegalPort(port)) {
-      throw new ERR_SOCKET_BAD_PORT(port);
-    }
+    validatePort(port);
   }
   port |= 0;
 
@@ -1015,7 +1027,7 @@ function lookupAndConnect(self, options) {
     hints: options.hints || 0
   };
 
-  if (process.platform !== 'win32' &&
+  if (!isWindows &&
       dnsopts.family !== 4 &&
       dnsopts.family !== 6 &&
       dnsopts.hints === 0) {
@@ -1106,9 +1118,13 @@ function afterConnect(status, handle, req, readable, writable) {
   self._sockname = null;
 
   if (status === 0) {
-    self.readable = readable;
-    if (!self._writableState.ended)
-      self.writable = writable;
+    if (self.readable && !readable) {
+      self.push(null);
+      self.read();
+    }
+    if (self.writable && !writable) {
+      self.end();
+    }
     self._unrefTimer();
 
     self.emit('connect');
@@ -1121,15 +1137,15 @@ function afterConnect(status, handle, req, readable, writable) {
 
   } else {
     self.connecting = false;
-    var details;
+    let details;
     if (req.localAddress && req.localPort) {
       details = req.localAddress + ':' + req.localPort;
     }
-    var ex = exceptionWithHostPort(status,
-                                   'connect',
-                                   req.address,
-                                   req.port,
-                                   details);
+    const ex = exceptionWithHostPort(status,
+                                     'connect',
+                                     req.address,
+                                     req.port,
+                                     details);
     if (details) {
       ex.localAddress = req.localAddress;
       ex.localPort = req.localPort;
@@ -1161,7 +1177,7 @@ function Server(options, connectionListener) {
 
   this._connections = 0;
 
-  Object.defineProperty(this, 'connections', {
+  ObjectDefineProperty(this, 'connections', {
     get: deprecate(() => {
 
       if (this._usingWorkers) {
@@ -1185,19 +1201,19 @@ function Server(options, connectionListener) {
   this.allowHalfOpen = options.allowHalfOpen || false;
   this.pauseOnConnect = !!options.pauseOnConnect;
 }
-Object.setPrototypeOf(Server.prototype, EventEmitter.prototype);
-Object.setPrototypeOf(Server, EventEmitter);
+ObjectSetPrototypeOf(Server.prototype, EventEmitter.prototype);
+ObjectSetPrototypeOf(Server, EventEmitter);
 
 
 function toNumber(x) { return (x = Number(x)) >= 0 ? x : false; }
 
 // Returns handle if it can be created, or error code if it can't
 function createServerHandle(address, port, addressType, fd, flags) {
-  var err = 0;
+  let err = 0;
   // Assign handle in listen, and clean up if bind or listen fails
-  var handle;
+  let handle;
 
-  var isTCP = false;
+  let isTCP = false;
   if (typeof fd === 'number' && fd >= 0) {
     try {
       handle = createHandle(fd, true);
@@ -1214,9 +1230,9 @@ function createServerHandle(address, port, addressType, fd, flags) {
     assert(!address && !port);
   } else if (port === -1 && addressType === -1) {
     handle = new Pipe(PipeConstants.SERVER);
-    if (process.platform === 'win32') {
-      var instances = parseInt(process.env.NODE_PENDING_PIPE_INSTANCES);
-      if (!Number.isNaN(instances)) {
+    if (isWindows) {
+      const instances = parseInt(process.env.NODE_PENDING_PIPE_INSTANCES);
+      if (!NumberIsNaN(instances)) {
         handle.setPendingInstances(instances);
       }
     }
@@ -1260,7 +1276,7 @@ function setupListenHandle(address, port, addressType, backlog, fd, flags) {
   } else {
     debug('setupListenHandle: create a handle');
 
-    var rval = null;
+    let rval = null;
 
     // Try to bind to the unspecified IPv6 address, see if IPv6 is available
     if (!address && typeof fd !== 'number') {
@@ -1280,7 +1296,7 @@ function setupListenHandle(address, port, addressType, backlog, fd, flags) {
       rval = createServerHandle(address, port, addressType, fd, flags);
 
     if (typeof rval === 'number') {
-      var error = uvExceptionWithHostPort(rval, 'listen', address, port);
+      const error = uvExceptionWithHostPort(rval, 'listen', address, port);
       process.nextTick(emitErrorNT, this, error);
       return;
     }
@@ -1297,7 +1313,7 @@ function setupListenHandle(address, port, addressType, backlog, fd, flags) {
   const err = this._handle.listen(backlog || 511);
 
   if (err) {
-    var ex = uvExceptionWithHostPort(err, 'listen', address, port);
+    const ex = uvExceptionWithHostPort(err, 'listen', address, port);
     this._handle.close();
     this._handle = null;
     defaultTriggerAsyncIdScope(this[async_id_symbol],
@@ -1364,7 +1380,7 @@ function listenInCluster(server, address, port, addressType,
     err = checkBindError(err, port, handle);
 
     if (err) {
-      var ex = exceptionWithHostPort(err, 'bind', address, port);
+      const ex = exceptionWithHostPort(err, 'bind', address, port);
       return server.emit('error', ex);
     }
 
@@ -1379,7 +1395,7 @@ function listenInCluster(server, address, port, addressType,
 
 Server.prototype.listen = function(...args) {
   const normalized = normalizeArgs(args);
-  var options = normalized[0];
+  let options = normalized[0];
   const cb = normalized[1];
 
   if (this._handle) {
@@ -1421,11 +1437,9 @@ Server.prototype.listen = function(...args) {
   // ([port][, host][, backlog][, cb]) where port is specified
   // or (options[, cb]) where options.port is specified
   // or if options.port is normalized as 0 before
-  var backlog;
+  let backlog;
   if (typeof options.port === 'number' || typeof options.port === 'string') {
-    if (!isLegalPort(options.port)) {
-      throw new ERR_SOCKET_BAD_PORT(options.port);
-    }
+    validatePort(options.port, 'options.port');
     backlog = options.backlog || backlogFromArgs;
     // start TCP server listening on host:port
     if (options.host) {
@@ -1442,7 +1456,7 @@ Server.prototype.listen = function(...args) {
   // (path[, backlog][, cb]) or (options[, cb])
   // where path or options.path is a UNIX domain socket or Windows pipe
   if (options.path && isPipeName(options.path)) {
-    var pipeName = this._pipeName = options.path;
+    const pipeName = this._pipeName = options.path;
     backlog = options.backlog || backlogFromArgs;
     listenInCluster(this, pipeName, -1, -1,
                     backlog, undefined, options.exclusive);
@@ -1490,7 +1504,7 @@ function lookupAndListen(self, port, address, backlog, exclusive, flags) {
   });
 }
 
-Object.defineProperty(Server.prototype, 'listening', {
+ObjectDefineProperty(Server.prototype, 'listening', {
   get: function() {
     return !!this._handle;
   },
@@ -1500,17 +1514,16 @@ Object.defineProperty(Server.prototype, 'listening', {
 
 Server.prototype.address = function() {
   if (this._handle && this._handle.getsockname) {
-    var out = {};
-    var err = this._handle.getsockname(out);
+    const out = {};
+    const err = this._handle.getsockname(out);
     if (err) {
       throw errnoException(err, 'address');
     }
     return out;
   } else if (this._pipeName) {
     return this._pipeName;
-  } else {
-    return null;
   }
+  return null;
 };
 
 function onconnection(err, clientHandle) {
@@ -1563,8 +1576,8 @@ Server.prototype.getConnections = function(cb) {
   }
 
   // Poll workers
-  var left = this._workers.length;
-  var total = this._connections;
+  let left = this._workers.length;
+  let total = this._connections;
 
   function oncount(err, count) {
     if (err) {
@@ -1576,7 +1589,7 @@ Server.prototype.getConnections = function(cb) {
     if (--left === 0) return end(null, total);
   }
 
-  for (var n = 0; n < this._workers.length; n++) {
+  for (let n = 0; n < this._workers.length; n++) {
     this._workers[n].getConnections(oncount);
   }
 
@@ -1601,7 +1614,7 @@ Server.prototype.close = function(cb) {
   }
 
   if (this._usingWorkers) {
-    var left = this._workers.length;
+    let left = this._workers.length;
     const onWorkerClose = () => {
       if (--left !== 0) return;
 
@@ -1614,7 +1627,7 @@ Server.prototype.close = function(cb) {
     this._connections++;
 
     // Poll workers
-    for (var n = 0; n < this._workers.length; n++)
+    for (let n = 0; n < this._workers.length; n++)
       this._workers[n].close(onWorkerClose);
   } else {
     this._emitCloseIfDrained();
@@ -1645,14 +1658,27 @@ function emitCloseNT(self) {
 }
 
 
+Server.prototype[EventEmitter.captureRejectionSymbol] = function(
+  err, event, sock) {
+
+  switch (event) {
+    case 'connection':
+      sock.destroy(err);
+      break;
+    default:
+      this.emit('error', err);
+  }
+};
+
+
 // Legacy alias on the C++ wrapper object. This is not public API, so we may
 // want to runtime-deprecate it at some point. There's no hurry, though.
-Object.defineProperty(TCP.prototype, 'owner', {
+ObjectDefineProperty(TCP.prototype, 'owner', {
   get() { return this[owner_symbol]; },
   set(v) { return this[owner_symbol] = v; }
 });
 
-Object.defineProperty(Socket.prototype, '_handle', {
+ObjectDefineProperty(Socket.prototype, '_handle', {
   get() { return this[kHandle]; },
   set(v) { return this[kHandle] = v; }
 });
@@ -1684,11 +1710,11 @@ Server.prototype.unref = function() {
   return this;
 };
 
-var _setSimultaneousAccepts;
-var warnSimultaneousAccepts = true;
+let _setSimultaneousAccepts;
+let warnSimultaneousAccepts = true;
 
-if (process.platform === 'win32') {
-  var simultaneousAccepts;
+if (isWindows) {
+  let simultaneousAccepts;
 
   _setSimultaneousAccepts = function(handle) {
     if (warnSimultaneousAccepts) {

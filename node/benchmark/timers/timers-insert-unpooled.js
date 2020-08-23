@@ -10,20 +10,19 @@ const bench = common.createBenchmark(main, {
 function main({ direction, n }) {
   const timersList = [];
 
-  var i;
   bench.start();
   if (direction === 'start') {
-    for (i = 1; i <= n; i++) {
+    for (let i = 1; i <= n; i++) {
       timersList.push(setTimeout(cb, i));
     }
   } else {
-    for (i = n; i > 0; i--) {
+    for (let i = n; i > 0; i--) {
       timersList.push(setTimeout(cb, i));
     }
   }
   bench.end(n);
 
-  for (var j = 0; j < n; j++) {
+  for (let j = 0; j < n; j++) {
     clearTimeout(timersList[j]);
   }
 }

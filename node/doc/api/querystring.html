@@ -3,10 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Query String | Node.js v12.13.0 Documentation</title>
+  <meta name="nodejs.org:node-version" content="v14.8.0">
+  <title>Query string | Node.js v14.8.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
-  <link rel="stylesheet" href="assets/sh.css">
+  <link rel="stylesheet" href="assets/hljs.css">
   <link rel="canonical" href="https://nodejs.org/api/querystring.html">
 </head>
 <body class="alt apidoc" id="api-section-querystring">
@@ -18,29 +19,30 @@
         </a>
       </div>
       <ul>
-<li><a href="documentation.html" class="nav-documentation">About these Docs</a></li>
-<li><a href="synopsis.html" class="nav-synopsis">Usage &#x26; Example</a></li>
+<li><a href="documentation.html" class="nav-documentation">About this documentation</a></li>
+<li><a href="synopsis.html" class="nav-synopsis">Usage and example</a></li>
 </ul>
 <div class="line"></div>
 <ul>
-<li><a href="assert.html" class="nav-assert">Assertion Testing</a></li>
-<li><a href="async_hooks.html" class="nav-async_hooks">Async Hooks</a></li>
+<li><a href="assert.html" class="nav-assert">Assertion testing</a></li>
+<li><a href="async_hooks.html" class="nav-async_hooks">Async hooks</a></li>
 <li><a href="buffer.html" class="nav-buffer">Buffer</a></li>
-<li><a href="addons.html" class="nav-addons">C++ Addons</a></li>
-<li><a href="n-api.html" class="nav-n-api">C/C++ Addons - N-API</a></li>
-<li><a href="child_process.html" class="nav-child_process">Child Processes</a></li>
+<li><a href="addons.html" class="nav-addons">C++ addons</a></li>
+<li><a href="n-api.html" class="nav-n-api">C/C++ addons with N-API</a></li>
+<li><a href="embedding.html" class="nav-embedding">C++ embedder API</a></li>
+<li><a href="child_process.html" class="nav-child_process">Child processes</a></li>
 <li><a href="cluster.html" class="nav-cluster">Cluster</a></li>
-<li><a href="cli.html" class="nav-cli">Command Line Options</a></li>
+<li><a href="cli.html" class="nav-cli">Command line options</a></li>
 <li><a href="console.html" class="nav-console">Console</a></li>
 <li><a href="crypto.html" class="nav-crypto">Crypto</a></li>
 <li><a href="debugger.html" class="nav-debugger">Debugger</a></li>
 <li><a href="deprecations.html" class="nav-deprecations">Deprecated APIs</a></li>
 <li><a href="dns.html" class="nav-dns">DNS</a></li>
 <li><a href="domain.html" class="nav-domain">Domain</a></li>
-<li><a href="esm.html" class="nav-esm">ECMAScript Modules</a></li>
+<li><a href="esm.html" class="nav-esm">ECMAScript modules</a></li>
 <li><a href="errors.html" class="nav-errors">Errors</a></li>
 <li><a href="events.html" class="nav-events">Events</a></li>
-<li><a href="fs.html" class="nav-fs">File System</a></li>
+<li><a href="fs.html" class="nav-fs">File system</a></li>
 <li><a href="globals.html" class="nav-globals">Globals</a></li>
 <li><a href="http.html" class="nav-http">HTTP</a></li>
 <li><a href="http2.html" class="nav-http2">HTTP/2</a></li>
@@ -51,37 +53,38 @@
 <li><a href="net.html" class="nav-net">Net</a></li>
 <li><a href="os.html" class="nav-os">OS</a></li>
 <li><a href="path.html" class="nav-path">Path</a></li>
-<li><a href="perf_hooks.html" class="nav-perf_hooks">Performance Hooks</a></li>
+<li><a href="perf_hooks.html" class="nav-perf_hooks">Performance hooks</a></li>
 <li><a href="policy.html" class="nav-policy">Policies</a></li>
 <li><a href="process.html" class="nav-process">Process</a></li>
 <li><a href="punycode.html" class="nav-punycode">Punycode</a></li>
-<li><a href="querystring.html" class="nav-querystring active">Query Strings</a></li>
+<li><a href="querystring.html" class="nav-querystring active">Query strings</a></li>
 <li><a href="readline.html" class="nav-readline">Readline</a></li>
 <li><a href="repl.html" class="nav-repl">REPL</a></li>
 <li><a href="report.html" class="nav-report">Report</a></li>
 <li><a href="stream.html" class="nav-stream">Stream</a></li>
-<li><a href="string_decoder.html" class="nav-string_decoder">String Decoder</a></li>
+<li><a href="string_decoder.html" class="nav-string_decoder">String decoder</a></li>
 <li><a href="timers.html" class="nav-timers">Timers</a></li>
 <li><a href="tls.html" class="nav-tls">TLS/SSL</a></li>
-<li><a href="tracing.html" class="nav-tracing">Trace Events</a></li>
+<li><a href="tracing.html" class="nav-tracing">Trace events</a></li>
 <li><a href="tty.html" class="nav-tty">TTY</a></li>
-<li><a href="dgram.html" class="nav-dgram">UDP/Datagram</a></li>
+<li><a href="dgram.html" class="nav-dgram">UDP/datagram</a></li>
 <li><a href="url.html" class="nav-url">URL</a></li>
 <li><a href="util.html" class="nav-util">Utilities</a></li>
 <li><a href="v8.html" class="nav-v8">V8</a></li>
 <li><a href="vm.html" class="nav-vm">VM</a></li>
-<li><a href="worker_threads.html" class="nav-worker_threads">Worker Threads</a></li>
+<li><a href="wasi.html" class="nav-wasi">WASI</a></li>
+<li><a href="worker_threads.html" class="nav-worker_threads">Worker threads</a></li>
 <li><a href="zlib.html" class="nav-zlib">Zlib</a></li>
 </ul>
 <div class="line"></div>
 <ul>
-<li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">GitHub Repo &#x26; Issue Tracker</a></li>
+<li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">Code repository and issue tracker</a></li>
 </ul>
     </div>
 
     <div id="column1" data-id="querystring" class="interior">
       <header>
-        <h1>Node.js v12.13.0 Documentation</h1>
+        <h1>Node.js v14.8.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -96,11 +99,13 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v12.x/api/querystring.html">12.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v14.x/api/querystring.html">14.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v13.x/api/querystring.html">13.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v12.x/api/querystring.html">12.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v11.x/api/querystring.html">11.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v10.x/api/querystring.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/querystring.html">9.x</a></li>
-<li><a href="https://nodejs.org/docs/latest-v8.x/api/querystring.html">8.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v8.x/api/querystring.html">8.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/querystring.html">7.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v6.x/api/querystring.html">6.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v5.x/api/querystring.html">5.x</a></li>
@@ -119,39 +124,39 @@
         <h2>Table of Contents</h2>
         <ul>
 <li>
-<p><span class="stability_2"><a href="#querystring_query_string">Query String</a></span></p>
+<p><span class="stability_2"><a href="#querystring_query_string">Query string</a></span></p>
 <ul>
-<li><a href="#querystring_querystring_decode">querystring.decode()</a></li>
-<li><a href="#querystring_querystring_encode">querystring.encode()</a></li>
-<li><a href="#querystring_querystring_escape_str">querystring.escape(str)</a></li>
-<li><a href="#querystring_querystring_parse_str_sep_eq_options">querystring.parse(str[, sep[, eq[, options]]])</a></li>
-<li><a href="#querystring_querystring_stringify_obj_sep_eq_options">querystring.stringify(obj[, sep[, eq[, options]]])</a></li>
-<li><a href="#querystring_querystring_unescape_str">querystring.unescape(str)</a></li>
+<li><a href="#querystring_querystring_decode"><code>querystring.decode()</code></a></li>
+<li><a href="#querystring_querystring_encode"><code>querystring.encode()</code></a></li>
+<li><a href="#querystring_querystring_escape_str"><code>querystring.escape(str)</code></a></li>
+<li><a href="#querystring_querystring_parse_str_sep_eq_options"><code>querystring.parse(str[, sep[, eq[, options]]])</code></a></li>
+<li><a href="#querystring_querystring_stringify_obj_sep_eq_options"><code>querystring.stringify(obj[, sep[, eq[, options]]])</code></a></li>
+<li><a href="#querystring_querystring_unescape_str"><code>querystring.unescape(str)</code></a></li>
 </ul>
 </li>
 </ul>
       </div>
 
       <div id="apicontent">
-        <h1>Query String<span><a class="mark" href="#querystring_query_string" id="querystring_query_string">#</a></span></h1>
+        <h1>Query string<span><a class="mark" href="#querystring_query_string" id="querystring_query_string">#</a></span></h1>
 
 <p></p><div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p></p>
 
+<p><strong>Source Code:</strong> <a href="https://github.com/nodejs/node/blob/v14.8.0/lib/querystring.js">lib/querystring.js</a></p>
 <p>The <code>querystring</code> module provides utilities for parsing and formatting URL
 query strings. It can be accessed using:</p>
-<pre><code class="language-js">const querystring = require('querystring');
-</code></pre>
-<h2>querystring.decode()<span><a class="mark" href="#querystring_querystring_decode" id="querystring_querystring_decode">#</a></span></h2>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> querystring = <span class="hljs-built_in">require</span>(<span class="hljs-string">'querystring'</span>);</code></pre>
+<h2><code>querystring.decode()</code><span><a class="mark" href="#querystring_querystring_decode" id="querystring_querystring_decode">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.99</span>
 </div>
 <p>The <code>querystring.decode()</code> function is an alias for <code>querystring.parse()</code>.</p>
-<h2>querystring.encode()<span><a class="mark" href="#querystring_querystring_encode" id="querystring_querystring_encode">#</a></span></h2>
+<h2><code>querystring.encode()</code><span><a class="mark" href="#querystring_querystring_encode" id="querystring_querystring_encode">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.99</span>
 </div>
 <p>The <code>querystring.encode()</code> function is an alias for <code>querystring.stringify()</code>.</p>
-<h2>querystring.escape(str)<span><a class="mark" href="#querystring_querystring_escape_str" id="querystring_querystring_escape_str">#</a></span></h2>
+<h2><code>querystring.escape(str)</code><span><a class="mark" href="#querystring_querystring_escape_str" id="querystring_querystring_escape_str">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.25</span>
 </div>
@@ -165,7 +170,7 @@ query strings.</p>
 generally not expected to be used directly. It is exported primarily to allow
 application code to provide a replacement percent-encoding implementation if
 necessary by assigning <code>querystring.escape</code> to an alternative function.</p>
-<h2>querystring.parse(str[, sep[, eq[, options]]])<span><a class="mark" href="#querystring_querystring_parse_str_sep_eq_options" id="querystring_querystring_parse_str_sep_eq_options">#</a></span></h2>
+<h2><code>querystring.parse(str[, sep[, eq[, options]]])</code><span><a class="mark" href="#querystring_querystring_parse_str_sep_eq_options" id="querystring_querystring_parse_str_sep_eq_options">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -203,10 +208,9 @@ collection of key and value pairs.</p>
 <p>For example, the query string <code>'foo=bar&#x26;abc=xyz&#x26;abc=123'</code> is parsed into:</p>
 <!-- eslint-skip -->
 <pre><code class="language-js">{
-  foo: 'bar',
-  abc: ['xyz', '123']
-}
-</code></pre>
+  <span class="hljs-attr">foo</span>: <span class="hljs-string">'bar'</span>,
+  <span class="hljs-attr">abc</span>: [<span class="hljs-string">'xyz'</span>, <span class="hljs-string">'123'</span>]
+}</code></pre>
 <p>The object returned by the <code>querystring.parse()</code> method <em>does not</em>
 prototypically inherit from the JavaScript <code>Object</code>. This means that typical
 <code>Object</code> methods such as <code>obj.toString()</code>, <code>obj.hasOwnProperty()</code>, and others
@@ -214,12 +218,11 @@ are not defined and <em>will not work</em>.</p>
 <p>By default, percent-encoded characters within the query string will be assumed
 to use UTF-8 encoding. If an alternative character encoding is used, then an
 alternative <code>decodeURIComponent</code> option will need to be specified:</p>
-<pre><code class="language-js">// Assuming gbkDecodeURIComponent function already exists...
+<pre><code class="language-js"><span class="hljs-comment">// Assuming gbkDecodeURIComponent function already exists...</span>
 
-querystring.parse('w=%D6%D0%CE%C4&#x26;foo=bar', null, null,
-                  { decodeURIComponent: gbkDecodeURIComponent });
-</code></pre>
-<h2>querystring.stringify(obj[, sep[, eq[, options]]])<span><a class="mark" href="#querystring_querystring_stringify_obj_sep_eq_options" id="querystring_querystring_stringify_obj_sep_eq_options">#</a></span></h2>
+querystring.parse(<span class="hljs-string">'w=%D6%D0%CE%C4&#x26;foo=bar'</span>, <span class="hljs-literal">null</span>, <span class="hljs-literal">null</span>,
+                  { <span class="hljs-attr">decodeURIComponent</span>: gbkDecodeURIComponent });</code></pre>
+<h2><code>querystring.stringify(obj[, sep[, eq[, options]]])</code><span><a class="mark" href="#querystring_querystring_stringify_obj_sep_eq_options" id="querystring_querystring_stringify_obj_sep_eq_options">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.25</span>
 </div>
@@ -243,21 +246,19 @@ given <code>obj</code> by iterating through the object's "own properties".</p>
 <p>It serializes the following types of values passed in <code>obj</code>:
 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string[]></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number[]></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean[]></a>
 Any other input values will be coerced to empty strings.</p>
-<pre><code class="language-js">querystring.stringify({ foo: 'bar', baz: ['qux', 'quux'], corge: '' });
-// Returns 'foo=bar&#x26;baz=qux&#x26;baz=quux&#x26;corge='
+<pre><code class="language-js">querystring.stringify({ <span class="hljs-attr">foo</span>: <span class="hljs-string">'bar'</span>, <span class="hljs-attr">baz</span>: [<span class="hljs-string">'qux'</span>, <span class="hljs-string">'quux'</span>], <span class="hljs-attr">corge</span>: <span class="hljs-string">''</span> });
+<span class="hljs-comment">// Returns 'foo=bar&#x26;baz=qux&#x26;baz=quux&#x26;corge='</span>
 
-querystring.stringify({ foo: 'bar', baz: 'qux' }, ';', ':');
-// Returns 'foo:bar;baz:qux'
-</code></pre>
+querystring.stringify({ <span class="hljs-attr">foo</span>: <span class="hljs-string">'bar'</span>, <span class="hljs-attr">baz</span>: <span class="hljs-string">'qux'</span> }, <span class="hljs-string">';'</span>, <span class="hljs-string">':'</span>);
+<span class="hljs-comment">// Returns 'foo:bar;baz:qux'</span></code></pre>
 <p>By default, characters requiring percent-encoding within the query string will
 be encoded as UTF-8. If an alternative encoding is required, then an alternative
 <code>encodeURIComponent</code> option will need to be specified:</p>
-<pre><code class="language-js">// Assuming gbkEncodeURIComponent function already exists,
+<pre><code class="language-js"><span class="hljs-comment">// Assuming gbkEncodeURIComponent function already exists,</span>
 
-querystring.stringify({ w: '中文', foo: 'bar' }, null, null,
-                      { encodeURIComponent: gbkEncodeURIComponent });
-</code></pre>
-<h2>querystring.unescape(str)<span><a class="mark" href="#querystring_querystring_unescape_str" id="querystring_querystring_unescape_str">#</a></span></h2>
+querystring.stringify({ <span class="hljs-attr">w</span>: <span class="hljs-string">'中文'</span>, <span class="hljs-attr">foo</span>: <span class="hljs-string">'bar'</span> }, <span class="hljs-literal">null</span>, <span class="hljs-literal">null</span>,
+                      { <span class="hljs-attr">encodeURIComponent</span>: gbkEncodeURIComponent });</code></pre>
+<h2><code>querystring.unescape(str)</code><span><a class="mark" href="#querystring_querystring_unescape_str" id="querystring_querystring_unescape_str">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.25</span>
 </div>
@@ -273,11 +274,9 @@ necessary by assigning <code>querystring.unescape</code> to an alternative funct
 <p>By default, the <code>querystring.unescape()</code> method will attempt to use the
 JavaScript built-in <code>decodeURIComponent()</code> method to decode. If that fails,
 a safer equivalent that does not throw on malformed URLs will be used.</p>
+        <!-- API END -->
       </div>
     </div>
   </div>
-  <script src="assets/sh_main.js"></script>
-  <script src="assets/sh_javascript.min.js"></script>
-  <script>highlight(undefined, undefined, 'pre');</script>
 </body>
 </html>

@@ -4,7 +4,7 @@
 #if defined(NODE_WANT_INTERNALS) && NODE_WANT_INTERNALS
 
 #include <cinttypes>
-#include "util.h"
+#include "util-inl.h"
 #include "v8.h"
 
 namespace node {
@@ -42,7 +42,7 @@ class AliasedBufferBase {
     // allocate v8 ArrayBuffer
     v8::Local<v8::ArrayBuffer> ab = v8::ArrayBuffer::New(
         isolate_, size_in_bytes);
-    buffer_ = static_cast<NativeT*>(ab->GetContents().Data());
+    buffer_ = static_cast<NativeT*>(ab->GetBackingStore()->Data());
 
     // allocate v8 TypedArray
     v8::Local<V8T> js_array = V8T::New(ab, byte_offset_, count);
@@ -221,14 +221,15 @@ class AliasedBufferBase {
     const v8::HandleScope handle_scope(isolate_);
 
     const size_t old_size_in_bytes = sizeof(NativeT) * count_;
-    const size_t new_size_in_bytes = sizeof(NativeT) * new_capacity;
+    const size_t new_size_in_bytes = MultiplyWithOverflowCheck(sizeof(NativeT),
+                                                              new_capacity);
 
     // allocate v8 new ArrayBuffer
     v8::Local<v8::ArrayBuffer> ab = v8::ArrayBuffer::New(
         isolate_, new_size_in_bytes);
 
     // allocate new native buffer
-    NativeT* new_buffer = static_cast<NativeT*>(ab->GetContents().Data());
+    NativeT* new_buffer = static_cast<NativeT*>(ab->GetBackingStore()->Data());
     // copy old content
     memcpy(new_buffer, buffer_, old_size_in_bytes);
 

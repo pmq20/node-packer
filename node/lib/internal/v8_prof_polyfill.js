@@ -25,6 +25,8 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+/* eslint-disable no-restricted-globals */
+
 module.exports = { versionCheck };
 
 // Don't execute when required directly instead of being eval'd from
@@ -41,7 +43,7 @@ const os = {
       // Filter out vdso and vsyscall entries.
       const arg = args[args.length - 1];
       if (arg === '[vdso]' ||
-          arg == '[vsyscall]' ||
+          arg === '[vsyscall]' ||
           /^[0-9a-f]+-[0-9a-f]+$/.test(arg)) {
         return '';
       }
@@ -77,7 +79,7 @@ try {
 const fd = fs.openSync(logFile, 'r');
 const buf = Buffer.allocUnsafe(4096);
 const dec = new (require('string_decoder').StringDecoder)('utf-8');
-var line = '';
+let line = '';
 
 {
   const message = versionCheck(peekline(), process.versions.v8);
@@ -125,7 +127,7 @@ function versionCheck(firstLine, expected) {
     return 'Unable to read v8-version from log file.';
   }
   // Compare major, minor and build; ignore the patch and candidate fields.
-  for (var i = 0; i < 3; i++)
+  for (let i = 0; i < 3; i++)
     if (curVer[i] !== firstLine[i + 1])
       return 'Testing v8 version different from logging version';
 }

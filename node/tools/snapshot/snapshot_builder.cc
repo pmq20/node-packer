@@ -1,4 +1,3 @@
-#define NODE_WANT_INTERNALS 1
 #include "snapshot_builder.h"
 #include <iostream>
 #include <sstream>

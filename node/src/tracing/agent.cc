@@ -3,7 +3,7 @@
 #include <string>
 #include "trace_event.h"
 #include "tracing/node_trace_buffer.h"
-#include "debug_utils.h"
+#include "debug_utils-inl.h"
 #include "env-inl.h"
 
 namespace node {
@@ -242,8 +242,9 @@ void TracingController::AddMetadataEvent(
       TRACE_EVENT_FLAG_NONE,
       CurrentTimestampMicroseconds(),
       CurrentCpuTimestampMicroseconds());
-  node::tracing::TraceEventHelper::GetAgent()->AddMetadataEvent(
-      std::move(trace_event));
+  Agent* node_agent = node::tracing::TraceEventHelper::GetAgent();
+  if (node_agent != nullptr)
+    node_agent->AddMetadataEvent(std::move(trace_event));
 }
 
 }  // namespace tracing

@@ -435,12 +435,14 @@ const r = String.raw;
 
 const eventPrefix = '^Event: +';
 const classPrefix = '^[Cc]lass: +';
-const ctorPrefix = '^(?:[Cc]onstructor: +)?new +';
-const classMethodPrefix = '^Class Method: +';
+const ctorPrefix = '^(?:[Cc]onstructor: +)?`?new +';
+const classMethodPrefix = '^Static method: +';
 const maybeClassPropertyPrefix = '(?:Class Property: +)?';
 
 const maybeQuote = '[\'"]?';
 const notQuotes = '[^\'"]+';
+
+const maybeBacktick = '`?';
 
 // To include constructs like `readable\[Symbol.asyncIterator\]()`
 // or `readable.\_read(size)` (with Markdown escapes).
@@ -454,29 +456,29 @@ const maybeAncestors = r`(?:${id}\.?)*`;
 
 const callWithParams = r`\([^)]*\)`;
 
-const noCallOrProp = '(?![.[(])';
-
 const maybeExtends = `(?: +extends +${maybeAncestors}${classId})?`;
 
+/* eslint-disable max-len */
 const headingExpressions = [
   { type: 'event', re: RegExp(
-    `${eventPrefix}${maybeQuote}(${notQuotes})${maybeQuote}$`, 'i') },
+    `${eventPrefix}${maybeBacktick}${maybeQuote}(${notQuotes})${maybeQuote}${maybeBacktick}$`, 'i') },
 
   { type: 'class', re: RegExp(
-    `${classPrefix}(${maybeAncestors}${classId})${maybeExtends}$`, '') },
+    `${classPrefix}${maybeBacktick}(${maybeAncestors}${classId})${maybeExtends}${maybeBacktick}$`, '') },
 
   { type: 'ctor', re: RegExp(
-    `${ctorPrefix}(${maybeAncestors}${classId})${callWithParams}$`, '') },
+    `${ctorPrefix}(${maybeAncestors}${classId})${callWithParams}${maybeBacktick}$`, '') },
 
   { type: 'classMethod', re: RegExp(
-    `${classMethodPrefix}${maybeAncestors}(${id})${callWithParams}$`, 'i') },
+    `${classMethodPrefix}${maybeBacktick}${maybeAncestors}(${id})${callWithParams}${maybeBacktick}$`, 'i') },
 
   { type: 'method', re: RegExp(
-    `^${maybeAncestors}(${id})${callWithParams}$`, 'i') },
+    `^${maybeBacktick}${maybeAncestors}(${id})${callWithParams}${maybeBacktick}$`, 'i') },
 
   { type: 'property', re: RegExp(
-    `^${maybeClassPropertyPrefix}${ancestors}(${id})${noCallOrProp}$`, 'i') },
+    `^${maybeClassPropertyPrefix}${maybeBacktick}${ancestors}(${id})${maybeBacktick}$`, 'i') },
 ];
+/* eslint-enable max-len */
 
 function newSection(header, file) {
   const text = textJoin(header.children, file);
@@ -504,8 +506,7 @@ function textJoin(nodes, file) {
       return `_${textJoin(node.children, file)}_`;
     } else if (node.children) {
       return textJoin(node.children, file);
-    } else {
-      return node.value;
     }
+    return node.value;
   }).join('');
 }

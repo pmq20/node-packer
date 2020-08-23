@@ -25,12 +25,17 @@
 #include <stdint.h>
 #include <errno.h>
 
+#include <dlfcn.h>
 #include <mach/mach.h>
 #include <mach/mach_time.h>
 #include <mach-o/dyld.h> /* _NSGetExecutablePath */
 #include <sys/resource.h>
 #include <sys/sysctl.h>
 #include <unistd.h>  /* sysconf */
+
+static uv_once_t once = UV_ONCE_INIT;
+static uint64_t (*time_func)(void);
+static mach_timebase_info_data_t timebase;
 
 
 int uv__platform_loop_init(uv_loop_t* loop) {
@@ -48,15 +53,19 @@ void uv__platform_loop_delete(uv_loop_t* loop) {
 }
 
 
-uint64_t uv__hrtime(uv_clocktype_t type) {
-  static mach_timebase_info_data_t info;
-
-  if ((ACCESS_ONCE(uint32_t, info.numer) == 0 ||
-       ACCESS_ONCE(uint32_t, info.denom) == 0) &&
-      mach_timebase_info(&info) != KERN_SUCCESS)
+static void uv__hrtime_init_once(void) {
+  if (KERN_SUCCESS != mach_timebase_info(&timebase))
     abort();
 
-  return mach_absolute_time() * info.numer / info.denom;
+  time_func = (uint64_t (*)(void)) dlsym(RTLD_DEFAULT, "mach_continuous_time");
+  if (time_func == NULL)
+    time_func = mach_absolute_time;
+}
+
+
+uint64_t uv__hrtime(uv_clocktype_t type) {
+  uv_once(&once, uv__hrtime_init_once);
+  return time_func() * timebase.numer / timebase.denom;
 }
 
 
@@ -110,7 +119,7 @@ uint64_t uv_get_total_memory(void) {
   int which[] = {CTL_HW, HW_MEMSIZE};
   size_t size = sizeof(info);
 
-  if (sysctl(which, 2, &info, &size, NULL, 0))
+  if (sysctl(which, ARRAY_SIZE(which), &info, &size, NULL, 0))
     return UV__ERR(errno);
 
   return (uint64_t) info;
@@ -127,7 +136,7 @@ void uv_loadavg(double avg[3]) {
   size_t size = sizeof(info);
   int which[] = {CTL_VM, VM_LOADAVG};
 
-  if (sysctl(which, 2, &info, &size, NULL, 0) < 0) return;
+  if (sysctl(which, ARRAY_SIZE(which), &info, &size, NULL, 0) < 0) return;
 
   avg[0] = (double) info.ldavg[0] / info.fscale;
   avg[1] = (double) info.ldavg[1] / info.fscale;
@@ -162,7 +171,7 @@ int uv_uptime(double* uptime) {
   size_t size = sizeof(info);
   static int which[] = {CTL_KERN, KERN_BOOTTIME};
 
-  if (sysctl(which, 2, &info, &size, NULL, 0))
+  if (sysctl(which, ARRAY_SIZE(which), &info, &size, NULL, 0))
     return UV__ERR(errno);
 
   now = time(NULL);

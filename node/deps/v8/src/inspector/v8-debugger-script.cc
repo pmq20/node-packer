@@ -6,10 +6,10 @@
 
 #include "src/base/memory.h"
 #include "src/inspector/inspected-context.h"
+#include "src/inspector/protocol/Debugger.h"
 #include "src/inspector/string-util.h"
 #include "src/inspector/v8-debugger-agent-impl.h"
 #include "src/inspector/v8-inspector-impl.h"
-#include "src/inspector/wasm-translation.h"
 
 namespace v8_inspector {
 
@@ -86,32 +86,6 @@ String16 calculateHash(v8::Isolate* isolate, v8::Local<v8::String> source) {
   return hash.toString();
 }
 
-void TranslateProtocolLocationToV8Location(WasmTranslation* wasmTranslation,
-                                           v8::debug::Location* loc,
-                                           const String16& scriptId,
-                                           const String16& expectedV8ScriptId) {
-  if (loc->IsEmpty()) return;
-  int lineNumber = loc->GetLineNumber();
-  int columnNumber = loc->GetColumnNumber();
-  String16 translatedScriptId = scriptId;
-  wasmTranslation->TranslateProtocolLocationToWasmScriptLocation(
-      &translatedScriptId, &lineNumber, &columnNumber);
-  DCHECK_EQ(expectedV8ScriptId.utf8(), translatedScriptId.utf8());
-  *loc = v8::debug::Location(lineNumber, columnNumber);
-}
-
-void TranslateV8LocationToProtocolLocation(
-    WasmTranslation* wasmTranslation, v8::debug::Location* loc,
-    const String16& scriptId, const String16& expectedProtocolScriptId) {
-  int lineNumber = loc->GetLineNumber();
-  int columnNumber = loc->GetColumnNumber();
-  String16 translatedScriptId = scriptId;
-  wasmTranslation->TranslateWasmScriptLocationToProtocolLocation(
-      &translatedScriptId, &lineNumber, &columnNumber);
-  DCHECK_EQ(expectedProtocolScriptId.utf8(), translatedScriptId.utf8());
-  *loc = v8::debug::Location(lineNumber, columnNumber);
-}
-
 class ActualScript : public V8DebuggerScript {
   friend class V8DebuggerScript;
 
@@ -141,10 +115,37 @@ class ActualScript : public V8DebuggerScript {
                     static_cast<int>(pos), static_cast<int>(substringLength));
     return String16(buffer.get(), substringLength);
   }
+  v8::Maybe<v8::MemorySpan<const uint8_t>> wasmBytecode() const override {
+    v8::HandleScope scope(m_isolate);
+    auto script = this->script();
+    if (!script->IsWasm()) return v8::Nothing<v8::MemorySpan<const uint8_t>>();
+    return v8::Just(v8::debug::WasmScript::Cast(*script)->Bytecode());
+  }
+  Language getLanguage() const override { return m_language; }
+  v8::Maybe<v8::debug::WasmScript::DebugSymbolsType> getDebugSymbolsType()
+      const override {
+    auto script = this->script();
+    if (!script->IsWasm())
+      return v8::Nothing<v8::debug::WasmScript::DebugSymbolsType>();
+    return v8::Just(v8::debug::WasmScript::Cast(*script)->GetDebugSymbolType());
+  }
+  v8::Maybe<String16> getExternalDebugSymbolsURL() const override {
+    auto script = this->script();
+    if (!script->IsWasm()) return v8::Nothing<String16>();
+    v8::MemorySpan<const char> external_url =
+        v8::debug::WasmScript::Cast(*script)->ExternalSymbolsURL();
+    if (external_url.size() == 0) return v8::Nothing<String16>();
+    return v8::Just(String16(external_url.data(), external_url.size()));
+  }
   int startLine() const override { return m_startLine; }
   int startColumn() const override { return m_startColumn; }
   int endLine() const override { return m_endLine; }
   int endColumn() const override { return m_endColumn; }
+  int codeOffset() const override {
+    auto script = this->script();
+    if (!script->IsWasm()) return 0;
+    return v8::debug::WasmScript::Cast(*script)->CodeOffset();
+  }
   bool isSourceLoadedLazily() const override { return false; }
   int length() const override {
     v8::HandleScope scope(m_isolate);
@@ -281,9 +282,8 @@ class ActualScript : public V8DebuggerScript {
     m_startLine = script->LineOffset();
     m_startColumn = script->ColumnOffset();
     std::vector<int> lineEnds = script->LineEnds();
-    CHECK(lineEnds.size());
-    int source_length = lineEnds[lineEnds.size() - 1];
     if (lineEnds.size()) {
+      int source_length = lineEnds[lineEnds.size() - 1];
       m_endLine = static_cast<int>(lineEnds.size()) + m_startLine - 1;
       if (lineEnds.size() > 1) {
         m_endColumn = source_length - lineEnds[lineEnds.size() - 2] - 1;
@@ -296,6 +296,11 @@ class ActualScript : public V8DebuggerScript {
     }
 
     USE(script->ContextId().To(&m_executionContextId));
+    if (script->IsWasm()) {
+      m_language = V8DebuggerScript::Language::WebAssembly;
+    } else {
+      m_language = V8DebuggerScript::Language::JavaScript;
+    }
 
     m_isModule = script->IsModule();
 
@@ -319,6 +324,7 @@ class ActualScript : public V8DebuggerScript {
 
   V8DebuggerAgentImpl* m_agent;
   String16 m_sourceMappingURL;
+  Language m_language;
   bool m_isLiveEdit = false;
   bool m_isModule = false;
   mutable String16 m_hash;
@@ -329,150 +335,13 @@ class ActualScript : public V8DebuggerScript {
   v8::Global<v8::debug::Script> m_script;
 };
 
-class WasmVirtualScript : public V8DebuggerScript {
-  friend class V8DebuggerScript;
-
- public:
-  WasmVirtualScript(v8::Isolate* isolate, WasmTranslation* wasmTranslation,
-                    v8::Local<v8::debug::WasmScript> script, String16 id,
-                    String16 url, int functionIndex)
-      : V8DebuggerScript(isolate, std::move(id), std::move(url)),
-        m_script(isolate, script),
-        m_wasmTranslation(wasmTranslation),
-        m_functionIndex(functionIndex) {
-    m_script.AnnotateStrongRetainer(kGlobalDebuggerScriptHandleLabel);
-    m_executionContextId = script->ContextId().ToChecked();
-  }
-
-  const String16& sourceMappingURL() const override { return emptyString(); }
-  bool isLiveEdit() const override { return false; }
-  bool isModule() const override { return false; }
-  void setSourceMappingURL(const String16&) override {}
-  void setSource(const String16&, bool, v8::debug::LiveEditResult*) override {
-    UNREACHABLE();
-  }
-  bool isSourceLoadedLazily() const override { return true; }
-  String16 source(size_t pos, size_t len) const override {
-    return m_wasmTranslation->GetSource(m_id, m_functionIndex)
-        .substring(pos, len);
-  }
-  int startLine() const override {
-    return m_wasmTranslation->GetStartLine(m_id, m_functionIndex);
-  }
-  int startColumn() const override {
-    return m_wasmTranslation->GetStartColumn(m_id, m_functionIndex);
-  }
-  int endLine() const override {
-    return m_wasmTranslation->GetEndLine(m_id, m_functionIndex);
-  }
-  int endColumn() const override {
-    return m_wasmTranslation->GetEndColumn(m_id, m_functionIndex);
-  }
-  int length() const override {
-    return static_cast<int>(source(0, UINT_MAX).length());
-  }
-
-  bool getPossibleBreakpoints(
-      const v8::debug::Location& start, const v8::debug::Location& end,
-      bool restrictToFunction,
-      std::vector<v8::debug::BreakLocation>* locations) override {
-    v8::HandleScope scope(m_isolate);
-    v8::Local<v8::debug::Script> script = m_script.Get(m_isolate);
-    String16 v8ScriptId = String16::fromInteger(script->Id());
-
-    v8::debug::Location translatedStart = start;
-    TranslateProtocolLocationToV8Location(m_wasmTranslation, &translatedStart,
-                                          scriptId(), v8ScriptId);
-
-    v8::debug::Location translatedEnd = end;
-    if (translatedEnd.IsEmpty()) {
-      // Stop before the start of the next function.
-      translatedEnd =
-          v8::debug::Location(translatedStart.GetLineNumber() + 1, 0);
-    } else {
-      TranslateProtocolLocationToV8Location(m_wasmTranslation, &translatedEnd,
-                                            scriptId(), v8ScriptId);
-    }
-
-    bool success = script->GetPossibleBreakpoints(
-        translatedStart, translatedEnd, restrictToFunction, locations);
-    for (v8::debug::BreakLocation& loc : *locations) {
-      TranslateV8LocationToProtocolLocation(m_wasmTranslation, &loc, v8ScriptId,
-                                            scriptId());
-    }
-    return success;
-  }
-
-  void resetBlackboxedStateCache() override {}
-
-  int offset(int lineNumber, int columnNumber) const override {
-    return kNoOffset;
-  }
-
-  v8::debug::Location location(int offset) const override {
-    return v8::debug::Location();
-  }
-
-  bool setBreakpoint(const String16& condition, v8::debug::Location* location,
-                     int* id) const override {
-    v8::HandleScope scope(m_isolate);
-    v8::Local<v8::debug::Script> script = m_script.Get(m_isolate);
-    String16 v8ScriptId = String16::fromInteger(script->Id());
-
-    TranslateProtocolLocationToV8Location(m_wasmTranslation, location,
-                                          scriptId(), v8ScriptId);
-    if (location->IsEmpty()) return false;
-    if (!script->SetBreakpoint(toV8String(m_isolate, condition), location, id))
-      return false;
-    TranslateV8LocationToProtocolLocation(m_wasmTranslation, location,
-                                          v8ScriptId, scriptId());
-    return true;
-  }
-
-  bool setBreakpointOnRun(int*) const override { return false; }
-
-  const String16& hash() const override {
-    if (m_hash.isEmpty()) {
-      m_hash = m_wasmTranslation->GetHash(m_id, m_functionIndex);
-    }
-    return m_hash;
-  }
-
-  void MakeWeak() override {}
-
- private:
-  static const String16& emptyString() {
-    // On the heap and leaked so that no destructor needs to run at exit time.
-    static const String16* singleEmptyString = new String16;
-    return *singleEmptyString;
-  }
-
-  v8::Local<v8::debug::Script> script() const override {
-    return m_script.Get(m_isolate);
-  }
-
-  v8::Global<v8::debug::WasmScript> m_script;
-  WasmTranslation* m_wasmTranslation;
-  int m_functionIndex;
-  mutable String16 m_hash;
-};
-
 }  // namespace
 
 std::unique_ptr<V8DebuggerScript> V8DebuggerScript::Create(
     v8::Isolate* isolate, v8::Local<v8::debug::Script> scriptObj,
     bool isLiveEdit, V8DebuggerAgentImpl* agent, V8InspectorClient* client) {
-  return v8::base::make_unique<ActualScript>(isolate, scriptObj, isLiveEdit,
-                                             agent, client);
-}
-
-std::unique_ptr<V8DebuggerScript> V8DebuggerScript::CreateWasm(
-    v8::Isolate* isolate, WasmTranslation* wasmTranslation,
-    v8::Local<v8::debug::WasmScript> underlyingScript, String16 id,
-    String16 url, int functionIndex) {
-  return v8::base::make_unique<WasmVirtualScript>(
-      isolate, wasmTranslation, underlyingScript, std::move(id), std::move(url),
-      functionIndex);
+  return std::make_unique<ActualScript>(isolate, scriptObj, isLiveEdit, agent,
+                                        client);
 }
 
 V8DebuggerScript::V8DebuggerScript(v8::Isolate* isolate, String16 id,
@@ -492,6 +361,11 @@ bool V8DebuggerScript::setBreakpoint(const String16& condition,
                                      v8::debug::Location* loc, int* id) const {
   v8::HandleScope scope(m_isolate);
   return script()->SetBreakpoint(toV8String(m_isolate, condition), loc, id);
+}
+
+void V8DebuggerScript::removeWasmBreakpoint(int id) {
+  v8::HandleScope scope(m_isolate);
+  script()->RemoveWasmBreakpoint(id);
 }
 
 }  // namespace v8_inspector

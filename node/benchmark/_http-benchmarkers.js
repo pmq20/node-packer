@@ -5,7 +5,7 @@ const path = require('path');
 const fs = require('fs');
 
 const requirementsURL =
-  'https://github.com/nodejs/node/blob/master/doc/guides/writing-and-running-benchmarks.md#http-benchmark-requirements';
+  'https://github.com/nodejs/node/blob/master/benchmark/writing-and-running-benchmarks.md#http-benchmark-requirements';
 
 // The port used by servers and wrk
 exports.PORT = Number(process.env.PORT) || 12346;
@@ -43,9 +43,8 @@ class AutocannonBenchmarker {
     }
     if (!result || !result.requests || !result.requests.average) {
       return undefined;
-    } else {
-      return result.requests.average;
     }
+    return result.requests.average;
   }
 }
 
@@ -58,12 +57,18 @@ class WrkBenchmarker {
   }
 
   create(options) {
+    const duration = typeof options.duration === 'number' ?
+      Math.max(options.duration, 1) :
+      options.duration;
     const args = [
-      '-d', options.duration,
+      '-d', duration,
       '-c', options.connections,
-      '-t', 8,
+      '-t', Math.min(options.connections, require('os').cpus().length || 8),
       `http://127.0.0.1:${options.port}${options.path}`,
     ];
+    for (const field in options.headers) {
+      args.push('-H', `${field}: ${options.headers[field]}`);
+    }
     const child = child_process.spawn(this.executable, args);
     return child;
   }
@@ -74,9 +79,8 @@ class WrkBenchmarker {
     const throughput = match && +match[1];
     if (!isFinite(throughput)) {
       return undefined;
-    } else {
-      return throughput;
     }
+    return throughput;
   }
 }
 
@@ -86,7 +90,8 @@ class WrkBenchmarker {
  */
 class TestDoubleBenchmarker {
   constructor(type) {
-    // `type` is the type ofbenchmarker. Possible values are 'http' and 'http2'.
+    // `type` is the type of benchmarker. Possible values are 'http' and
+    // 'http2'.
     this.name = `test-double-${type}`;
     this.executable = path.resolve(__dirname, '_test-double-benchmarker.js');
     this.present = fs.existsSync(this.executable);
@@ -94,10 +99,12 @@ class TestDoubleBenchmarker {
   }
 
   create(options) {
-    const env = Object.assign({
-      duration: options.duration,
+    process.env.duration = process.env.duration || options.duration || 5;
+
+    const env = {
       test_url: `http://127.0.0.1:${options.port}${options.path}`,
-    }, process.env);
+      ...process.env
+    };
 
     const child = child_process.fork(this.executable,
                                      [this.type],
@@ -186,13 +193,14 @@ http_benchmarkers.forEach((benchmarker) => {
 });
 
 exports.run = function(options, callback) {
-  options = Object.assign({
+  options = {
     port: exports.PORT,
     path: '/',
     connections: 100,
     duration: 5,
     benchmarker: exports.default_http_benchmarker,
-  }, options);
+    ...options
+  };
   if (!options.benchmarker) {
     callback(new Error('Could not locate required http benchmarker. See ' +
                        `${requirementsURL} for further instructions.`));
@@ -217,7 +225,8 @@ exports.run = function(options, callback) {
   child.stderr.pipe(process.stderr);
 
   let stdout = '';
-  child.stdout.on('data', (chunk) => stdout += chunk.toString());
+  child.stdout.setEncoding('utf8');
+  child.stdout.on('data', (chunk) => stdout += chunk);
 
   child.once('close', (code) => {
     const elapsed = process.hrtime(benchmarker_start);

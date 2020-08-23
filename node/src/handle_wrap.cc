@@ -18,11 +18,10 @@
 // DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
-#define NODE_WANT_INTERNALS 1
+
 #include "handle_wrap.h"
 #include "async_wrap-inl.h"
 #include "env-inl.h"
-#include "node.h"
 #include "util-inl.h"
 
 namespace node {
@@ -35,25 +34,31 @@ using v8::Local;
 using v8::Object;
 using v8::Value;
 
+
 void HandleWrap::Ref(const FunctionCallbackInfo<Value>& args) {
   HandleWrap* wrap;
   ASSIGN_OR_RETURN_UNWRAP(&wrap, args.Holder());
 
-  if (IsAlive(wrap)) uv_ref(wrap->GetHandle());
+  if (IsAlive(wrap))
+    uv_ref(wrap->GetHandle());
 }
+
 
 void HandleWrap::Unref(const FunctionCallbackInfo<Value>& args) {
   HandleWrap* wrap;
   ASSIGN_OR_RETURN_UNWRAP(&wrap, args.Holder());
 
-  if (IsAlive(wrap)) uv_unref(wrap->GetHandle());
+  if (IsAlive(wrap))
+    uv_unref(wrap->GetHandle());
 }
+
 
 void HandleWrap::HasRef(const FunctionCallbackInfo<Value>& args) {
   HandleWrap* wrap;
   ASSIGN_OR_RETURN_UNWRAP(&wrap, args.Holder());
   args.GetReturnValue().Set(HasRef(wrap));
 }
+
 
 void HandleWrap::Close(const FunctionCallbackInfo<Value>& args) {
   HandleWrap* wrap;
@@ -63,51 +68,57 @@ void HandleWrap::Close(const FunctionCallbackInfo<Value>& args) {
 }
 
 void HandleWrap::Close(Local<Value> close_callback) {
-  if (state_ != kInitialized) return;
+  if (state_ != kInitialized)
+    return;
 
   uv_close(handle_, OnClose);
   state_ = kClosing;
 
   if (!close_callback.IsEmpty() && close_callback->IsFunction() &&
       !persistent().IsEmpty()) {
-    object()
-        ->Set(env()->context(), env()->handle_onclose_symbol(), close_callback)
-        .Check();
+    object()->Set(env()->context(),
+                  env()->handle_onclose_symbol(),
+                  close_callback).Check();
   }
 }
 
-void HandleWrap::MakeWeak() {
-  persistent().SetWeak(this,
-                       [](const v8::WeakCallbackInfo<HandleWrap>& data) {
-                         HandleWrap* handle_wrap = data.GetParameter();
-                         handle_wrap->persistent().Reset();
-                         handle_wrap->Close();
-                       },
-                       v8::WeakCallbackType::kParameter);
+
+void HandleWrap::OnGCCollect() {
+  Close();
 }
+
 
 void HandleWrap::MarkAsInitialized() {
   env()->handle_wrap_queue()->PushBack(this);
   state_ = kInitialized;
 }
 
+
 void HandleWrap::MarkAsUninitialized() {
   handle_wrap_queue_.Remove();
   state_ = kClosed;
 }
 
+
 HandleWrap::HandleWrap(Environment* env,
                        Local<Object> object,
                        uv_handle_t* handle,
                        AsyncWrap::ProviderType provider)
-    : AsyncWrap(env, object, provider), state_(kInitialized), handle_(handle) {
+    : AsyncWrap(env, object, provider),
+      state_(kInitialized),
+      handle_(handle) {
   handle_->data = this;
   HandleScope scope(env->isolate());
+  CHECK(env->has_run_bootstrapping_code());
   env->handle_wrap_queue()->PushBack(this);
 }
 
+
 void HandleWrap::OnClose(uv_handle_t* handle) {
-  std::unique_ptr<HandleWrap> wrap{static_cast<HandleWrap*>(handle->data)};
+  CHECK_NOT_NULL(handle->data);
+  BaseObjectPtr<HandleWrap> wrap { static_cast<HandleWrap*>(handle->data) };
+  wrap->Detach();
+
   Environment* env = wrap->env();
   HandleScope scope(env->isolate());
   Context::Scope context_scope(env->context());
@@ -117,11 +128,11 @@ void HandleWrap::OnClose(uv_handle_t* handle) {
   wrap->state_ = kClosed;
 
   wrap->OnClose();
+  wrap->handle_wrap_queue_.Remove();
 
   if (!wrap->persistent().IsEmpty() &&
-      wrap->object()
-          ->Has(env->context(), env->handle_onclose_symbol())
-          .FromMaybe(false)) {
+      wrap->object()->Has(env->context(), env->handle_onclose_symbol())
+      .FromMaybe(false)) {
     wrap->MakeCallback(env->handle_onclose_symbol(), 0, nullptr);
   }
 }
@@ -140,5 +151,6 @@ Local<FunctionTemplate> HandleWrap::GetConstructorTemplate(Environment* env) {
   }
   return tmpl;
 }
+
 
 }  // namespace node

@@ -33,42 +33,22 @@ struct SmiIndex {
   ScaleFactor scale;
 };
 
-enum StackArgumentsAccessorReceiverMode {
-  ARGUMENTS_CONTAIN_RECEIVER,
-  ARGUMENTS_DONT_CONTAIN_RECEIVER
-};
-
+// Convenient class to access arguments below the stack pointer.
 class StackArgumentsAccessor {
  public:
-  StackArgumentsAccessor(Register base_reg, Register argument_count_reg,
-                         StackArgumentsAccessorReceiverMode receiver_mode =
-                             ARGUMENTS_CONTAIN_RECEIVER,
-                         int extra_displacement_to_last_argument = 0)
-      : base_reg_(base_reg),
-        argument_count_reg_(argument_count_reg),
-        argument_count_immediate_(0),
-        receiver_mode_(receiver_mode),
-        extra_displacement_to_last_argument_(
-            extra_displacement_to_last_argument) {}
-
-  StackArgumentsAccessor(Register base_reg,
-                         const ParameterCount& parameter_count,
-                         StackArgumentsAccessorReceiverMode receiver_mode =
-                             ARGUMENTS_CONTAIN_RECEIVER,
-                         int extra_displacement_to_last_argument = 0);
-
-  Operand GetArgumentOperand(int index);
-  Operand GetReceiverOperand() {
-    DCHECK(receiver_mode_ == ARGUMENTS_CONTAIN_RECEIVER);
-    return GetArgumentOperand(0);
+  // argc = the number of arguments not including the receiver.
+  explicit StackArgumentsAccessor(Register argc) : argc_(argc) {
+    DCHECK_NE(argc_, no_reg);
   }
 
+  // Argument 0 is the receiver (despite argc not including the receiver).
+  Operand operator[](int index) const { return GetArgumentOperand(index); }
+
+  Operand GetArgumentOperand(int index) const;
+  Operand GetReceiverOperand() const { return GetArgumentOperand(0); }
+
  private:
-  const Register base_reg_;
-  const Register argument_count_reg_;
-  const int argument_count_immediate_;
-  const StackArgumentsAccessorReceiverMode receiver_mode_;
-  const int extra_displacement_to_last_argument_;
+  const Register argc_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(StackArgumentsAccessor);
 };
@@ -80,6 +60,7 @@ class V8_EXPORT_PRIVATE TurboAssembler : public TurboAssemblerBase {
   template <typename Dst, typename... Args>
   struct AvxHelper {
     Assembler* assm;
+    base::Optional<CpuFeature> feature = base::nullopt;
     // Call a method where the AVX version expects the dst argument to be
     // duplicated.
     template <void (Assembler::*avx)(Dst, Dst, Args...),
@@ -88,6 +69,10 @@ class V8_EXPORT_PRIVATE TurboAssembler : public TurboAssemblerBase {
       if (CpuFeatures::IsSupported(AVX)) {
         CpuFeatureScope scope(assm, AVX);
         (assm->*avx)(dst, dst, args...);
+      } else if (feature.has_value()) {
+        DCHECK(CpuFeatures::IsSupported(*feature));
+        CpuFeatureScope scope(assm, *feature);
+        (assm->*no_avx)(dst, args...);
       } else {
         (assm->*no_avx)(dst, args...);
       }
@@ -100,6 +85,10 @@ class V8_EXPORT_PRIVATE TurboAssembler : public TurboAssemblerBase {
       if (CpuFeatures::IsSupported(AVX)) {
         CpuFeatureScope scope(assm, AVX);
         (assm->*avx)(dst, args...);
+      } else if (feature.has_value()) {
+        DCHECK(CpuFeatures::IsSupported(*feature));
+        CpuFeatureScope scope(assm, *feature);
+        (assm->*no_avx)(dst, args...);
       } else {
         (assm->*no_avx)(dst, args...);
       }
@@ -113,9 +102,36 @@ class V8_EXPORT_PRIVATE TurboAssembler : public TurboAssemblerBase {
         .template emit<&Assembler::v##name, &Assembler::name>(dst, args...); \
   }
 
+#define AVX_OP_SSE3(macro_name, name)                                        \
+  template <typename Dst, typename... Args>                                  \
+  void macro_name(Dst dst, Args... args) {                                   \
+    AvxHelper<Dst, Args...>{this, base::Optional<CpuFeature>(SSE3)}          \
+        .template emit<&Assembler::v##name, &Assembler::name>(dst, args...); \
+  }
+
+#define AVX_OP_SSSE3(macro_name, name)                                       \
+  template <typename Dst, typename... Args>                                  \
+  void macro_name(Dst dst, Args... args) {                                   \
+    AvxHelper<Dst, Args...>{this, base::Optional<CpuFeature>(SSSE3)}         \
+        .template emit<&Assembler::v##name, &Assembler::name>(dst, args...); \
+  }
+
+#define AVX_OP_SSE4_1(macro_name, name)                                      \
+  template <typename Dst, typename... Args>                                  \
+  void macro_name(Dst dst, Args... args) {                                   \
+    AvxHelper<Dst, Args...>{this, base::Optional<CpuFeature>(SSE4_1)}        \
+        .template emit<&Assembler::v##name, &Assembler::name>(dst, args...); \
+  }
+#define AVX_OP_SSE4_2(macro_name, name)                                      \
+  template <typename Dst, typename... Args>                                  \
+  void macro_name(Dst dst, Args... args) {                                   \
+    AvxHelper<Dst, Args...>{this, base::Optional<CpuFeature>(SSE4_2)}        \
+        .template emit<&Assembler::v##name, &Assembler::name>(dst, args...); \
+  }
   AVX_OP(Subsd, subsd)
   AVX_OP(Divss, divss)
   AVX_OP(Divsd, divsd)
+  AVX_OP(Orps, orps)
   AVX_OP(Xorps, xorps)
   AVX_OP(Xorpd, xorpd)
   AVX_OP(Movd, movd)
@@ -125,16 +141,26 @@ class V8_EXPORT_PRIVATE TurboAssembler : public TurboAssemblerBase {
   AVX_OP(Movups, movups)
   AVX_OP(Movmskps, movmskps)
   AVX_OP(Movmskpd, movmskpd)
+  AVX_OP(Pmovmskb, pmovmskb)
   AVX_OP(Movss, movss)
   AVX_OP(Movsd, movsd)
   AVX_OP(Movdqu, movdqu)
+  AVX_OP(Pcmpeqb, pcmpeqb)
+  AVX_OP(Pcmpeqw, pcmpeqw)
   AVX_OP(Pcmpeqd, pcmpeqd)
+  AVX_OP(Pcmpgtb, pcmpgtb)
+  AVX_OP(Pcmpgtw, pcmpgtw)
+  AVX_OP(Pmaxsw, pmaxsw)
+  AVX_OP(Pmaxub, pmaxub)
+  AVX_OP(Pminsw, pminsw)
+  AVX_OP(Pminub, pminub)
   AVX_OP(Addss, addss)
   AVX_OP(Addsd, addsd)
   AVX_OP(Mulsd, mulsd)
   AVX_OP(Andps, andps)
   AVX_OP(Andnps, andnps)
   AVX_OP(Andpd, andpd)
+  AVX_OP(Andnpd, andnpd)
   AVX_OP(Orpd, orpd)
   AVX_OP(Cmpeqps, cmpeqps)
   AVX_OP(Cmpltps, cmpltps)
@@ -152,8 +178,112 @@ class V8_EXPORT_PRIVATE TurboAssembler : public TurboAssemblerBase {
   AVX_OP(Roundsd, roundsd)
   AVX_OP(Sqrtss, sqrtss)
   AVX_OP(Sqrtsd, sqrtsd)
+  AVX_OP(Sqrtps, sqrtps)
+  AVX_OP(Sqrtpd, sqrtpd)
+  AVX_OP(Cvttps2dq, cvttps2dq)
   AVX_OP(Ucomiss, ucomiss)
   AVX_OP(Ucomisd, ucomisd)
+  AVX_OP(Pand, pand)
+  AVX_OP(Por, por)
+  AVX_OP(Pxor, pxor)
+  AVX_OP(Psubb, psubb)
+  AVX_OP(Psubw, psubw)
+  AVX_OP(Psubd, psubd)
+  AVX_OP(Psubq, psubq)
+  AVX_OP(Psubsb, psubsb)
+  AVX_OP(Psubsw, psubsw)
+  AVX_OP(Psubusb, psubusb)
+  AVX_OP(Psubusw, psubusw)
+  AVX_OP(Pslld, pslld)
+  AVX_OP(Pavgb, pavgb)
+  AVX_OP(Pavgw, pavgw)
+  AVX_OP(Psraw, psraw)
+  AVX_OP(Psrad, psrad)
+  AVX_OP(Psllw, psllw)
+  AVX_OP(Psllq, psllq)
+  AVX_OP(Psrlw, psrlw)
+  AVX_OP(Psrld, psrld)
+  AVX_OP(Psrlq, psrlq)
+  AVX_OP(Paddb, paddb)
+  AVX_OP(Paddw, paddw)
+  AVX_OP(Paddd, paddd)
+  AVX_OP(Paddq, paddq)
+  AVX_OP(Paddsb, paddsb)
+  AVX_OP(Paddsw, paddsw)
+  AVX_OP(Paddusb, paddusb)
+  AVX_OP(Paddusw, paddusw)
+  AVX_OP(Pcmpgtd, pcmpgtd)
+  AVX_OP(Pmullw, pmullw)
+  AVX_OP(Pmuludq, pmuludq)
+  AVX_OP(Addpd, addpd)
+  AVX_OP(Subpd, subpd)
+  AVX_OP(Mulpd, mulpd)
+  AVX_OP(Minps, minps)
+  AVX_OP(Minpd, minpd)
+  AVX_OP(Divpd, divpd)
+  AVX_OP(Maxps, maxps)
+  AVX_OP(Maxpd, maxpd)
+  AVX_OP(Shufps, shufps)
+  AVX_OP(Cvtdq2ps, cvtdq2ps)
+  AVX_OP(Rcpps, rcpps)
+  AVX_OP(Rsqrtps, rsqrtps)
+  AVX_OP(Addps, addps)
+  AVX_OP(Subps, subps)
+  AVX_OP(Mulps, mulps)
+  AVX_OP(Divps, divps)
+  AVX_OP(Pshuflw, pshuflw)
+  AVX_OP(Pshufhw, pshufhw)
+  AVX_OP(Packsswb, packsswb)
+  AVX_OP(Packuswb, packuswb)
+  AVX_OP(Packssdw, packssdw)
+  AVX_OP(Punpcklbw, punpcklbw)
+  AVX_OP(Punpcklwd, punpcklwd)
+  AVX_OP(Punpckldq, punpckldq)
+  AVX_OP(Punpckhbw, punpckhbw)
+  AVX_OP(Punpckhwd, punpckhwd)
+  AVX_OP(Punpckhdq, punpckhdq)
+  AVX_OP(Punpcklqdq, punpcklqdq)
+  AVX_OP(Punpckhqdq, punpckhqdq)
+  AVX_OP(Pshufd, pshufd)
+  AVX_OP(Cmpps, cmpps)
+  AVX_OP(Cmppd, cmppd)
+  AVX_OP(Movlhps, movlhps)
+  AVX_OP_SSE3(Haddps, haddps)
+  AVX_OP_SSE3(Movddup, movddup)
+  AVX_OP_SSSE3(Phaddd, phaddd)
+  AVX_OP_SSSE3(Phaddw, phaddw)
+  AVX_OP_SSSE3(Pshufb, pshufb)
+  AVX_OP_SSSE3(Psignb, psignb)
+  AVX_OP_SSSE3(Psignw, psignw)
+  AVX_OP_SSSE3(Psignd, psignd)
+  AVX_OP_SSSE3(Palignr, palignr)
+  AVX_OP_SSSE3(Pabsb, pabsb)
+  AVX_OP_SSSE3(Pabsw, pabsw)
+  AVX_OP_SSSE3(Pabsd, pabsd)
+  AVX_OP_SSE4_1(Pcmpeqq, pcmpeqq)
+  AVX_OP_SSE4_1(Packusdw, packusdw)
+  AVX_OP_SSE4_1(Pminsb, pminsb)
+  AVX_OP_SSE4_1(Pminsd, pminsd)
+  AVX_OP_SSE4_1(Pminuw, pminuw)
+  AVX_OP_SSE4_1(Pminud, pminud)
+  AVX_OP_SSE4_1(Pmaxsb, pmaxsb)
+  AVX_OP_SSE4_1(Pmaxsd, pmaxsd)
+  AVX_OP_SSE4_1(Pmaxuw, pmaxuw)
+  AVX_OP_SSE4_1(Pmaxud, pmaxud)
+  AVX_OP_SSE4_1(Pmulld, pmulld)
+  AVX_OP_SSE4_1(Extractps, extractps)
+  AVX_OP_SSE4_1(Insertps, insertps)
+  AVX_OP_SSE4_1(Pinsrq, pinsrq)
+  AVX_OP_SSE4_1(Pblendw, pblendw)
+  AVX_OP_SSE4_1(Ptest, ptest)
+  AVX_OP_SSE4_1(Pmovsxbw, pmovsxbw)
+  AVX_OP_SSE4_1(Pmovsxwd, pmovsxwd)
+  AVX_OP_SSE4_1(Pmovsxdq, pmovsxdq)
+  AVX_OP_SSE4_1(Pmovzxbw, pmovzxbw)
+  AVX_OP_SSE4_1(Pmovzxwd, pmovzxwd)
+  AVX_OP_SSE4_1(Pmovzxdq, pmovzxdq)
+  AVX_OP_SSE4_1(Pextrq, pextrq)
+  AVX_OP_SSE4_2(Pcmpgtq, pcmpgtq)
 
 #undef AVX_OP
 
@@ -182,6 +312,12 @@ class V8_EXPORT_PRIVATE TurboAssembler : public TurboAssemblerBase {
   void Push(Immediate value);
   void Push(Smi smi);
   void Push(Handle<HeapObject> source);
+
+  enum class PushArrayOrder { kNormal, kReverse };
+  // `array` points to the first element (the lowest address).
+  // `array` and `size` are not modified.
+  void PushArray(Register array, Register size, Register scratch,
+                 PushArrayOrder order = PushArrayOrder::kNormal);
 
   // Before calling a C-function from generated code, align arguments on stack.
   // After aligning the frame, arguments must be stored in rsp[0], rsp[8],
@@ -220,12 +356,6 @@ class V8_EXPORT_PRIVATE TurboAssembler : public TurboAssemblerBase {
   void Cvttss2si(Register dst, Operand src);
   void Cvttss2siq(Register dst, XMMRegister src);
   void Cvttss2siq(Register dst, Operand src);
-  void Cvtqsi2ss(XMMRegister dst, Register src);
-  void Cvtqsi2ss(XMMRegister dst, Operand src);
-  void Cvtqsi2sd(XMMRegister dst, Register src);
-  void Cvtqsi2sd(XMMRegister dst, Operand src);
-  void Cvtlsi2ss(XMMRegister dst, Register src);
-  void Cvtlsi2ss(XMMRegister dst, Operand src);
   void Cvtlui2ss(XMMRegister dst, Register src);
   void Cvtlui2ss(XMMRegister dst, Operand src);
   void Cvtlui2sd(XMMRegister dst, Register src);
@@ -239,9 +369,17 @@ class V8_EXPORT_PRIVATE TurboAssembler : public TurboAssemblerBase {
   void Cvttss2uiq(Register dst, Operand src, Label* fail = nullptr);
   void Cvttss2uiq(Register dst, XMMRegister src, Label* fail = nullptr);
 
-  // cvtsi2sd instruction only writes to the low 64-bit of dst register, which
-  // hinders register renaming and makes dependence chains longer. So we use
-  // xorpd to clear the dst register before cvtsi2sd to solve this issue.
+  // cvtsi2sd and cvtsi2ss instructions only write to the low 64/32-bit of dst
+  // register, which hinders register renaming and makes dependence chains
+  // longer. So we use xorpd to clear the dst register before cvtsi2sd for
+  // non-AVX and a scratch XMM register as first src for AVX to solve this
+  // issue.
+  void Cvtqsi2ss(XMMRegister dst, Register src);
+  void Cvtqsi2ss(XMMRegister dst, Operand src);
+  void Cvtqsi2sd(XMMRegister dst, Register src);
+  void Cvtqsi2sd(XMMRegister dst, Operand src);
+  void Cvtlsi2ss(XMMRegister dst, Register src);
+  void Cvtlsi2ss(XMMRegister dst, Operand src);
   void Cvtlsi2sd(XMMRegister dst, Register src);
   void Cvtlsi2sd(XMMRegister dst, Operand src);
 
@@ -275,6 +413,8 @@ class V8_EXPORT_PRIVATE TurboAssembler : public TurboAssemblerBase {
     cmpl(a, Immediate(b));
     j(less, dest);
   }
+
+  void LoadMap(Register destination, Register object);
 
   void Move(Register dst, Smi source);
 
@@ -314,6 +454,8 @@ class V8_EXPORT_PRIVATE TurboAssembler : public TurboAssemblerBase {
       RelocInfo::Mode rmode = RelocInfo::FULL_EMBEDDED_OBJECT);
 
   // Convert smi to word-size sign-extended value.
+  void SmiUntag(Register reg);
+  // Requires dst != src
   void SmiUntag(Register dst, Register src);
   void SmiUntag(Register dst, Operand src);
 
@@ -344,6 +486,7 @@ class V8_EXPORT_PRIVATE TurboAssembler : public TurboAssemblerBase {
 
   Operand EntryFromBuiltinIndexAsOperand(Register builtin_index);
   void CallBuiltinByIndex(Register builtin_index) override;
+  void CallBuiltin(int builtin_index);
 
   void LoadCodeObjectEntry(Register destination, Register code_object) override;
   void CallCodeObject(Register code_object) override;
@@ -353,21 +496,33 @@ class V8_EXPORT_PRIVATE TurboAssembler : public TurboAssemblerBase {
   void RetpolineCall(Address destination, RelocInfo::Mode rmode);
 
   void Jump(Address destination, RelocInfo::Mode rmode);
-  void Jump(ExternalReference ext);
+  void Jump(const ExternalReference& reference) override;
   void Jump(Operand op);
   void Jump(Handle<Code> code_object, RelocInfo::Mode rmode,
             Condition cc = always);
 
   void RetpolineJump(Register reg);
 
-  void CallForDeoptimization(Address target, int deopt_id);
+  void CallForDeoptimization(Address target, int deopt_id, Label* exit,
+                             DeoptimizeKind kind);
+
+  void Trap() override;
+  void DebugBreak() override;
 
   // Non-SSE2 instructions.
   void Pextrd(Register dst, XMMRegister src, int8_t imm8);
+  void Pextrw(Register dst, XMMRegister src, int8_t imm8);
+  void Pextrb(Register dst, XMMRegister src, int8_t imm8);
   void Pinsrd(XMMRegister dst, Register src, int8_t imm8);
   void Pinsrd(XMMRegister dst, Operand src, int8_t imm8);
+  void Pinsrw(XMMRegister dst, Register src, int8_t imm8);
+  void Pinsrw(XMMRegister dst, Operand src, int8_t imm8);
+  void Pinsrb(XMMRegister dst, Register src, int8_t imm8);
+  void Pinsrb(XMMRegister dst, Operand src, int8_t imm8);
 
+  void Psllq(XMMRegister dst, int imm8) { Psllq(dst, static_cast<byte>(imm8)); }
   void Psllq(XMMRegister dst, byte imm8);
+  void Psrlq(XMMRegister dst, int imm8) { Psrlq(dst, static_cast<byte>(imm8)); }
   void Psrlq(XMMRegister dst, byte imm8);
   void Pslld(XMMRegister dst, byte imm8);
   void Psrld(XMMRegister dst, byte imm8);
@@ -413,7 +568,7 @@ class V8_EXPORT_PRIVATE TurboAssembler : public TurboAssemblerBase {
 // stack check, do it before calling this function because this function may
 // write into the newly allocated space. It may also overwrite the given
 // register's value, in the version that takes a register.
-#ifdef V8_OS_WIN
+#ifdef V8_TARGET_OS_WIN
   void AllocateStackSpace(Register bytes_scratch);
   void AllocateStackSpace(int bytes);
 #else
@@ -423,15 +578,11 @@ class V8_EXPORT_PRIVATE TurboAssembler : public TurboAssemblerBase {
 
   // Removes current frame and its arguments from the stack preserving the
   // arguments and a return address pushed to the stack for the next call.  Both
-  // |callee_args_count| and |caller_args_count_reg| do not include receiver.
-  // |callee_args_count| is not modified, |caller_args_count_reg| is trashed.
-  void PrepareForTailCall(const ParameterCount& callee_args_count,
-                          Register caller_args_count_reg, Register scratch0,
+  // |callee_args_count| and |caller_args_count| do not include receiver.
+  // |callee_args_count| is not modified. |caller_args_count| is trashed.
+  void PrepareForTailCall(Register callee_args_count,
+                          Register caller_args_count, Register scratch0,
                           Register scratch1);
-
-  // Call a runtime routine. This expects {centry} to contain a fitting CEntry
-  // builtin for the target runtime function and uses an indirect call.
-  void CallRuntimeWithCEntry(Runtime::FunctionId fid, Register centry);
 
   void InitializeRootRegister() {
     ExternalReference isolate_root = ExternalReference::isolate_root(isolate());
@@ -482,6 +633,16 @@ class V8_EXPORT_PRIVATE TurboAssembler : public TurboAssemblerBase {
 
   void ResetSpeculationPoisonRegister();
 
+  // Control-flow integrity:
+
+  // Define a function entrypoint. This doesn't emit any code for this
+  // architecture, as control-flow integrity is not supported for it.
+  void CodeEntry() {}
+  // Define an exception handler.
+  void ExceptionHandler() {}
+  // Define an exception handler and bind a label.
+  void BindExceptionHandler(Label* label) { bind(label); }
+
   // ---------------------------------------------------------------------------
   // Pointer compression support
 
@@ -490,10 +651,7 @@ class V8_EXPORT_PRIVATE TurboAssembler : public TurboAssemblerBase {
   void LoadTaggedPointerField(Register destination, Operand field_operand);
 
   // Loads a field containing any tagged value and decompresses it if necessary.
-  // When pointer compression is enabled, uses |scratch| to decompress the
-  // value.
-  void LoadAnyTaggedField(Register destination, Operand field_operand,
-                          Register scratch = kScratchRegister);
+  void LoadAnyTaggedField(Register destination, Operand field_operand);
 
   // Loads a field containing a HeapObject, decompresses it if necessary and
   // pushes full pointer to the stack. When pointer compression is enabled,
@@ -502,9 +660,8 @@ class V8_EXPORT_PRIVATE TurboAssembler : public TurboAssemblerBase {
 
   // Loads a field containing any tagged value, decompresses it if necessary and
   // pushes the full pointer to the stack. When pointer compression is enabled,
-  // uses |scratch1| and |scratch2| to decompress the value.
-  void PushTaggedAnyField(Operand field_operand, Register scratch1,
-                          Register scratch2);
+  // uses |scratch| to decompress the value.
+  void PushTaggedAnyField(Operand field_operand, Register scratch);
 
   // Loads a field containing smi value and untags it.
   void SmiUntagField(Register dst, Operand src);
@@ -516,16 +673,16 @@ class V8_EXPORT_PRIVATE TurboAssembler : public TurboAssemblerBase {
 
   // The following macros work even when pointer compression is not enabled.
   void DecompressTaggedSigned(Register destination, Operand field_operand);
-  void DecompressTaggedSigned(Register destination, Register source);
   void DecompressTaggedPointer(Register destination, Operand field_operand);
   void DecompressTaggedPointer(Register destination, Register source);
-  // Auxiliary function used by DecompressAnyTagged to perform the actual
-  // decompression. Assumes destination is already signed extended.
-  void DecompressRegisterAnyTagged(Register destination, Register scratch);
-  void DecompressAnyTagged(Register destination, Operand field_operand,
-                           Register scratch = kScratchRegister);
-  void DecompressAnyTagged(Register destination, Register source,
-                           Register scratch = kScratchRegister);
+  void DecompressAnyTagged(Register destination, Operand field_operand);
+
+  // ---------------------------------------------------------------------------
+  // V8 Heap sandbox support
+
+  // Loads a field containing off-heap pointer and does necessary decoding
+  // if V8 heap sandbox is enabled.
+  void LoadExternalPointerField(Register destination, Operand field_operand);
 
  protected:
   static const int kSmiShift = kSmiTagSize + kSmiShiftSize;
@@ -643,27 +800,29 @@ class V8_EXPORT_PRIVATE MacroAssembler : public TurboAssembler {
 
   // Invoke the JavaScript function code by either calling or jumping.
   void InvokeFunctionCode(Register function, Register new_target,
-                          const ParameterCount& expected,
-                          const ParameterCount& actual, InvokeFlag flag);
+                          Register expected_parameter_count,
+                          Register actual_parameter_count, InvokeFlag flag);
 
-  // On function call, call into the debugger if necessary.
-  void CheckDebugHook(Register fun, Register new_target,
-                      const ParameterCount& expected,
-                      const ParameterCount& actual);
+  // On function call, call into the debugger.
+  void CallDebugOnFunctionCall(Register fun, Register new_target,
+                               Register expected_parameter_count,
+                               Register actual_parameter_count);
 
   // Invoke the JavaScript function in the given register. Changes the
   // current context to the context in the function before invoking.
   void InvokeFunction(Register function, Register new_target,
-                      const ParameterCount& actual, InvokeFlag flag);
+                      Register actual_parameter_count, InvokeFlag flag);
 
   void InvokeFunction(Register function, Register new_target,
-                      const ParameterCount& expected,
-                      const ParameterCount& actual, InvokeFlag flag);
+                      Register expected_parameter_count,
+                      Register actual_parameter_count, InvokeFlag flag);
 
   // ---------------------------------------------------------------------------
   // Conversions between tagged smi values and non-tagged integer values.
 
   // Tag an word-size value. The result must be known to be a valid smi value.
+  void SmiTag(Register reg);
+  // Requires dst != src
   void SmiTag(Register dst, Register src);
 
   // Simple comparison of smis.  Both sides must be known smis to use these,
@@ -862,10 +1021,9 @@ class V8_EXPORT_PRIVATE MacroAssembler : public TurboAssembler {
   static const int kNumSafepointSavedRegisters = 12;
 
   // Helper functions for generating invokes.
-  void InvokePrologue(const ParameterCount& expected,
-                      const ParameterCount& actual, Label* done,
-                      bool* definitely_mismatches, InvokeFlag flag,
-                      Label::Distance near_jump);
+  void InvokePrologue(Register expected_parameter_count,
+                      Register actual_parameter_count, Label* done,
+                      InvokeFlag flag);
 
   void EnterExitFramePrologue(bool save_rax, StackFrame::Type frame_type);
 
@@ -901,22 +1059,9 @@ inline Operand FieldOperand(Register object, Register index, ScaleFactor scale,
   return Operand(object, index, scale, offset - kHeapObjectTag);
 }
 
-inline Operand ContextOperand(Register context, int index) {
-  return Operand(context, Context::SlotOffset(index));
-}
-
-inline Operand ContextOperand(Register context, Register index) {
-  return Operand(context, index, times_system_pointer_size,
-                 Context::SlotOffset(0));
-}
-
-inline Operand NativeContextOperand() {
-  return ContextOperand(rsi, Context::NATIVE_CONTEXT_INDEX);
-}
-
 // Provides access to exit frame stack space (not GCed).
 inline Operand StackSpaceOperand(int index) {
-#ifdef _WIN64
+#ifdef V8_TARGET_OS_WIN
   const int kShaddowSpace = 4;
   return Operand(rsp, (index + kShaddowSpace) * kSystemPointerSize);
 #else

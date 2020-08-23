@@ -20,6 +20,62 @@ assert.strictEqual(secret2.toString('base64'), secret1);
 assert.strictEqual(dh1.verifyError, 0);
 assert.strictEqual(dh2.verifyError, 0);
 
+// https://github.com/nodejs/node/issues/32738
+// XXX(bnoordhuis) validateInt32() throwing ERR_OUT_OF_RANGE and RangeError
+// instead of ERR_INVALID_ARG_TYPE and TypeError is questionable, IMO.
+assert.throws(() => crypto.createDiffieHellman(13.37), {
+  code: 'ERR_OUT_OF_RANGE',
+  name: 'RangeError',
+  message: 'The value of "sizeOrKey" is out of range. ' +
+           'It must be an integer. Received 13.37',
+});
+
+assert.throws(() => crypto.createDiffieHellman('abcdef', 13.37), {
+  code: 'ERR_OUT_OF_RANGE',
+  name: 'RangeError',
+  message: 'The value of "generator" is out of range. ' +
+           'It must be an integer. Received 13.37',
+});
+
+for (const bits of [-1, 0, 1]) {
+  assert.throws(() => crypto.createDiffieHellman(bits), {
+    code: 'ERR_OSSL_BN_BITS_TOO_SMALL',
+    name: 'Error',
+    message: /bits too small/,
+  });
+}
+
+// Through a fluke of history, g=0 defaults to DH_GENERATOR (2).
+{
+  const g = 0;
+  crypto.createDiffieHellman('abcdef', g);
+  crypto.createDiffieHellman('abcdef', 'hex', g);
+}
+
+for (const g of [-1, 1]) {
+  const ex = {
+    code: 'ERR_OSSL_DH_BAD_GENERATOR',
+    name: 'Error',
+    message: /bad generator/,
+  };
+  assert.throws(() => crypto.createDiffieHellman('abcdef', g), ex);
+  assert.throws(() => crypto.createDiffieHellman('abcdef', 'hex', g), ex);
+}
+
+crypto.createDiffieHellman('abcdef', Buffer.from([2]));  // OK
+
+for (const g of [Buffer.from([]),
+                 Buffer.from([0]),
+                 Buffer.from([1])]) {
+  const ex = {
+    code: 'ERR_OSSL_DH_BAD_GENERATOR',
+    name: 'Error',
+    message: /bad generator/,
+  };
+  assert.throws(() => crypto.createDiffieHellman('abcdef', g), ex);
+  assert.throws(() => crypto.createDiffieHellman('abcdef', 'hex', g), ex);
+}
+
 {
   const DiffieHellman = crypto.DiffieHellman;
   const dh = DiffieHellman(p1, 'buffer');
@@ -48,13 +104,14 @@ assert.strictEqual(dh2.verifyError, 0);
   /abc/,
   {}
 ].forEach((input) => {
-  common.expectsError(
+  assert.throws(
     () => crypto.createDiffieHellman(input),
     {
       code: 'ERR_INVALID_ARG_TYPE',
-      type: TypeError,
-      message: 'The "sizeOrKey" argument must be one of type number, string, ' +
-               `Buffer, TypedArray, or DataView. Received type ${typeof input}`
+      name: 'TypeError',
+      message: 'The "sizeOrKey" argument must be one of type number or string' +
+               ' or an instance of Buffer, TypedArray, or DataView.' +
+               common.invalidArgTypeHelper(input)
     }
   );
 });
@@ -232,11 +289,11 @@ if (availableCurves.has('prime256v1') && availableCurves.has('secp256k1')) {
   assert(firstByte === 6 || firstByte === 7);
   // Format value should be string
 
-  common.expectsError(
+  assert.throws(
     () => ecdh1.getPublicKey('buffer', 10),
     {
       code: 'ERR_CRYPTO_ECDH_INVALID_FORMAT',
-      type: TypeError,
+      name: 'TypeError',
       message: 'Invalid ECDH format: 10'
     });
 
@@ -244,11 +301,11 @@ if (availableCurves.has('prime256v1') && availableCurves.has('secp256k1')) {
   const ecdh3 = crypto.createECDH('secp256k1');
   const key3 = ecdh3.generateKeys();
 
-  common.expectsError(
+  assert.throws(
     () => ecdh2.computeSecret(key3, 'latin1', 'buffer'),
     {
       code: 'ERR_CRYPTO_ECDH_INVALID_PUBLIC_KEY',
-      type: Error,
+      name: 'Error',
       message: 'Public key is not valid for specified curve'
     });
 
@@ -357,11 +414,11 @@ if (availableCurves.has('prime256v1') && availableHashes.has('sha256')) {
   const invalidKey = Buffer.alloc(65);
   invalidKey.fill('\0');
   curve.generateKeys();
-  common.expectsError(
+  assert.throws(
     () => curve.computeSecret(invalidKey),
     {
       code: 'ERR_CRYPTO_ECDH_INVALID_PUBLIC_KEY',
-      type: Error,
+      name: 'Error',
       message: 'Public key is not valid for specified curve'
     });
   // Check that signing operations are not impacted by the above error.
@@ -375,20 +432,24 @@ if (availableCurves.has('prime256v1') && availableHashes.has('sha256')) {
 }
 
 // Invalid test: curve argument is undefined
-common.expectsError(
+assert.throws(
   () => crypto.createECDH(),
   {
     code: 'ERR_INVALID_ARG_TYPE',
-    type: TypeError,
+    name: 'TypeError',
     message: 'The "curve" argument must be of type string. ' +
-             'Received type undefined'
+             'Received undefined'
   });
 
 assert.throws(
   function() {
     crypto.getDiffieHellman('unknown-group');
   },
-  /^Error: Unknown group$/,
+  {
+    name: 'Error',
+    code: 'ERR_CRYPTO_UNKNOWN_DH_GROUP',
+    message: 'Unknown DH group'
+  },
   'crypto.getDiffieHellman(\'unknown-group\') ' +
   'failed to throw the expected error.'
 );

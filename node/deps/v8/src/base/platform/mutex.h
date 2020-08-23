@@ -67,6 +67,9 @@ class V8_BASE_EXPORT Mutex final {
     return native_handle_;
   }
 
+  V8_INLINE void AssertHeld() const { DCHECK_EQ(1, level_); }
+  V8_INLINE void AssertUnheld() const { DCHECK_EQ(0, level_); }
+
  private:
   NativeHandle native_handle_;
 #ifdef DEBUG
@@ -288,6 +291,7 @@ class LockGuard final {
 };
 
 using MutexGuard = LockGuard<Mutex>;
+using RecursiveMutexGuard = LockGuard<RecursiveMutex>;
 
 enum MutexSharedType : bool { kShared = true, kExclusive = false };
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # Copyright 2017 the V8 project authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
@@ -18,6 +18,9 @@ All arguments are optional. Most combinations should work, e.g.:
     gm.py x64 mjsunit/foo cctest/test-bar/*
 """
 # See HELP below for additional documentation.
+# Note on Python3 compatibility: gm.py itself is Python3 compatible, but
+# run-tests.py, which will be executed by the same binary, is not; hence
+# the hashbang line at the top of this file explicitly requires Python2.
 
 from __future__ import print_function
 import errno
@@ -30,7 +33,8 @@ USE_PTY = "linux" in sys.platform
 if USE_PTY:
   import pty
 
-BUILD_TARGETS_TEST = ["d8", "cctest", "unittests"]
+BUILD_TARGETS_TEST = ["d8", "cctest", "inspector-test", "unittests",
+                      "wasm_api_tests"]
 BUILD_TARGETS_ALL = ["all"]
 
 # All arches that this script understands.
@@ -51,7 +55,7 @@ DEFAULT_TARGETS = ["d8"]
 # Tests that run-tests.py would run by default that can be run with
 # BUILD_TARGETS_TESTS.
 DEFAULT_TESTS = ["cctest", "debugger", "intl", "message", "mjsunit",
-                 "preparser", "unittests"]
+                 "unittests"]
 # These can be suffixed to any <arch>.<mode> combo, or used standalone,
 # or used as global modifiers (affecting all <arch>.<mode> combos).
 ACTIONS = {
@@ -82,10 +86,11 @@ TESTSUITES_TARGETS = {"benchmarks": "d8",
               "message": "d8",
               "mjsunit": "d8",
               "mozilla": "d8",
-              "preparser": "d8",
               "test262": "d8",
               "unittests": "unittests",
               "wasm-api-tests": "wasm_api_tests",
+              "wasm-js": "d8",
+              "wasm-spec-tests": "d8",
               "webkit": "d8"}
 
 OUTDIR = "out"
@@ -172,7 +177,7 @@ def _CallWithOutput(cmd):
   try:
     while True:
       try:
-        data = os.read(master, 512)
+        data = os.read(master, 512).decode('utf-8')
       except OSError as e:
         if e.errno != errno.EIO: raise
         break # EIO means EOF on some systems
@@ -339,10 +344,12 @@ class ArgumentParser(object):
     targets = []
     actions = []
     tests = []
-    # Specifying a single unit test looks like "unittests/Foo.Bar".
-    if argstring.startswith("unittests/"):
+    # Specifying a single unit test looks like "unittests/Foo.Bar", test262
+    # tests have names like "S15.4.4.7_A4_T1", don't split these.
+    if argstring.startswith("unittests/") or argstring.startswith("test262/"):
       words = [argstring]
     else:
+      # Assume it's a word like "x64.release" -> split at the dot.
       words = argstring.split('.')
     if len(words) == 1:
       word = words[0]

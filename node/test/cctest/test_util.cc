@@ -1,5 +1,17 @@
 #include "util-inl.h"
+#include "debug_utils-inl.h"
+#include "env-inl.h"
 #include "gtest/gtest.h"
+
+using node::Calloc;
+using node::Malloc;
+using node::MaybeStackBuffer;
+using node::SPrintF;
+using node::StringEqualNoCase;
+using node::StringEqualNoCaseN;
+using node::ToLower;
+using node::UncheckedCalloc;
+using node::UncheckedMalloc;
 
 TEST(UtilTest, ListHead) {
   struct Item { node::ListNode<Item> node_; };
@@ -56,7 +68,6 @@ TEST(UtilTest, ListHead) {
 }
 
 TEST(UtilTest, StringEqualNoCase) {
-  using node::StringEqualNoCase;
   EXPECT_FALSE(StringEqualNoCase("a", "b"));
   EXPECT_TRUE(StringEqualNoCase("", ""));
   EXPECT_TRUE(StringEqualNoCase("equal", "equal"));
@@ -67,7 +78,6 @@ TEST(UtilTest, StringEqualNoCase) {
 }
 
 TEST(UtilTest, StringEqualNoCaseN) {
-  using node::StringEqualNoCaseN;
   EXPECT_FALSE(StringEqualNoCaseN("a", "b", strlen("a")));
   EXPECT_TRUE(StringEqualNoCaseN("", "", strlen("")));
   EXPECT_TRUE(StringEqualNoCaseN("equal", "equal", strlen("equal")));
@@ -82,7 +92,6 @@ TEST(UtilTest, StringEqualNoCaseN) {
 }
 
 TEST(UtilTest, ToLower) {
-  using node::ToLower;
   EXPECT_EQ('0', ToLower('0'));
   EXPECT_EQ('a', ToLower('a'));
   EXPECT_EQ('a', ToLower('A'));
@@ -96,7 +105,6 @@ TEST(UtilTest, ToLower) {
   } while (0)
 
 TEST(UtilTest, Malloc) {
-  using node::Malloc;
   TEST_AND_FREE(Malloc<char>(0));
   TEST_AND_FREE(Malloc<char>(1));
   TEST_AND_FREE(Malloc(0));
@@ -104,7 +112,6 @@ TEST(UtilTest, Malloc) {
 }
 
 TEST(UtilTest, Calloc) {
-  using node::Calloc;
   TEST_AND_FREE(Calloc<char>(0));
   TEST_AND_FREE(Calloc<char>(1));
   TEST_AND_FREE(Calloc(0));
@@ -112,7 +119,6 @@ TEST(UtilTest, Calloc) {
 }
 
 TEST(UtilTest, UncheckedMalloc) {
-  using node::UncheckedMalloc;
   TEST_AND_FREE(UncheckedMalloc<char>(0));
   TEST_AND_FREE(UncheckedMalloc<char>(1));
   TEST_AND_FREE(UncheckedMalloc(0));
@@ -120,7 +126,6 @@ TEST(UtilTest, UncheckedMalloc) {
 }
 
 TEST(UtilTest, UncheckedCalloc) {
-  using node::UncheckedCalloc;
   TEST_AND_FREE(UncheckedCalloc<char>(0));
   TEST_AND_FREE(UncheckedCalloc<char>(1));
   TEST_AND_FREE(UncheckedCalloc(0));
@@ -129,8 +134,6 @@ TEST(UtilTest, UncheckedCalloc) {
 
 template <typename T>
 static void MaybeStackBufferBasic() {
-  using node::MaybeStackBuffer;
-
   MaybeStackBuffer<T> buf;
   size_t old_length;
   size_t old_capacity;
@@ -209,8 +212,6 @@ static void MaybeStackBufferBasic() {
 }
 
 TEST(UtilTest, MaybeStackBuffer) {
-  using node::MaybeStackBuffer;
-
   MaybeStackBufferBasic<uint8_t>();
   MaybeStackBufferBasic<uint16_t>();
 
@@ -249,4 +250,51 @@ TEST(UtilTest, MaybeStackBuffer) {
     buf.Invalidate();
     EXPECT_TRUE(buf.IsInvalidated());
   }
+}
+
+TEST(UtilTest, SPrintF) {
+  // %d, %u and %s all do the same thing. The actual C++ type is used to infer
+  // the right representation.
+  EXPECT_EQ(SPrintF("%s", false), "false");
+  EXPECT_EQ(SPrintF("%s", true), "true");
+  EXPECT_EQ(SPrintF("%d", true), "true");
+  EXPECT_EQ(SPrintF("%u", true), "true");
+  EXPECT_EQ(SPrintF("%d", 10000000000LL), "10000000000");
+  EXPECT_EQ(SPrintF("%d", -10000000000LL), "-10000000000");
+  EXPECT_EQ(SPrintF("%u", 10000000000LL), "10000000000");
+  EXPECT_EQ(SPrintF("%u", -10000000000LL), "-10000000000");
+  EXPECT_EQ(SPrintF("%i", 10), "10");
+  EXPECT_EQ(SPrintF("%d", 10), "10");
+  EXPECT_EQ(SPrintF("%x", 15), "f");
+  EXPECT_EQ(SPrintF("%x", 16), "10");
+  EXPECT_EQ(SPrintF("%X", 15), "F");
+  EXPECT_EQ(SPrintF("%X", 16), "10");
+  EXPECT_EQ(SPrintF("%o", 7), "7");
+  EXPECT_EQ(SPrintF("%o", 8), "10");
+
+  EXPECT_EQ(atof(SPrintF("%s", 0.5).c_str()), 0.5);
+  EXPECT_EQ(atof(SPrintF("%s", -0.5).c_str()), -0.5);
+
+  void (*fn)() = []() {};
+  void* p = reinterpret_cast<void*>(&fn);
+  EXPECT_GE(SPrintF("%p", fn).size(), 4u);
+  EXPECT_GE(SPrintF("%p", p).size(), 4u);
+
+  const std::string foo = "foo";
+  const char* bar = "bar";
+  EXPECT_EQ(SPrintF("%s %s", foo, "bar"), "foo bar");
+  EXPECT_EQ(SPrintF("%s %s", foo, bar), "foo bar");
+  EXPECT_EQ(SPrintF("%s", nullptr), "(null)");
+
+  EXPECT_EQ(SPrintF("[%% %s %%]", foo), "[% foo %]");
+
+  struct HasToString {
+    std::string ToString() const {
+      return "meow";
+    }
+  };
+  EXPECT_EQ(SPrintF("%s", HasToString{}), "meow");
+
+  const std::string with_zero = std::string("a") + '\0' + 'b';
+  EXPECT_EQ(SPrintF("%s", with_zero), with_zero);
 }

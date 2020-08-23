@@ -31,7 +31,7 @@ class SimplifiedOperatorBuilder;
 class V8_EXPORT_PRIVATE JSIntrinsicLowering final
     : public NON_EXPORTED_BASE(AdvancedReducer) {
  public:
-  JSIntrinsicLowering(Editor* editor, JSGraph* jsgraph);
+  JSIntrinsicLowering(Editor* editor, JSGraph* jsgraph, JSHeapBroker* broker);
   ~JSIntrinsicLowering() final = default;
 
   const char* reducer_name() const override { return "JSIntrinsicLowering"; }
@@ -58,6 +58,7 @@ class V8_EXPORT_PRIVATE JSIntrinsicLowering final
   Reduction ReduceIsInstanceType(Node* node, InstanceType instance_type);
   Reduction ReduceIsJSReceiver(Node* node);
   Reduction ReduceIsSmi(Node* node);
+  Reduction ReduceIsBeingInterpreted(Node* node);
   Reduction ReduceTurbofanStaticAssert(Node* node);
   Reduction ReduceToLength(Node* node);
   Reduction ReduceToObject(Node* node);
@@ -81,12 +82,14 @@ class V8_EXPORT_PRIVATE JSIntrinsicLowering final
 
   Graph* graph() const;
   JSGraph* jsgraph() const { return jsgraph_; }
+  JSHeapBroker* broker() const { return broker_; }
   Isolate* isolate() const;
   CommonOperatorBuilder* common() const;
   JSOperatorBuilder* javascript() const;
   SimplifiedOperatorBuilder* simplified() const;
 
   JSGraph* const jsgraph_;
+  JSHeapBroker* const broker_;
 };
 
 }  // namespace compiler

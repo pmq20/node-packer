@@ -64,8 +64,9 @@ void HeapProfiler::BuildEmbedderGraph(Isolate* isolate,
 
 HeapSnapshot* HeapProfiler::TakeSnapshot(
     v8::ActivityControl* control,
-    v8::HeapProfiler::ObjectNameResolver* resolver) {
-  HeapSnapshot* result = new HeapSnapshot(this);
+    v8::HeapProfiler::ObjectNameResolver* resolver,
+    bool treat_global_objects_as_roots) {
+  HeapSnapshot* result = new HeapSnapshot(this, treat_global_objects_as_roots);
   {
     HeapSnapshotGenerator generator(result, control, resolver, heap());
     if (!generator.GenerateSnapshot()) {
@@ -151,6 +152,17 @@ SnapshotObjectId HeapProfiler::GetSnapshotObjectId(Handle<Object> obj) {
   return ids_->FindEntry(HeapObject::cast(*obj).address());
 }
 
+SnapshotObjectId HeapProfiler::GetSnapshotObjectId(NativeObject obj) {
+  // Try to find id of regular native node first.
+  SnapshotObjectId id = ids_->FindEntry(reinterpret_cast<Address>(obj));
+  // In case no id has been found, check whether there exists an entry where the
+  // native objects has been merged into a V8 entry.
+  if (id == v8::HeapProfiler::kUnknownObjectId) {
+    id = ids_->FindMergedNativeEntry(obj);
+  }
+  return id;
+}
+
 void HeapProfiler::ObjectMoveEvent(Address from, Address to, int size) {
   base::MutexGuard guard(&profiler_mutex_);
   bool known_object = ids_->MoveObject(from, to, size);
@@ -204,13 +216,26 @@ void HeapProfiler::QueryObjects(Handle<Context> context,
                                 debug::QueryObjectPredicate* predicate,
                                 PersistentValueVector<v8::Object>* objects) {
   {
-    CombinedHeapObjectIterator function_heap_iterator(
+    HandleScope handle_scope(isolate());
+    std::vector<Handle<JSTypedArray>> on_heap_typed_arrays;
+    CombinedHeapObjectIterator heap_iterator(
         heap(), HeapObjectIterator::kFilterUnreachable);
-    for (HeapObject heap_obj = function_heap_iterator.Next();
-         !heap_obj.is_null(); heap_obj = function_heap_iterator.Next()) {
+    for (HeapObject heap_obj = heap_iterator.Next(); !heap_obj.is_null();
+         heap_obj = heap_iterator.Next()) {
       if (heap_obj.IsFeedbackVector()) {
         FeedbackVector::cast(heap_obj).ClearSlots(isolate());
+      } else if (heap_obj.IsJSTypedArray() &&
+                 JSTypedArray::cast(heap_obj).is_on_heap()) {
+        // Cannot call typed_array->GetBuffer() here directly because it may
+        // trigger GC. Defer that call by collecting the object in a vector.
+        on_heap_typed_arrays.push_back(
+            handle(JSTypedArray::cast(heap_obj), isolate()));
       }
+    }
+    for (auto& typed_array : on_heap_typed_arrays) {
+      // Convert the on-heap typed array into off-heap typed array, so that
+      // its ArrayBuffer becomes valid and can be returned in the result.
+      typed_array->GetBuffer();
     }
   }
   // We should return accurate information about live objects, so we need to

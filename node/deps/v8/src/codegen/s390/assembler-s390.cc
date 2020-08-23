@@ -35,7 +35,6 @@
 // Copyright 2014 the V8 project authors. All rights reserved.
 
 #include "src/codegen/s390/assembler-s390.h"
-#include <sys/auxv.h>
 #include <set>
 #include <string>
 
@@ -43,6 +42,7 @@
 
 #if V8_HOST_ARCH_S390
 #include <elf.h>  // Required for auxv checks for STFLE support
+#include <sys/auxv.h>
 #endif
 
 #include "src/base/bits.h"
@@ -218,6 +218,11 @@ void CpuFeatures::ProbeImpl(bool cross_compile) {
         supportsCPUFeature("vx")) {
       supported_ |= (1u << VECTOR_ENHANCE_FACILITY_1);
     }
+    // Test for Vector Enhancement Facility 2 - Bit 148
+    if (facilities[2] & (one << (63 - (148 - 128))) &&
+        supportsCPUFeature("vx")) {
+      supported_ |= (1u << VECTOR_ENHANCE_FACILITY_2);
+    }
     // Test for Miscellaneous Instruction Extension Facility - Bit 58
     if (facilities[0] & (1lu << (63 - 58))) {
       supported_ |= (1u << MISC_INSTR_EXT2);
@@ -256,6 +261,10 @@ void CpuFeatures::PrintFeatures() {
   PrintF("GENERAL_INSTR=%d\n", CpuFeatures::IsSupported(GENERAL_INSTR_EXT));
   PrintF("DISTINCT_OPS=%d\n", CpuFeatures::IsSupported(DISTINCT_OPS));
   PrintF("VECTOR_FACILITY=%d\n", CpuFeatures::IsSupported(VECTOR_FACILITY));
+  PrintF("VECTOR_ENHANCE_FACILITY_1=%d\n",
+         CpuFeatures::IsSupported(VECTOR_ENHANCE_FACILITY_1));
+  PrintF("VECTOR_ENHANCE_FACILITY_2=%d\n",
+         CpuFeatures::IsSupported(VECTOR_ENHANCE_FACILITY_2));
   PrintF("MISC_INSTR_EXT2=%d\n", CpuFeatures::IsSupported(MISC_INSTR_EXT2));
 }
 
@@ -329,8 +338,8 @@ void Assembler::AllocateAndInstallRequestedHeapObjects(Isolate* isolate) {
     Address pc = reinterpret_cast<Address>(buffer_start_) + request.offset();
     switch (request.kind()) {
       case HeapObjectRequest::kHeapNumber: {
-        object = isolate->factory()->NewHeapNumber(request.heap_number(),
-                                                   AllocationType::kOld);
+        object = isolate->factory()->NewHeapNumber<AllocationType::kOld>(
+            request.heap_number());
         set_target_address_at(pc, kNullAddress, object.address(),
                               SKIP_ICACHE_FLUSH);
         break;
@@ -569,16 +578,6 @@ void Assembler::next(Label* L) {
     DCHECK_GE(link, 0);
     L->link_to(link);
   }
-}
-
-bool Assembler::is_near(Label* L, Condition cond) {
-  DCHECK(L->is_bound());
-  if (L->is_bound() == false) return false;
-
-  int maxReach = ((cond == al) ? 26 : 16);
-  int offset = L->pos() - pc_offset();
-
-  return is_intn(offset, maxReach);
 }
 
 int Assembler::link(Label* L) {

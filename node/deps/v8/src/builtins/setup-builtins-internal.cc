@@ -7,6 +7,7 @@
 #include "src/builtins/builtins.h"
 #include "src/codegen/assembler-inl.h"
 #include "src/codegen/interface-descriptors.h"
+#include "src/codegen/macro-assembler-inl.h"
 #include "src/codegen/macro-assembler.h"
 #include "src/compiler/code-assembler.h"
 #include "src/execution/isolate.h"
@@ -42,8 +43,7 @@ AssemblerOptions BuiltinAssemblerOptions(Isolate* isolate,
     return options;
   }
 
-  const base::AddressRegion& code_range =
-      isolate->heap()->memory_allocator()->code_range();
+  const base::AddressRegion& code_range = isolate->heap()->code_range();
   bool pc_relative_calls_fit_in_code_range =
       !code_range.is_empty() &&
       std::ceil(static_cast<float>(code_range.size() / MB)) <=
@@ -97,6 +97,7 @@ Code BuildWithMacroAssembler(Isolate* isolate, int32_t builtin_index,
                       ExternalAssemblerBuffer(buffer, kBufferSize));
   masm.set_builtin_index(builtin_index);
   DCHECK(!masm.has_frame());
+  masm.CodeEntry();
   generator(&masm);
 
   int handler_table_offset = 0;
@@ -119,9 +120,9 @@ Code BuildWithMacroAssembler(Isolate* isolate, int32_t builtin_index,
                           .set_self_reference(masm.CodeObject())
                           .set_builtin_index(builtin_index)
                           .Build();
-#if defined(V8_OS_WIN_X64)
+#if defined(V8_OS_WIN64)
   isolate->SetBuiltinUnwindData(builtin_index, masm.GetUnwindInfo());
-#endif
+#endif  // V8_OS_WIN64
   return *code;
 }
 
@@ -159,7 +160,7 @@ Code BuildWithCodeStubAssemblerJS(Isolate* isolate, int32_t builtin_index,
 
   Zone zone(isolate->allocator(), ZONE_NAME);
   const int argc_with_recv =
-      (argc == SharedFunctionInfo::kDontAdaptArgumentsSentinel) ? 0 : argc + 1;
+      (argc == kDontAdaptArgumentsSentinel) ? 0 : argc + 1;
   compiler::CodeAssemblerState state(
       isolate, &zone, argc_with_recv, Code::BUILTIN, name,
       PoisoningMitigationLevel::kDontPoison, builtin_index);
@@ -264,21 +265,16 @@ void SetupIsolateDelegate::ReplacePlaceholders(Isolate* isolate) {
 namespace {
 
 Code GenerateBytecodeHandler(Isolate* isolate, int builtin_index,
-                             const char* name,
                              interpreter::OperandScale operand_scale,
                              interpreter::Bytecode bytecode) {
   DCHECK(interpreter::Bytecodes::BytecodeHasHandler(bytecode, operand_scale));
   Handle<Code> code = interpreter::GenerateBytecodeHandler(
-      isolate, bytecode, operand_scale, builtin_index,
-      BuiltinAssemblerOptions(isolate, builtin_index));
+      isolate, Builtins::name(builtin_index), bytecode, operand_scale,
+      builtin_index, BuiltinAssemblerOptions(isolate, builtin_index));
   return *code;
 }
 
 }  // namespace
-
-#ifdef _MSC_VER
-#pragma optimize( "", off )
-#endif
 
 // static
 void SetupIsolateDelegate::SetupBuiltinsInternal(Isolate* isolate) {
@@ -318,9 +314,8 @@ void SetupIsolateDelegate::SetupBuiltinsInternal(Isolate* isolate) {
       CallDescriptors::InterfaceDescriptor, #Name);       \
   AddBuiltin(builtins, index++, code);
 
-#define BUILD_BCH(Name, OperandScale, Bytecode)                         \
-  code = GenerateBytecodeHandler(isolate, index, Builtins::name(index), \
-                                 OperandScale, Bytecode);               \
+#define BUILD_BCH(Name, OperandScale, Bytecode)                           \
+  code = GenerateBytecodeHandler(isolate, index, OperandScale, Bytecode); \
   AddBuiltin(builtins, index++, code);
 
 #define BUILD_ASM(Name, InterfaceDescriptor)                                \
@@ -356,11 +351,6 @@ void SetupIsolateDelegate::SetupBuiltinsInternal(Isolate* isolate) {
 
   builtins->MarkInitialized();
 }
-
-#ifdef _MSC_VER
-#pragma optimize( "", on )
-#endif
-
 
 }  // namespace internal
 }  // namespace v8

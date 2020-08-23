@@ -3,7 +3,9 @@
 // In worker threads, execute the script sent through the
 // message port.
 
-const { Object } = primordials;
+const {
+  ObjectDefineProperty,
+} = primordials;
 
 const {
   patchProcessObject,
@@ -12,6 +14,7 @@ const {
   setupWarningHandler,
   setupDebugEnv,
   initializeDeprecations,
+  initializeWASI,
   initializeCJSLoader,
   initializeESMLoader,
   initializeFrozenIntrinsics,
@@ -46,7 +49,9 @@ const {
 } = require('internal/process/execution');
 
 const publicWorker = require('worker_threads');
-const debug = require('internal/util/debuglog').debuglog('worker');
+let debug = require('internal/util/debuglog').debuglog('worker', (fn) => {
+  debug = fn;
+});
 
 const assert = require('internal/assert');
 
@@ -72,12 +77,12 @@ const port = getEnvMessagePort();
 // related IPC properties as unavailable.
 if (process.env.NODE_CHANNEL_FD) {
   const workerThreadSetup = require('internal/process/worker_thread_only');
-  Object.defineProperty(process, 'channel', {
+  ObjectDefineProperty(process, 'channel', {
     enumerable: false,
     get: workerThreadSetup.unavailable('process.channel')
   });
 
-  Object.defineProperty(process, 'connected', {
+  ObjectDefineProperty(process, 'connected', {
     enumerable: false,
     get: workerThreadSetup.unavailable('process.connected')
   });
@@ -89,7 +94,9 @@ if (process.env.NODE_CHANNEL_FD) {
 
 port.on('message', (message) => {
   if (message.type === LOAD_SCRIPT) {
+    port.unref();
     const {
+      argv,
       cwdCounter,
       filename,
       doEval,
@@ -106,19 +113,31 @@ port.on('message', (message) => {
       require('internal/process/policy').setup(manifestSrc, manifestURL);
     }
     initializeDeprecations();
+    initializeWASI();
     initializeCJSLoader();
     initializeESMLoader();
+
+    const CJSLoader = require('internal/modules/cjs/loader');
+    assert(!CJSLoader.hasLoadedAnyUserCJSModule);
     loadPreloadModules();
     initializeFrozenIntrinsics();
+    if (argv !== undefined) {
+      process.argv = process.argv.concat(argv);
+    }
     publicWorker.parentPort = publicPort;
     publicWorker.workerData = workerData;
 
     // The counter is only passed to the workers created by the main thread, not
     // to workers created by other workers.
     let cachedCwd = '';
+    let lastCounter = -1;
     const originalCwd = process.cwd;
 
     process.cwd = function() {
+      const currentCounter = Atomics.load(cwdCounter, 0);
+      if (currentCounter === lastCounter)
+        return cachedCwd;
+      lastCounter = currentCounter;
       cachedCwd = originalCwd();
       return cachedCwd;
     };
@@ -129,18 +148,30 @@ port.on('message', (message) => {
 
     debug(`[${threadId}] starts worker script ${filename} ` +
           `(eval = ${eval}) at cwd = ${process.cwd()}`);
-    port.unref();
     port.postMessage({ type: UP_AND_RUNNING });
     if (doEval) {
       const { evalScript } = require('internal/process/execution');
-      evalScript('[worker eval]', filename);
+      const name = '[worker eval]';
+      // This is necessary for CJS module compilation.
+      // TODO: pass this with something really internal.
+      ObjectDefineProperty(process, '_eval', {
+        configurable: true,
+        enumerable: true,
+        value: filename,
+      });
+      process.argv.splice(1, 0, name);
+      evalScript(name, filename);
     } else {
-      process.argv[1] = filename; // script filename
-      require('module').runMain();
+      // script filename
+      // runMain here might be monkey-patched by users in --require.
+      // XXX: the monkey-patchability here should probably be deprecated.
+      process.argv.splice(1, 0, filename);
+      CJSLoader.Module.runMain(filename);
     }
   } else if (message.type === STDIO_PAYLOAD) {
-    const { stream, chunk, encoding } = message;
-    process[stream].push(chunk, encoding);
+    const { stream, chunks } = message;
+    for (const { chunk, encoding } of chunks)
+      process[stream].push(chunk, encoding);
   } else {
     assert(
       message.type === STDIO_WANTS_MORE_DATA,
@@ -167,7 +198,7 @@ function workerOnGlobalUncaughtException(error, fromPromise) {
 
   let serialized;
   try {
-    const { serializeError } = require('internal/error-serdes');
+    const { serializeError } = require('internal/error_serdes');
     serialized = serializeError(error);
   } catch {}
   debug(`[${threadId}] uncaught exception serialized = ${!!serialized}`);

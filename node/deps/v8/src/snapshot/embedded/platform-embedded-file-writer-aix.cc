@@ -82,7 +82,9 @@ void PlatformEmbeddedFileWriterAIX::SourceInfo(int fileid, const char* filename,
   fprintf(fp_, ".xline %d, \"%s\"\n", line, filename);
 }
 
-void PlatformEmbeddedFileWriterAIX::DeclareFunctionBegin(const char* name) {
+// TODO(mmarchini): investigate emitting size annotations for AIX
+void PlatformEmbeddedFileWriterAIX::DeclareFunctionBegin(const char* name,
+                                                         uint32_t size) {
   Newline();
   DeclareSymbolGlobal(name);
   fprintf(fp_, ".csect %s[DS]\n", name);  // function descriptor
@@ -93,10 +95,6 @@ void PlatformEmbeddedFileWriterAIX::DeclareFunctionBegin(const char* name) {
 }
 
 void PlatformEmbeddedFileWriterAIX::DeclareFunctionEnd(const char* name) {}
-
-int PlatformEmbeddedFileWriterAIX::HexLiteral(uint64_t value) {
-  return fprintf(fp_, "0x%" PRIx64, value);
-}
 
 void PlatformEmbeddedFileWriterAIX::FilePrologue() {}
 
@@ -118,12 +116,6 @@ DataDirective PlatformEmbeddedFileWriterAIX::ByteChunkDataDirective() const {
   // PPC uses a fixed 4 byte instruction set, using .long
   // to prevent any unnecessary padding.
   return kLong;
-}
-
-int PlatformEmbeddedFileWriterAIX::WriteByteChunk(const uint8_t* data) {
-  DCHECK_EQ(ByteChunkDataDirective(), kLong);
-  const uint32_t* long_ptr = reinterpret_cast<const uint32_t*>(data);
-  return HexLiteral(*long_ptr);
 }
 
 #undef SYMBOL_PREFIX

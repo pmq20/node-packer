@@ -61,8 +61,7 @@ p.spawn({
     { type: 'ignore' },
     { type: 'pipe', handle: pipe },
     { type: 'ignore' }
-  ],
-  envPairs: ['ENCLOSE_IO_USE_ORIGINAL_NODE=1']
+  ]
 });
 
 // 'this' safety

@@ -21,14 +21,15 @@
 
 'use strict';
 
-const { Math } = primordials;
+const {
+  MathMin,
+  Symbol,
+} = primordials;
 const { setImmediate } = require('timers');
 
+const { methods, HTTPParser } = internalBinding('http_parser');
 const { getOptionValue } = require('internal/options');
-
-const { methods, HTTPParser } =
-  getOptionValue('--http-parser') === 'legacy' ?
-    internalBinding('http_parser') : internalBinding('http_parser_llhttp');
+const insecureHTTPParser = getOptionValue('--insecure-http-parser');
 
 const FreeList = require('internal/freelist');
 const incoming = require('_http_incoming');
@@ -38,7 +39,9 @@ const {
   readStop
 } = incoming;
 
-const debug = require('internal/util/debuglog').debuglog('http');
+let debug = require('internal/util/debuglog').debuglog('http', (fn) => {
+  debug = fn;
+});
 
 const kIncomingMessage = Symbol('IncomingMessage');
 const kOnHeaders = HTTPParser.kOnHeaders | 0;
@@ -46,6 +49,7 @@ const kOnHeadersComplete = HTTPParser.kOnHeadersComplete | 0;
 const kOnBody = HTTPParser.kOnBody | 0;
 const kOnMessageComplete = HTTPParser.kOnMessageComplete | 0;
 const kOnExecute = HTTPParser.kOnExecute | 0;
+const kOnTimeout = HTTPParser.kOnTimeout | 0;
 
 const MAX_HEADER_PAIRS = 2000;
 
@@ -95,11 +99,11 @@ function parserOnHeadersComplete(versionMajor, versionMinor, headers, method,
   incoming.url = url;
   incoming.upgrade = upgrade;
 
-  var n = headers.length;
+  let n = headers.length;
 
   // If parser.maxHeaderPairs <= 0 assume that there's no limit.
   if (parser.maxHeaderPairs > 0)
-    n = Math.min(n, parser.maxHeaderPairs);
+    n = MathMin(n, parser.maxHeaderPairs);
 
   incoming._addHeaderLines(headers, n);
 
@@ -124,8 +128,8 @@ function parserOnBody(b, start, len) {
 
   // Pretend this was the result of a stream._read call.
   if (len > 0 && !stream._dumped) {
-    var slice = b.slice(start, start + len);
-    var ret = stream.push(slice);
+    const slice = b.slice(start, start + len);
+    const ret = stream.push(slice);
     if (!ret)
       readStop(this.socket);
   }
@@ -159,7 +163,6 @@ const parsers = new FreeList('parsers', 1000, function parsersCb() {
 
   cleanParser(parser);
 
-  parser.onIncoming = null;
   parser[kOnHeaders] = parserOnHeaders;
   parser[kOnHeadersComplete] = parserOnHeadersComplete;
   parser[kOnBody] = parserOnBody;
@@ -229,13 +232,25 @@ function cleanParser(parser) {
   parser.outgoing = null;
   parser.maxHeaderPairs = MAX_HEADER_PAIRS;
   parser[kOnExecute] = null;
+  parser[kOnTimeout] = null;
   parser._consumed = false;
+  parser.onIncoming = null;
 }
 
 function prepareError(err, parser, rawPacket) {
   err.rawPacket = rawPacket || parser.getCurrentBuffer();
   if (typeof err.reason === 'string')
     err.message = `Parse Error: ${err.reason}`;
+}
+
+let warnedLenient = false;
+
+function isLenient() {
+  if (insecureHTTPParser && !warnedLenient) {
+    warnedLenient = true;
+    process.emitWarning('Using insecure HTTP parsing');
+  }
+  return insecureHTTPParser;
 }
 
 module.exports = {
@@ -250,5 +265,6 @@ module.exports = {
   parsers,
   kIncomingMessage,
   HTTPParser,
+  isLenient,
   prepareError,
 };

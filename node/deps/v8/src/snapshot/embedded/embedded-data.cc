@@ -7,6 +7,7 @@
 #include "src/codegen/assembler-inl.h"
 #include "src/codegen/callable.h"
 #include "src/objects/objects-inl.h"
+#include "src/snapshot/snapshot-utils.h"
 #include "src/snapshot/snapshot.h"
 
 namespace v8 {
@@ -14,12 +15,8 @@ namespace internal {
 
 // static
 bool InstructionStream::PcIsOffHeap(Isolate* isolate, Address pc) {
-  if (FLAG_embedded_builtins) {
-    const Address start = reinterpret_cast<Address>(isolate->embedded_blob());
-    return start <= pc && pc < start + isolate->embedded_blob_size();
-  } else {
-    return false;
-  }
+  const Address start = reinterpret_cast<Address>(isolate->embedded_blob());
+  return start <= pc && pc < start + isolate->embedded_blob_size();
 }
 
 // static
@@ -55,20 +52,35 @@ Code InstructionStream::TryLookupCode(Isolate* isolate, Address address) {
 void InstructionStream::CreateOffHeapInstructionStream(Isolate* isolate,
                                                        uint8_t** data,
                                                        uint32_t* size) {
+  // Create the embedded blob from scratch using the current Isolate's heap.
   EmbeddedData d = EmbeddedData::FromIsolate(isolate);
 
+  // Allocate the backing store that will contain the embedded blob in this
+  // Isolate. The backing store is on the native heap, *not* on V8's garbage-
+  // collected heap.
   v8::PageAllocator* page_allocator = v8::internal::GetPlatformPageAllocator();
-  const uint32_t page_size =
+  const uint32_t alignment =
       static_cast<uint32_t>(page_allocator->AllocatePageSize());
-  const uint32_t allocated_size = RoundUp(d.size(), page_size);
+
+  void* const requested_allocation_address =
+      AlignedAddress(isolate->heap()->GetRandomMmapAddr(), alignment);
+  const uint32_t allocation_size = RoundUp(d.size(), alignment);
 
   uint8_t* allocated_bytes = static_cast<uint8_t*>(
-      AllocatePages(page_allocator, isolate->heap()->GetRandomMmapAddr(),
-                    allocated_size, page_size, PageAllocator::kReadWrite));
+      AllocatePages(page_allocator, requested_allocation_address,
+                    allocation_size, alignment, PageAllocator::kReadWrite));
   CHECK_NOT_NULL(allocated_bytes);
 
+  // Copy the embedded blob into the newly allocated backing store. Switch
+  // permissions to read-execute since builtin code is immutable from now on
+  // and must be executable in case any JS execution is triggered.
+  //
+  // Once this backing store is set as the current_embedded_blob, V8 cannot tell
+  // the difference between a 'real' embedded build (where the blob is embedded
+  // in the binary) and what we are currently setting up here (where the blob is
+  // on the native heap).
   std::memcpy(allocated_bytes, d.data(), d.size());
-  CHECK(SetPermissions(page_allocator, allocated_bytes, allocated_size,
+  CHECK(SetPermissions(page_allocator, allocated_bytes, allocation_size,
                        PageAllocator::kReadExecute));
 
   *data = allocated_bytes;
@@ -189,16 +201,6 @@ EmbeddedData EmbeddedData::FromIsolate(Isolate* isolate) {
         saw_unsafe_builtin = true;
         fprintf(stderr, "%s is not isolate-independent.\n", Builtins::name(i));
       }
-      if (Builtins::IsWasmRuntimeStub(i) &&
-          RelocInfo::RequiresRelocation(code)) {
-        // Wasm additionally requires that its runtime stubs must be
-        // individually PIC (i.e. we must be able to copy each stub outside the
-        // embedded area without relocations). In particular, that means
-        // pc-relative calls to other builtins are disallowed.
-        saw_unsafe_builtin = true;
-        fprintf(stderr, "%s is a wasm runtime stub but needs relocation.\n",
-                Builtins::name(i));
-      }
       if (BuiltinAliasesOffHeapTrampolineRegister(isolate, code)) {
         saw_unsafe_builtin = true;
         fprintf(stderr, "%s aliases the off-heap trampoline register.\n",
@@ -305,7 +307,10 @@ Address EmbeddedData::InstructionEndOfBytecodeHandlers() const {
 size_t EmbeddedData::CreateEmbeddedBlobHash() const {
   STATIC_ASSERT(EmbeddedBlobHashOffset() == 0);
   STATIC_ASSERT(EmbeddedBlobHashSize() == kSizetSize);
-  return base::hash_range(data_ + EmbeddedBlobHashSize(), data_ + size_);
+  // Hash the entire blob except the hash field itself.
+  Vector<const byte> payload(data_ + EmbeddedBlobHashSize(),
+                             size_ - EmbeddedBlobHashSize());
+  return Checksum(payload);
 }
 
 void EmbeddedData::PrintStatistics() const {

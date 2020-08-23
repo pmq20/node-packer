@@ -5,6 +5,8 @@
 #ifndef V8_WASM_FUNCTION_COMPILER_H_
 #define V8_WASM_FUNCTION_COMPILER_H_
 
+#include <memory>
+
 #include "src/codegen/code-desc.h"
 #include "src/trap-handler/trap-handler.h"
 #include "src/wasm/compilation-environment.h"
@@ -33,7 +35,9 @@ class WasmInstructionBuffer final {
   std::unique_ptr<AssemblerBuffer> CreateView();
   std::unique_ptr<uint8_t[]> ReleaseBuffer();
 
-  static std::unique_ptr<WasmInstructionBuffer> New();
+  // Allocate a new {WasmInstructionBuffer}. The size is the maximum of {size}
+  // and {AssemblerBase::kMinimalSize}.
+  static std::unique_ptr<WasmInstructionBuffer> New(size_t size = 0);
 
   // Override {operator delete} to avoid implicit instantiation of {operator
   // delete} with {size_t} argument. The {size_t} argument would be incorrect.
@@ -51,7 +55,6 @@ struct WasmCompilationResult {
   enum Kind : int8_t {
     kFunction,
     kWasmToJsWrapper,
-    kInterpreterEntry,
   };
 
   bool succeeded() const { return code_desc.buffer != nullptr; }
@@ -63,19 +66,20 @@ struct WasmCompilationResult {
   uint32_t frame_slot_count = 0;
   uint32_t tagged_parameter_slots = 0;
   OwnedVector<byte> source_positions;
-  OwnedVector<trap_handler::ProtectedInstructionData> protected_instructions;
-  int func_index = static_cast<int>(kAnonymousFuncIndex);
+  OwnedVector<byte> protected_instructions_data;
+  int func_index = kAnonymousFuncIndex;
   ExecutionTier requested_tier;
   ExecutionTier result_tier;
   Kind kind = kFunction;
+  ForDebugging for_debugging = kNoDebugging;
 };
 
 class V8_EXPORT_PRIVATE WasmCompilationUnit final {
  public:
-  static ExecutionTier GetDefaultExecutionTier(const WasmModule*);
+  static ExecutionTier GetBaselineExecutionTier(const WasmModule*);
 
-  WasmCompilationUnit(int index, ExecutionTier tier)
-      : func_index_(index), tier_(tier) {}
+  WasmCompilationUnit(int index, ExecutionTier tier, ForDebugging for_debugging)
+      : func_index_(index), tier_(tier), for_debugging_(for_debugging) {}
 
   WasmCompilationResult ExecuteCompilation(
       WasmEngine*, CompilationEnv*, const std::shared_ptr<WireBytesStorage>&,
@@ -99,6 +103,7 @@ class V8_EXPORT_PRIVATE WasmCompilationUnit final {
 
   int func_index_;
   ExecutionTier tier_;
+  ForDebugging for_debugging_;
 };
 
 // {WasmCompilationUnit} should be trivially copyable and small enough so we can
@@ -108,19 +113,25 @@ STATIC_ASSERT(sizeof(WasmCompilationUnit) <= 2 * kSystemPointerSize);
 
 class V8_EXPORT_PRIVATE JSToWasmWrapperCompilationUnit final {
  public:
-  JSToWasmWrapperCompilationUnit(Isolate* isolate, FunctionSig* sig,
-                                 bool is_import);
+  JSToWasmWrapperCompilationUnit(Isolate* isolate, WasmEngine* wasm_engine,
+                                 const FunctionSig* sig, bool is_import,
+                                 const WasmFeatures& enabled_features);
   ~JSToWasmWrapperCompilationUnit();
 
-  void Prepare(Isolate* isolate);
   void Execute();
   Handle<Code> Finalize(Isolate* isolate);
 
+  bool is_import() const { return is_import_; }
+  const FunctionSig* sig() const { return sig_; }
+
   // Run a compilation unit synchronously.
-  static Handle<Code> CompileJSToWasmWrapper(Isolate* isolate, FunctionSig* sig,
+  static Handle<Code> CompileJSToWasmWrapper(Isolate* isolate,
+                                             const FunctionSig* sig,
                                              bool is_import);
 
  private:
+  bool is_import_;
+  const FunctionSig* sig_;
   std::unique_ptr<OptimizedCompilationJob> job_;
 };
 

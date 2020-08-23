@@ -73,18 +73,26 @@ const TERM_ENVS_REG_EXP = [
   /^vt100/
 ];
 
+let warned = false;
 function warnOnDeactivatedColors(env) {
-  let name;
+  if (warned)
+    return;
+  let name = '';
   if (env.NODE_DISABLE_COLORS !== undefined)
     name = 'NODE_DISABLE_COLORS';
-  if (env.NO_COLOR !== undefined)
-    name = 'NO_COLOR';
+  if (env.NO_COLOR !== undefined) {
+    if (name !== '') {
+      name += "' and '";
+    }
+    name += 'NO_COLOR';
+  }
 
-  if (name !== undefined) {
+  if (name !== '') {
     process.emitWarning(
       `The '${name}' env is ignored due to the 'FORCE_COLOR' env being set.`,
       'Warning'
     );
+    warned = true;
   }
 }
 
@@ -117,7 +125,7 @@ function getColorDepth(env = process.env) {
       env.NO_COLOR !== undefined ||
       // The "dumb" special terminal, as defined by terminfo, doesn't support
       // ANSI color control codes.
-      // See http://invisible-island.net/ncurses/terminfo.ti.html#toc-_Specials
+      // See https://invisible-island.net/ncurses/terminfo.ti.html#toc-_Specials
       env.TERM === 'dumb') {
     return COLORS_2;
   }
@@ -173,6 +181,10 @@ function getColorDepth(env = process.env) {
       return COLORS_256;
   }
 
+  if (env.COLORTERM === 'truecolor' || env.COLORTERM === '24bit') {
+    return COLORS_16m;
+  }
+
   if (env.TERM) {
     if (/^xterm-256/.test(env.TERM))
       return COLORS_256;
@@ -188,13 +200,10 @@ function getColorDepth(env = process.env) {
       }
     }
   }
-
+  // Move 16 color COLORTERM below 16m and 256
   if (env.COLORTERM) {
-    if (env.COLORTERM === 'truecolor' || env.COLORTERM === '24bit')
-      return COLORS_16m;
     return COLORS_16;
   }
-
   return COLORS_2;
 }
 

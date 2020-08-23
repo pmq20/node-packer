@@ -302,17 +302,14 @@ assert.throws(
       }
     },
     'fixtures/path.js': {},
-    'fixtures/throws_error.js': {},
     'fixtures/registerExt.test': {},
     'fixtures/registerExt.hello.world': {},
     'fixtures/registerExt2.test': {},
     'fixtures/module-load-order/file1': {},
     'fixtures/module-load-order/file2.js': {},
-    'fixtures/module-load-order/file3.node': {},
     'fixtures/module-load-order/file4.reg': {},
     'fixtures/module-load-order/file5.reg2': {},
     'fixtures/module-load-order/file6/index.js': {},
-    'fixtures/module-load-order/file7/index.node': {},
     'fixtures/module-load-order/file8/index.reg': {},
     'fixtures/module-load-order/file9/index.reg2': {},
     'fixtures/module-require/parent/index.js': {
@@ -351,6 +348,13 @@ process.on('exit', function() {
 // See https://github.com/nodejs/node-v0.x-archive/issues/1440.
 assert.strictEqual(require('../fixtures/utf8-bom.js'), 42);
 assert.strictEqual(require('../fixtures/utf8-bom.json'), 42);
+
+// Loading files with BOM + shebang.
+// See https://github.com/nodejs/node/issues/27767
+assert.throws(() => {
+  require('../fixtures/utf8-bom-shebang-shebang.js');
+}, { name: 'SyntaxError' });
+assert.strictEqual(require('../fixtures/utf8-shebang-bom.js'), 42);
 
 // Error on the first line of a module should
 // have the correct line number

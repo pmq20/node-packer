@@ -10,7 +10,7 @@ const bench = common.createBenchmark(main, {
 });
 
 function main({ n, type }) {
-  const { getStringWidth } = require('internal/readline/utils');
+  const { getStringWidth } = require('internal/util/inspect');
 
   const str = ({
     ascii: 'foobar'.repeat(100),

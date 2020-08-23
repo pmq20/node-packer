@@ -84,22 +84,26 @@ See [How to create a Minimal, Complete, and Verifiable example](https://stackove
 
 ## Triaging a Bug Report
 
-Once an issue has been opened, it is not uncommon for there to be discussion
+Once an issue has been opened, it is common for there to be discussion
 around it. Some contributors may have differing opinions about the issue,
 including whether the behavior being seen is a bug or a feature. This discussion
 is part of the process and should be kept focused, helpful, and professional.
 
-Short, clipped responses—that provide neither additional context nor supporting
-detail—are not helpful or professional. To many, such responses are simply
-annoying and unfriendly.
+The objective of helping with triaging issues (in core and help repos) is to
+help reduce the issue backlog and keep the issue tracker healthy, while enabling
+newcomers another meaningful way to get engaged and contribute.
 
-Contributors are encouraged to help one another make forward progress as much
-as possible, empowering one another to solve issues collaboratively. If you
-choose to comment on an issue that you feel either is not a problem that needs
-to be fixed, or if you encounter information in an issue that you feel is
-incorrect, explain *why* you feel that way with additional supporting context,
-and be willing to be convinced that you may be wrong. By doing so, we can often
-reach the correct outcome much faster.
+Anyone with a reasonable understanding of Node.js programming and the
+project's GitHub organization plus a few contributions to the project
+(commenting on issues or PRs) can apply for and become a triager. Open a PR
+on the README.md of this project with: i) a request to be added as a triager,
+ii) the motivation for becoming a triager, and iii) agreement on reading,
+understanding, and adhering to the project's [Code Of Conduct](https://github.com/nodejs/admin/blob/master/CODE_OF_CONDUCT.md).
+
+The triage role enables the ability to carry the out most common triage
+activities, such as applying labels and close/repoening/assigning issues.
+For more information on the roles and permissions, see ["Permission levels for
+repositories owned by an organization"](https://docs.github.com/en/github/setting-up-and-managing-organizations-and-teams/repository-permission-levels-for-an-organization#permission-levels-for-repositories-owned-by-an-organization).
 
 ## Resolving a Bug Report
 

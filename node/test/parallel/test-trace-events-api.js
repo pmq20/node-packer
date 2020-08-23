@@ -25,9 +25,8 @@ function getEnabledCategoriesFromCommandLine() {
   const indexOfCatFlag = process.execArgv.indexOf('--trace-event-categories');
   if (indexOfCatFlag === -1) {
     return undefined;
-  } else {
-    return process.execArgv[indexOfCatFlag + 1];
   }
+  return process.execArgv[indexOfCatFlag + 1];
 }
 
 const isChild = process.argv[2] === 'child';
@@ -35,21 +34,21 @@ const enabledCategories = getEnabledCategoriesFromCommandLine();
 
 assert.strictEqual(getEnabledCategories(), enabledCategories);
 [1, 'foo', true, false, null, undefined].forEach((i) => {
-  common.expectsError(() => createTracing(i), {
+  assert.throws(() => createTracing(i), {
     code: 'ERR_INVALID_ARG_TYPE',
-    type: TypeError
+    name: 'TypeError'
   });
-  common.expectsError(() => createTracing({ categories: i }), {
+  assert.throws(() => createTracing({ categories: i }), {
     code: 'ERR_INVALID_ARG_TYPE',
-    type: TypeError
+    name: 'TypeError'
   });
 });
 
-common.expectsError(
+assert.throws(
   () => createTracing({ categories: [] }),
   {
     code: 'ERR_TRACE_EVENTS_CATEGORY_REQUIRED',
-    type: TypeError
+    name: 'TypeError'
   }
 );
 

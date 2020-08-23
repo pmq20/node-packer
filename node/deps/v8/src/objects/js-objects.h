@@ -6,6 +6,8 @@
 #define V8_OBJECTS_JS_OBJECTS_H_
 
 #include "src/objects/embedder-data-slot.h"
+// TODO(jkummerow): Consider forward-declaring instead.
+#include "src/objects/internal-index.h"
 #include "src/objects/objects.h"
 #include "src/objects/property-array.h"
 #include "torque-generated/class-definitions-tq.h"
@@ -16,6 +18,10 @@
 
 namespace v8 {
 namespace internal {
+
+// Enum for functions that offer a second mode that does not cause allocations.
+// Used in conjunction with LookupIterator and unboxed double fields.
+enum class AllocationPolicy { kAllocationAllowed, kAllocationDisallowed };
 
 enum InstanceType : uint16_t;
 class JSGlobalObject;
@@ -66,7 +72,8 @@ class JSReceiver : public HeapObject {
   inline void initialize_properties(Isolate* isolate);
 
   // Deletes an existing named property in a normalized object.
-  static void DeleteNormalizedProperty(Handle<JSReceiver> object, int entry);
+  static void DeleteNormalizedProperty(Handle<JSReceiver> object,
+                                       InternalIndex entry);
 
   DECL_CAST(JSReceiver)
   DECL_VERIFIER(JSReceiver)
@@ -199,15 +206,17 @@ class JSReceiver : public HeapObject {
   V8_WARN_UNUSED_RESULT static Maybe<bool> IsExtensible(
       Handle<JSReceiver> object);
 
-  // Returns the class name ([[Class]] property in the specification).
+  // Returns the class name.
   V8_EXPORT_PRIVATE String class_name();
 
   // Returns the constructor (the function that was used to instantiate the
   // object).
   static MaybeHandle<JSFunction> GetConstructor(Handle<JSReceiver> receiver);
 
-  // Returns the constructor name (the name (possibly, inferred name) of the
-  // function that was used to instantiate the object).
+  // Returns the constructor name (the (possibly inferred) name of the function
+  // that was used to instantiate the object), if any. If a FunctionTemplate is
+  // used to instantiate the object, the class_name of the FunctionTemplate is
+  // returned instead.
   static Handle<String> GetConstructorName(Handle<JSReceiver> receiver);
 
   V8_EXPORT_PRIVATE Handle<NativeContext> GetCreationContext();
@@ -234,7 +243,9 @@ class JSReceiver : public HeapObject {
 
   inline static Handle<Object> GetDataProperty(Handle<JSReceiver> object,
                                                Handle<Name> name);
-  V8_EXPORT_PRIVATE static Handle<Object> GetDataProperty(LookupIterator* it);
+  V8_EXPORT_PRIVATE static Handle<Object> GetDataProperty(
+      LookupIterator* it, AllocationPolicy allocation_policy =
+                              AllocationPolicy::kAllocationAllowed);
 
   // Retrieves a permanent object identity hash code. The undefined value might
   // be returned in case no hash was created yet.
@@ -264,11 +275,8 @@ class JSReceiver : public HeapObject {
   static const int kHashMask = PropertyArray::HashField::kMask;
 
   DEFINE_FIELD_OFFSET_CONSTANTS(HeapObject::kHeaderSize,
-                                TORQUE_GENERATED_JSRECEIVER_FIELDS)
+                                TORQUE_GENERATED_JS_RECEIVER_FIELDS)
   bool HasProxyInPrototype(Isolate* isolate);
-
-  V8_WARN_UNUSED_RESULT static MaybeHandle<FixedArray> GetPrivateEntries(
-      Isolate* isolate, Handle<JSReceiver> receiver);
 
   OBJECT_CONSTRUCTORS(JSReceiver, HeapObject);
 };
@@ -323,8 +331,9 @@ class JSObject : public TorqueGeneratedJSObject<JSObject, JSReceiver> {
 
   // Returns true if an object has elements of PACKED_ELEMENTS
   DECL_GETTER(HasPackedElements, bool)
-  DECL_GETTER(HasFrozenOrSealedElements, bool)
+  DECL_GETTER(HasAnyNonextensibleElements, bool)
   DECL_GETTER(HasSealedElements, bool)
+  DECL_GETTER(HasNonextensibleElements, bool)
 
   DECL_GETTER(HasTypedArrayElements, bool)
 
@@ -378,7 +387,7 @@ class JSObject : public TorqueGeneratedJSObject<JSObject, JSReceiver> {
                                  PropertyAttributes attributes);
 
   V8_WARN_UNUSED_RESULT static MaybeHandle<Object>
-  SetOwnElementIgnoreAttributes(Handle<JSObject> object, uint32_t index,
+  SetOwnElementIgnoreAttributes(Handle<JSObject> object, size_t index,
                                 Handle<Object> value,
                                 PropertyAttributes attributes);
 
@@ -473,7 +482,6 @@ class JSObject : public TorqueGeneratedJSObject<JSObject, JSReceiver> {
   GetPropertyAttributesWithFailedAccessCheck(LookupIterator* it);
 
   // Defines an AccessorPair property on the given object.
-  // TODO(mstarzinger): Rename to SetAccessor().
   V8_EXPORT_PRIVATE static MaybeHandle<Object> DefineAccessor(
       Handle<JSObject> object, Handle<Name> name, Handle<Object> getter,
       Handle<Object> setter, PropertyAttributes attributes);
@@ -509,7 +517,7 @@ class JSObject : public TorqueGeneratedJSObject<JSObject, JSReceiver> {
                                               uint32_t length,
                                               EnsureElementsMode mode);
   static void EnsureCanContainElements(Handle<JSObject> object,
-                                       Arguments* arguments, uint32_t first_arg,
+                                       JavaScriptArguments* arguments,
                                        uint32_t arg_count,
                                        EnsureElementsMode mode);
 
@@ -611,14 +619,16 @@ class JSObject : public TorqueGeneratedJSObject<JSObject, JSReceiver> {
                                                   const char* reason);
 
   inline bool IsUnboxedDoubleField(FieldIndex index) const;
-  inline bool IsUnboxedDoubleField(Isolate* isolate, FieldIndex index) const;
+  inline bool IsUnboxedDoubleField(const Isolate* isolate,
+                                   FieldIndex index) const;
 
   // Access fast-case object properties at index.
   static Handle<Object> FastPropertyAt(Handle<JSObject> object,
                                        Representation representation,
                                        FieldIndex index);
   inline Object RawFastPropertyAt(FieldIndex index) const;
-  inline Object RawFastPropertyAt(Isolate* isolate, FieldIndex index) const;
+  inline Object RawFastPropertyAt(const Isolate* isolate,
+                                  FieldIndex index) const;
   inline double RawFastDoublePropertyAt(FieldIndex index) const;
   inline uint64_t RawFastDoublePropertyAsBitsAt(FieldIndex index) const;
 
@@ -630,7 +640,7 @@ class JSObject : public TorqueGeneratedJSObject<JSObject, JSReceiver> {
       FieldIndex index, Object value,
       WriteBarrierMode mode = UPDATE_WRITE_BARRIER);
   inline void RawFastDoublePropertyAsBitsAtPut(FieldIndex index, uint64_t bits);
-  inline void WriteToField(int descriptor, PropertyDetails details,
+  inline void WriteToField(InternalIndex descriptor, PropertyDetails details,
                            Object value);
 
   // Access to in object properties.
@@ -713,7 +723,7 @@ class JSObject : public TorqueGeneratedJSObject<JSObject, JSReceiver> {
   // If a GC was caused while constructing this object, the elements pointer
   // may point to a one pointer filler map. The object won't be rooted, but
   // our heap verification code could stumble across it.
-  V8_EXPORT_PRIVATE bool ElementsAreSafeToExamine(Isolate* isolate) const;
+  V8_EXPORT_PRIVATE bool ElementsAreSafeToExamine(const Isolate* isolate) const;
 #endif
 
   Object SlowReverseLookup(Object value);
@@ -805,6 +815,29 @@ class JSObject : public TorqueGeneratedJSObject<JSObject, JSReceiver> {
   TQ_OBJECT_CONSTRUCTORS(JSObject)
 };
 
+// An abstract superclass for JSObjects that may have elements while having an
+// empty fixed array as elements backing store. It doesn't carry any
+// functionality but allows function classes to be identified in the type
+// system.
+class JSCustomElementsObject
+    : public TorqueGeneratedJSCustomElementsObject<JSCustomElementsObject,
+                                                   JSObject> {
+ public:
+  STATIC_ASSERT(kHeaderSize == JSObject::kHeaderSize);
+  TQ_OBJECT_CONSTRUCTORS(JSCustomElementsObject)
+};
+
+// An abstract superclass for JSObjects that require non-standard element
+// access. It doesn't carry any functionality but allows function classes to be
+// identified in the type system.
+class JSSpecialObject
+    : public TorqueGeneratedJSSpecialObject<JSSpecialObject,
+                                            JSCustomElementsObject> {
+ public:
+  STATIC_ASSERT(kHeaderSize == JSObject::kHeaderSize);
+  TQ_OBJECT_CONSTRUCTORS(JSSpecialObject)
+};
+
 // JSAccessorPropertyDescriptor is just a JSObject with a specific initial
 // map. This initial map adds in-object properties for "get", "set",
 // "enumerable" and "configurable" properties, as assigned by the
@@ -892,28 +925,28 @@ class JSIteratorResult : public JSObject {
   OBJECT_CONSTRUCTORS(JSIteratorResult, JSObject);
 };
 
-// JSBoundFunction describes a bound function exotic object.
-class JSBoundFunction : public JSObject {
+// An abstract superclass for classes representing JavaScript function values.
+// It doesn't carry any functionality but allows function classes to be
+// identified in the type system.
+class JSFunctionOrBoundFunction
+    : public TorqueGeneratedJSFunctionOrBoundFunction<JSFunctionOrBoundFunction,
+                                                      JSObject> {
  public:
-  // [bound_target_function]: The wrapped function object.
-  DECL_ACCESSORS(bound_target_function, JSReceiver)
+  STATIC_ASSERT(kHeaderSize == JSObject::kHeaderSize);
+  TQ_OBJECT_CONSTRUCTORS(JSFunctionOrBoundFunction)
+};
 
-  // [bound_this]: The value that is always passed as the this value when
-  // calling the wrapped function.
-  DECL_ACCESSORS(bound_this, Object)
-
-  // [bound_arguments]: A list of values whose elements are used as the first
-  // arguments to any call to the wrapped function.
-  DECL_ACCESSORS(bound_arguments, FixedArray)
-
+// JSBoundFunction describes a bound function exotic object.
+class JSBoundFunction
+    : public TorqueGeneratedJSBoundFunction<JSBoundFunction,
+                                            JSFunctionOrBoundFunction> {
+ public:
   static MaybeHandle<String> GetName(Isolate* isolate,
                                      Handle<JSBoundFunction> function);
   static Maybe<int> GetLength(Isolate* isolate,
                               Handle<JSBoundFunction> function);
   static MaybeHandle<NativeContext> GetFunctionRealm(
       Handle<JSBoundFunction> function);
-
-  DECL_CAST(JSBoundFunction)
 
   // Dispatched behavior.
   DECL_PRINTER(JSBoundFunction)
@@ -923,15 +956,11 @@ class JSBoundFunction : public JSObject {
   // to ES6 section 19.2.3.5 Function.prototype.toString ( ).
   static Handle<String> ToString(Handle<JSBoundFunction> function);
 
-  // Layout description.
-  DEFINE_FIELD_OFFSET_CONSTANTS(JSObject::kHeaderSize,
-                                TORQUE_GENERATED_JSBOUND_FUNCTION_FIELDS)
-
-  OBJECT_CONSTRUCTORS(JSBoundFunction, JSObject);
+  TQ_OBJECT_CONSTRUCTORS(JSBoundFunction)
 };
 
 // JSFunction describes JavaScript functions.
-class JSFunction : public JSObject {
+class JSFunction : public JSFunctionOrBoundFunction {
  public:
   // [prototype_or_initial_map]:
   DECL_ACCESSORS(prototype_or_initial_map, HeapObject)
@@ -1054,7 +1083,10 @@ class JSFunction : public JSObject {
 
   // Resets function to clear compiled data after bytecode has been flushed.
   inline bool NeedsResetDueToFlushedBytecode();
-  inline void ResetIfBytecodeFlushed();
+  inline void ResetIfBytecodeFlushed(
+      base::Optional<std::function<void(HeapObject object, ObjectSlot slot,
+                                        HeapObject target)>>
+          gc_notify_updated_slot = base::nullopt);
 
   DECL_GETTER(has_prototype_slot, bool)
 
@@ -1134,13 +1166,28 @@ class JSFunction : public JSObject {
   // ES6 section 19.2.3.5 Function.prototype.toString ( ).
   static Handle<String> ToString(Handle<JSFunction> function);
 
-  DEFINE_FIELD_OFFSET_CONSTANTS(JSObject::kHeaderSize,
-                                TORQUE_GENERATED_JSFUNCTION_FIELDS)
+  struct FieldOffsets {
+    DEFINE_FIELD_OFFSET_CONSTANTS(JSFunctionOrBoundFunction::kHeaderSize,
+                                  TORQUE_GENERATED_JS_FUNCTION_FIELDS)
+  };
+  static constexpr int kSharedFunctionInfoOffset =
+      FieldOffsets::kSharedFunctionInfoOffset;
+  static constexpr int kContextOffset = FieldOffsets::kContextOffset;
+  static constexpr int kFeedbackCellOffset = FieldOffsets::kFeedbackCellOffset;
+  static constexpr int kCodeOffset = FieldOffsets::kCodeOffset;
+  static constexpr int kPrototypeOrInitialMapOffset =
+      FieldOffsets::kPrototypeOrInitialMapOffset;
 
+ private:
+  // JSFunction doesn't have a fixed header size:
+  // Hide JSFunctionOrBoundFunction::kHeaderSize to avoid confusion.
+  static const int kHeaderSize;
+
+ public:
   static constexpr int kSizeWithoutPrototype = kPrototypeOrInitialMapOffset;
-  static constexpr int kSizeWithPrototype = kSize;
+  static constexpr int kSizeWithPrototype = FieldOffsets::kHeaderSize;
 
-  OBJECT_CONSTRUCTORS(JSFunction, JSObject);
+  OBJECT_CONSTRUCTORS(JSFunction, JSFunctionOrBoundFunction);
 };
 
 // JSGlobalProxy's prototype must be a JSGlobalObject or null,
@@ -1152,7 +1199,7 @@ class JSFunction : public JSObject {
 // Accessing a JSGlobalProxy requires security check.
 
 class JSGlobalProxy
-    : public TorqueGeneratedJSGlobalProxy<JSGlobalProxy, JSObject> {
+    : public TorqueGeneratedJSGlobalProxy<JSGlobalProxy, JSSpecialObject> {
  public:
   inline bool IsDetachedFrom(JSGlobalObject global) const;
 
@@ -1166,7 +1213,7 @@ class JSGlobalProxy
 };
 
 // JavaScript global object.
-class JSGlobalObject : public JSObject {
+class JSGlobalObject : public JSSpecialObject {
  public:
   // [native context]: the natives corresponding to this global object.
   DECL_ACCESSORS(native_context, NativeContext)
@@ -1183,26 +1230,31 @@ class JSGlobalObject : public JSObject {
   // Ensure that the global object has a cell for the given property name.
   static Handle<PropertyCell> EnsureEmptyPropertyCell(
       Handle<JSGlobalObject> global, Handle<Name> name,
-      PropertyCellType cell_type, int* entry_out = nullptr);
+      PropertyCellType cell_type, InternalIndex* entry_out = nullptr);
 
   DECL_CAST(JSGlobalObject)
 
   inline bool IsDetached();
+
+  // May be called by the concurrent GC when the global object is not
+  // fully initialized.
+  DECL_GETTER(native_context_unchecked, Object)
 
   // Dispatched behavior.
   DECL_PRINTER(JSGlobalObject)
   DECL_VERIFIER(JSGlobalObject)
 
   // Layout description.
-  DEFINE_FIELD_OFFSET_CONSTANTS(JSObject::kHeaderSize,
-                                TORQUE_GENERATED_JSGLOBAL_OBJECT_FIELDS)
+  DEFINE_FIELD_OFFSET_CONSTANTS(JSSpecialObject::kHeaderSize,
+                                TORQUE_GENERATED_JS_GLOBAL_OBJECT_FIELDS)
 
-  OBJECT_CONSTRUCTORS(JSGlobalObject, JSObject);
+  OBJECT_CONSTRUCTORS(JSGlobalObject, JSSpecialObject);
 };
 
 // Representation for JS Wrapper objects, String, Number, Boolean, etc.
 class JSPrimitiveWrapper
-    : public TorqueGeneratedJSPrimitiveWrapper<JSPrimitiveWrapper, JSObject> {
+    : public TorqueGeneratedJSPrimitiveWrapper<JSPrimitiveWrapper,
+                                               JSCustomElementsObject> {
  public:
   // Dispatched behavior.
   DECL_PRINTER(JSPrimitiveWrapper)
@@ -1213,33 +1265,10 @@ class JSPrimitiveWrapper
 class DateCache;
 
 // Representation for JS date objects.
-class JSDate : public JSObject {
+class JSDate : public TorqueGeneratedJSDate<JSDate, JSObject> {
  public:
   static V8_WARN_UNUSED_RESULT MaybeHandle<JSDate> New(
       Handle<JSFunction> constructor, Handle<JSReceiver> new_target, double tv);
-
-  // If one component is NaN, all of them are, indicating a NaN time value.
-  // [value]: the time value.
-  DECL_ACCESSORS(value, Object)
-  // [year]: caches year. Either undefined, smi, or NaN.
-  DECL_ACCESSORS(year, Object)
-  // [month]: caches month. Either undefined, smi, or NaN.
-  DECL_ACCESSORS(month, Object)
-  // [day]: caches day. Either undefined, smi, or NaN.
-  DECL_ACCESSORS(day, Object)
-  // [weekday]: caches day of week. Either undefined, smi, or NaN.
-  DECL_ACCESSORS(weekday, Object)
-  // [hour]: caches hours. Either undefined, smi, or NaN.
-  DECL_ACCESSORS(hour, Object)
-  // [min]: caches minutes. Either undefined, smi, or NaN.
-  DECL_ACCESSORS(min, Object)
-  // [sec]: caches seconds. Either undefined, smi, or NaN.
-  DECL_ACCESSORS(sec, Object)
-  // [cache stamp]: sample of the date cache stamp at the
-  // moment when chached fields were cached.
-  DECL_ACCESSORS(cache_stamp, Object)
-
-  DECL_CAST(JSDate)
 
   // Returns the time value (UTC) identifying the current time.
   static double CurrentTimeValue(Isolate* isolate);
@@ -1251,7 +1280,8 @@ class JSDate : public JSObject {
   // {raw_date} is a tagged Object pointer.
   // {smi_index} is a tagged Smi.
   // The return value is a tagged Object pointer.
-  static Address GetField(Address raw_date, Address smi_index);
+  static Address GetField(Isolate* isolate, Address raw_date,
+                          Address smi_index);
 
   static Handle<Object> SetValue(Handle<JSDate> date, double v);
 
@@ -1290,18 +1320,14 @@ class JSDate : public JSObject {
     kTimezoneOffset
   };
 
-  DEFINE_FIELD_OFFSET_CONSTANTS(JSObject::kHeaderSize,
-                                TORQUE_GENERATED_JSDATE_FIELDS)
-
  private:
-  inline Object DoGetField(FieldIndex index);
-
+  Object DoGetField(Isolate* isolate, FieldIndex index);
   Object GetUTCField(FieldIndex index, double value, DateCache* date_cache);
 
   // Computes and caches the cacheable fields of the date.
   inline void SetCachedFields(int64_t local_time_ms, DateCache* date_cache);
 
-  OBJECT_CONSTRUCTORS(JSDate, JSObject);
+  TQ_OBJECT_CONSTRUCTORS(JSDate)
 };
 
 // Representation of message objects used for error reporting through
@@ -1360,12 +1386,13 @@ class JSMessageObject : public JSObject {
   DECL_VERIFIER(JSMessageObject)
 
   DEFINE_FIELD_OFFSET_CONSTANTS(JSObject::kHeaderSize,
-                                TORQUE_GENERATED_JSMESSAGE_OBJECT_FIELDS)
+                                TORQUE_GENERATED_JS_MESSAGE_OBJECT_FIELDS)
   // TODO(v8:8989): [torque] Support marker constants.
   static const int kPointerFieldsEndOffset = kStartPositionOffset;
 
-  using BodyDescriptor = FixedBodyDescriptor<HeapObject::kMapOffset,
-                                             kPointerFieldsEndOffset, kSize>;
+  using BodyDescriptor =
+      FixedBodyDescriptor<HeapObject::kMapOffset, kPointerFieldsEndOffset,
+                          kHeaderSize>;
 
  private:
   friend class Factory;
@@ -1396,48 +1423,29 @@ class JSMessageObject : public JSObject {
 // An object which wraps an ordinary Iterator and converts it to behave
 // according to the Async Iterator protocol.
 // (See https://tc39.github.io/proposal-async-iteration/#sec-iteration)
-class JSAsyncFromSyncIterator : public JSObject {
+class JSAsyncFromSyncIterator
+    : public TorqueGeneratedJSAsyncFromSyncIterator<JSAsyncFromSyncIterator,
+                                                    JSObject> {
  public:
-  DECL_CAST(JSAsyncFromSyncIterator)
   DECL_PRINTER(JSAsyncFromSyncIterator)
-  DECL_VERIFIER(JSAsyncFromSyncIterator)
 
   // Async-from-Sync Iterator instances are ordinary objects that inherit
   // properties from the %AsyncFromSyncIteratorPrototype% intrinsic object.
   // Async-from-Sync Iterator instances are initially created with the internal
   // slots listed in Table 4.
   // (proposal-async-iteration/#table-async-from-sync-iterator-internal-slots)
-  DECL_ACCESSORS(sync_iterator, JSReceiver)
 
-  // The "next" method is loaded during GetIterator, and is not reloaded for
-  // subsequent "next" invocations.
-  DECL_ACCESSORS(next, Object)
-
-  DEFINE_FIELD_OFFSET_CONSTANTS(
-      JSObject::kHeaderSize, TORQUE_GENERATED_JSASYNC_FROM_SYNC_ITERATOR_FIELDS)
-
-  OBJECT_CONSTRUCTORS(JSAsyncFromSyncIterator, JSObject);
+  TQ_OBJECT_CONSTRUCTORS(JSAsyncFromSyncIterator)
 };
 
-class JSStringIterator : public JSObject {
+class JSStringIterator
+    : public TorqueGeneratedJSStringIterator<JSStringIterator, JSObject> {
  public:
   // Dispatched behavior.
   DECL_PRINTER(JSStringIterator)
   DECL_VERIFIER(JSStringIterator)
 
-  DECL_CAST(JSStringIterator)
-
-  // [string]: the [[IteratedString]] inobject property.
-  DECL_ACCESSORS(string, String)
-
-  // [index]: The [[StringIteratorNextIndex]] inobject property.
-  inline int index() const;
-  inline void set_index(int value);
-
-  DEFINE_FIELD_OFFSET_CONSTANTS(JSObject::kHeaderSize,
-                                TORQUE_GENERATED_JSSTRING_ITERATOR_FIELDS)
-
-  OBJECT_CONSTRUCTORS(JSStringIterator, JSObject);
+  TQ_OBJECT_CONSTRUCTORS(JSStringIterator)
 };
 
 }  // namespace internal

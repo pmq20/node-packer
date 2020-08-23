@@ -1,6 +1,9 @@
 'use strict';
 
-const { Object } = primordials;
+const {
+  ObjectDefineProperty,
+  ObjectKeys,
+} = primordials;
 
 let session;
 function sendInspectorCommand(cb, onError) {
@@ -8,15 +11,11 @@ function sendInspectorCommand(cb, onError) {
   if (!hasInspector) return onError();
   const inspector = require('inspector');
   if (session === undefined) session = new inspector.Session();
+  session.connect();
   try {
-    session.connect();
-    try {
-      return cb(session);
-    } finally {
-      session.disconnect();
-    }
-  } catch {
-    return onError();
+    return cb(session);
+  } finally {
+    session.disconnect();
   }
 }
 
@@ -24,7 +23,7 @@ function sendInspectorCommand(cb, onError) {
 function installConsoleExtensions(commandLineApi) {
   if (commandLineApi.require) { return; }
   const { tryGetCwd } = require('internal/process/execution');
-  const CJSModule = require('internal/modules/cjs/loader');
+  const CJSModule = require('internal/modules/cjs/loader').Module;
   const { makeRequireFunction } = require('internal/modules/cjs/helpers');
   const consoleAPIModule = new CJSModule('<inspector console>');
   const cwd = tryGetCwd();
@@ -36,7 +35,7 @@ function installConsoleExtensions(commandLineApi) {
 // Wrap a console implemented by Node.js with features from the VM inspector
 function wrapConsole(consoleFromNode, consoleFromVM) {
   const { consoleCall } = internalBinding('inspector');
-  for (const key of Object.keys(consoleFromVM)) {
+  for (const key of ObjectKeys(consoleFromVM)) {
     // If global console has the same method as inspector console,
     // then wrap these two methods into one. Native wrapper will preserve
     // the original stack.
@@ -44,6 +43,9 @@ function wrapConsole(consoleFromNode, consoleFromVM) {
       consoleFromNode[key] = consoleCall.bind(consoleFromNode,
                                               consoleFromVM[key],
                                               consoleFromNode[key]);
+      ObjectDefineProperty(consoleFromNode[key], 'name', {
+        value: key
+      });
     } else {
       // Add additional console APIs from the inspector
       consoleFromNode[key] = consoleFromVM[key];

@@ -26,8 +26,17 @@
 
 // Decodes a v8::Local<v8::String> or Buffer to a raw char*
 
+#if (__GNUC__ >= 8) && !defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
 #include "v8.h"
-#include "env.h"
+#if (__GNUC__ >= 8) && !defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
+#include "env-inl.h"
+
+#include <string>
 
 namespace node {
 
@@ -37,14 +46,7 @@ class StringBytes {
    public:
     inline v8::Maybe<bool> Decode(Environment* env,
                                   v8::Local<v8::String> string,
-                                  v8::Local<v8::Value> encoding,
-                                  enum encoding _default) {
-      enum encoding enc = ParseEncoding(env->isolate(), encoding, _default);
-      if (!StringBytes::IsValidString(string, enc)) {
-        env->ThrowTypeError("Bad input string");
-        return v8::Nothing<bool>();
-      }
-
+                                  enum encoding enc) {
       size_t storage;
       if (!StringBytes::StorageSize(env->isolate(), string, enc).To(&storage))
         return v8::Nothing<bool>();
@@ -59,12 +61,6 @@ class StringBytes {
 
     inline size_t size() const { return length(); }
   };
-
-  // Does the string match the encoding? Quick but non-exhaustive.
-  // Example: a HEX string must have a length that's a multiple of two.
-  // FIXME(bnoordhuis) IsMaybeValidString()? Naming things is hard...
-  static bool IsValidString(v8::Local<v8::String> string,
-                            enum encoding enc);
 
   // Fast, but can be 2 bytes oversized for Base64, and
   // as much as triple UTF-8 strings <= 65536 chars in length
@@ -109,6 +105,13 @@ class StringBytes {
                                           const char* buf,
                                           enum encoding encoding,
                                           v8::Local<v8::Value>* error);
+
+  static size_t hex_encode(const char* src,
+                           size_t slen,
+                           char* dst,
+                           size_t dlen);
+
+  static std::string hex_encode(const char* src, size_t slen);
 
  private:
   static size_t WriteUCS2(v8::Isolate* isolate,

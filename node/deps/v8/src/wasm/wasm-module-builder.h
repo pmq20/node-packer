@@ -5,16 +5,15 @@
 #ifndef V8_WASM_WASM_MODULE_BUILDER_H_
 #define V8_WASM_WASM_MODULE_BUILDER_H_
 
-#include "src/codegen/signature.h"
-#include "src/zone/zone-containers.h"
-
 #include "src/base/memory.h"
+#include "src/codegen/signature.h"
 #include "src/utils/vector.h"
 #include "src/wasm/leb-helper.h"
 #include "src/wasm/local-decl-encoder.h"
 #include "src/wasm/wasm-module.h"
 #include "src/wasm/wasm-opcodes.h"
 #include "src/wasm/wasm-result.h"
+#include "src/zone/zone-containers.h"
 
 namespace v8 {
 namespace internal {
@@ -83,6 +82,7 @@ class ZoneBuffer : public ZoneObject {
   void write_f64(double val) { write_u64(bit_cast<uint64_t>(val)); }
 
   void write(const byte* data, size_t size) {
+    if (size == 0) return;
     EnsureSpace(size);
     memcpy(pos_, data, size);
     pos_ += size;
@@ -122,6 +122,7 @@ class ZoneBuffer : public ZoneObject {
 
   size_t offset() const { return static_cast<size_t>(pos_ - buffer_); }
   size_t size() const { return static_cast<size_t>(pos_ - buffer_); }
+  const byte* data() const { return buffer_; }
   const byte* begin() const { return buffer_; }
   const byte* end() const { return pos_; }
 
@@ -158,10 +159,12 @@ class V8_EXPORT_PRIVATE WasmFunctionBuilder : public ZoneObject {
   // Building methods.
   void SetSignature(FunctionSig* sig);
   uint32_t AddLocal(ValueType type);
+  void EmitByte(byte b);
   void EmitI32V(int32_t val);
   void EmitU32V(uint32_t val);
   void EmitCode(const byte* code, uint32_t code_size);
   void Emit(WasmOpcode opcode);
+  void EmitWithPrefix(WasmOpcode opcode);
   void EmitGetLocal(uint32_t index);
   void EmitSetLocal(uint32_t index);
   void EmitTeeLocal(uint32_t index);
@@ -229,20 +232,25 @@ class V8_EXPORT_PRIVATE WasmModuleBuilder : public ZoneObject {
   explicit WasmModuleBuilder(Zone* zone);
 
   // Building methods.
-  uint32_t AddImport(Vector<const char> name, FunctionSig* sig);
+  uint32_t AddImport(Vector<const char> name, FunctionSig* sig,
+                     Vector<const char> module = {});
   WasmFunctionBuilder* AddFunction(FunctionSig* sig = nullptr);
   uint32_t AddGlobal(ValueType type, bool mutability = true,
                      const WasmInitExpr& init = WasmInitExpr());
   uint32_t AddGlobalImport(Vector<const char> name, ValueType type,
-                           bool mutability);
+                           bool mutability, Vector<const char> module = {});
   void AddDataSegment(const byte* data, uint32_t size, uint32_t dest);
   uint32_t AddSignature(FunctionSig* sig);
+  uint32_t AddStructType(StructType* type);
+  uint32_t AddArrayType(ArrayType* type);
   // In the current implementation, it's supported to have uninitialized slots
   // at the beginning and/or end of the indirect function table, as long as
   // the filled slots form a contiguous block in the middle.
   uint32_t AllocateIndirectFunctions(uint32_t count);
   void SetIndirectFunction(uint32_t indirect, uint32_t direct);
   void SetMaxTableSize(uint32_t max);
+  uint32_t AddTable(ValueType type, uint32_t min_size);
+  uint32_t AddTable(ValueType type, uint32_t min_size, uint32_t max_size);
   void MarkStartFunction(WasmFunctionBuilder* builder);
   void AddExport(Vector<const char> name, ImportExportKindCode kind,
                  uint32_t index);
@@ -262,15 +270,36 @@ class V8_EXPORT_PRIVATE WasmModuleBuilder : public ZoneObject {
 
   Zone* zone() { return zone_; }
 
-  FunctionSig* GetSignature(uint32_t index) { return signatures_[index]; }
+  FunctionSig* GetSignature(uint32_t index) {
+    DCHECK(types_[index].kind == Type::kFunctionSig);
+    return types_[index].sig;
+  }
 
  private:
+  struct Type {
+    enum Kind { kFunctionSig, kStructType, kArrayType };
+    explicit Type(FunctionSig* signature)
+        : kind(kFunctionSig), sig(signature) {}
+    explicit Type(StructType* struct_type)
+        : kind(kStructType), struct_type(struct_type) {}
+    explicit Type(ArrayType* array_type)
+        : kind(kArrayType), array_type(array_type) {}
+    Kind kind;
+    union {
+      FunctionSig* sig;
+      StructType* struct_type;
+      ArrayType* array_type;
+    };
+  };
+
   struct WasmFunctionImport {
+    Vector<const char> module;
     Vector<const char> name;
     uint32_t sig_index;
   };
 
   struct WasmGlobalImport {
+    Vector<const char> module;
     Vector<const char> name;
     ValueTypeCode type_code;
     bool mutability;
@@ -288,6 +317,13 @@ class V8_EXPORT_PRIVATE WasmModuleBuilder : public ZoneObject {
     WasmInitExpr init;
   };
 
+  struct WasmTable {
+    ValueType type;
+    uint32_t min_size;
+    uint32_t max_size;
+    bool has_maximum;
+  };
+
   struct WasmDataSegment {
     ZoneVector<byte> data;
     uint32_t dest;
@@ -295,11 +331,12 @@ class V8_EXPORT_PRIVATE WasmModuleBuilder : public ZoneObject {
 
   friend class WasmFunctionBuilder;
   Zone* zone_;
-  ZoneVector<FunctionSig*> signatures_;
+  ZoneVector<Type> types_;
   ZoneVector<WasmFunctionImport> function_imports_;
   ZoneVector<WasmGlobalImport> global_imports_;
   ZoneVector<WasmExport> exports_;
   ZoneVector<WasmFunctionBuilder*> functions_;
+  ZoneVector<WasmTable> tables_;
   ZoneVector<WasmDataSegment> data_segments_;
   ZoneVector<uint32_t> indirect_functions_;
   ZoneVector<WasmGlobal> globals_;
@@ -313,11 +350,13 @@ class V8_EXPORT_PRIVATE WasmModuleBuilder : public ZoneObject {
 #if DEBUG
   // Once AddExportedImport is called, no more imports can be added.
   bool adding_imports_allowed_ = true;
+  // Indirect functions must be allocated before adding extra tables.
+  bool allocating_indirect_functions_allowed_ = true;
 #endif
 };
 
 inline FunctionSig* WasmFunctionBuilder::signature() {
-  return builder_->signatures_[signature_index_];
+  return builder_->types_[signature_index_].sig;
 }
 
 }  // namespace wasm

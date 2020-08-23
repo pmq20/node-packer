@@ -3,8 +3,9 @@ caseq@chromium.org
 dgozman@chromium.org
 kozyatinskiy@chromium.org
 pfeldman@chromium.org
+szuend@chromium.org
 yangguo@chromium.org
 
-per-file PRESUBMIT.py=file://INFRA_OWNERS
+per-file PRESUBMIT.py=file:../../INFRA_OWNERS
 
 # COMPONENT: Platform>DevTools>JavaScript

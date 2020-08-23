@@ -37,8 +37,12 @@ class SourceRangeAstVisitor final
   void VisitSwitchStatement(SwitchStatement* stmt);
   void VisitFunctionLiteral(FunctionLiteral* expr);
   bool VisitNode(AstNode* node);
+  void VisitTryCatchStatement(TryCatchStatement* stmt);
+  void VisitTryFinallyStatement(TryFinallyStatement* stmt);
 
+  void MaybeRemoveContinuationRange(Statement* last_statement);
   void MaybeRemoveLastContinuationRange(ZonePtrList<Statement>* stmts);
+  void MaybeRemoveContinuationRangeOfAsyncReturn(TryCatchStatement* stmt);
 
   SourceRangeMap* source_range_map_ = nullptr;
   std::unordered_set<int> continuation_positions_;

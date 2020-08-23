@@ -29,10 +29,9 @@ import subprocess
 import sys
 import tempfile
 import operator
+from callstats_groups import RUNTIME_CALL_STATS_GROUPS
 
 import numpy
-import scipy
-import scipy.stats
 from math import sqrt
 
 
@@ -327,6 +326,10 @@ def do_run_replay_server(args):
 # Calculate statistics.
 
 def statistics(data):
+  # NOTE(V8:10269): imports moved here to mitigate the outage.
+  import scipy
+  import scipy.stats
+
   N = len(data)
   average = numpy.average(data)
   median = numpy.median(data)
@@ -370,8 +373,7 @@ def read_stats(path, domain, args):
   if args.aggregate:
     groups = [
         ('Group-IC', re.compile(".*IC_.*")),
-        ('Group-OptimizeBackground',
-         re.compile(".*OptimizeConcurrent.*|RecompileConcurrent.*")),
+        ('Group-OptimizeBackground', re.compile(".*OptimizeBackground.*")),
         ('Group-Optimize',
          re.compile("StackGuard|.*Optimize.*|.*Deoptimize.*|Recompile.*")),
         ('Group-CompileBackground', re.compile("(.*CompileBackground.*)")),

@@ -1,4 +1,3 @@
-(node:*) ExperimentalWarning: The ESM module loader is experimental.
 file:///*/test/fixtures/es-module-loaders/syntax-error-import.mjs:1
 import { foo, notfound } from './module-named-exports.mjs';
               ^^^^^^^^
@@ -6,3 +5,4 @@ SyntaxError: The requested module './module-named-exports.mjs' does not provide 
     at ModuleJob._instantiate (internal/modules/esm/module_job.js:*:*)
     at async ModuleJob.run (internal/modules/esm/module_job.js:*:*)
     at async Loader.import (internal/modules/esm/loader.js:*:*)
+    at async Object.loadESM (internal/process/esm_loader.js:*:*)

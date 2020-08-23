@@ -1,11 +1,21 @@
 'use strict';
 
-const { Math, Object } = primordials;
+const {
+  Error,
+  MathMax,
+  ObjectCreate,
+  ObjectDefineProperty,
+  ObjectGetPrototypeOf,
+  ObjectKeys,
+} = primordials;
 
 const { inspect } = require('internal/util/inspect');
 const { codes: {
   ERR_INVALID_ARG_TYPE
 } } = require('internal/errors');
+const {
+  removeColors,
+} = require('internal/util');
 
 let blue = '';
 let green = '';
@@ -31,12 +41,12 @@ const kReadableOperator = {
 const kMaxShortLength = 12;
 
 function copyError(source) {
-  const keys = Object.keys(source);
-  const target = Object.create(Object.getPrototypeOf(source));
+  const keys = ObjectKeys(source);
+  const target = ObjectCreate(ObjectGetPrototypeOf(source));
   for (const key of keys) {
     target[key] = source[key];
   }
-  Object.defineProperty(target, 'message', { value: source.message });
+  ObjectDefineProperty(target, 'message', { value: source.message });
   return target;
 }
 
@@ -86,7 +96,12 @@ function createErrDiff(actual, expected, operator) {
   // equal, check further special handling.
   if (actualLines.length === 1 && expectedLines.length === 1 &&
     actualLines[0] !== expectedLines[0]) {
-    const inputLength = actualLines[0].length + expectedLines[0].length;
+    // Check for the visible length using the `removeColors()` function, if
+    // appropriate.
+    const c = inspect.defaultOptions.colors;
+    const actualRaw = c ? removeColors(actualLines[0]) : actualLines[0];
+    const expectedRaw = c ? removeColors(expectedLines[0]) : expectedLines[0];
+    const inputLength = actualRaw.length + expectedRaw.length;
     // If the character length of "actual" and "expected" together is less than
     // kMaxShortLength and if neither is an object and at least one of them is
     // not `zero`, use the strict equal comparison to visualize the output.
@@ -103,7 +118,7 @@ function createErrDiff(actual, expected, operator) {
       // not a tty, use a default value of 80 characters.
       const maxLength = process.stderr.isTTY ? process.stderr.columns : 80;
       if (inputLength < maxLength) {
-        while (actualLines[0][i] === expectedLines[0][i]) {
+        while (actualRaw[i] === expectedRaw[i]) {
           i++;
         }
         // Ignore the first characters.
@@ -135,7 +150,7 @@ function createErrDiff(actual, expected, operator) {
     b = expectedLines[expectedLines.length - 1];
   }
 
-  const maxLines = Math.max(actualLines.length, expectedLines.length);
+  const maxLines = MathMax(actualLines.length, expectedLines.length);
   // Strict equal with identical objects that are not identical by reference.
   // E.g., assert.deepStrictEqual({ a: Symbol() }, { a: Symbol() })
   if (maxLines === 0) {
@@ -297,6 +312,7 @@ class AssertionError extends Error {
       message,
       operator,
       stackStartFn,
+      details,
       // Compatibility with older versions.
       stackStartFunction
     } = options;
@@ -404,16 +420,29 @@ class AssertionError extends Error {
     Error.stackTraceLimit = limit;
 
     this.generatedMessage = !message;
-    Object.defineProperty(this, 'name', {
+    ObjectDefineProperty(this, 'name', {
       value: 'AssertionError [ERR_ASSERTION]',
       enumerable: false,
       writable: true,
       configurable: true
     });
     this.code = 'ERR_ASSERTION';
-    this.actual = actual;
-    this.expected = expected;
-    this.operator = operator;
+    if (details) {
+      this.actual = undefined;
+      this.expected = undefined;
+      this.operator = undefined;
+      for (let i = 0; i < details.length; i++) {
+        this['message ' + i] = details[i].message;
+        this['actual ' + i] = details[i].actual;
+        this['expected ' + i] = details[i].expected;
+        this['operator ' + i] = details[i].operator;
+        this['stack trace ' + i] = details[i].stack;
+      }
+    } else {
+      this.actual = actual;
+      this.expected = expected;
+      this.operator = operator;
+    }
     // eslint-disable-next-line no-restricted-syntax
     Error.captureStackTrace(this, stackStartFn || stackStartFunction);
     // Create error message including the error code in the name.

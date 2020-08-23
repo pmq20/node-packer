@@ -25,7 +25,7 @@ the following tiers.
   * The tool must have a guide or other documentation in the Node.js GitHub
     organization or website;
   * The tool must be working on all supported platforms;
-  * The tool must only be using APIs exposed by Nodejs as opposed to
+  * The tool must only be using APIs exposed by Node.js as opposed to
     its dependencies; and
   * The tool must be open source.
 
@@ -95,7 +95,8 @@ The tools are currently assigned to Tiers as follows:
 
  | Tool Type | Tool/API Name             | Regular Testing in Node.js CI | Integrated with Node.js | Target Tier |
  |-----------|---------------------------|-------------------------------|-------------------------|-------------|
- |           |                           |                               |                         |             |
+ | FFDC | diagnostic report | Yes | Yes | 1 |
+ | | | | | |
 
 ## Tier 2
 

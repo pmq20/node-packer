@@ -15,7 +15,6 @@
   V(_, cardinal_string, "cardinal")                                 \
   V(_, caseFirst_string, "caseFirst")                               \
   V(_, compare_string, "compare")                                   \
-  V(_, current_string, "current")                                   \
   V(_, collation_string, "collation")                               \
   V(_, compact_string, "compact")                                   \
   V(_, compactDisplay_string, "compactDisplay")                     \
@@ -23,6 +22,7 @@
   V(_, currencyDisplay_string, "currencyDisplay")                   \
   V(_, currencySign_string, "currencySign")                         \
   V(_, dateStyle_string, "dateStyle")                               \
+  V(_, dateTimeField_string, "dateTimeField")                       \
   V(_, day_string, "day")                                           \
   V(_, dayPeriod_string, "dayPeriod")                               \
   V(_, decimal_string, "decimal")                                   \
@@ -33,6 +33,7 @@
   V(_, exponentInteger_string, "exponentInteger")                   \
   V(_, exponentMinusSign_string, "exponentMinusSign")               \
   V(_, exponentSeparator_string, "exponentSeparator")               \
+  V(_, fallback_string, "fallback")                                 \
   V(_, first_string, "first")                                       \
   V(_, format_string, "format")                                     \
   V(_, fraction_string, "fraction")                                 \
@@ -82,6 +83,7 @@
   V(_, plusSign_string, "plusSign")                                 \
   V(_, quarter_string, "quarter")                                   \
   V(_, region_string, "region")                                     \
+  V(_, relatedYear_string, "relatedYear")                           \
   V(_, scientific_string, "scientific")                             \
   V(_, second_string, "second")                                     \
   V(_, segment_string, "segment")                                   \
@@ -107,7 +109,8 @@
   V(_, unit_string, "unit")                                         \
   V(_, unitDisplay_string, "unitDisplay")                           \
   V(_, weekday_string, "weekday")                                   \
-  V(_, year_string, "year")
+  V(_, year_string, "year")                                         \
+  V(_, yearName_string, "yearName")
 #else  // V8_INTL_SUPPORT
 #define INTERNALIZED_STRING_LIST_GENERATOR_INTL(V, _)
 #endif  // V8_INTL_SUPPORT
@@ -115,6 +118,7 @@
 #define INTERNALIZED_STRING_LIST_GENERATOR(V, _)                     \
   INTERNALIZED_STRING_LIST_GENERATOR_INTL(V, _)                      \
   V(_, add_string, "add")                                            \
+  V(_, AggregateError_string, "AggregateError")                      \
   V(_, always_string, "always")                                      \
   V(_, anonymous_function_string, "(anonymous function)")            \
   V(_, anonymous_string, "anonymous")                                \
@@ -154,6 +158,7 @@
   V(_, conjunction_string, "conjunction")                            \
   V(_, construct_string, "construct")                                \
   V(_, constructor_string, "constructor")                            \
+  V(_, current_string, "current")                                    \
   V(_, Date_string, "Date")                                          \
   V(_, date_to_string, "[object Date]")                              \
   V(_, default_string, "default")                                    \
@@ -167,20 +172,21 @@
   V(_, dot_default_string, ".default")                               \
   V(_, dot_for_string, ".for")                                       \
   V(_, dot_generator_object_string, ".generator_object")             \
-  V(_, dot_iterator_string, ".iterator")                             \
-  V(_, dot_promise_string, ".promise")                               \
   V(_, dot_result_string, ".result")                                 \
+  V(_, dot_repl_result_string, ".repl_result")                       \
   V(_, dot_string, ".")                                              \
   V(_, dot_switch_tag_string, ".switch_tag")                         \
   V(_, dotAll_string, "dotAll")                                      \
   V(_, enumerable_string, "enumerable")                              \
   V(_, element_string, "element")                                    \
   V(_, Error_string, "Error")                                        \
+  V(_, errors_string, "errors")                                      \
   V(_, error_to_string, "[object Error]")                            \
   V(_, eval_string, "eval")                                          \
   V(_, EvalError_string, "EvalError")                                \
   V(_, exec_string, "exec")                                          \
   V(_, false_string, "false")                                        \
+  V(_, FinalizationRegistry_string, "FinalizationRegistry")          \
   V(_, flags_string, "flags")                                        \
   V(_, Float32Array_string, "Float32Array")                          \
   V(_, Float64Array_string, "Float64Array")                          \
@@ -202,6 +208,7 @@
   V(_, illegal_access_string, "illegal access")                      \
   V(_, illegal_argument_string, "illegal argument")                  \
   V(_, index_string, "index")                                        \
+  V(_, indices_string, "indices")                                    \
   V(_, Infinity_string, "Infinity")                                  \
   V(_, infinity_string, "infinity")                                  \
   V(_, input_string, "input")                                        \
@@ -209,6 +216,8 @@
   V(_, Int32Array_string, "Int32Array")                              \
   V(_, Int8Array_string, "Int8Array")                                \
   V(_, isExtensible_string, "isExtensible")                          \
+  V(_, jsMemoryEstimate_string, "jsMemoryEstimate")                  \
+  V(_, jsMemoryRange_string, "jsMemoryRange")                        \
   V(_, keys_string, "keys")                                          \
   V(_, lastIndex_string, "lastIndex")                                \
   V(_, length_string, "length")                                      \
@@ -246,6 +255,7 @@
   V(_, of_string, "of")                                              \
   V(_, ok, "ok")                                                     \
   V(_, one_string, "1")                                              \
+  V(_, other_string, "other")                                        \
   V(_, ownKeys_string, "ownKeys")                                    \
   V(_, percent_string, "percent")                                    \
   V(_, position_string, "position")                                  \
@@ -299,6 +309,7 @@
   V(_, toJSON_string, "toJSON")                                      \
   V(_, toString_string, "toString")                                  \
   V(_, true_string, "true")                                          \
+  V(_, total_string, "total")                                        \
   V(_, TypeError_string, "TypeError")                                \
   V(_, Uint16Array_string, "Uint16Array")                            \
   V(_, Uint32Array_string, "Uint32Array")                            \
@@ -318,35 +329,40 @@
   V(_, writable_string, "writable")                                  \
   V(_, zero_string, "0")
 
-#define PRIVATE_SYMBOL_LIST_GENERATOR(V, _) \
-  V(_, call_site_frame_array_symbol)        \
-  V(_, call_site_frame_index_symbol)        \
-  V(_, console_context_id_symbol)           \
-  V(_, console_context_name_symbol)         \
-  V(_, class_fields_symbol)                 \
-  V(_, class_positions_symbol)              \
-  V(_, detailed_stack_trace_symbol)         \
-  V(_, elements_transition_symbol)          \
-  V(_, error_end_pos_symbol)                \
-  V(_, error_script_symbol)                 \
-  V(_, error_start_pos_symbol)              \
-  V(_, frozen_symbol)                       \
-  V(_, generic_symbol)                      \
-  V(_, home_object_symbol)                  \
-  V(_, interpreter_trampoline_symbol)       \
-  V(_, megamorphic_symbol)                  \
-  V(_, native_context_index_symbol)         \
-  V(_, nonextensible_symbol)                \
-  V(_, not_mapped_symbol)                   \
-  V(_, premonomorphic_symbol)               \
-  V(_, promise_debug_marker_symbol)         \
-  V(_, promise_forwarding_handler_symbol)   \
-  V(_, promise_handled_by_symbol)           \
-  V(_, sealed_symbol)                       \
-  V(_, stack_trace_symbol)                  \
-  V(_, strict_function_transition_symbol)   \
-  V(_, wasm_exception_tag_symbol)           \
-  V(_, wasm_exception_values_symbol)        \
+#define PRIVATE_SYMBOL_LIST_GENERATOR(V, _)           \
+  V(_, call_site_frame_array_symbol)                  \
+  V(_, call_site_frame_index_symbol)                  \
+  V(_, console_context_id_symbol)                     \
+  V(_, console_context_name_symbol)                   \
+  V(_, class_fields_symbol)                           \
+  V(_, class_positions_symbol)                        \
+  V(_, detailed_stack_trace_symbol)                   \
+  V(_, elements_transition_symbol)                    \
+  V(_, error_end_pos_symbol)                          \
+  V(_, error_script_symbol)                           \
+  V(_, error_start_pos_symbol)                        \
+  V(_, frozen_symbol)                                 \
+  V(_, generic_symbol)                                \
+  V(_, home_object_symbol)                            \
+  V(_, interpreter_trampoline_symbol)                 \
+  V(_, megamorphic_symbol)                            \
+  V(_, native_context_index_symbol)                   \
+  V(_, nonextensible_symbol)                          \
+  V(_, not_mapped_symbol)                             \
+  V(_, promise_debug_marker_symbol)                   \
+  V(_, promise_debug_message_symbol)                  \
+  V(_, promise_forwarding_handler_symbol)             \
+  V(_, promise_handled_by_symbol)                     \
+  V(_, regexp_result_cached_indices_or_regexp_symbol) \
+  V(_, regexp_result_names_symbol)                    \
+  V(_, regexp_result_regexp_input_symbol)             \
+  V(_, regexp_result_regexp_last_index_symbol)        \
+  V(_, sealed_symbol)                                 \
+  V(_, stack_trace_symbol)                            \
+  V(_, strict_function_transition_symbol)             \
+  V(_, wasm_exception_tag_symbol)                     \
+  V(_, wasm_exception_values_symbol)                  \
+  V(_, wasm_uncatchable_symbol)                       \
   V(_, uninitialized_symbol)
 
 #define PUBLIC_SYMBOL_LIST_GENERATOR(V, _)          \
@@ -382,6 +398,7 @@
   F(MC_INCREMENTAL_FINALIZE_BODY)                                  \
   F(MC_INCREMENTAL_LAYOUT_CHANGE)                                  \
   F(MC_INCREMENTAL_START)                                          \
+  F(MC_INCREMENTAL_SWEEP_ARRAY_BUFFERS)                            \
   F(MC_INCREMENTAL_SWEEPING)
 
 #define TOP_MC_SCOPES(F) \
@@ -413,6 +430,7 @@
   F(MC_CLEAR_WEAK_COLLECTIONS)                       \
   F(MC_CLEAR_WEAK_LISTS)                             \
   F(MC_CLEAR_WEAK_REFERENCES)                        \
+  F(MC_COMPLETE_SWEEP_ARRAY_BUFFERS)                 \
   F(MC_EVACUATE_CANDIDATES)                          \
   F(MC_EVACUATE_CLEAN_UP)                            \
   F(MC_EVACUATE_COPY)                                \
@@ -426,6 +444,7 @@
   F(MC_EVACUATE_UPDATE_POINTERS_SLOTS_MAP_SPACE)     \
   F(MC_EVACUATE_UPDATE_POINTERS_TO_NEW_ROOTS)        \
   F(MC_EVACUATE_UPDATE_POINTERS_WEAK)                \
+  F(MC_FINISH_SWEEP_ARRAY_BUFFERS)                   \
   F(MC_MARK_EMBEDDER_PROLOGUE)                       \
   F(MC_MARK_EMBEDDER_TRACING)                        \
   F(MC_MARK_EMBEDDER_TRACING_CLOSURE)                \
@@ -467,19 +486,24 @@
   F(MINOR_MC_MARKING_DEQUE)                          \
   F(MINOR_MC_RESET_LIVENESS)                         \
   F(MINOR_MC_SWEEPING)                               \
+  F(SCAVENGER_COMPLETE_SWEEP_ARRAY_BUFFERS)          \
   F(SCAVENGER_FAST_PROMOTE)                          \
+  F(SCAVENGER_FREE_REMEMBERED_SET)                   \
   F(SCAVENGER_SCAVENGE)                              \
   F(SCAVENGER_PROCESS_ARRAY_BUFFERS)                 \
   F(SCAVENGER_SCAVENGE_WEAK_GLOBAL_HANDLES_IDENTIFY) \
   F(SCAVENGER_SCAVENGE_WEAK_GLOBAL_HANDLES_PROCESS)  \
   F(SCAVENGER_SCAVENGE_PARALLEL)                     \
   F(SCAVENGER_SCAVENGE_ROOTS)                        \
+  F(SCAVENGER_SCAVENGE_STACK_ROOTS)                  \
   F(SCAVENGER_SCAVENGE_UPDATE_REFS)                  \
   F(SCAVENGER_SCAVENGE_WEAK)                         \
-  F(SCAVENGER_SCAVENGE_FINALIZE)
+  F(SCAVENGER_SCAVENGE_FINALIZE)                     \
+  F(SCAVENGER_SWEEP_ARRAY_BUFFERS)
 
 #define TRACER_BACKGROUND_SCOPES(F)               \
   F(BACKGROUND_ARRAY_BUFFER_FREE)                 \
+  F(BACKGROUND_ARRAY_BUFFER_SWEEP)                \
   F(BACKGROUND_STORE_BUFFER)                      \
   F(BACKGROUND_UNMAPPER)                          \
   F(MC_BACKGROUND_EVACUATE_COPY)                  \

@@ -60,13 +60,13 @@ int FieldIndex::GetLoadByFieldIndex() const {
   return is_double() ? (result | 1) : result;
 }
 
-FieldIndex FieldIndex::ForDescriptor(Map map, int descriptor_index) {
-  Isolate* isolate = GetIsolateForPtrCompr(map);
+FieldIndex FieldIndex::ForDescriptor(Map map, InternalIndex descriptor_index) {
+  const Isolate* isolate = GetIsolateForPtrCompr(map);
   return ForDescriptor(isolate, map, descriptor_index);
 }
 
-FieldIndex FieldIndex::ForDescriptor(Isolate* isolate, Map map,
-                                     int descriptor_index) {
+FieldIndex FieldIndex::ForDescriptor(const Isolate* isolate, Map map,
+                                     InternalIndex descriptor_index) {
   PropertyDetails details =
       map.instance_descriptors(isolate).GetDetails(descriptor_index);
   int field_index = details.field_index();

@@ -28,13 +28,16 @@ struct DisjunctDecisionRow {
 class RegExpMacroAssembler {
  public:
   // The implementation must be able to handle at least:
-  static const int kMaxRegister = (1 << 16) - 1;
-  static const int kMaxCPOffset = (1 << 15) - 1;
-  static const int kMinCPOffset = -(1 << 15);
+  static constexpr int kMaxRegisterCount = (1 << 16);
+  static constexpr int kMaxRegister = kMaxRegisterCount - 1;
+  static constexpr int kMaxCPOffset = (1 << 15) - 1;
+  static constexpr int kMinCPOffset = -(1 << 15);
 
-  static const int kTableSizeBits = 7;
-  static const int kTableSize = 1 << kTableSizeBits;
-  static const int kTableMask = kTableSize - 1;
+  static constexpr int kTableSizeBits = 7;
+  static constexpr int kTableSize = 1 << kTableSizeBits;
+  static constexpr int kTableMask = kTableSize - 1;
+
+  static constexpr int kUseCharactersValue = -1;
 
   enum IrregexpImplementation {
     kIA32Implementation,
@@ -69,7 +72,6 @@ class RegExpMacroAssembler {
   // stack by an earlier PushBacktrack(Label*).
   virtual void Backtrack() = 0;
   virtual void Bind(Label* label) = 0;
-  virtual void CheckAtStart(Label* on_at_start) = 0;
   // Dispatch after looking the current character up in a 2-bits-per-entry
   // map.  The destinations vector has up to 4 labels.
   virtual void CheckCharacter(unsigned c, Label* on_equal) = 0;
@@ -81,11 +83,12 @@ class RegExpMacroAssembler {
   virtual void CheckCharacterGT(uc16 limit, Label* on_greater) = 0;
   virtual void CheckCharacterLT(uc16 limit, Label* on_less) = 0;
   virtual void CheckGreedyLoop(Label* on_tos_equals_current_position) = 0;
+  virtual void CheckAtStart(int cp_offset, Label* on_at_start) = 0;
   virtual void CheckNotAtStart(int cp_offset, Label* on_not_at_start) = 0;
   virtual void CheckNotBackReference(int start_reg, bool read_backward,
                                      Label* on_no_match) = 0;
   virtual void CheckNotBackReferenceIgnoreCase(int start_reg,
-                                               bool read_backward, bool unicode,
+                                               bool read_backward,
                                                Label* on_no_match) = 0;
   // Check the current character for a match with a literal character.  If we
   // fail to match then goto the on_failure label.  End of input always
@@ -120,6 +123,11 @@ class RegExpMacroAssembler {
   // not have custom support.
   // May clobber the current loaded character.
   virtual bool CheckSpecialCharacterClass(uc16 type, Label* on_no_match);
+
+  // Control-flow integrity:
+  // Define a jump target and bind a label.
+  virtual void BindJumpTarget(Label* label) { Bind(label); }
+
   virtual void Fail() = 0;
   virtual Handle<HeapObject> GetCode(Handle<String> source) = 0;
   virtual void GoTo(Label* label) = 0;
@@ -133,10 +141,12 @@ class RegExpMacroAssembler {
   // label if it is.
   virtual void IfRegisterEqPos(int reg, Label* if_eq) = 0;
   virtual IrregexpImplementation Implementation() = 0;
-  virtual void LoadCurrentCharacter(int cp_offset,
-                                    Label* on_end_of_input,
-                                    bool check_bounds = true,
-                                    int characters = 1) = 0;
+  V8_EXPORT_PRIVATE void LoadCurrentCharacter(
+      int cp_offset, Label* on_end_of_input, bool check_bounds = true,
+      int characters = 1, int eats_at_least = kUseCharactersValue);
+  virtual void LoadCurrentCharacterImpl(int cp_offset, Label* on_end_of_input,
+                                        bool check_bounds, int characters,
+                                        int eats_at_least) = 0;
   virtual void PopCurrentPosition() = 0;
   virtual void PopRegister(int register_index) = 0;
   // Pushes the label on the backtrack stack, so that a following Backtrack
@@ -168,6 +178,10 @@ class RegExpMacroAssembler {
   void set_slow_safe(bool ssc) { slow_safe_compiler_ = ssc; }
   bool slow_safe() { return slow_safe_compiler_; }
 
+  void set_backtrack_limit(uint32_t backtrack_limit) {
+    backtrack_limit_ = backtrack_limit;
+  }
+
   enum GlobalMode {
     NOT_GLOBAL,
     GLOBAL_NO_ZERO_LENGTH_CHECK,
@@ -186,8 +200,15 @@ class RegExpMacroAssembler {
   Isolate* isolate() const { return isolate_; }
   Zone* zone() const { return zone_; }
 
+ protected:
+  bool has_backtrack_limit() const {
+    return backtrack_limit_ != JSRegExp::kNoBacktrackLimit;
+  }
+  uint32_t backtrack_limit() const { return backtrack_limit_; }
+
  private:
   bool slow_safe_compiler_;
+  uint32_t backtrack_limit_ = JSRegExp::kNoBacktrackLimit;
   GlobalMode global_mode_;
   Isolate* isolate_;
   Zone* zone_;
@@ -219,7 +240,7 @@ class NativeRegExpMacroAssembler: public RegExpMacroAssembler {
   bool CanReadUnaligned() override;
 
   // Returns a {Result} sentinel, or the number of successful matches.
-  static int Match(Handle<Code> regexp, Handle<String> subject,
+  static int Match(Handle<JSRegExp> regexp, Handle<String> subject,
                    int* offsets_vector, int offsets_vector_length,
                    int previous_index, Isolate* isolate);
 
@@ -231,13 +252,10 @@ class NativeRegExpMacroAssembler: public RegExpMacroAssembler {
   static Address GrowStack(Address stack_pointer, Address* stack_top,
                            Isolate* isolate);
 
-  static const byte* StringCharacterPosition(
-      String subject, int start_index, const DisallowHeapAllocation& no_gc);
-
   static int CheckStackGuardState(Isolate* isolate, int start_index,
-                                  bool is_direct_call, Address* return_address,
-                                  Code re_code, Address* subject,
-                                  const byte** input_start,
+                                  RegExp::CallOrigin call_origin,
+                                  Address* return_address, Code re_code,
+                                  Address* subject, const byte** input_start,
                                   const byte** input_end);
 
   // Byte map of one byte characters with a 0xff if the character is a word
@@ -250,11 +268,18 @@ class NativeRegExpMacroAssembler: public RegExpMacroAssembler {
   }
 
   // Returns a {Result} sentinel, or the number of successful matches.
-  V8_EXPORT_PRIVATE static int Execute(Code code, String input,
-                                       int start_offset,
+  V8_EXPORT_PRIVATE static int Execute(String input, int start_offset,
                                        const byte* input_start,
                                        const byte* input_end, int* output,
-                                       int output_size, Isolate* isolate);
+                                       int output_size, Isolate* isolate,
+                                       JSRegExp regexp);
+  void LoadCurrentCharacterImpl(int cp_offset, Label* on_end_of_input,
+                                bool check_bounds, int characters,
+                                int eats_at_least) override;
+  // Load a number of characters at the given offset from the
+  // current position, into the current-character register.
+  virtual void LoadCurrentCharacterUnchecked(int cp_offset,
+                                             int character_count) = 0;
 };
 
 }  // namespace internal

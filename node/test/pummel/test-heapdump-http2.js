@@ -14,7 +14,7 @@ const http2 = require('http2');
 
 const server = http2.createServer();
 server.on('stream', (stream) => {
-  stream.respondWithFile(__filename);
+  stream.respondWithFile(process.execPath);
 });
 server.listen(0, () => {
   const client = http2.connect(`http://localhost:${server.address().port}`);
@@ -69,6 +69,7 @@ server.listen(0, () => {
       {
         children: [
           { node_name: 'Http2Session', edge_name: 'wrapped' },
+          { node_name: 'Node / nghttp2_memory', edge_name: 'nghttp2_memory' },
           {
             node_name: 'Node / streams', edge_name: 'streams'
           }

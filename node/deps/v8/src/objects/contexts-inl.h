@@ -13,6 +13,7 @@
 #include "src/objects/js-objects-inl.h"
 #include "src/objects/map-inl.h"
 #include "src/objects/objects-inl.h"
+#include "src/objects/osr-optimized-code-cache-inl.h"
 #include "src/objects/regexp-match-info.h"
 #include "src/objects/scope-info.h"
 #include "src/objects/shared-function-info.h"
@@ -47,16 +48,16 @@ Context ScriptContextTable::get_context(int i) const {
 OBJECT_CONSTRUCTORS_IMPL(Context, HeapObject)
 NEVER_READ_ONLY_SPACE_IMPL(Context)
 CAST_ACCESSOR(Context)
-SMI_ACCESSORS(Context, length, kLengthOffset)
 
+SMI_ACCESSORS(Context, length, kLengthOffset)
 CAST_ACCESSOR(NativeContext)
 
 Object Context::get(int index) const {
-  Isolate* isolate = GetIsolateForPtrCompr(*this);
+  const Isolate* isolate = GetIsolateForPtrCompr(*this);
   return get(isolate, index);
 }
 
-Object Context::get(Isolate* isolate, int index) const {
+Object Context::get(const Isolate* isolate, int index) const {
   DCHECK_LT(static_cast<unsigned>(index),
             static_cast<unsigned>(this->length()));
   return TaggedField<Object>::Relaxed_Load(isolate, *this,
@@ -94,20 +95,22 @@ void Context::set_previous(Context context) { set(PREVIOUS_INDEX, context); }
 
 Object Context::next_context_link() { return get(Context::NEXT_CONTEXT_LINK); }
 
-bool Context::has_extension() { return !extension().IsTheHole(); }
+bool Context::has_extension() {
+  return scope_info().HasContextExtensionSlot() && !extension().IsUndefined();
+}
+
 HeapObject Context::extension() {
+  DCHECK(scope_info().HasContextExtensionSlot());
   return HeapObject::cast(get(EXTENSION_INDEX));
 }
-void Context::set_extension(HeapObject object) { set(EXTENSION_INDEX, object); }
 
-NativeContext Context::native_context() const {
-  Object result = get(NATIVE_CONTEXT_INDEX);
-  DCHECK(IsBootstrappingOrNativeContext(this->GetIsolate(), result));
-  return NativeContext::unchecked_cast(result);
+void Context::set_extension(HeapObject object) {
+  DCHECK(scope_info().HasContextExtensionSlot());
+  set(EXTENSION_INDEX, object);
 }
 
-void Context::set_native_context(NativeContext context) {
-  set(NATIVE_CONTEXT_INDEX, context);
+NativeContext Context::native_context() const {
+  return this->map().native_context();
 }
 
 bool Context::IsFunctionContext() const {
@@ -197,7 +200,7 @@ int Context::FunctionMapIndex(LanguageMode language_mode, FunctionKind kind,
     base = IsAsyncFunction(kind) ? ASYNC_GENERATOR_FUNCTION_MAP_INDEX
                                  : GENERATOR_FUNCTION_MAP_INDEX;
 
-  } else if (IsAsyncFunction(kind)) {
+  } else if (IsAsyncFunction(kind) || IsAsyncModule(kind)) {
     CHECK_FOLLOWS4(ASYNC_FUNCTION_MAP_INDEX, ASYNC_FUNCTION_WITH_NAME_MAP_INDEX,
                    ASYNC_FUNCTION_WITH_HOME_OBJECT_MAP_INDEX,
                    ASYNC_FUNCTION_WITH_NAME_AND_HOME_OBJECT_MAP_INDEX);
@@ -242,14 +245,22 @@ Map Context::GetInitialJSArrayMap(ElementsKind kind) const {
   return Map::cast(initial_js_array_map);
 }
 
-MicrotaskQueue* NativeContext::microtask_queue() const {
+DEF_GETTER(NativeContext, microtask_queue, MicrotaskQueue*) {
+  ExternalPointer_t encoded_value =
+      ReadField<ExternalPointer_t>(kMicrotaskQueueOffset);
   return reinterpret_cast<MicrotaskQueue*>(
-      ReadField<Address>(kMicrotaskQueueOffset));
+      DecodeExternalPointer(isolate, encoded_value));
 }
 
-void NativeContext::set_microtask_queue(MicrotaskQueue* microtask_queue) {
-  WriteField<Address>(kMicrotaskQueueOffset,
-                      reinterpret_cast<Address>(microtask_queue));
+void NativeContext::set_microtask_queue(Isolate* isolate,
+                                        MicrotaskQueue* microtask_queue) {
+  ExternalPointer_t encoded_value = EncodeExternalPointer(
+      isolate, reinterpret_cast<Address>(microtask_queue));
+  WriteField<ExternalPointer_t>(kMicrotaskQueueOffset, encoded_value);
+}
+
+OSROptimizedCodeCache NativeContext::GetOSROptimizedCodeCache() {
+  return OSROptimizedCodeCache::cast(osr_code_cache());
 }
 
 OBJECT_CONSTRUCTORS_IMPL(NativeContext, Context)

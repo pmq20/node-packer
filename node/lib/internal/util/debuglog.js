@@ -1,6 +1,10 @@
 'use strict';
 
-const { format } = require('internal/util/inspect');
+const {
+  RegExp,
+} = primordials;
+
+const { inspect, format, formatWithOptions } = require('internal/util/inspect');
 
 // `debugs` is deliberately initialized to undefined so any call to
 // debuglog() before initializeDebugEnv() is called will throw.
@@ -31,6 +35,8 @@ function emitWarningIfNeeded(set) {
   }
 }
 
+function noop() {}
+
 function debuglogImpl(set) {
   set = set.toUpperCase();
   if (debugs[set] === undefined) {
@@ -38,11 +44,13 @@ function debuglogImpl(set) {
       const pid = process.pid;
       emitWarningIfNeeded(set);
       debugs[set] = function debug(...args) {
-        const msg = format(...args);
-        process.stderr.write(format('%s %d: %s\n', set, pid, msg));
+        const colors = process.stderr.hasColors && process.stderr.hasColors();
+        const msg = formatWithOptions({ colors }, ...args);
+        const coloredPID = inspect(pid, { colors });
+        process.stderr.write(format('%s %s: %s\n', set, coloredPID, msg));
       };
     } else {
-      debugs[set] = null;
+      debugs[set] = noop;
     }
   }
   return debugs[set];
@@ -52,16 +60,17 @@ function debuglogImpl(set) {
 // so it needs to be called lazily in top scopes of internal modules
 // that may be loaded before these run time states are allowed to
 // be accessed.
-function debuglog(set) {
-  let debug;
-  return function(...args) {
-    if (debug === undefined) {
-      // Only invokes debuglogImpl() when the debug function is
-      // called for the first time.
-      debug = debuglogImpl(set);
-    }
-    if (debug !== null)
-      debug(...args);
+function debuglog(set, cb) {
+  let debug = (...args) => {
+    // Only invokes debuglogImpl() when the debug function is
+    // called for the first time.
+    debug = debuglogImpl(set);
+    if (typeof cb === 'function')
+      cb(debug);
+    debug(...args);
+  };
+  return (...args) => {
+    debug(...args);
   };
 }
 

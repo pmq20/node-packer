@@ -1,9 +1,12 @@
 'use strict';
 
-const { Math } = primordials;
+const {
+  MathMin,
+  NumberIsNaN,
+} = primordials;
 
 const { AsyncWrap, Providers } = internalBinding('async_wrap');
-const { Buffer, kMaxLength } = require('buffer');
+const { kMaxLength } = require('buffer');
 const { randomBytes: _randomBytes } = internalBinding('crypto');
 const {
   ERR_INVALID_ARG_TYPE,
@@ -12,16 +15,17 @@ const {
 } = require('internal/errors').codes;
 const { validateNumber } = require('internal/validators');
 const { isArrayBufferView } = require('internal/util/types');
+const { FastBuffer } = require('internal/buffer');
 
 const kMaxUint32 = 2 ** 32 - 1;
-const kMaxPossibleLength = Math.min(kMaxLength, kMaxUint32);
+const kMaxPossibleLength = MathMin(kMaxLength, kMaxUint32);
 
 function assertOffset(offset, elementSize, length) {
   validateNumber(offset, 'offset');
   offset *= elementSize;
 
-  const maxLength = Math.min(length, kMaxPossibleLength);
-  if (Number.isNaN(offset) || offset > maxLength || offset < 0) {
+  const maxLength = MathMin(length, kMaxPossibleLength);
+  if (NumberIsNaN(offset) || offset > maxLength || offset < 0) {
     throw new ERR_OUT_OF_RANGE('offset', `>= 0 && <= ${maxLength}`, offset);
   }
 
@@ -32,7 +36,7 @@ function assertSize(size, elementSize, offset, length) {
   validateNumber(size, 'size');
   size *= elementSize;
 
-  if (Number.isNaN(size) || size > kMaxPossibleLength || size < 0) {
+  if (NumberIsNaN(size) || size > kMaxPossibleLength || size < 0) {
     throw new ERR_OUT_OF_RANGE('size',
                                `>= 0 && <= ${kMaxPossibleLength}`, size);
   }
@@ -49,7 +53,7 @@ function randomBytes(size, cb) {
   if (cb !== undefined && typeof cb !== 'function')
     throw new ERR_INVALID_CALLBACK(cb);
 
-  const buf = Buffer.alloc(size);
+  const buf = new FastBuffer(size);
 
   if (!cb) return handleError(_randomBytes(buf, 0, size), buf);
 

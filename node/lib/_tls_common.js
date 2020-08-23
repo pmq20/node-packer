@@ -21,7 +21,10 @@
 
 'use strict';
 
-const { Object } = primordials;
+const {
+  ArrayIsArray,
+  ObjectCreate,
+} = primordials;
 
 const { parseCertString } = require('internal/tls');
 const { isArrayBufferView } = require('internal/util/types');
@@ -91,22 +94,18 @@ exports.SecureContext = SecureContext;
 exports.createSecureContext = function createSecureContext(options) {
   if (!options) options = {};
 
-  var secureOptions = options.secureOptions;
+  let secureOptions = options.secureOptions;
   if (options.honorCipherOrder)
     secureOptions |= SSL_OP_CIPHER_SERVER_PREFERENCE;
 
   const c = new SecureContext(options.secureProtocol, secureOptions,
                               options.minVersion, options.maxVersion);
-  var i;
-  var val;
 
-  // NOTE: It's important to add CA before the cert to be able to load
-  // cert's issuer in C++ code.
+  // Add CA before the cert to be able to load cert's issuer in C++ code.
   const { ca } = options;
   if (ca) {
-    if (Array.isArray(ca)) {
-      for (i = 0; i < ca.length; ++i) {
-        val = ca[i];
+    if (ArrayIsArray(ca)) {
+      for (const val of ca) {
         validateKeyOrCertOption('ca', val);
         c.context.addCACert(val);
       }
@@ -120,9 +119,8 @@ exports.createSecureContext = function createSecureContext(options) {
 
   const { cert } = options;
   if (cert) {
-    if (Array.isArray(cert)) {
-      for (i = 0; i < cert.length; ++i) {
-        val = cert[i];
+    if (ArrayIsArray(cert)) {
+      for (const val of cert) {
         validateKeyOrCertOption('cert', val);
         c.context.setCert(val);
       }
@@ -132,16 +130,15 @@ exports.createSecureContext = function createSecureContext(options) {
     }
   }
 
-  // NOTE: It is important to set the key after the cert.
+  // Set the key after the cert.
   // `ssl_set_pkey` returns `0` when the key does not match the cert, but
   // `ssl_set_cert` returns `1` and nullifies the key in the SSL structure
   // which leads to the crash later on.
   const key = options.key;
   const passphrase = options.passphrase;
   if (key) {
-    if (Array.isArray(key)) {
-      for (i = 0; i < key.length; ++i) {
-        val = key[i];
+    if (ArrayIsArray(key)) {
+      for (const val of key) {
         // eslint-disable-next-line eqeqeq
         const pem = (val != undefined && val.pem !== undefined ? val.pem : val);
         validateKeyOrCertOption('key', pem);
@@ -239,9 +236,9 @@ exports.createSecureContext = function createSecureContext(options) {
   }
 
   if (options.crl) {
-    if (Array.isArray(options.crl)) {
-      for (i = 0; i < options.crl.length; i++) {
-        c.context.addCRL(options.crl[i]);
+    if (ArrayIsArray(options.crl)) {
+      for (const crl of options.crl) {
+        c.context.addCRL(crl);
       }
     } else {
       c.context.addCRL(options.crl);
@@ -256,9 +253,8 @@ exports.createSecureContext = function createSecureContext(options) {
     if (!toBuf)
       toBuf = require('internal/crypto/util').toBuf;
 
-    if (Array.isArray(options.pfx)) {
-      for (i = 0; i < options.pfx.length; i++) {
-        const pfx = options.pfx[i];
+    if (ArrayIsArray(options.pfx)) {
+      for (const pfx of options.pfx) {
         const raw = pfx.buf ? pfx.buf : pfx;
         const buf = toBuf(raw);
         const passphrase = pfx.passphrase || options.passphrase;
@@ -298,6 +294,14 @@ exports.createSecureContext = function createSecureContext(options) {
                                    options.clientCertEngine);
   }
 
+  if (options.ticketKeys) {
+    c.context.setTicketKeys(options.ticketKeys);
+  }
+
+  if (options.sessionTimeout) {
+    c.context.setSessionTimeout(options.sessionTimeout);
+  }
+
   return c;
 };
 
@@ -314,8 +318,8 @@ exports.translatePeerCertificate = function translatePeerCertificate(c) {
   }
   if (c.subject != null) c.subject = parseCertString(c.subject);
   if (c.infoAccess != null) {
-    var info = c.infoAccess;
-    c.infoAccess = Object.create(null);
+    const info = c.infoAccess;
+    c.infoAccess = ObjectCreate(null);
 
     // XXX: More key validation?
     info.replace(/([^\n:]*):([^\n]*)(?:\n|$)/g, (all, key, val) => {

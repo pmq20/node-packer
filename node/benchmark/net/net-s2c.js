@@ -10,12 +10,14 @@ const bench = common.createBenchmark(main, {
   recvbuflen: [0, 64 * 1024, 1024 * 1024],
   recvbufgenfn: ['true', 'false'],
   dur: [5]
+}, {
+  test: { sendchunklen: 256 }
 });
 
-var chunk;
-var encoding;
-var recvbuf;
-var received = 0;
+let chunk;
+let encoding;
+let recvbuf;
+let received = 0;
 
 function main({ dur, sendchunklen, type, recvbuflen, recvbufgenfn }) {
   if (isFinite(recvbuflen) && recvbuflen > 0)
@@ -38,8 +40,8 @@ function main({ dur, sendchunklen, type, recvbuflen, recvbufgenfn }) {
   }
 
   const reader = new Reader();
-  var writer;
-  var socketOpts;
+  let writer;
+  let socketOpts;
   if (recvbuf === undefined) {
     writer = new Writer();
     socketOpts = { port: PORT };

@@ -23,7 +23,6 @@
 
 const common = require('./common.js');
 const fs = require('fs');
-const getVersions = require('./versions.js');
 const unified = require('unified');
 const find = require('unist-util-find');
 const visit = require('unist-util-visit');
@@ -33,6 +32,7 @@ const raw = require('rehype-raw');
 const htmlStringify = require('rehype-stringify');
 const path = require('path');
 const typeParser = require('./type-parser.js');
+const { highlight, getLanguage } = require('highlight.js');
 
 module.exports = {
   toHTML, firstHeader, preprocessText, preprocessElements, buildToc
@@ -63,7 +63,7 @@ const gtocHTML = unified()
 const templatePath = path.join(docPath, 'template.html');
 const template = fs.readFileSync(templatePath, 'utf8');
 
-async function toHTML({ input, content, filename, nodeVersion }, cb) {
+function toHTML({ input, content, filename, nodeVersion, versions }) {
   filename = path.basename(filename, '.md');
 
   const id = filename.replace(/\W+/g, '-');
@@ -81,13 +81,13 @@ async function toHTML({ input, content, filename, nodeVersion }, cb) {
   const docCreated = input.match(
     /<!--\s*introduced_in\s*=\s*v([0-9]+)\.([0-9]+)\.[0-9]+\s*-->/);
   if (docCreated) {
-    HTML = HTML.replace('__ALTDOCS__', await altDocs(filename, docCreated));
+    HTML = HTML.replace('__ALTDOCS__', altDocs(filename, docCreated, versions));
   } else {
     console.error(`Failed to add alternative version links to ${filename}`);
     HTML = HTML.replace('__ALTDOCS__', '');
   }
 
-  cb(null, HTML);
+  return HTML;
 }
 
 // Set the section name based on the first header.  Default to 'Index'.
@@ -105,10 +105,13 @@ function firstHeader() {
 
 // Handle general body-text replacements.
 // For example, link man page references to the actual page.
-function preprocessText() {
+function preprocessText({ nodeVersion }) {
   return (tree) => {
     visit(tree, null, (node) => {
-      if (node.type === 'text' && node.value) {
+      if (common.isSourceLink(node.value)) {
+        const [path] = node.value.match(/(?<=<!-- source_link=).*(?= -->)/);
+        node.value = `<p><strong>Source Code:</strong> <a href="https://github.com/nodejs/node/blob/${nodeVersion}/${path}">${path}</a></p>`;
+      } else if (node.type === 'text' && node.value) {
         const value = linkJsTypeDocs(linkManPages(node.value));
         if (value !== node.value) {
           node.type = 'html';
@@ -181,6 +184,21 @@ function preprocessElements({ filename }) {
       if (node.type === 'heading') {
         headingIndex = index;
         heading = node;
+      } else if (node.type === 'code') {
+        if (!node.lang) {
+          console.warn(
+            `No language set in ${filename}, ` +
+            `line ${node.position.start.line}`);
+        }
+        const language = (node.lang || '').split(' ')[0];
+        const highlighted = getLanguage(language) ?
+          highlight(language, node.value).value :
+          node.value;
+        node.type = 'html';
+        node.value = '<pre>' +
+          `<code class = 'language-${node.lang}'>` +
+          highlighted +
+          '</code></pre>';
       } else if (node.type === 'html' && common.isYAMLBlock(node.value)) {
         node.value = parseYAML(node.value);
 
@@ -314,23 +332,11 @@ function versionSort(a, b) {
 
 function buildToc({ filename, apilinks }) {
   return (tree, file) => {
-    const startIncludeRefRE = /^\s*<!-- \[start-include:(.+)\] -->\s*$/;
-    const endIncludeRefRE = /^\s*<!-- \[end-include:.+\] -->\s*$/;
-    const realFilenames = [filename];
     const idCounters = Object.create(null);
     let toc = '';
     let depth = 0;
 
     visit(tree, null, (node) => {
-      // Keep track of the current filename for comment wrappers of inclusions.
-      if (node.type === 'html') {
-        const [, includedFileName] = node.value.match(startIncludeRefRE) || [];
-        if (includedFileName !== undefined)
-          realFilenames.unshift(includedFileName);
-        else if (endIncludeRefRE.test(node.value))
-          realFilenames.shift();
-      }
-
       if (node.type !== 'heading') return;
 
       if (node.depth - depth > 1) {
@@ -340,7 +346,7 @@ function buildToc({ filename, apilinks }) {
       }
 
       depth = node.depth;
-      const realFilename = path.basename(realFilenames[0], '.md');
+      const realFilename = path.basename(filename, '.md');
       const headingText = file.contents.slice(
         node.children[0].position.start.offset,
         node.position.end.offset).trim();
@@ -391,10 +397,9 @@ function getId(text, idCounters) {
   return text;
 }
 
-async function altDocs(filename, docCreated) {
+function altDocs(filename, docCreated, versions) {
   const [, docCreatedMajor, docCreatedMinor] = docCreated.map(Number);
   const host = 'https://nodejs.org';
-  const versions = await getVersions.versions();
 
   const getHref = (versionNum) =>
     `${host}/docs/latest-v${versionNum}/api/${filename}.html`;

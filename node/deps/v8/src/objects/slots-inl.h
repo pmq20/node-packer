@@ -49,6 +49,12 @@ void FullObjectSlot::Release_Store(Object value) const {
   base::AsAtomicPointer::Release_Store(location(), value.ptr());
 }
 
+Object FullObjectSlot::Relaxed_CompareAndSwap(Object old, Object target) const {
+  Address result = base::AsAtomicPointer::Relaxed_CompareAndSwap(
+      location(), old.ptr(), target.ptr());
+  return Object(result);
+}
+
 Object FullObjectSlot::Release_CompareAndSwap(Object old, Object target) const {
   Address result = base::AsAtomicPointer::Release_CompareAndSwap(
       location(), old.ptr(), target.ptr());
@@ -119,7 +125,7 @@ inline void MemsetTagged(ObjectSlot start, Object value, size_t counter) {
 #ifdef V8_COMPRESS_POINTERS
   Tagged_t raw_value = CompressTagged(value.ptr());
   STATIC_ASSERT(kTaggedSize == kInt32Size);
-  MemsetInt32(start.location(), raw_value, counter);
+  MemsetInt32(reinterpret_cast<int32_t*>(start.location()), raw_value, counter);
 #else
   Address raw_value = value.ptr();
   MemsetPointer(start.location(), raw_value, counter);

@@ -19,7 +19,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-/* A repl library that you can include in your own code to get a runtime
+/* A REPL library that you can include in your own code to get a runtime
  * interface to your program.
  *
  *   const repl = require("repl");
@@ -42,10 +42,28 @@
 
 'use strict';
 
-const { Math, Object, ObjectPrototype } = primordials;
+const {
+  Error,
+  MathMax,
+  NumberIsNaN,
+  ObjectAssign,
+  ObjectCreate,
+  ObjectDefineProperty,
+  ObjectGetOwnPropertyDescriptor,
+  ObjectGetOwnPropertyNames,
+  ObjectGetPrototypeOf,
+  ObjectKeys,
+  ObjectSetPrototypeOf,
+  Promise,
+  PromiseRace,
+  RegExp,
+  Set,
+  StringPrototypeIncludes,
+  Symbol,
+  WeakSet,
+} = primordials;
 
 const {
-  builtinLibs,
   makeRequireFunction,
   addBuiltinLibsToObject
 } = require('internal/modules/cjs/helpers');
@@ -59,15 +77,21 @@ const {
   deprecate
 } = require('internal/util');
 const { inspect } = require('internal/util/inspect');
-const Stream = require('stream');
 const vm = require('vm');
 const path = require('path');
 const fs = require('fs');
 const { Interface } = require('readline');
+const {
+  commonPrefix
+} = require('internal/readline/utils');
 const { Console } = require('console');
-const CJSModule = require('internal/modules/cjs/loader');
+const CJSModule = require('internal/modules/cjs/loader').Module;
+let _builtinLibs = [...CJSModule.builtinModules]
+  .filter((e) => !e.startsWith('_') && !e.includes('/'));
 const domain = require('domain');
-const debug = require('internal/util/debuglog').debuglog('repl');
+let debug = require('internal/util/debuglog').debuglog('repl', (fn) => {
+  debug = fn;
+});
 const {
   codes: {
     ERR_CANNOT_WATCH_SIGINT,
@@ -79,12 +103,18 @@ const {
   overrideStackTrace,
 } = require('internal/errors');
 const { sendInspectorCommand } = require('internal/util/inspector');
-const experimentalREPLAwait = require('internal/options').getOptionValue(
+const { getOptionValue } = require('internal/options');
+const experimentalREPLAwait = getOptionValue(
   '--experimental-repl-await'
 );
+const pendingDeprecation = getOptionValue('--pending-deprecation');
 const {
+  REPL_MODE_SLOPPY,
+  REPL_MODE_STRICT,
   isRecoverableError,
-  kStandaloneREPL
+  kStandaloneREPL,
+  setupPreview,
+  setupReverseSearch,
 } = require('internal/repl/utils');
 const {
   getOwnNonIndexProperties,
@@ -99,12 +129,20 @@ const {
 } = internalBinding('contextify');
 
 const history = require('internal/repl/history');
+let nextREPLResourceNumber = 1;
+// This prevents v8 code cache from getting confused and using a different
+// cache from a resource of the same name
+function getREPLResourceName() {
+  return `REPL${nextREPLResourceNumber++}`;
+}
 
 // Lazy-loaded.
 let processTopLevelAwait;
 
+const globalBuiltins =
+  new Set(vm.runInNewContext('Object.getOwnPropertyNames(globalThis)'));
+
 const parentModule = module;
-const replMap = new WeakMap();
 const domainSet = new WeakSet();
 
 const kBufferedCommandSymbol = Symbol('bufferedCommand');
@@ -129,10 +167,8 @@ module.paths = CJSModule._nodeModulePaths(module.filename);
 // This is the default "writer" value, if none is passed in the REPL options,
 // and it can be overridden by custom print functions, such as `probe` or
 // `eyes.js`.
-const writer = exports.writer = (obj) => inspect(obj, writer.options);
+const writer = (obj) => inspect(obj, writer.options);
 writer.options = { ...inspect.defaultOptions, showProxy: true };
-
-exports._builtinLibs = builtinLibs;
 
 function REPLServer(prompt,
                     stream,
@@ -189,13 +225,48 @@ function REPLServer(prompt,
     }
   }
 
-  this.inputStream = options.input;
-  this.outputStream = options.output;
+  // TODO(devsnek): Add a test case for custom eval functions.
+  const preview = options.terminal &&
+    (options.preview !== undefined ? !!options.preview : !eval_);
+
+  ObjectDefineProperty(this, 'inputStream', {
+    get: pendingDeprecation ?
+      deprecate(() => this.input,
+                'repl.inputStream and repl.outputStream are deprecated. ' +
+                  'Use repl.input and repl.output instead',
+                'DEP0141') :
+      () => this.input,
+    set: pendingDeprecation ?
+      deprecate((val) => this.input = val,
+                'repl.inputStream and repl.outputStream are deprecated. ' +
+                  'Use repl.input and repl.output instead',
+                'DEP0141') :
+      (val) => this.input = val,
+    enumerable: false,
+    configurable: true
+  });
+  ObjectDefineProperty(this, 'outputStream', {
+    get: pendingDeprecation ?
+      deprecate(() => this.output,
+                'repl.inputStream and repl.outputStream are deprecated. ' +
+                  'Use repl.input and repl.output instead',
+                'DEP0141') :
+      () => this.output,
+    set: pendingDeprecation ?
+      deprecate((val) => this.output = val,
+                'repl.inputStream and repl.outputStream are deprecated. ' +
+                  'Use repl.input and repl.output instead',
+                'DEP0141') :
+      (val) => this.output = val,
+    enumerable: false,
+    configurable: true
+  });
+
   this.useColors = !!options.useColors;
   this._domain = options.domain || domain.create();
   this.useGlobal = !!useGlobal;
   this.ignoreUndefined = !!ignoreUndefined;
-  this.replMode = replMode || exports.REPL_MODE_SLOPPY;
+  this.replMode = replMode || module.exports.REPL_MODE_SLOPPY;
   this.underscoreAssigned = false;
   this.last = undefined;
   this.underscoreErrAssigned = false;
@@ -211,10 +282,14 @@ function REPLServer(prompt,
     throw new ERR_INVALID_REPL_EVAL_CONFIG();
   }
 
-  // Add this listener only once and use a WeakSet that contains the REPLs
-  // domains. Otherwise we'd have to add a single listener to each REPL instance
-  // and that could trigger the `MaxListenersExceededWarning`.
-  if (!options[kStandaloneREPL] && !addedNewListener) {
+  if (options[kStandaloneREPL]) {
+    // It is possible to introspect the running REPL accessing this variable
+    // from inside the REPL. This is useful for anyone working on the REPL.
+    module.exports.repl = this;
+  } else if (!addedNewListener) {
+    // Add this listener only once and use a WeakSet that contains the REPLs
+    // domains. Otherwise we'd have to add a single listener to each REPL
+    // instance and that could trigger the `MaxListenersExceededWarning`.
     process.prependListener('newListener', (event, listener) => {
       if (event === 'uncaughtException' &&
           process.domain &&
@@ -234,7 +309,7 @@ function REPLServer(prompt,
   domainSet.add(this._domain);
 
   let rli = this;
-  Object.defineProperty(this, 'rli', {
+  ObjectDefineProperty(this, 'rli', {
     get: deprecate(() => rli,
                    'REPLServer.rli is deprecated', 'DEP0124'),
     set: deprecate((val) => rli = val,
@@ -259,15 +334,18 @@ function REPLServer(prompt,
   function pause() {
     paused = true;
   }
+
   function unpause() {
     if (!paused) return;
     paused = false;
     let entry;
+    const tmpCompletionEnabled = self.isCompletionEnabled;
     while (entry = pausedBuffer.shift()) {
-      const [type, payload] = entry;
+      const [type, payload, isCompletionEnabled] = entry;
       switch (type) {
         case 'key': {
           const [d, key] = payload;
+          self.isCompletionEnabled = isCompletionEnabled;
           self._ttyWrite(d, key);
           break;
         }
@@ -279,14 +357,11 @@ function REPLServer(prompt,
         break;
       }
     }
+    self.isCompletionEnabled = tmpCompletionEnabled;
   }
 
   function defaultEval(code, context, file, cb) {
-    const { getOptionValue } = require('internal/options');
-    const experimentalModules = getOptionValue('--experimental-modules');
-    const asyncESM = experimentalModules ?
-      require('internal/process/esm_loader') :
-      null;
+    const asyncESM = require('internal/process/esm_loader');
 
     let result, script, wrappedErr;
     let err = null;
@@ -294,12 +369,12 @@ function REPLServer(prompt,
     let awaitPromise = false;
     const input = code;
 
-    if (/^\s*{/.test(code) && /}\s*$/.test(code)) {
-      // It's confusing for `{ a : 1 }` to be interpreted as a block
-      // statement rather than an object literal.  So, we first try
-      // to wrap it in parentheses, so that it will be interpreted as
-      // an expression.  Note that if the above condition changes,
-      // lib/internal/repl/utils.js needs to be changed to match.
+    // It's confusing for `{ a : 1 }` to be interpreted as a block
+    // statement rather than an object literal.  So, we first try
+    // to wrap it in parentheses, so that it will be interpreted as
+    // an expression.  Note that if the above condition changes,
+    // lib/internal/repl/utils.js needs to be changed to match.
+    if (/^\s*{/.test(code) && !/;\s*$/.test(code)) {
       code = `(${code.trim()})\n`;
       wrappedCmd = true;
     }
@@ -321,16 +396,18 @@ function REPLServer(prompt,
     if (code === '\n')
       return cb(null);
 
-    let pwd;
+    let parentURL;
     try {
       const { pathToFileURL } = require('url');
-      pwd = pathToFileURL(process.cwd()).href;
+      // Adding `/repl` prevents dynamic imports from loading relative
+      // to the parent of `process.cwd()`.
+      parentURL = pathToFileURL(path.join(process.cwd(), 'repl')).href;
     } catch {
     }
     while (true) {
       try {
-        if (!/^\s*$/.test(code) &&
-            self.replMode === exports.REPL_MODE_STRICT) {
+        if (self.replMode === module.exports.REPL_MODE_STRICT &&
+            !/^\s*$/.test(code)) {
           // "void 0" keeps the repl from returning "use strict" as the result
           // value for statements and declarations that don't return a value.
           code = `'use strict'; void 0;\n${code}`;
@@ -338,11 +415,9 @@ function REPLServer(prompt,
         script = vm.createScript(code, {
           filename: file,
           displayErrors: true,
-          importModuleDynamically: experimentalModules ?
-            async (specifier) => {
-              return (await asyncESM.loaderPromise).import(specifier, pwd);
-            } :
-            undefined
+          importModuleDynamically: async (specifier) => {
+            return asyncESM.ESMLoader.import(specifier, parentURL);
+          }
         });
       } catch (e) {
         debug('parse error %j', code, e);
@@ -443,7 +518,7 @@ function REPLServer(prompt,
             };
             prioritizedSigintQueue.add(sigintListener);
           });
-          promise = Promise.race([promise, interrupt]);
+          promise = PromiseRace([promise, interrupt]);
         }
 
         promise.then((result) => {
@@ -510,10 +585,18 @@ function REPLServer(prompt,
           if (e.name === 'SyntaxError') {
             // Remove stack trace.
             e.stack = e.stack
-              .replace(/^repl:\d+\r?\n/, '')
+              .replace(/^REPL\d+:\d+\r?\n/, '')
               .replace(/^\s+at\s.*\n?/gm, '');
-          } else if (self.replMode === exports.REPL_MODE_STRICT) {
-            e.stack = e.stack.replace(/(\s+at\s+repl:)(\d+)/,
+            const importErrorStr = 'Cannot use import statement outside a ' +
+              'module';
+            if (StringPrototypeIncludes(e.message, importErrorStr)) {
+              e.message = 'Cannot use import statement inside the Node.js ' +
+                'REPL, alternatively use dynamic import';
+              e.stack = e.stack.replace(/SyntaxError:.*\n/,
+                                        `SyntaxError: ${e.message}\n`);
+            }
+          } else if (self.replMode === module.exports.REPL_MODE_STRICT) {
+            e.stack = e.stack.replace(/(\s+at\s+REPL\d+:)(\d+)/,
                                       (_, pre, line) => pre + (line - 1));
           }
         }
@@ -530,34 +613,47 @@ function REPLServer(prompt,
       self.lastError = e;
     }
 
-    const top = replMap.get(self);
     if (options[kStandaloneREPL] &&
         process.listenerCount('uncaughtException') !== 0) {
       process.nextTick(() => {
         process.emit('uncaughtException', e);
-        top.clearBufferedCommand();
-        top.lines.level = [];
-        top.displayPrompt();
+        self.clearBufferedCommand();
+        self.lines.level = [];
+        self.displayPrompt();
       });
     } else {
       if (errStack === '') {
-        errStack = `Thrown: ${self.writer(e)}\n`;
-      } else {
-        const ln = errStack.endsWith('\n') ? '' : '\n';
-        errStack = `Thrown:\n${errStack}${ln}`;
+        errStack = self.writer(e);
       }
-      top.outputStream.write(errStack);
-      top.clearBufferedCommand();
-      top.lines.level = [];
-      top.displayPrompt();
+      const lines = errStack.split(/(?<=\n)/);
+      let matched = false;
+
+      errStack = '';
+      for (const line of lines) {
+        if (!matched && /^\[?([A-Z][a-z0-9_]*)*Error/.test(line)) {
+          errStack += writer.options.breakLength >= line.length ?
+            `Uncaught ${line}` :
+            `Uncaught:\n${line}`;
+          matched = true;
+        } else {
+          errStack += line;
+        }
+      }
+      if (!matched) {
+        const ln = lines.length === 1 ? ' ' : ':\n';
+        errStack = `Uncaught${ln}${errStack}`;
+      }
+      // Normalize line endings.
+      errStack += errStack.endsWith('\n') ? '' : '\n';
+      self.output.write(errStack);
+      self.clearBufferedCommand();
+      self.lines.level = [];
+      self.displayPrompt();
     }
   });
 
-  self.resetContext();
-  self.lines.level = [];
-
   self.clearBufferedCommand();
-  Object.defineProperty(this, 'bufferedCommand', {
+  ObjectDefineProperty(this, 'bufferedCommand', {
     get: deprecate(() => self[kBufferedCommandSymbol],
                    'REPLServer.bufferedCommand is deprecated',
                    'DEP0074'),
@@ -567,36 +663,34 @@ function REPLServer(prompt,
     enumerable: true
   });
 
-  // Figure out which "complete" function to use.
-  self.completer = (typeof options.completer === 'function') ?
-    options.completer : completer;
-
   function completer(text, cb) {
     complete.call(self, text, self.editorMode ?
       self.completeOnEditorMode(cb) : cb);
   }
 
   Interface.call(this, {
-    input: self.inputStream,
-    output: self.outputStream,
-    completer: self.completer,
+    input: options.input,
+    output: options.output,
+    completer: options.completer || completer,
     terminal: options.terminal,
     historySize: options.historySize,
     prompt
   });
 
-  this.commands = Object.create(null);
+  self.resetContext();
+
+  this.commands = ObjectCreate(null);
   defineDefaultCommands(this);
 
   // Figure out which "writer" function to use
-  self.writer = options.writer || exports.writer;
+  self.writer = options.writer || module.exports.writer;
 
   if (self.writer === writer) {
     // Conditionally turn on ANSI coloring.
     writer.options.colors = self.useColors;
 
     if (options[kStandaloneREPL]) {
-      Object.defineProperty(inspect, 'replDefaults', {
+      ObjectDefineProperty(inspect, 'replDefaults', {
         get() {
           return writer.options;
         },
@@ -604,7 +698,7 @@ function REPLServer(prompt,
           if (options === null || typeof options !== 'object') {
             throw new ERR_INVALID_ARG_TYPE('options', 'Object', options);
           }
-          return Object.assign(writer.options, options);
+          return ObjectAssign(writer.options, options);
         },
         enumerable: true,
         configurable: true
@@ -694,7 +788,7 @@ function REPLServer(prompt,
     // display next prompt and return.
     if (trimmedCmd) {
       if (trimmedCmd.charAt(0) === '.' && trimmedCmd.charAt(1) !== '.' &&
-          Number.isNaN(parseFloat(trimmedCmd))) {
+          NumberIsNaN(parseFloat(trimmedCmd))) {
         const matches = trimmedCmd.match(/^\.([^\s]+)\s*(.*)$/);
         const keyword = matches && matches[1];
         const rest = matches && matches[2];
@@ -702,7 +796,7 @@ function REPLServer(prompt,
           return;
         }
         if (!self[kBufferedCommandSymbol]) {
-          self.outputStream.write('Invalid REPL keyword\n');
+          self.output.write('Invalid REPL keyword\n');
           finish(null);
           return;
         }
@@ -712,15 +806,15 @@ function REPLServer(prompt,
     const evalCmd = self[kBufferedCommandSymbol] + cmd + '\n';
 
     debug('eval %j', evalCmd);
-    self.eval(evalCmd, self.context, 'repl', finish);
+    self.eval(evalCmd, self.context, getREPLResourceName(), finish);
 
     function finish(e, ret) {
       debug('finish', e, ret);
       _memory.call(self, cmd);
 
       if (e && !self[kBufferedCommandSymbol] && cmd.trim().startsWith('npm ')) {
-        self.outputStream.write('npm should be run outside of the ' +
-                                'node repl, in your normal shell.\n' +
+        self.output.write('npm should be run outside of the ' +
+                                'Node.js REPL, in your normal shell.\n' +
                                 '(Press Control-D to exit.)\n');
         self.displayPrompt();
         return;
@@ -736,9 +830,8 @@ function REPLServer(prompt,
           self[kBufferedCommandSymbol] += cmd + '\n';
           self.displayPrompt();
           return;
-        } else {
-          self._domain.emit('error', e.err || e);
         }
+        self._domain.emit('error', e.err || e);
       }
 
       // Clear buffer if no SyntaxErrors
@@ -755,7 +848,7 @@ function REPLServer(prompt,
         if (!self.underscoreAssigned) {
           self.last = ret;
         }
-        self.outputStream.write(self.writer(ret) + '\n');
+        self.output.write(self.writer(ret) + '\n');
       }
 
       // Display prompt again
@@ -765,22 +858,34 @@ function REPLServer(prompt,
 
   self.on('SIGCONT', function onSigCont() {
     if (self.editorMode) {
-      self.outputStream.write(`${self._initialPrompt}.editor\n`);
-      self.outputStream.write(
+      self.output.write(`${self._initialPrompt}.editor\n`);
+      self.output.write(
         '// Entering editor mode (^D to finish, ^C to cancel)\n');
-      self.outputStream.write(`${self[kBufferedCommandSymbol]}\n`);
+      self.output.write(`${self[kBufferedCommandSymbol]}\n`);
       self.prompt(true);
     } else {
       self.displayPrompt(true);
     }
   });
 
+  const { reverseSearch } = setupReverseSearch(this);
+
+  const {
+    clearPreview,
+    showPreview
+  } = setupPreview(
+    this,
+    kContextId,
+    kBufferedCommandSymbol,
+    preview
+  );
+
   // Wrap readline tty to enable editor mode and pausing.
   const ttyWrite = self._ttyWrite.bind(self);
   self._ttyWrite = (d, key) => {
     key = key || {};
     if (paused && !(self.breakEvalOnSigint && key.ctrl && key.name === 'c')) {
-      pausedBuffer.push(['key', [d, key]]);
+      pausedBuffer.push(['key', [d, key], self.isCompletionEnabled]);
       return;
     }
     if (!self.editorMode || !self.terminal) {
@@ -789,13 +894,19 @@ function REPLServer(prompt,
           self.cursor === 0 && self.line.length === 0) {
         self.clearLine();
       }
-      ttyWrite(d, key);
+      clearPreview(key);
+      if (!reverseSearch(d, key)) {
+        ttyWrite(d, key);
+        showPreview();
+      }
       return;
     }
 
     // Editor mode
     if (key.ctrl && !key.shift) {
       switch (key.name) {
+        // TODO(BridgeAR): There should not be a special mode necessary for full
+        // multiline support.
         case 'd': // End editor mode
           _turnOffEditorMode(self);
           sawCtrlD = true;
@@ -825,32 +936,15 @@ function REPLServer(prompt,
 
   self.displayPrompt();
 }
-Object.setPrototypeOf(REPLServer.prototype, Interface.prototype);
-Object.setPrototypeOf(REPLServer, Interface);
-
-exports.REPLServer = REPLServer;
-
-exports.REPL_MODE_SLOPPY = Symbol('repl-sloppy');
-exports.REPL_MODE_STRICT = Symbol('repl-strict');
+ObjectSetPrototypeOf(REPLServer.prototype, Interface.prototype);
+ObjectSetPrototypeOf(REPLServer, Interface);
 
 // Prompt is a string to print on each line for the prompt,
 // source is a stream to use for I/O, defaulting to stdin/stdout.
-exports.start = function(prompt,
-                         source,
-                         eval_,
-                         useGlobal,
-                         ignoreUndefined,
-                         replMode) {
-  const repl = new REPLServer(prompt,
-                              source,
-                              eval_,
-                              useGlobal,
-                              ignoreUndefined,
-                              replMode);
-  if (!exports.repl) exports.repl = repl;
-  replMap.set(repl, repl);
-  return repl;
-};
+function start(prompt, source, eval_, useGlobal, ignoreUndefined, replMode) {
+  return new REPLServer(
+    prompt, source, eval_, useGlobal, ignoreUndefined, replMode);
+}
 
 REPLServer.prototype.setupHistory = function setupHistory(historyFile, cb) {
   history(this, historyFile, cb);
@@ -889,34 +983,34 @@ REPLServer.prototype.createContext = function() {
     }, () => {
       context = vm.createContext();
     });
-    for (const name of Object.getOwnPropertyNames(global)) {
-      // Only set properties on the context that do not exist as primordial.
-      if (!(name in primordials)) {
-        Object.defineProperty(context, name,
-                              Object.getOwnPropertyDescriptor(global, name));
+    for (const name of ObjectGetOwnPropertyNames(global)) {
+      // Only set properties that do not already exist as a global builtin.
+      if (!globalBuiltins.has(name)) {
+        ObjectDefineProperty(context, name,
+                             ObjectGetOwnPropertyDescriptor(global, name));
       }
     }
     context.global = context;
-    const _console = new Console(this.outputStream);
-    Object.defineProperty(context, 'console', {
+    const _console = new Console(this.output);
+    ObjectDefineProperty(context, 'console', {
       configurable: true,
       writable: true,
       value: _console
     });
   }
 
-  const module = new CJSModule('<repl>');
-  module.paths = CJSModule._resolveLookupPaths('<repl>', parentModule) || [];
+  const replModule = new CJSModule('<repl>');
+  replModule.paths = CJSModule._resolveLookupPaths('<repl>', parentModule);
 
-  Object.defineProperty(context, 'module', {
+  ObjectDefineProperty(context, 'module', {
     configurable: true,
     writable: true,
-    value: module
+    value: replModule
   });
-  Object.defineProperty(context, 'require', {
+  ObjectDefineProperty(context, 'require', {
     configurable: true,
     writable: true,
-    value: makeRequireFunction(module)
+    value: makeRequireFunction(replModule)
   });
 
   addBuiltinLibsToObject(context);
@@ -928,29 +1022,30 @@ REPLServer.prototype.resetContext = function() {
   this.context = this.createContext();
   this.underscoreAssigned = false;
   this.underscoreErrAssigned = false;
+  // TODO(BridgeAR): Deprecate the lines.
   this.lines = [];
   this.lines.level = [];
 
-  Object.defineProperty(this.context, '_', {
+  ObjectDefineProperty(this.context, '_', {
     configurable: true,
     get: () => this.last,
     set: (value) => {
       this.last = value;
       if (!this.underscoreAssigned) {
         this.underscoreAssigned = true;
-        this.outputStream.write('Expression assignment to _ now disabled.\n');
+        this.output.write('Expression assignment to _ now disabled.\n');
       }
     }
   });
 
-  Object.defineProperty(this.context, '_error', {
+  ObjectDefineProperty(this.context, '_error', {
     configurable: true,
     get: () => this.lastError,
     set: (value) => {
       this.lastError = value;
       if (!this.underscoreErrAssigned) {
         this.underscoreErrAssigned = true;
-        this.outputStream.write(
+        this.output.write(
           'Expression assignment to _error now disabled.\n');
       }
     }
@@ -985,27 +1080,10 @@ REPLServer.prototype.turnOffEditorMode = deprecate(
   'REPLServer.turnOffEditorMode() is deprecated',
   'DEP0078');
 
-// A stream to push an array into a REPL
-// used in REPLServer.complete
-function ArrayStream() {
-  Stream.call(this);
-
-  this.run = function(data) {
-    for (let n = 0; n < data.length; n++)
-      this.emit('data', `${data[n]}\n`);
-  };
-}
-Object.setPrototypeOf(ArrayStream.prototype, Stream.prototype);
-Object.setPrototypeOf(ArrayStream, Stream);
-ArrayStream.prototype.readable = true;
-ArrayStream.prototype.writable = true;
-ArrayStream.prototype.resume = function() {};
-ArrayStream.prototype.write = function() {};
-
-const requireRE = /\brequire\s*\(['"](([\w@./-]+\/)?(?:[\w@./-]*))/;
+const requireRE = /\brequire\s*\(\s*['"`](([\w@./-]+\/)?(?:[\w@./-]*))(?![^'"`])$/;
 const fsAutoCompleteRE = /fs(?:\.promises)?\.\s*[a-z][a-zA-Z]+\(\s*["'](.*)/;
 const simpleExpressionRE =
-    /(?:[a-zA-Z_$](?:\w|\$)*\.)*[a-zA-Z_$](?:\w|\$)*\.?$/;
+    /(?:[a-zA-Z_$](?:\w|\$)*\??\.)*[a-zA-Z_$](?:\w|\$)*\??\.?$/;
 
 function isIdentifier(str) {
   if (str === '') {
@@ -1050,6 +1128,30 @@ REPLServer.prototype.complete = function() {
   this.completer.apply(this, arguments);
 };
 
+function gracefulReaddir(...args) {
+  try {
+    return fs.readdirSync(...args);
+  } catch {}
+}
+
+function completeFSFunctions(line) {
+  let baseName = '';
+  let filePath = line.match(fsAutoCompleteRE)[1];
+  let fileList = gracefulReaddir(filePath, { withFileTypes: true });
+
+  if (!fileList) {
+    baseName = path.basename(filePath);
+    filePath = path.dirname(filePath);
+    fileList = gracefulReaddir(filePath, { withFileTypes: true }) || [];
+  }
+
+  const completions = fileList
+    .filter((dirent) => dirent.name.startsWith(baseName))
+    .map((d) => d.name);
+
+  return [[completions], baseName];
+}
+
 // Provide a list of completions for the given leading text. This is
 // given to the readline interface for handling tab completion.
 //
@@ -1061,56 +1163,32 @@ REPLServer.prototype.complete = function() {
 // Warning: This eval's code like "foo.bar.baz", so it will run property
 // getter code.
 function complete(line, callback) {
-  // There may be local variables to evaluate, try a nested REPL
-  if (this[kBufferedCommandSymbol] !== undefined &&
-      this[kBufferedCommandSymbol].length) {
-    // Get a new array of inputted lines
-    const tmp = this.lines.slice();
-    // Kill off all function declarations to push all local variables into
-    // global scope
-    for (let n = 0; n < this.lines.level.length; n++) {
-      const kill = this.lines.level[n];
-      if (kill.isFunction)
-        tmp[kill.line] = '';
-    }
-    const flat = new ArrayStream();         // Make a new "input" stream.
-    const magic = new REPLServer('', flat); // Make a nested REPL.
-    replMap.set(magic, replMap.get(this));
-    flat.run(tmp);                        // `eval` the flattened code.
-    // All this is only profitable if the nested REPL does not have a
-    // bufferedCommand.
-    if (!magic[kBufferedCommandSymbol]) {
-      magic._domain.on('error', (err) => { throw err; });
-      return magic.complete(line, callback);
-    }
-  }
-
   // List of completion lists, one for each inheritance "level"
   let completionGroups = [];
   let completeOn, group;
 
-  // REPL commands (e.g. ".break").
-  let filter;
-  let match = line.match(/^\s*\.(\w*)$/);
-  if (match) {
-    completionGroups.push(Object.keys(this.commands));
-    completeOn = match[1];
-    if (match[1].length) {
-      filter = match[1];
-    }
+  // Ignore right whitespace. It could change the outcome.
+  line = line.trimLeft();
 
-    completionGroupsLoaded();
-  } else if (match = line.match(requireRE)) {
+  // REPL commands (e.g. ".break").
+  let filter = '';
+  if (/^\s*\.(\w*)$/.test(line)) {
+    completionGroups.push(ObjectKeys(this.commands));
+    completeOn = line.match(/^\s*\.(\w*)$/)[1];
+    if (completeOn.length) {
+      filter = completeOn;
+    }
+  } else if (requireRE.test(line)) {
     // require('...<Tab>')
-    const exts = Object.keys(this.context.require.extensions);
-    const indexRe = new RegExp('^index(?:' + exts.map(regexpEscape).join('|') +
-                             ')$');
+    const extensions = ObjectKeys(this.context.require.extensions);
+    const indexes = extensions.map((extension) => `index${extension}`);
+    indexes.push('package.json', 'index');
     const versionedFileNamesRe = /-\d+\.\d+/;
 
+    const match = line.match(requireRE);
     completeOn = match[1];
     const subdir = match[2] || '';
-    filter = match[1];
-    let dir, files, name, base, ext, abs, subfiles, isDirectory;
+    filter = completeOn;
     group = [];
     let paths = [];
 
@@ -1124,41 +1202,30 @@ function complete(line, callback) {
       paths = module.paths.concat(CJSModule.globalPaths);
     }
 
-    for (let i = 0; i < paths.length; i++) {
-      dir = path.resolve(paths[i], subdir);
-      try {
-        files = fs.readdirSync(dir);
-      } catch {
-        continue;
-      }
-      for (let f = 0; f < files.length; f++) {
-        name = files[f];
-        ext = path.extname(name);
-        base = name.slice(0, -ext.length);
-        if (versionedFileNamesRe.test(base) || name === '.npm') {
+    for (let dir of paths) {
+      dir = path.resolve(dir, subdir);
+      const dirents = gracefulReaddir(dir, { withFileTypes: true }) || [];
+      for (const dirent of dirents) {
+        if (versionedFileNamesRe.test(dirent.name) || dirent.name === '.npm') {
           // Exclude versioned names that 'npm' installs.
           continue;
         }
-        abs = path.resolve(dir, name);
-        try {
-          isDirectory = fs.statSync(abs).isDirectory();
-        } catch {
+        const extension = path.extname(dirent.name);
+        const base = dirent.name.slice(0, -extension.length);
+        if (!dirent.isDirectory()) {
+          if (extensions.includes(extension) && (!subdir || base !== 'index')) {
+            group.push(`${subdir}${base}`);
+          }
           continue;
         }
-        if (isDirectory) {
-          group.push(subdir + name + '/');
-          try {
-            subfiles = fs.readdirSync(abs);
-          } catch {
-            continue;
+        group.push(`${subdir}${dirent.name}/`);
+        const absolute = path.resolve(dir, dirent.name);
+        const subfiles = gracefulReaddir(absolute) || [];
+        for (const subfile of subfiles) {
+          if (indexes.includes(subfile)) {
+            group.push(`${subdir}${dirent.name}`);
+            break;
           }
-          for (let s = 0; s < subfiles.length; s++) {
-            if (indexRe.test(subfiles[s])) {
-              group.push(subdir + name);
-            }
-          }
-        } else if (exts.includes(ext) && (!subdir || base !== 'index')) {
-          group.push(subdir + base);
         }
       }
     }
@@ -1167,34 +1234,10 @@ function complete(line, callback) {
     }
 
     if (!subdir) {
-      completionGroups.push(exports._builtinLibs);
+      completionGroups.push(_builtinLibs);
     }
-
-    completionGroupsLoaded();
-  } else if (match = line.match(fsAutoCompleteRE)) {
-
-    let filePath = match[1];
-    let fileList;
-    filter = '';
-
-    try {
-      fileList = fs.readdirSync(filePath, { withFileTypes: true });
-      completionGroups.push(fileList.map((dirent) => dirent.name));
-      completeOn = '';
-    } catch {
-      try {
-        const baseName = path.basename(filePath);
-        filePath = path.dirname(filePath);
-        fileList = fs.readdirSync(filePath, { withFileTypes: true });
-        const filteredValue = fileList.filter((d) =>
-          d.name.startsWith(baseName))
-          .map((d) => d.name);
-        completionGroups.push(filteredValue);
-        completeOn = baseName;
-      } catch {}
-    }
-
-    completionGroupsLoaded();
+  } else if (fsAutoCompleteRE.test(line)) {
+    [completionGroups, completeOn] = completeFSFunctions(line);
   // Handle variable member lookup.
   // We support simple chained expressions like the following (no function
   // calls, etc.). That is for simplicity and also because we *eval* that
@@ -1206,107 +1249,88 @@ function complete(line, callback) {
   //   foo<|>         # all scope vars with filter 'foo'
   //   foo.<|>        # completions for 'foo' with filter ''
   } else if (line.length === 0 || /\w|\.|\$/.test(line[line.length - 1])) {
-    match = simpleExpressionRE.exec(line);
-    if (line.length === 0 || match) {
-      let expr;
-      completeOn = (match ? match[0] : '');
-      if (line.length === 0) {
-        filter = '';
-        expr = '';
-      } else if (line[line.length - 1] === '.') {
-        filter = '';
-        expr = match[0].slice(0, match[0].length - 1);
-      } else {
-        const bits = match[0].split('.');
-        filter = bits.pop();
-        expr = bits.join('.');
-      }
-
-      // Resolve expr and get its completions.
-      const memberGroups = [];
-      if (!expr) {
-        // If context is instance of vm.ScriptContext
-        // Get global vars synchronously
-        if (this.useGlobal || vm.isContext(this.context)) {
-          completionGroups.push(getGlobalLexicalScopeNames(this[kContextId]));
-          let contextProto = this.context;
-          while (contextProto = Object.getPrototypeOf(contextProto)) {
-            completionGroups.push(
-              filteredOwnPropertyNames.call(this, contextProto));
-          }
-          completionGroups.push(
-            filteredOwnPropertyNames.call(this, this.context));
-          if (filter !== '') addCommonWords(completionGroups);
-          completionGroupsLoaded();
-        } else {
-          this.eval('.scope', this.context, 'repl', function ev(err, globals) {
-            if (err || !Array.isArray(globals)) {
-              if (filter !== '') addCommonWords(completionGroups);
-            } else if (Array.isArray(globals[0])) {
-              // Add grouped globals
-              for (let n = 0; n < globals.length; n++)
-                completionGroups.push(globals[n]);
-            } else {
-              completionGroups.push(globals);
-              if (filter !== '') addCommonWords(completionGroups);
-            }
-            completionGroupsLoaded();
-          });
-        }
-      } else {
-        const evalExpr = `try { ${expr} } catch {}`;
-        this.eval(evalExpr, this.context, 'repl', (e, obj) => {
-          if (obj != null) {
-            if (typeof obj === 'object' || typeof obj === 'function') {
-              try {
-                memberGroups.push(filteredOwnPropertyNames.call(this, obj));
-              } catch {
-                // Probably a Proxy object without `getOwnPropertyNames` trap.
-                // We simply ignore it here, as we don't want to break the
-                // autocompletion. Fixes the bug
-                // https://github.com/nodejs/node/issues/2119
-              }
-            }
-            // Works for non-objects
-            try {
-              let sentinel = 5;
-              let p;
-              if (typeof obj === 'object' || typeof obj === 'function') {
-                p = Object.getPrototypeOf(obj);
-              } else {
-                p = obj.constructor ? obj.constructor.prototype : null;
-              }
-              while (p !== null) {
-                memberGroups.push(filteredOwnPropertyNames.call(this, p));
-                p = Object.getPrototypeOf(p);
-                // Circular refs possible? Let's guard against that.
-                sentinel--;
-                if (sentinel <= 0) {
-                  break;
-                }
-              }
-            } catch {}
-          }
-
-          if (memberGroups.length) {
-            for (let i = 0; i < memberGroups.length; i++) {
-              completionGroups.push(
-                memberGroups[i].map((member) => `${expr}.${member}`));
-            }
-            if (filter) {
-              filter = `${expr}.${filter}`;
-            }
-          }
-
-          completionGroupsLoaded();
-        });
-      }
-    } else {
+    const [match] = simpleExpressionRE.exec(line) || [''];
+    if (line.length !== 0 && !match) {
       completionGroupsLoaded();
+      return;
     }
-  } else {
-    completionGroupsLoaded();
+    let expr = '';
+    completeOn = match;
+    if (line.endsWith('.')) {
+      expr = match.slice(0, -1);
+    } else if (line.length !== 0) {
+      const bits = match.split('.');
+      filter = bits.pop();
+      expr = bits.join('.');
+    }
+
+    // Resolve expr and get its completions.
+    if (!expr) {
+      // Get global vars synchronously
+      completionGroups.push(getGlobalLexicalScopeNames(this[kContextId]));
+      let contextProto = this.context;
+      while (contextProto = ObjectGetPrototypeOf(contextProto)) {
+        completionGroups.push(filteredOwnPropertyNames(contextProto));
+      }
+      const contextOwnNames = filteredOwnPropertyNames(this.context);
+      if (!this.useGlobal) {
+        // When the context is not `global`, builtins are not own
+        // properties of it.
+        contextOwnNames.push(...globalBuiltins);
+      }
+      completionGroups.push(contextOwnNames);
+      if (filter !== '') addCommonWords(completionGroups);
+      completionGroupsLoaded();
+      return;
+    }
+
+    let chaining = '.';
+    if (expr.endsWith('?')) {
+      expr = expr.slice(0, -1);
+      chaining = '?.';
+    }
+
+    const memberGroups = [];
+    const evalExpr = `try { ${expr} } catch {}`;
+    this.eval(evalExpr, this.context, getREPLResourceName(), (e, obj) => {
+      try {
+        let p;
+        if ((typeof obj === 'object' && obj !== null) ||
+            typeof obj === 'function') {
+          memberGroups.push(filteredOwnPropertyNames(obj));
+          p = ObjectGetPrototypeOf(obj);
+        } else {
+          p = obj.constructor ? obj.constructor.prototype : null;
+        }
+        // Circular refs possible? Let's guard against that.
+        let sentinel = 5;
+        while (p !== null && sentinel-- !== 0) {
+          memberGroups.push(filteredOwnPropertyNames(p));
+          p = ObjectGetPrototypeOf(p);
+        }
+      } catch {
+        // Maybe a Proxy object without `getOwnPropertyNames` trap.
+        // We simply ignore it here, as we don't want to break the
+        // autocompletion. Fixes the bug
+        // https://github.com/nodejs/node/issues/2119
+      }
+
+      if (memberGroups.length) {
+        expr += chaining;
+        for (const group of memberGroups) {
+          completionGroups.push(group.map((member) => `${expr}${member}`));
+        }
+        if (filter) {
+          filter = `${expr}${filter}`;
+        }
+      }
+
+      completionGroupsLoaded();
+    });
+    return;
   }
+
+  return completionGroupsLoaded();
 
   // Will be called when all completionGroups are in place
   // Useful for async autocompletion
@@ -1314,84 +1338,62 @@ function complete(line, callback) {
     // Filter, sort (within each group), uniq and merge the completion groups.
     if (completionGroups.length && filter) {
       const newCompletionGroups = [];
-      for (let i = 0; i < completionGroups.length; i++) {
-        group = completionGroups[i]
-          .filter((elem) => elem.indexOf(filter) === 0);
-        if (group.length) {
-          newCompletionGroups.push(group);
+      for (const group of completionGroups) {
+        const filteredGroup = group.filter((str) => str.startsWith(filter));
+        if (filteredGroup.length) {
+          newCompletionGroups.push(filteredGroup);
         }
       }
       completionGroups = newCompletionGroups;
     }
 
-    let completions;
-
-    if (completionGroups.length) {
-      const uniq = {};  // Unique completions across all groups
-      completions = [];
-      // Completion group 0 is the "closest"
-      // (least far up the inheritance chain)
-      // so we put its completions last: to be closest in the REPL.
-      for (let i = 0; i < completionGroups.length; i++) {
-        group = completionGroups[i];
-        group.sort();
-        for (let j = group.length - 1; j >= 0; j--) {
-          const c = group[j];
-          if (!ObjectPrototype.hasOwnProperty(uniq, c)) {
-            completions.unshift(c);
-            uniq[c] = true;
-          }
+    const completions = [];
+    // Unique completions across all groups.
+    const uniqueSet = new Set(['']);
+    // Completion group 0 is the "closest" (least far up the inheritance
+    // chain) so we put its completions last: to be closest in the REPL.
+    for (const group of completionGroups) {
+      group.sort((a, b) => (b > a ? 1 : -1));
+      const setSize = uniqueSet.size;
+      for (const entry of group) {
+        if (!uniqueSet.has(entry)) {
+          completions.unshift(entry);
+          uniqueSet.add(entry);
         }
-        completions.unshift(''); // Separator btwn groups
       }
-      while (completions.length && completions[0] === '') {
-        completions.shift();
-      }
-    }
-
-    callback(null, [completions || [], completeOn]);
-  }
-}
-
-function longestCommonPrefix(arr = []) {
-  const cnt = arr.length;
-  if (cnt === 0) return '';
-  if (cnt === 1) return arr[0];
-
-  const first = arr[0];
-  // complexity: O(m * n)
-  for (let m = 0; m < first.length; m++) {
-    const c = first[m];
-    for (let n = 1; n < cnt; n++) {
-      const entry = arr[n];
-      if (m >= entry.length || c !== entry[m]) {
-        return first.substring(0, m);
+      // Add a separator between groups.
+      if (uniqueSet.size !== setSize) {
+        completions.unshift('');
       }
     }
+
+    // Remove obsolete group entry, if present.
+    if (completions[0] === '') {
+      completions.shift();
+    }
+
+    callback(null, [completions, completeOn]);
   }
-  return first;
 }
 
 REPLServer.prototype.completeOnEditorMode = (callback) => (err, results) => {
   if (err) return callback(err);
 
   const [completions, completeOn = ''] = results;
-  const prefixLength = completeOn.length;
+  let result = completions.filter((v) => v);
 
-  if (prefixLength === 0) return callback(null, [[], completeOn]);
+  if (completeOn && result.length !== 0) {
+    result = [commonPrefix(result)];
+  }
 
-  const isNotEmpty = (v) => v.length > 0;
-  const trimCompleteOnPrefix = (v) => v.substring(prefixLength);
-  const data = completions.filter(isNotEmpty).map(trimCompleteOnPrefix);
-
-  callback(null, [[`${completeOn}${longestCommonPrefix(data)}`], completeOn]);
+  callback(null, [result, completeOn]);
 };
 
 REPLServer.prototype.defineCommand = function(keyword, cmd) {
   if (typeof cmd === 'function') {
     cmd = { action: cmd };
   } else if (typeof cmd.action !== 'function') {
-    throw new ERR_INVALID_ARG_TYPE('action', 'Function', cmd.action);
+    throw new ERR_INVALID_ARG_TYPE('cmd.action', 'Function', cmd.action);
   }
   this.commands[keyword] = cmd;
 };
@@ -1401,6 +1403,9 @@ REPLServer.prototype.memory = deprecate(
   'REPLServer.memory() is deprecated',
   'DEP0082');
 
+// TODO(BridgeAR): This should be replaced with acorn to build an AST. The
+// language became more complex and using a simple approach like this is not
+// sufficient anymore.
 function _memory(cmd) {
   const self = this;
   self.lines = self.lines || [];
@@ -1408,7 +1413,6 @@ function _memory(cmd) {
 
   // Save the line so I can do magic later
   if (cmd) {
-    // TODO should I tab the level?
     const len = self.lines.level.length ? self.lines.level.length - 1 : 0;
     self.lines.push('  '.repeat(len) + cmd);
   } else {
@@ -1416,61 +1420,54 @@ function _memory(cmd) {
     self.lines.push('');
   }
 
+  if (!cmd) {
+    self.lines.level = [];
+    return;
+  }
+
   // I need to know "depth."
   // Because I can not tell the difference between a } that
   // closes an object literal and a } that closes a function
-  if (cmd) {
-    // Going down is { and (   e.g. function() {
-    // going up is } and )
-    let dw = cmd.match(/[{(]/g);
-    let up = cmd.match(/[})]/g);
-    up = up ? up.length : 0;
-    dw = dw ? dw.length : 0;
-    let depth = dw - up;
 
-    if (depth) {
-      (function workIt() {
-        if (depth > 0) {
-          // Going... down.
-          // Push the line#, depth count, and if the line is a function.
-          // Since JS only has functional scope I only need to remove
-          // "function() {" lines, clearly this will not work for
-          // "function()
-          // {" but nothing should break, only tab completion for local
-          // scope will not work for this function.
-          self.lines.level.push({
-            line: self.lines.length - 1,
-            depth: depth,
-            isFunction: /\bfunction\b/.test(cmd)
-          });
-        } else if (depth < 0) {
-          // Going... up.
-          const curr = self.lines.level.pop();
-          if (curr) {
-            const tmp = curr.depth + depth;
-            if (tmp < 0) {
-              // More to go, recurse
-              depth += curr.depth;
-              workIt();
-            } else if (tmp > 0) {
-              // Remove and push back
-              curr.depth += depth;
-              self.lines.level.push(curr);
-            }
+  // Going down is { and (   e.g. function() {
+  // going up is } and )
+  let dw = cmd.match(/[{(]/g);
+  let up = cmd.match(/[})]/g);
+  up = up ? up.length : 0;
+  dw = dw ? dw.length : 0;
+  let depth = dw - up;
+
+  if (depth) {
+    (function workIt() {
+      if (depth > 0) {
+        // Going... down.
+        // Push the line#, depth count, and if the line is a function.
+        // Since JS only has functional scope I only need to remove
+        // "function() {" lines, clearly this will not work for
+        // "function()
+        // {" but nothing should break, only tab completion for local
+        // scope will not work for this function.
+        self.lines.level.push({
+          line: self.lines.length - 1,
+          depth: depth
+        });
+      } else if (depth < 0) {
+        // Going... up.
+        const curr = self.lines.level.pop();
+        if (curr) {
+          const tmp = curr.depth + depth;
+          if (tmp < 0) {
+            // More to go, recurse
+            depth += curr.depth;
+            workIt();
+          } else if (tmp > 0) {
+            // Remove and push back
+            curr.depth += depth;
+            self.lines.level.push(curr);
           }
         }
-      }());
-    }
-
-    // It is possible to determine a syntax error at this point.
-    // if the REPL still has a bufferedCommand and
-    // self.lines.level.length === 0
-    // TODO? keep a log of level so that any syntax breaking lines can
-    // be cleared on .break and in the case of a syntax error?
-    // TODO? if a log was kept, then I could clear the bufferedCommand and
-    // eval these lines and throw the syntax error
-  } else {
-    self.lines.level = [];
+      }
+    }());
   }
 }
 
@@ -1516,7 +1513,7 @@ function defineDefaultCommands(repl) {
     action: function() {
       this.clearBufferedCommand();
       if (!this.useGlobal) {
-        this.outputStream.write('Clearing context...\n');
+        this.output.write('Clearing context...\n');
         this.resetContext();
       }
       this.displayPrompt();
@@ -1524,7 +1521,7 @@ function defineDefaultCommands(repl) {
   });
 
   repl.defineCommand('exit', {
-    help: 'Exit the repl',
+    help: 'Exit the REPL',
     action: function() {
       this.close();
     }
@@ -1533,9 +1530,9 @@ function defineDefaultCommands(repl) {
   repl.defineCommand('help', {
     help: 'Print this help message',
     action: function() {
-      const names = Object.keys(this.commands).sort();
+      const names = ObjectKeys(this.commands).sort();
       const longestNameLength = names.reduce(
-        (max, name) => Math.max(max, name.length),
+        (max, name) => MathMax(max, name.length),
         0
       );
       for (let n = 0; n < names.length; n++) {
@@ -1543,10 +1540,10 @@ function defineDefaultCommands(repl) {
         const cmd = this.commands[name];
         const spaces = ' '.repeat(longestNameLength - name.length + 3);
         const line = `.${name}${cmd.help ? spaces + cmd.help : ''}\n`;
-        this.outputStream.write(line);
+        this.output.write(line);
       }
-      this.outputStream.write('\nPress ^C to abort current expression, ' +
-        '^D to exit the repl\n');
+      this.output.write('\nPress ^C to abort current expression, ' +
+        '^D to exit the REPL\n');
       this.displayPrompt();
     }
   });
@@ -1556,9 +1553,9 @@ function defineDefaultCommands(repl) {
     action: function(file) {
       try {
         fs.writeFileSync(file, this.lines.join('\n'));
-        this.outputStream.write(`Session saved to: ${file}\n`);
+        this.output.write(`Session saved to: ${file}\n`);
       } catch {
-        this.outputStream.write(`Failed to save: ${file}\n`);
+        this.output.write(`Failed to save: ${file}\n`);
       }
       this.displayPrompt();
     }
@@ -1576,12 +1573,12 @@ function defineDefaultCommands(repl) {
           _turnOffEditorMode(this);
           this.write('\n');
         } else {
-          this.outputStream.write(
+          this.output.write(
             `Failed to load: ${file} is not a valid file\n`
           );
         }
       } catch {
-        this.outputStream.write(`Failed to load: ${file}\n`);
+        this.output.write(`Failed to load: ${file}\n`);
       }
       this.displayPrompt();
     }
@@ -1591,20 +1588,46 @@ function defineDefaultCommands(repl) {
       help: 'Enter editor mode',
       action() {
         _turnOnEditorMode(this);
-        this.outputStream.write(
+        this.output.write(
           '// Entering editor mode (^D to finish, ^C to cancel)\n');
       }
     });
   }
 }
 
-function regexpEscape(s) {
-  return s.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
-}
-
 function Recoverable(err) {
   this.err = err;
 }
-Object.setPrototypeOf(Recoverable.prototype, SyntaxError.prototype);
-Object.setPrototypeOf(Recoverable, SyntaxError);
-exports.Recoverable = Recoverable;
+ObjectSetPrototypeOf(Recoverable.prototype, SyntaxError.prototype);
+ObjectSetPrototypeOf(Recoverable, SyntaxError);
+
+module.exports = {
+  start,
+  writer,
+  REPLServer,
+  REPL_MODE_SLOPPY,
+  REPL_MODE_STRICT,
+  Recoverable
+};
+
+ObjectDefineProperty(module.exports, 'builtinModules', {
+  get: () => _builtinLibs,
+  set: (val) => _builtinLibs = val,
+  enumerable: true,
+  configurable: true
+});
+
+ObjectDefineProperty(module.exports, '_builtinLibs', {
+  get: pendingDeprecation ? deprecate(
+    () => _builtinLibs,
+    'repl._builtinLibs is deprecated. Check module.builtinModules instead',
+    'DEP0142'
+  ) : () => _builtinLibs,
+  set: pendingDeprecation ? deprecate(
+    (val) => _builtinLibs = val,
+    'repl._builtinLibs is deprecated. Check module.builtinModules instead',
+    'DEP0142'
+  ) : (val) => _builtinLibs = val,
+  enumerable: false,
+  configurable: true
+});

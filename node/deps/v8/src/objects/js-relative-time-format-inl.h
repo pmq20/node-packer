@@ -18,37 +18,22 @@
 namespace v8 {
 namespace internal {
 
-OBJECT_CONSTRUCTORS_IMPL(JSRelativeTimeFormat, JSObject)
+TQ_OBJECT_CONSTRUCTORS_IMPL(JSRelativeTimeFormat)
 
 // Base relative time format accessors.
-ACCESSORS(JSRelativeTimeFormat, locale, String, kLocaleOffset)
 ACCESSORS(JSRelativeTimeFormat, icu_formatter,
           Managed<icu::RelativeDateTimeFormatter>, kIcuFormatterOffset)
-SMI_ACCESSORS(JSRelativeTimeFormat, flags, kFlagsOffset)
-
-inline void JSRelativeTimeFormat::set_style(Style style) {
-  DCHECK_GE(StyleBits::kMax, style);
-  int hints = flags();
-  hints = StyleBits::update(hints, style);
-  set_flags(hints);
-}
-
-inline JSRelativeTimeFormat::Style JSRelativeTimeFormat::style() const {
-  return StyleBits::decode(flags());
-}
 
 inline void JSRelativeTimeFormat::set_numeric(Numeric numeric) {
-  DCHECK_GE(NumericBits::kMax, numeric);
+  DCHECK_GE(NumericBit::kMax, numeric);
   int hints = flags();
-  hints = NumericBits::update(hints, numeric);
+  hints = NumericBit::update(hints, numeric);
   set_flags(hints);
 }
 
 inline JSRelativeTimeFormat::Numeric JSRelativeTimeFormat::numeric() const {
-  return NumericBits::decode(flags());
+  return NumericBit::decode(flags());
 }
-
-CAST_ACCESSOR(JSRelativeTimeFormat)
 
 }  // namespace internal
 }  // namespace v8

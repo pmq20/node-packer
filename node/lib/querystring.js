@@ -23,7 +23,13 @@
 
 'use strict';
 
-const { Object } = primordials;
+const {
+  Array,
+  ArrayIsArray,
+  MathAbs,
+  ObjectCreate,
+  ObjectKeys,
+} = primordials;
 
 const { Buffer } = require('buffer');
 const {
@@ -67,15 +73,15 @@ const unhexTable = [
 // A safe fast alternative to decodeURIComponent
 function unescapeBuffer(s, decodeSpaces) {
   const out = Buffer.allocUnsafe(s.length);
-  var index = 0;
-  var outIndex = 0;
-  var currentChar;
-  var nextChar;
-  var hexHigh;
-  var hexLow;
+  let index = 0;
+  let outIndex = 0;
+  let currentChar;
+  let nextChar;
+  let hexHigh;
+  let hexLow;
   const maxLength = s.length - 2;
   // Flag to know if some hex chars have been decoded
-  var hasHex = false;
+  let hasHex = false;
   while (index < s.length) {
     currentChar = s.charCodeAt(index);
     if (currentChar === 43 /* '+' */ && decodeSpaces) {
@@ -134,7 +140,7 @@ const noEscape = [
   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0  // 112 - 127
 ];
 // QueryString.escape() replaces encodeURIComponent()
-// http://www.ecma-international.org/ecma-262/5.1/#sec-15.1.3.4
+// https://www.ecma-international.org/ecma-262/5.1/#sec-15.1.3.4
 function qsEscape(str) {
   if (typeof str !== 'string') {
     if (typeof str === 'object')
@@ -157,43 +163,63 @@ function stringifyPrimitive(v) {
 }
 
 
+function encodeStringified(v, encode) {
+  if (typeof v === 'string')
+    return (v.length ? encode(v) : '');
+  if (typeof v === 'number' && isFinite(v)) {
+    // Values >= 1e21 automatically switch to scientific notation which requires
+    // escaping due to the inclusion of a '+' in the output
+    return (MathAbs(v) < 1e21 ? '' + v : encode('' + v));
+  }
+  if (typeof v === 'boolean')
+    return v ? 'true' : 'false';
+  return '';
+}
+
+
+function encodeStringifiedCustom(v, encode) {
+  return encode(stringifyPrimitive(v));
+}
+
+
 function stringify(obj, sep, eq, options) {
   sep = sep || '&';
   eq = eq || '=';
 
-  var encode = QueryString.escape;
+  let encode = QueryString.escape;
   if (options && typeof options.encodeURIComponent === 'function') {
     encode = options.encodeURIComponent;
   }
+  const convert =
+    (encode === qsEscape ? encodeStringified : encodeStringifiedCustom);
 
   if (obj !== null && typeof obj === 'object') {
-    var keys = Object.keys(obj);
-    var len = keys.length;
-    var flast = len - 1;
-    var fields = '';
-    for (var i = 0; i < len; ++i) {
-      var k = keys[i];
-      var v = obj[k];
-      var ks = encode(stringifyPrimitive(k));
+    const keys = ObjectKeys(obj);
+    const len = keys.length;
+    let fields = '';
+    for (let i = 0; i < len; ++i) {
+      const k = keys[i];
+      const v = obj[k];
+      let ks = convert(k, encode);
       ks += eq;
 
-      if (Array.isArray(v)) {
-        var vlen = v.length;
+      if (ArrayIsArray(v)) {
+        const vlen = v.length;
         if (vlen === 0) continue;
-        var vlast = vlen - 1;
-        for (var j = 0; j < vlen; ++j) {
-          fields += ks;
-          fields += encode(stringifyPrimitive(v[j]));
-          if (j < vlast)
+        if (fields)
+          fields += sep;
+        for (let j = 0; j < vlen; ++j) {
+          if (j)
             fields += sep;
+          fields += ks;
+          fields += convert(v[j], encode);
         }
       } else {
+        if (fields)
+          fields += sep;
         fields += ks;
-        fields += encode(stringifyPrimitive(v));
+        fields += convert(v, encode);
       }
-
-      if (i < flast)
-        fields += sep;
     }
     return fields;
   }
@@ -204,7 +230,7 @@ function charCodes(str) {
   if (str.length === 0) return [];
   if (str.length === 1) return [str.charCodeAt(0)];
   const ret = new Array(str.length);
-  for (var i = 0; i < str.length; ++i)
+  for (let i = 0; i < str.length; ++i)
     ret[i] = str.charCodeAt(i);
   return ret;
 }
@@ -233,7 +259,7 @@ function addKeyVal(obj, key, value, keyEncoded, valEncoded, decode) {
 
 // Parse a key/val string.
 function parse(qs, sep, eq, options) {
-  const obj = Object.create(null);
+  const obj = ObjectCreate(null);
 
   if (typeof qs !== 'string' || qs.length === 0) {
     return obj;
@@ -244,7 +270,7 @@ function parse(qs, sep, eq, options) {
   const sepLen = sepCodes.length;
   const eqLen = eqCodes.length;
 
-  var pairs = 1000;
+  let pairs = 1000;
   if (options && typeof options.maxKeys === 'number') {
     // -1 is used in place of a value like Infinity for meaning
     // "unlimited pairs" because of additional checks V8 (at least as of v5.4)
@@ -255,22 +281,22 @@ function parse(qs, sep, eq, options) {
     pairs = (options.maxKeys > 0 ? options.maxKeys : -1);
   }
 
-  var decode = QueryString.unescape;
+  let decode = QueryString.unescape;
   if (options && typeof options.decodeURIComponent === 'function') {
     decode = options.decodeURIComponent;
   }
   const customDecode = (decode !== qsUnescape);
 
-  var lastPos = 0;
-  var sepIdx = 0;
-  var eqIdx = 0;
-  var key = '';
-  var value = '';
-  var keyEncoded = customDecode;
-  var valEncoded = customDecode;
+  let lastPos = 0;
+  let sepIdx = 0;
+  let eqIdx = 0;
+  let key = '';
+  let value = '';
+  let keyEncoded = customDecode;
+  let valEncoded = customDecode;
   const plusChar = (customDecode ? '%20' : ' ');
-  var encodeCheck = 0;
-  for (var i = 0; i < qs.length; ++i) {
+  let encodeCheck = 0;
+  for (let i = 0; i < qs.length; ++i) {
     const code = qs.charCodeAt(i);
 
     // Try matching key/value pair separator (e.g. '&')

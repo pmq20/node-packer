@@ -1,6 +1,15 @@
 'use strict';
 
-const { Math, Object } = primordials;
+const {
+  ArrayIsArray,
+  Error,
+  MathMax,
+  Number,
+  ObjectCreate,
+  ObjectKeys,
+  Set,
+  Symbol,
+} = primordials;
 
 const binding = internalBinding('http2');
 const {
@@ -194,10 +203,11 @@ const IDX_OPTIONS_MAX_HEADER_LIST_PAIRS = 5;
 const IDX_OPTIONS_MAX_OUTSTANDING_PINGS = 6;
 const IDX_OPTIONS_MAX_OUTSTANDING_SETTINGS = 7;
 const IDX_OPTIONS_MAX_SESSION_MEMORY = 8;
-const IDX_OPTIONS_FLAGS = 9;
+const IDX_OPTIONS_MAX_SETTINGS = 9;
+const IDX_OPTIONS_FLAGS = 10;
 
 function updateOptionsBuffer(options) {
-  var flags = 0;
+  let flags = 0;
   if (typeof options.maxDeflateDynamicTableSize === 'number') {
     flags |= (1 << IDX_OPTIONS_MAX_DEFLATE_DYNAMIC_TABLE_SIZE);
     optionsBuffer[IDX_OPTIONS_MAX_DEFLATE_DYNAMIC_TABLE_SIZE] =
@@ -236,12 +246,17 @@ function updateOptionsBuffer(options) {
   if (typeof options.maxOutstandingSettings === 'number') {
     flags |= (1 << IDX_OPTIONS_MAX_OUTSTANDING_SETTINGS);
     optionsBuffer[IDX_OPTIONS_MAX_OUTSTANDING_SETTINGS] =
-      Math.max(1, options.maxOutstandingSettings);
+      MathMax(1, options.maxOutstandingSettings);
   }
   if (typeof options.maxSessionMemory === 'number') {
     flags |= (1 << IDX_OPTIONS_MAX_SESSION_MEMORY);
     optionsBuffer[IDX_OPTIONS_MAX_SESSION_MEMORY] =
-      Math.max(1, options.maxSessionMemory);
+      MathMax(1, options.maxSessionMemory);
+  }
+  if (typeof options.maxSettings === 'number') {
+    flags |= (1 << IDX_OPTIONS_MAX_SETTINGS);
+    optionsBuffer[IDX_OPTIONS_MAX_SETTINGS] =
+      MathMax(1, options.maxSettings);
   }
   optionsBuffer[IDX_OPTIONS_FLAGS] = flags;
 }
@@ -249,7 +264,7 @@ function updateOptionsBuffer(options) {
 function getDefaultSettings() {
   settingsBuffer[IDX_SETTINGS_FLAGS] = 0;
   binding.refreshDefaultSettings();
-  const holder = Object.create(null);
+  const holder = ObjectCreate(null);
 
   const flags = settingsBuffer[IDX_SETTINGS_FLAGS];
 
@@ -292,7 +307,7 @@ function getDefaultSettings() {
   if ((flags & (1 << IDX_SETTINGS_ENABLE_CONNECT_PROTOCOL)) ===
       (1 << IDX_SETTINGS_ENABLE_CONNECT_PROTOCOL)) {
     holder.enableConnectProtocol =
-      settingsBuffer[IDX_SETTINGS_ENABLE_CONNECT_PROTOCOL];
+      settingsBuffer[IDX_SETTINGS_ENABLE_CONNECT_PROTOCOL] === 1;
   }
 
   return holder;
@@ -313,12 +328,13 @@ function getSettings(session, remote) {
     maxFrameSize: settingsBuffer[IDX_SETTINGS_MAX_FRAME_SIZE],
     maxConcurrentStreams: settingsBuffer[IDX_SETTINGS_MAX_CONCURRENT_STREAMS],
     maxHeaderListSize: settingsBuffer[IDX_SETTINGS_MAX_HEADER_LIST_SIZE],
-    enableConnectProtocol: settingsBuffer[IDX_SETTINGS_ENABLE_CONNECT_PROTOCOL]
+    enableConnectProtocol:
+      !!settingsBuffer[IDX_SETTINGS_ENABLE_CONNECT_PROTOCOL]
   };
 }
 
 function updateSettingsBuffer(settings) {
-  var flags = 0;
+  let flags = 0;
   if (typeof settings.headerTableSize === 'number') {
     flags |= (1 << IDX_SETTINGS_HEADER_TABLE_SIZE);
     settingsBuffer[IDX_SETTINGS_HEADER_TABLE_SIZE] =
@@ -430,22 +446,22 @@ function mapToHeaders(map,
                       assertValuePseudoHeader = assertValidPseudoHeader) {
   let ret = '';
   let count = 0;
-  const keys = Object.keys(map);
+  const keys = ObjectKeys(map);
   const singles = new Set();
-  let i;
+  let i, j;
   let isArray;
   let key;
   let value;
   let isSingleValueHeader;
   let err;
-  for (i = 0; i < keys.length; i++) {
+  for (i = 0; i < keys.length; ++i) {
     key = keys[i];
     value = map[key];
     if (value === undefined || key === '')
       continue;
     key = key.toLowerCase();
     isSingleValueHeader = kSingleValueHeaders.has(key);
-    isArray = Array.isArray(value);
+    isArray = ArrayIsArray(value);
     if (isArray) {
       switch (value.length) {
         case 0:
@@ -478,8 +494,8 @@ function mapToHeaders(map,
       throw new ERR_HTTP2_INVALID_CONNECTION_HEADERS(key);
     }
     if (isArray) {
-      for (var k = 0; k < value.length; k++) {
-        const val = String(value[k]);
+      for (j = 0; j < value.length; ++j) {
+        const val = String(value[j]);
         ret += `${key}\0${val}\0`;
       }
       count += value.length;
@@ -509,7 +525,7 @@ const assertIsObject = hideStackFrames((value, name, types) => {
   if (value !== undefined &&
       (value === null ||
        typeof value !== 'object' ||
-       Array.isArray(value))) {
+       ArrayIsArray(value))) {
     throw new ERR_INVALID_ARG_TYPE(name, types || 'Object', value);
   }
 });
@@ -525,13 +541,13 @@ const assertWithinRange = hideStackFrames(
 );
 
 function toHeaderObject(headers) {
-  const obj = Object.create(null);
-  for (var n = 0; n < headers.length; n = n + 2) {
-    var name = headers[n];
-    var value = headers[n + 1];
+  const obj = ObjectCreate(null);
+  for (var n = 0; n < headers.length; n += 2) {
+    const name = headers[n];
+    let value = headers[n + 1];
     if (name === HTTP2_HEADER_STATUS)
       value |= 0;
-    var existing = obj[name];
+    const existing = obj[name];
     if (existing === undefined) {
       obj[name] = name === HTTP2_HEADER_SET_COOKIE ? [value] : value;
     } else if (!kSingleValueHeaders.has(name)) {

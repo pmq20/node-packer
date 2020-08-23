@@ -420,7 +420,8 @@ void MipsDebugger::Debug() {
         } else {
           PrintF("printobject <value>\n");
         }
-      } else if (strcmp(cmd, "stack") == 0 || strcmp(cmd, "mem") == 0) {
+      } else if (strcmp(cmd, "stack") == 0 || strcmp(cmd, "mem") == 0 ||
+                 strcmp(cmd, "dump") == 0) {
         int64_t* cur = nullptr;
         int64_t* end = nullptr;
         int next_arg = 1;
@@ -447,20 +448,23 @@ void MipsDebugger::Debug() {
         }
         end = cur + words;
 
+        bool skip_obj_print = (strcmp(cmd, "dump") == 0);
         while (cur < end) {
           PrintF("  0x%012" PRIxPTR " :  0x%016" PRIx64 "  %14" PRId64 " ",
                  reinterpret_cast<intptr_t>(cur), *cur, *cur);
           Object obj(*cur);
           Heap* current_heap = sim_->isolate_->heap();
-          if (obj.IsSmi() ||
-              IsValidHeapObject(current_heap, HeapObject::cast(obj))) {
-            PrintF(" (");
-            if (obj.IsSmi()) {
-              PrintF("smi %d", Smi::ToInt(obj));
-            } else {
-              obj.ShortPrint();
+          if (!skip_obj_print) {
+            if (obj.IsSmi() ||
+                IsValidHeapObject(current_heap, HeapObject::cast(obj))) {
+              PrintF(" (");
+              if (obj.IsSmi()) {
+                PrintF("smi %d", Smi::ToInt(obj));
+              } else {
+                obj.ShortPrint();
+              }
+              PrintF(")");
             }
-            PrintF(")");
           }
           PrintF("\n");
           cur++;
@@ -644,6 +648,10 @@ void MipsDebugger::Debug() {
         PrintF("  dump stack content, default dump 10 words)\n");
         PrintF("mem <address> [<words>]\n");
         PrintF("  dump memory content, default dump 10 words)\n");
+        PrintF("dump [<words>]\n");
+        PrintF(
+            "  dump memory content without pretty printing JS objects, default "
+            "dump 10 words)\n");
         PrintF("flags\n");
         PrintF("  print flags\n");
         PrintF("disasm [<instructions>]\n");
@@ -2159,7 +2167,7 @@ using SimulatorRuntimeCall = ObjectPair (*)(int64_t arg0, int64_t arg1,
                                             int64_t arg2, int64_t arg3,
                                             int64_t arg4, int64_t arg5,
                                             int64_t arg6, int64_t arg7,
-                                            int64_t arg8);
+                                            int64_t arg8, int64_t arg9);
 
 // These prototypes handle the four types of FP calls.
 using SimulatorRuntimeCompareCall = int64_t (*)(double darg0, double darg1);
@@ -2200,7 +2208,8 @@ void Simulator::SoftwareInterrupt() {
     int64_t arg6 = get_register(a6);
     int64_t arg7 = get_register(a7);
     int64_t arg8 = stack_pointer[0];
-    STATIC_ASSERT(kMaxCParameters == 9);
+    int64_t arg9 = stack_pointer[1];
+    STATIC_ASSERT(kMaxCParameters == 10);
 
     bool fp_call =
         (redirection->type() == ExternalReference::BUILTIN_FP_FP_CALL) ||
@@ -2372,12 +2381,12 @@ void Simulator::SoftwareInterrupt() {
             "Call to host function at %p "
             "args %08" PRIx64 " , %08" PRIx64 " , %08" PRIx64 " , %08" PRIx64
             " , %08" PRIx64 " , %08" PRIx64 " , %08" PRIx64 " , %08" PRIx64
-            " , %08" PRIx64 " \n",
+            " , %08" PRIx64 " , %08" PRIx64 " \n",
             reinterpret_cast<void*>(FUNCTION_ADDR(target)), arg0, arg1, arg2,
-            arg3, arg4, arg5, arg6, arg7, arg8);
+            arg3, arg4, arg5, arg6, arg7, arg8, arg9);
       }
       ObjectPair result =
-          target(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
+          target(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
       set_register(v0, (int64_t)(result.x));
       set_register(v1, (int64_t)(result.y));
     }

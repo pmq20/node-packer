@@ -1,0 +1,87 @@
+// Copyright 2019 the V8 project authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+@abstract
+@generateCppClass
+@reserveBitsInInstanceType(6)
+extern class String extends Name {
+  const length: int32;
+}
+
+@generateCppClass
+@generateBodyDescriptor
+extern class ConsString extends String {
+  first: String;
+  second: String;
+}
+
+@abstract
+@generateBodyDescriptor
+extern class ExternalString extends String {
+  resource: ExternalPointer;
+  resource_data: ExternalPointer;
+}
+
+extern class ExternalOneByteString extends ExternalString {}
+extern class ExternalTwoByteString extends ExternalString {}
+
+@generateCppClass
+extern class InternalizedString extends String {
+}
+
+@abstract
+@generateCppClass
+extern class SeqString extends String {
+}
+@generateCppClass
+@generateBodyDescriptor
+extern class SeqOneByteString extends SeqString {
+  chars[length]: char8;
+}
+@generateCppClass
+@generateBodyDescriptor
+extern class SeqTwoByteString extends SeqString {
+  chars[length]: char16;
+}
+
+@generateCppClass
+@generateBodyDescriptor
+extern class SlicedString extends String {
+  parent: String;
+  offset: Smi;
+}
+
+@generateCppClass
+@generateBodyDescriptor
+extern class ThinString extends String {
+  actual: String;
+}
+
+// A direct string can be accessed directly through CSA without going into the
+// C++ runtime. See also: ToDirectStringAssembler.
+type DirectString extends String;
+
+@export
+macro AllocateSeqOneByteString(length: uint32): String {
+  assert(length <= kStringMaxLength);
+  if (length == 0) return kEmptyString;
+  return new SeqOneByteString{
+    map: kOneByteStringMap,
+    hash_field: kNameEmptyHashField,
+    length: Signed(length),
+    chars: ...UninitializedIterator {}
+  };
+}
+
+@export
+macro AllocateSeqTwoByteString(length: uint32): String {
+  assert(length <= kStringMaxLength);
+  if (length == 0) return kEmptyString;
+  return new SeqTwoByteString{
+    map: kStringMap,
+    hash_field: kNameEmptyHashField,
+    length: Signed(length),
+    chars: ...UninitializedIterator {}
+  };
+}

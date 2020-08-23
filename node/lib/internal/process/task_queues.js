@@ -1,6 +1,9 @@
 'use strict';
 
-const { FunctionPrototype } = primordials;
+const {
+  Array,
+  FunctionPrototypeBind,
+} = primordials;
 
 const {
   // For easy access to the nextTick state in the C++ land,
@@ -11,10 +14,6 @@ const {
   setTickCallback,
   enqueueMicrotask
 } = internalBinding('task_queue');
-
-const {
-  triggerUncaughtException
-} = internalBinding('errors');
 
 const {
   setHasRejectionToWarn,
@@ -46,6 +45,7 @@ const kHasTickScheduled = 0;
 function hasTickScheduled() {
   return tickInfo[kHasTickScheduled] === 1;
 }
+
 function setHasTickScheduled(value) {
   tickInfo[kHasTickScheduled] = value ? 1 : 0;
 }
@@ -67,7 +67,7 @@ function processTicksAndRejections() {
   do {
     while (tock = queue.shift()) {
       const asyncId = tock[async_id_symbol];
-      emitBefore(asyncId, tock[trigger_async_id_symbol]);
+      emitBefore(asyncId, tock[trigger_async_id_symbol], tock);
 
       try {
         const callback = tock.callback;
@@ -105,7 +105,7 @@ function nextTick(callback) {
   if (process._exiting)
     return;
 
-  var args;
+  let args;
   switch (arguments.length) {
     case 1: break;
     case 2: args = [arguments[1]]; break;
@@ -113,7 +113,7 @@ function nextTick(callback) {
     case 4: args = [arguments[1], arguments[2], arguments[3]]; break;
     default:
       args = new Array(arguments.length - 1);
-      for (var i = 1; i < arguments.length; i++)
+      for (let i = 1; i < arguments.length; i++)
         args[i - 1] = arguments[i];
   }
 
@@ -147,10 +147,6 @@ function runMicrotask() {
     const callback = this.callback;
     try {
       callback();
-    } catch (error) {
-      // runInAsyncScope() swallows the error so we need to catch
-      // it and handle it here.
-      triggerUncaughtException(error, false /* fromPromise */);
     } finally {
       this.emitDestroy();
     }
@@ -165,7 +161,7 @@ function queueMicrotask(callback) {
   const asyncResource = createMicrotaskResource();
   asyncResource.callback = callback;
 
-  enqueueMicrotask(FunctionPrototype.bind(runMicrotask, asyncResource));
+  enqueueMicrotask(FunctionPrototypeBind(runMicrotask, asyncResource));
 }
 
 module.exports = {

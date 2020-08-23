@@ -24,7 +24,10 @@
 
 'use strict';
 
-const { Object } = primordials;
+const {
+  ObjectDefineProperty,
+  ObjectDefineProperties,
+} = primordials;
 
 const {
   assertCrypto,
@@ -41,7 +44,11 @@ const { getOptionValue } = require('internal/options');
 const pendingDeprecation = getOptionValue('--pending-deprecation');
 const { fipsMode } = internalBinding('config');
 const fipsForced = getOptionValue('--force-fips');
-const { getFipsCrypto, setFipsCrypto } = internalBinding('crypto');
+const {
+  getFipsCrypto,
+  setFipsCrypto,
+  timingSafeEqual,
+} = internalBinding('crypto');
 const {
   randomBytes,
   randomFill,
@@ -68,7 +75,8 @@ const {
 const {
   DiffieHellman,
   DiffieHellmanGroup,
-  ECDH
+  ECDH,
+  diffieHellman
 } = require('internal/crypto/diffiehellman');
 const {
   Cipher,
@@ -97,7 +105,6 @@ const {
   getHashes,
   setDefaultEncoding,
   setEngine,
-  timingSafeEqual
 } = require('internal/crypto/util');
 const Certificate = require('internal/crypto/certificate');
 
@@ -161,6 +168,7 @@ module.exports = {
   createSecretKey,
   createSign,
   createVerify,
+  diffieHellman,
   getCiphers,
   getCurves,
   getDiffieHellman: createDiffieHellmanGroup,
@@ -220,7 +228,11 @@ function getFipsForced() {
   return 1;
 }
 
-Object.defineProperties(module.exports, {
+ObjectDefineProperty(constants, 'defaultCipherList', {
+  value: getOptionValue('--tls-cipher-list')
+});
+
+ObjectDefineProperties(module.exports, {
   createCipher: {
     enumerable: false,
     value: deprecate(createCipher,

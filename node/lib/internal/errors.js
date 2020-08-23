@@ -10,16 +10,46 @@
 // value statically and permanently identifies the error. While the error
 // message may change, the code should not.
 
-const { Object, Math } = primordials;
+const {
+  ArrayIsArray,
+  Error,
+  JSONStringify,
+  Map,
+  MathAbs,
+  MathMax,
+  NumberIsInteger,
+  ObjectDefineProperty,
+  ObjectKeys,
+  StringPrototypeStartsWith,
+  Symbol,
+  SymbolFor,
+  WeakMap,
+} = primordials;
+
+const sep = process.platform === 'win32' ? '\\' : '/';
 
 const messages = new Map();
 const codes = {};
 
-const { kMaxLength } = internalBinding('buffer');
+const classRegExp = /^([A-Z][a-z0-9]*)+$/;
+// Sorted by a rough estimate on most frequently used entries.
+const kTypes = [
+  'string',
+  'function',
+  'number',
+  'object',
+  // Accept 'Function' and 'Object' as alternative to the lower cased version.
+  'Function',
+  'Object',
+  'boolean',
+  'bigint',
+  'symbol'
+];
 
 const MainContextError = Error;
 const ErrorToString = Error.prototype.toString;
 const overrideStackTrace = new WeakMap();
+const kNoOverride = Symbol('kNoOverride');
 const prepareStackTrace = (globalThis, error, trace) => {
   // API for node internals to override error stack formatting
   // without interfering with userland code.
@@ -29,6 +59,23 @@ const prepareStackTrace = (globalThis, error, trace) => {
     return f(error, trace);
   }
 
+  const globalOverride =
+    maybeOverridePrepareStackTrace(globalThis, error, trace);
+  if (globalOverride !== kNoOverride) return globalOverride;
+
+  // Normal error formatting:
+  //
+  // Error: Message
+  //     at function (file)
+  //     at file
+  const errorString = ErrorToString.call(error);
+  if (trace.length === 0) {
+    return errorString;
+  }
+  return `${errorString}\n    at ${trace.join('\n    at ')}`;
+};
+
+const maybeOverridePrepareStackTrace = (globalThis, error, trace) => {
   // Polyfill of V8's Error.prepareStackTrace API.
   // https://crbug.com/v8/7848
   // `globalThis` is the global that contains the constructor which
@@ -43,18 +90,8 @@ const prepareStackTrace = (globalThis, error, trace) => {
     return MainContextError.prepareStackTrace(error, trace);
   }
 
-  // Normal error formatting:
-  //
-  // Error: Message
-  //     at function (file)
-  //     at file
-  const errorString = ErrorToString.call(error);
-  if (trace.length === 0) {
-    return errorString;
-  }
-  return `${errorString}\n    at ${trace.join('\n    at ')}`;
+  return kNoOverride;
 };
-
 
 let excludedStackFn;
 
@@ -113,7 +150,7 @@ class SystemError extends Error {
     if (context.dest !== undefined)
       message += ` => ${context.dest}`;
 
-    Object.defineProperty(this, 'message', {
+    ObjectDefineProperty(this, 'message', {
       value: message,
       enumerable: false,
       writable: true,
@@ -123,14 +160,14 @@ class SystemError extends Error {
 
     this.code = key;
 
-    Object.defineProperty(this, 'info', {
+    ObjectDefineProperty(this, 'info', {
       value: context,
       enumerable: true,
       configurable: true,
       writable: false
     });
 
-    Object.defineProperty(this, 'errno', {
+    ObjectDefineProperty(this, 'errno', {
       get() {
         return context.errno;
       },
@@ -141,7 +178,7 @@ class SystemError extends Error {
       configurable: true
     });
 
-    Object.defineProperty(this, 'syscall', {
+    ObjectDefineProperty(this, 'syscall', {
       get() {
         return context.syscall;
       },
@@ -158,7 +195,7 @@ class SystemError extends Error {
       // always be of type string. We should probably just remove the
       // `.toString()` and `Buffer.from()` operations and set the value on the
       // context as the user did.
-      Object.defineProperty(this, 'path', {
+      ObjectDefineProperty(this, 'path', {
         get() {
           return context.path != null ?
             context.path.toString() : context.path;
@@ -173,7 +210,7 @@ class SystemError extends Error {
     }
 
     if (context.dest !== undefined) {
-      Object.defineProperty(this, 'dest', {
+      ObjectDefineProperty(this, 'dest', {
         get() {
           return context.dest != null ?
             context.dest.toString() : context.dest;
@@ -192,7 +229,7 @@ class SystemError extends Error {
     return `${this.name} [${this.code}]: ${this.message}`;
   }
 
-  [Symbol.for('nodejs.util.inspect.custom')](recurseTimes, ctx) {
+  [SymbolFor('nodejs.util.inspect.custom')](recurseTimes, ctx) {
     return lazyInternalUtilInspect().inspect(this, {
       ...ctx,
       getters: true,
@@ -222,7 +259,7 @@ function makeNodeErrorWithCode(Base, key) {
         Error.stackTraceLimit = limit;
       }
       const message = getMessage(key, args, this);
-      Object.defineProperty(this, 'message', {
+      ObjectDefineProperty(this, 'message', {
         value: message,
         enumerable: false,
         writable: true,
@@ -270,7 +307,7 @@ function addCodeToName(err, name, code) {
   err.stack;
   // Reset the name to the actual name.
   if (name === 'SystemError') {
-    Object.defineProperty(err, 'name', {
+    ObjectDefineProperty(err, 'name', {
       value: name,
       enumerable: false,
       writable: true,
@@ -383,7 +420,7 @@ function uvException(ctx) {
   const err = new Error(message);
   Error.stackTraceLimit = tmpLimit;
 
-  for (const prop of Object.keys(ctx)) {
+  for (const prop of ObjectKeys(ctx)) {
     if (prop === 'message' || prop === 'path' || prop === 'dest') {
       continue;
     }
@@ -434,7 +471,7 @@ function uvExceptionWithHostPort(err, syscall, address, port) {
   const ex = new Error(`${message}${details}`);
   Error.stackTraceLimit = tmpLimit;
   ex.code = code;
-  ex.errno = code;
+  ex.errno = err;
   ex.syscall = syscall;
   ex.address = address;
   if (port) {
@@ -466,8 +503,8 @@ function errnoException(err, syscall, original) {
 
   // eslint-disable-next-line no-restricted-syntax
   const ex = new Error(message);
-  // TODO(joyeecheung): errno is supposed to err, like in uvException
-  ex.code = ex.errno = code;
+  ex.errno = err;
+  ex.code = code;
   ex.syscall = syscall;
 
   // eslint-disable-next-line no-restricted-syntax
@@ -510,9 +547,9 @@ function exceptionWithHostPort(err, syscall, address, port, additional) {
   Error.stackTraceLimit = 0;
   // eslint-disable-next-line no-restricted-syntax
   const ex = new Error(`${syscall} ${code}${details}`);
-  // TODO(joyeecheung): errno is supposed to err, like in uvException
   Error.stackTraceLimit = tmpLimit;
-  ex.code = ex.errno = code;
+  ex.errno = err;
+  ex.code = code;
   ex.syscall = syscall;
   ex.address = address;
   if (port) {
@@ -531,9 +568,16 @@ function exceptionWithHostPort(err, syscall, address, port, additional) {
  * @returns {Error}
  */
 function dnsException(code, syscall, hostname) {
+  let errno;
   // If `code` is of type number, it is a libuv error number, else it is a
   // c-ares error code.
+  // TODO(joyeecheung): translate c-ares error codes into numeric ones and
+  // make them available in a property that's not error.errno (since they
+  // can be in conflict with libuv error codes). Also make sure
+  // util.getSystemErrorName() can understand them when an being informed that
+  // the number is a c-ares error code.
   if (typeof code === 'number') {
+    errno = code;
     // ENOTFOUND is not a proper POSIX error, but this error has been in place
     // long enough that it's not practical to remove it.
     if (code === lazyUv().UV_EAI_NODATA || code === lazyUv().UV_EAI_NONAME) {
@@ -550,10 +594,8 @@ function dnsException(code, syscall, hostname) {
   Error.stackTraceLimit = 0;
   // eslint-disable-next-line no-restricted-syntax
   const ex = new Error(message);
-  // TODO(joyeecheung): errno is supposed to be a number / err, like in
   Error.stackTraceLimit = tmpLimit;
-  // uvException.
-  ex.errno = code;
+  ex.errno = errno;
   ex.code = code;
   ex.syscall = syscall;
   if (hostname) {
@@ -597,26 +639,6 @@ function isStackOverflowError(err) {
          err.message === maxStack_ErrorMessage;
 }
 
-function oneOf(expected, thing) {
-  assert(typeof thing === 'string', '`thing` has to be of type string');
-  if (Array.isArray(expected)) {
-    const len = expected.length;
-    assert(len > 0,
-           'At least one expected value needs to be specified');
-    expected = expected.map((i) => String(i));
-    if (len > 2) {
-      return `one of ${thing} ${expected.slice(0, len - 1).join(', ')}, or ` +
-             expected[len - 1];
-    } else if (len === 2) {
-      return `one of ${thing} ${expected[0]} or ${expected[1]}`;
-    } else {
-      return `of ${thing} ${expected[0]}`;
-    }
-  } else {
-    return `of ${thing} ${String(expected)}`;
-  }
-}
-
 // Only use this for integers! Decimal numbers do not work with this function.
 function addNumericalSeparator(val) {
   let res = '';
@@ -650,17 +672,37 @@ const fatalExceptionStackEnhancers = {
   },
   afterInspector(error) {
     const originalStack = error.stack;
+    let useColors = true;
+    // Some consoles do not convert ANSI escape sequences to colors,
+    // rather display them directly to the stdout. On those consoles,
+    // libuv emulates colors by intercepting stdout stream and calling
+    // corresponding Windows API functions for setting console colors.
+    // However, fatal error are handled differently and we cannot easily
+    // highlight them. On Windows, detecting whether a console supports
+    // ANSI escape sequences is not reliable.
+    if (process.platform === 'win32') {
+      const info = internalBinding('os').getOSInformation();
+      const ver = info[2].split('.').map((a) => +a);
+      if (ver[0] !== 10 || ver[2] < 14393) {
+        useColors = false;
+      }
+    }
     const {
       inspect,
       inspectDefaultOptions: {
         colors: defaultColors
       }
     } = lazyInternalUtilInspect();
-    const colors = (internalBinding('util').guessHandleType(2) === 'TTY' &&
+    const colors = useColors &&
+                   ((internalBinding('util').guessHandleType(2) === 'TTY' &&
                    require('internal/tty').hasColors()) ||
-                   defaultColors;
+                   defaultColors);
     try {
-      return inspect(error, { colors });
+      return inspect(error, {
+        colors,
+        customInspect: false,
+        depth: MathMax(inspect.defaultOptions.depth, 5)
+      });
     } catch {
       return originalStack;
     }
@@ -683,7 +725,9 @@ module.exports = {
   SystemError,
   // This is exported only to facilitate testing.
   E,
+  kNoOverride,
   prepareStackTrace,
+  maybeOverridePrepareStackTrace,
   overrideStackTrace,
   kEnhanceStackBeforeInspector,
   fatalExceptionStackEnhancers
@@ -721,7 +765,7 @@ E('ERR_BUFFER_OUT_OF_BOUNDS',
     return 'Attempt to access memory outside buffer bounds';
   }, RangeError);
 E('ERR_BUFFER_TOO_LARGE',
-  `Cannot create a Buffer larger than 0x${kMaxLength.toString(16)} bytes`,
+  'Cannot create a Buffer larger than %s bytes',
   RangeError);
 E('ERR_CANNOT_WATCH_SIGINT', 'Cannot watch for SIGINT signals', Error);
 E('ERR_CHILD_CLOSED_BEFORE_REPLY',
@@ -733,6 +777,7 @@ E('ERR_CHILD_PROCESS_STDIO_MAXBUFFER', '%s maxBuffer length exceeded',
   RangeError);
 E('ERR_CONSOLE_WRITABLE_STREAM',
   'Console expects a writable stream instance for %s', TypeError);
+E('ERR_CONTEXT_NOT_INITIALIZED', 'context used is not initialized', Error);
 E('ERR_CPU_USAGE', 'Unable to obtain cpu usage %s', Error);
 E('ERR_CRYPTO_CUSTOM_ENGINE_NOT_SUPPORTED',
   'Custom engines not supported by this OpenSSL', Error);
@@ -746,6 +791,7 @@ E('ERR_CRYPTO_FIPS_UNAVAILABLE', 'Cannot set FIPS mode in a non-FIPS build.',
   Error);
 E('ERR_CRYPTO_HASH_FINALIZED', 'Digest already called', Error);
 E('ERR_CRYPTO_HASH_UPDATE_FAILED', 'Hash update failed', Error);
+E('ERR_CRYPTO_INCOMPATIBLE_KEY', 'Incompatible %s: %s', Error);
 E('ERR_CRYPTO_INCOMPATIBLE_KEY_OPTIONS', 'The selected key encoding %s %s.',
   Error);
 E('ERR_CRYPTO_INVALID_DIGEST', 'Invalid digest: %s', TypeError);
@@ -757,9 +803,10 @@ E('ERR_CRYPTO_SCRYPT_INVALID_PARAMETER', 'Invalid scrypt parameter', Error);
 E('ERR_CRYPTO_SCRYPT_NOT_SUPPORTED', 'Scrypt algorithm not supported', Error);
 // Switch to TypeError. The current implementation does not seem right.
 E('ERR_CRYPTO_SIGN_KEY_REQUIRED', 'No key provided to sign', Error);
-E('ERR_CRYPTO_TIMING_SAFE_EQUAL_LENGTH',
-  'Input buffers must have the same byte length', RangeError);
 E('ERR_DIR_CLOSED', 'Directory handle was closed', Error);
+E('ERR_DIR_CONCURRENT_OPERATION',
+  'Cannot do synchronous work on directory handle with concurrent ' +
+  'asynchronous operations', Error);
 E('ERR_DNS_SET_SERVERS_FAILED', 'c-ares failed to set servers: "%s" [%s]',
   Error);
 E('ERR_DOMAIN_CALLBACK_NOT_AVAILABLE',
@@ -777,13 +824,17 @@ E('ERR_ENCODING_INVALID_ENCODED_DATA', function(encoding, ret) {
 }, TypeError);
 E('ERR_ENCODING_NOT_SUPPORTED', 'The "%s" encoding is not supported',
   RangeError);
+E('ERR_EVAL_ESM_CANNOT_PRINT', '--print cannot be used with ESM input', Error);
+E('ERR_EVENT_RECURSION', 'The event "%s" is already being dispatched', Error);
 E('ERR_FALSY_VALUE_REJECTION', function(reason) {
   this.reason = reason;
   return 'Promise was rejected with falsy value';
 }, Error);
-E('ERR_FS_FILE_TOO_LARGE', 'File size (%s) is greater than possible Buffer: ' +
-    `${kMaxLength} bytes`,
-  RangeError);
+E('ERR_FEATURE_UNAVAILABLE_ON_PLATFORM',
+  'The feature %s is unavailable on the current platform' +
+  ', which is being used to run Node.js',
+  TypeError);
+E('ERR_FS_FILE_TOO_LARGE', 'File size (%s) is greater than 2 GB', RangeError);
 E('ERR_FS_INVALID_SYMLINK_TYPE',
   'Symlink type must be one of "dir", "file", or "junction". Received "%s"',
   Error); // Switch to TypeError. The current implementation does not seem right
@@ -888,9 +939,13 @@ E('ERR_HTTP_INVALID_STATUS_CODE', 'Invalid status code: %s', RangeError);
 E('ERR_HTTP_TRAILER_INVALID',
   'Trailers are invalid with this transfer encoding', Error);
 E('ERR_INCOMPATIBLE_OPTION_PAIR',
-  'Option "%s" can not be used in combination with option "%s"', TypeError);
+  'Option "%s" cannot be used in combination with option "%s"', TypeError);
 E('ERR_INPUT_TYPE_NOT_ALLOWED', '--input-type can only be used with string ' +
   'input via --eval, --print, or STDIN', Error);
+E('ERR_INSPECTOR_ALREADY_ACTIVATED',
+  'Inspector is already activated. Close it with inspector.close() ' +
+  'before activating it again.',
+  Error);
 E('ERR_INSPECTOR_ALREADY_CONNECTED', '%s is already connected', Error);
 E('ERR_INSPECTOR_CLOSED', 'Session was closed', Error);
 E('ERR_INSPECTOR_COMMAND', 'Inspector error %d: %s', Error);
@@ -913,27 +968,107 @@ E('ERR_INVALID_ADDRESS_FAMILY', function(addressType, host, port) {
 E('ERR_INVALID_ARG_TYPE',
   (name, expected, actual) => {
     assert(typeof name === 'string', "'name' must be a string");
-
-    // determiner: 'must be' or 'must not be'
-    let determiner;
-    if (typeof expected === 'string' && expected.startsWith('not ')) {
-      determiner = 'must not be';
-      expected = expected.replace(/^not /, '');
-    } else {
-      determiner = 'must be';
+    if (!ArrayIsArray(expected)) {
+      expected = [expected];
     }
 
-    let msg;
+    let msg = 'The ';
     if (name.endsWith(' argument')) {
       // For cases like 'first argument'
-      msg = `The ${name} ${determiner} ${oneOf(expected, 'type')}`;
+      msg += `${name} `;
     } else {
       const type = name.includes('.') ? 'property' : 'argument';
-      msg = `The "${name}" ${type} ${determiner} ${oneOf(expected, 'type')}`;
+      msg += `"${name}" ${type} `;
+    }
+    msg += 'must be ';
+
+    const types = [];
+    const instances = [];
+    const other = [];
+
+    for (const value of expected) {
+      assert(typeof value === 'string',
+             'All expected entries have to be of type string');
+      if (kTypes.includes(value)) {
+        types.push(value.toLowerCase());
+      } else if (classRegExp.test(value)) {
+        instances.push(value);
+      } else {
+        assert(value !== 'object',
+               'The value "object" should be written as "Object"');
+        other.push(value);
+      }
     }
 
-    // TODO(BridgeAR): Improve the output by showing `null` and similar.
-    msg += `. Received type ${typeof actual}`;
+    // Special handle `object` in case other instances are allowed to outline
+    // the differences between each other.
+    if (instances.length > 0) {
+      const pos = types.indexOf('object');
+      if (pos !== -1) {
+        types.splice(pos, 1);
+        instances.push('Object');
+      }
+    }
+
+    if (types.length > 0) {
+      if (types.length > 2) {
+        const last = types.pop();
+        msg += `one of type ${types.join(', ')}, or ${last}`;
+      } else if (types.length === 2) {
+        msg += `one of type ${types[0]} or ${types[1]}`;
+      } else {
+        msg += `of type ${types[0]}`;
+      }
+      if (instances.length > 0 || other.length > 0)
+        msg += ' or ';
+    }
+
+    if (instances.length > 0) {
+      if (instances.length > 2) {
+        const last = instances.pop();
+        msg += `an instance of ${instances.join(', ')}, or ${last}`;
+      } else {
+        msg += `an instance of ${instances[0]}`;
+        if (instances.length === 2) {
+          msg += ` or ${instances[1]}`;
+        }
+      }
+      if (other.length > 0)
+        msg += ' or ';
+    }
+
+    if (other.length > 0) {
+      if (other.length > 2) {
+        const last = other.pop();
+        msg += `one of ${other.join(', ')}, or ${last}`;
+      } else if (other.length === 2) {
+        msg += `one of ${other[0]} or ${other[1]}`;
+      } else {
+        if (other[0].toLowerCase() !== other[0])
+          msg += 'an ';
+        msg += `${other[0]}`;
+      }
+    }
+
+    if (actual == null) {
+      msg += `. Received ${actual}`;
+    } else if (typeof actual === 'function' && actual.name) {
+      msg += `. Received function ${actual.name}`;
+    } else if (typeof actual === 'object') {
+      if (actual.constructor && actual.constructor.name) {
+        msg += `. Received an instance of ${actual.constructor.name}`;
+      } else {
+        const inspected = lazyInternalUtilInspect()
+          .inspect(actual, { depth: -1 });
+        msg += `. Received ${inspected}`;
+      }
+    } else {
+      let inspected = lazyInternalUtilInspect()
+        .inspect(actual, { colors: false });
+      if (inspected.length > 25)
+        inspected = `${inspected.slice(0, 25)}...`;
+      msg += `. Received type ${typeof actual} (${inspected})`;
+    }
     return msg;
   }, TypeError);
 E('ERR_INVALID_ARG_VALUE', (name, value, reason = 'is invalid') => {
@@ -969,14 +1104,37 @@ E('ERR_INVALID_FILE_URL_PATH', 'File URL path %s', TypeError);
 E('ERR_INVALID_HANDLE_TYPE', 'This handle type cannot be sent', TypeError);
 E('ERR_INVALID_HTTP_TOKEN', '%s must be a valid HTTP token ["%s"]', TypeError);
 E('ERR_INVALID_IP_ADDRESS', 'Invalid IP address: %s', TypeError);
+E('ERR_INVALID_MODULE_SPECIFIER', (request, reason, base = undefined) => {
+  return `Invalid module "${request}" ${reason}${base ?
+    ` imported from ${base}` : ''}`;
+}, TypeError);
 E('ERR_INVALID_OPT_VALUE', (name, value) =>
   `The value "${String(value)}" is invalid for option "${name}"`,
   TypeError,
   RangeError);
 E('ERR_INVALID_OPT_VALUE_ENCODING',
   'The value "%s" is invalid for option "encoding"', TypeError);
-E('ERR_INVALID_PACKAGE_CONFIG',
-  'Invalid package config in \'%s\' imported from %s', Error);
+E('ERR_INVALID_PACKAGE_CONFIG', (path, message, hasMessage = true) => {
+  if (hasMessage)
+    return `Invalid package config ${path}${sep}package.json, ${message}`;
+  return `Invalid JSON in ${path} imported from ${message}`;
+}, Error);
+E('ERR_INVALID_PACKAGE_TARGET',
+  (pkgPath, key, target, isImport = false, base = undefined) => {
+    const relError = typeof target === 'string' && !isImport &&
+      target.length && !StringPrototypeStartsWith(target, './');
+    if (key === '.') {
+      assert(isImport === false);
+      return `Invalid "exports" main target ${JSONStringify(target)} defined ` +
+        `in the package config ${pkgPath}package.json${base ?
+          ` imported from ${base}` : ''}${relError ?
+          '; targets must start with "./"' : ''}`;
+    }
+    return `Invalid "${isImport ? 'imports' : 'exports'}" target ${
+      JSONStringify(target)} defined for '${key}' in the package config ${
+      pkgPath}package.json${base ? ` imported from ${base}` : ''}${relError ?
+      '; targets must start with "./"' : ''}`;
+  }, Error);
 E('ERR_INVALID_PERFORMANCE_MARK',
   'The "%s" performance mark has not been set', Error);
 E('ERR_INVALID_PROTOCOL',
@@ -1021,7 +1179,15 @@ E('ERR_INVALID_URL', function(input) {
   return `Invalid URL: ${input}`;
 }, TypeError);
 E('ERR_INVALID_URL_SCHEME',
-  (expected) => `The URL must be ${oneOf(expected, 'scheme')}`, TypeError);
+  (expected) => {
+    if (typeof expected === 'string')
+      expected = [expected];
+    assert(expected.length <= 2);
+    const res = expected.length === 2 ?
+      `one of scheme ${expected[0]} or ${expected[1]}` :
+      `of scheme ${expected[0]}`;
+    return `The URL must be ${res}`;
+  }, TypeError);
 E('ERR_IPC_CHANNEL_CLOSED', 'Channel closed', Error);
 E('ERR_IPC_DISCONNECTED', 'IPC channel is already disconnected', Error);
 E('ERR_IPC_ONE_PIPE', 'Child process can have only one IPC pipe', Error);
@@ -1075,9 +1241,10 @@ E('ERR_MISSING_ARGS',
     }
     return `${msg} must be specified`;
   }, TypeError);
-E('ERR_MISSING_DYNAMIC_INSTANTIATE_HOOK',
-  'The ES Module loader may not return a format of \'dynamic\' when no ' +
-  'dynamicInstantiate function was provided', Error);
+E('ERR_MISSING_OPTION', '%s is required', TypeError);
+E('ERR_MODULE_NOT_FOUND', (path, base, type = 'package') => {
+  return `Cannot find ${type} '${path}' imported from ${base}`;
+}, Error);
 E('ERR_MULTIPLE_CALLBACK', 'Callback called multiple times', Error);
 E('ERR_NAPI_CONS_FUNCTION', 'Constructor must be a function', TypeError);
 E('ERR_NAPI_INVALID_DATAVIEW_ARGS',
@@ -1098,7 +1265,7 @@ E('ERR_OUT_OF_RANGE',
     let msg = replaceDefaultBoolean ? str :
       `The value of "${str}" is out of range.`;
     let received;
-    if (Number.isInteger(input) && Math.abs(input) > 2 ** 32) {
+    if (NumberIsInteger(input) && MathAbs(input) > 2 ** 32) {
       received = addNumericalSeparator(String(input));
     } else if (typeof input === 'bigint') {
       received = String(input);
@@ -1112,7 +1279,37 @@ E('ERR_OUT_OF_RANGE',
     msg += ` It must be ${range}. Received ${received}`;
     return msg;
   }, RangeError);
-E('ERR_REQUIRE_ESM', 'Must use import to load ES Module: %s', Error);
+E('ERR_PACKAGE_IMPORT_NOT_DEFINED', (specifier, packagePath, base) => {
+  return `Package import specifier "${specifier}" is not defined${packagePath ?
+    ` in package ${packagePath}package.json` : ''} imported from ${base}`;
+}, TypeError);
+E('ERR_PACKAGE_PATH_NOT_EXPORTED', (pkgPath, subpath, base = undefined) => {
+  if (subpath === '.')
+    return `No "exports" main defined in ${pkgPath}package.json${base ?
+      ` imported from ${base}` : ''}`;
+  return `Package subpath '${subpath}' is not defined by "exports" in ${
+    pkgPath}package.json${base ? ` imported from ${base}` : ''}`;
+}, Error);
+E('ERR_REQUIRE_ESM',
+  (filename, parentPath = null, packageJsonPath = null) => {
+    let msg = `Must use import to load ES Module: ${filename}`;
+    if (parentPath && packageJsonPath) {
+      const path = require('path');
+      const basename = path.basename(filename) === path.basename(parentPath) ?
+        filename : path.basename(filename);
+      msg +=
+        '\nrequire() of ES modules is not supported.\nrequire() of ' +
+        `${filename} ${parentPath ? `from ${parentPath} ` : ''}` +
+        'is an ES module file as it is a .js file whose nearest parent ' +
+        'package.json contains "type": "module" which defines all .js ' +
+        'files in that package scope as ES modules.\nInstead rename ' +
+        `${basename} to end in .cjs, change the requiring code to use ` +
+        'import(), or remove "type": "module" from ' +
+        `${packageJsonPath}.\n`;
+      return msg;
+    }
+    return msg;
+  }, Error);
 E('ERR_SCRIPT_EXECUTION_INTERRUPTED',
   'Script execution was interrupted by `SIGINT`', Error);
 E('ERR_SERVER_ALREADY_LISTEN',
@@ -1121,14 +1318,17 @@ E('ERR_SERVER_NOT_RUNNING', 'Server is not running.', Error);
 E('ERR_SOCKET_ALREADY_BOUND', 'Socket is already bound', Error);
 E('ERR_SOCKET_BAD_BUFFER_SIZE',
   'Buffer size must be a positive integer', TypeError);
-E('ERR_SOCKET_BAD_PORT',
-  'Port should be >= 0 and < 65536. Received %s.', RangeError);
+E('ERR_SOCKET_BAD_PORT', (name, port, allowZero = true) => {
+  assert(typeof allowZero === 'boolean',
+         "The 'allowZero' argument must be of type boolean.");
+  const operator = allowZero ? '>=' : '>';
+  return `${name} should be ${operator} 0 and < 65536. Received ${port}.`;
+}, RangeError);
 E('ERR_SOCKET_BAD_TYPE',
   'Bad socket type specified. Valid types are: udp4, udp6', TypeError);
 E('ERR_SOCKET_BUFFER_SIZE',
   'Could not get or set buffer size',
   SystemError);
-E('ERR_SOCKET_CANNOT_SEND', 'Unable to send data', Error);
 E('ERR_SOCKET_CLOSED', 'Socket is closed', Error);
 E('ERR_SOCKET_DGRAM_IS_CONNECTED', 'Already connected', Error);
 E('ERR_SOCKET_DGRAM_NOT_CONNECTED', 'Not connected', Error);
@@ -1136,6 +1336,9 @@ E('ERR_SOCKET_DGRAM_NOT_RUNNING', 'Not running', Error);
 E('ERR_SRI_PARSE',
   'Subresource Integrity string %j had an unexpected %j at position %d',
   SyntaxError);
+E('ERR_STREAM_ALREADY_FINISHED',
+  'Cannot call %s after a stream was finished',
+  Error);
 E('ERR_STREAM_CANNOT_PIPE', 'Cannot pipe, not readable', Error);
 E('ERR_STREAM_DESTROYED', 'Cannot call %s after a stream was destroyed', Error);
 E('ERR_STREAM_NULL_VALUES', 'May not write null values to stream', TypeError);
@@ -1155,6 +1358,9 @@ E('ERR_TLS_CERT_ALTNAME_INVALID', function(reason, host, cert) {
 }, Error);
 E('ERR_TLS_DH_PARAM_SIZE', 'DH parameter size %s is less than 2048', Error);
 E('ERR_TLS_HANDSHAKE_TIMEOUT', 'TLS handshake timeout', Error);
+E('ERR_TLS_INVALID_CONTEXT', '%s must be a SecureContext', TypeError),
+E('ERR_TLS_INVALID_STATE', 'TLS socket connection must be securely established',
+  Error),
 E('ERR_TLS_INVALID_PROTOCOL_VERSION',
   '%j is not a valid %s TLS protocol version', TypeError);
 E('ERR_TLS_PROTOCOL_VERSION_CONFLICT',
@@ -1178,6 +1384,8 @@ E('ERR_TRANSFORM_ALREADY_TRANSFORMING',
 E('ERR_TRANSFORM_WITH_LENGTH_0',
   'Calling transform done when writableState.length != 0', Error);
 E('ERR_TTY_INIT_FAILED', 'TTY initialization failed', SystemError);
+E('ERR_UNAVAILABLE_DURING_EXIT', 'Cannot call function in process exit ' +
+  'handler', Error);
 E('ERR_UNCAUGHT_EXCEPTION_CAPTURE_ALREADY_SET',
   '`process.setupUncaughtExceptionCapture()` was called while a capture ' +
     'callback was already active',
@@ -1194,9 +1402,15 @@ E('ERR_UNHANDLED_ERROR',
 E('ERR_UNKNOWN_BUILTIN_MODULE', 'No such built-in module: %s', Error);
 E('ERR_UNKNOWN_CREDENTIAL', '%s identifier does not exist: %s', Error);
 E('ERR_UNKNOWN_ENCODING', 'Unknown encoding: %s', TypeError);
-E('ERR_UNKNOWN_FILE_EXTENSION', 'Unknown file extension: %s', TypeError);
+E('ERR_UNKNOWN_FILE_EXTENSION',
+  'Unknown file extension "%s" for %s',
+  TypeError);
 E('ERR_UNKNOWN_MODULE_FORMAT', 'Unknown module format: %s', RangeError);
 E('ERR_UNKNOWN_SIGNAL', 'Unknown signal: %s', TypeError);
+E('ERR_UNSUPPORTED_DIR_IMPORT', "Directory import '%s' is not supported " +
+'resolving ES modules imported from %s', Error);
+E('ERR_UNSUPPORTED_ESM_URL_SCHEME', 'Only file and data URLs are supported ' +
+  'by the default ESM loader', Error);
 
 E('ERR_V8BREAKITERATOR',
   'Full ICU data not installed. See https://github.com/nodejs/node/wiki/Intl',
@@ -1208,6 +1422,8 @@ E('ERR_VALID_PERFORMANCE_ENTRY_TYPE',
 E('ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING',
   'A dynamic import callback was not specified.', TypeError);
 E('ERR_VM_MODULE_ALREADY_LINKED', 'Module has already been linked', Error);
+E('ERR_VM_MODULE_CANNOT_CREATE_CACHED_DATA',
+  'Cached data cannot be created for a module which has been evaluated', Error);
 E('ERR_VM_MODULE_DIFFERENT_CONTEXT',
   'Linked modules must use the same context', Error);
 E('ERR_VM_MODULE_LINKING_ERRORED',
@@ -1215,17 +1431,26 @@ E('ERR_VM_MODULE_LINKING_ERRORED',
 E('ERR_VM_MODULE_NOT_MODULE',
   'Provided module is not an instance of Module', Error);
 E('ERR_VM_MODULE_STATUS', 'Module status %s', Error);
-E('ERR_WORKER_INVALID_EXEC_ARGV', (errors) =>
-  `Initiated Worker with invalid execArgv flags: ${errors.join(', ')}`,
+E('ERR_WASI_ALREADY_STARTED', 'WASI instance has already started', Error);
+E('ERR_WORKER_INIT_FAILED', 'Worker initialization failure: %s', Error);
+E('ERR_WORKER_INVALID_EXEC_ARGV', (errors, msg = 'invalid execArgv flags') =>
+  `Initiated Worker with ${msg}: ${errors.join(', ')}`,
   Error);
-E('ERR_WORKER_PATH',
-  'The worker script filename must be an absolute path or a relative ' +
-  'path starting with \'./\' or \'../\'. Received "%s"',
+E('ERR_WORKER_NOT_RUNNING', 'Worker instance not running', Error);
+E('ERR_WORKER_OUT_OF_MEMORY',
+  'Worker terminated due to reaching memory limit: %s', Error);
+E('ERR_WORKER_PATH', (filename) =>
+  'The worker script or module filename must be an absolute path or a ' +
+  'relative path starting with \'./\' or \'../\'.' +
+  (filename.startsWith('file://') ?
+    ' Wrap file:// URLs with `new URL`.' : ''
+  ) +
+  ` Received "${filename}"`,
   TypeError);
 E('ERR_WORKER_UNSERIALIZABLE_ERROR',
   'Serializing an uncaught exception failed', Error);
 E('ERR_WORKER_UNSUPPORTED_EXTENSION',
-  'The worker script extension must be ".js" or ".mjs". Received "%s"',
+  'The worker script extension must be ".js", ".mjs", or ".cjs". Received "%s"',
   TypeError);
 E('ERR_WORKER_UNSUPPORTED_OPERATION',
   '%s is not supported in workers', TypeError);

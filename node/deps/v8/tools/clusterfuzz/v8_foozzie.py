@@ -20,8 +20,12 @@ import re
 import sys
 import traceback
 
+from collections import namedtuple
+
 import v8_commands
 import v8_suppressions
+
+PYTHON3 = sys.version_info >= (3, 0)
 
 CONFIGS = dict(
   default=[],
@@ -58,14 +62,11 @@ CONFIGS = dict(
   ignition_turbo_opt=[
     '--always-opt',
     '--no-liftoff',
-    '--no-wasm-tier-up',
-    '--no-lazy-feedback-allocation'
   ],
   ignition_turbo_opt_eager=[
     '--always-opt',
     '--no-lazy',
     '--no-lazy-inner-functions',
-    '--no-lazy-feedback-allocation',
   ],
   jitless=[
     '--jitless',
@@ -76,7 +77,6 @@ CONFIGS = dict(
   slow_path_opt=[
     '--always-opt',
     '--force-slow-path',
-    '--no-lazy-feedback-allocation',
   ],
   trusted=[
     '--no-untrusted-code-mitigations',
@@ -84,29 +84,15 @@ CONFIGS = dict(
   trusted_opt=[
     '--always-opt',
     '--no-untrusted-code-mitigations',
-    '--no-lazy-feedback-allocation',
   ],
 )
-
-# Timeout in seconds for one d8 run.
-TIMEOUT = 3
 
 # Return codes.
 RETURN_PASS = 0
 RETURN_FAIL = 2
 
 BASE_PATH = os.path.dirname(os.path.abspath(__file__))
-PREAMBLE = [
-  os.path.join(BASE_PATH, 'v8_mock.js'),
-  os.path.join(BASE_PATH, 'v8_suppressions.js'),
-]
-ARCH_MOCKS = os.path.join(BASE_PATH, 'v8_mock_archs.js')
 SANITY_CHECKS = os.path.join(BASE_PATH, 'v8_sanity_checks.js')
-
-FLAGS = ['--correctness-fuzzer-suppressions', '--expose-gc',
-         '--allow-natives-syntax', '--invoke-weak-callbacks', '--omit-quit',
-         '--es-staging', '--no-wasm-async-compilation',
-         '--suppress-asm-messages']
 
 SUPPORTED_ARCHS = ['ia32', 'x64', 'arm', 'arm64']
 
@@ -164,34 +150,74 @@ def infer_arch(d8):
   """
   with open(os.path.join(os.path.dirname(d8), 'v8_build_config.json')) as f:
     arch = json.load(f)['v8_current_cpu']
-  return 'ia32' if arch == 'x86' else arch
+  arch = 'ia32' if arch == 'x86' else arch
+  assert arch in SUPPORTED_ARCHS
+  return arch
+
+
+class ExecutionArgumentsConfig(object):
+  def __init__(self, label):
+    self.label = label
+
+  def add_arguments(self, parser, default_config):
+    def add_argument(flag_template, help_template, **kwargs):
+      parser.add_argument(
+          flag_template % self.label,
+          help=help_template % self.label,
+          **kwargs)
+
+    add_argument(
+        '--%s-config',
+        '%s configuration',
+        default=default_config)
+    add_argument(
+        '--%s-config-extra-flags',
+        'additional flags passed to the %s run',
+        action='append',
+        default=[])
+    add_argument(
+        '--%s-d8',
+        'optional path to %s d8 executable, '
+        'default: bundled in the directory of this script',
+        default='d8')
+
+  def make_options(self, options):
+    def get(name):
+      return getattr(options, '%s_%s' % (self.label, name))
+
+    config = get('config')
+    assert config in CONFIGS
+
+    d8 = get('d8')
+    if not os.path.isabs(d8):
+      d8 = os.path.join(BASE_PATH, d8)
+    assert os.path.exists(d8)
+
+    flags = CONFIGS[config] + get('config_extra_flags')
+
+    RunOptions = namedtuple('RunOptions', ['arch', 'config', 'd8', 'flags'])
+    return RunOptions(infer_arch(d8), config, d8, flags)
 
 
 def parse_args():
+  first_config_arguments = ExecutionArgumentsConfig('first')
+  second_config_arguments = ExecutionArgumentsConfig('second')
+
   parser = argparse.ArgumentParser()
   parser.add_argument(
     '--random-seed', type=int, required=True,
     help='random seed passed to both runs')
   parser.add_argument(
-      '--first-config', help='first configuration', default='ignition')
-  parser.add_argument(
-      '--second-config', help='second configuration', default='ignition_turbo')
-  parser.add_argument(
-      '--first-config-extra-flags', action='append', default=[],
-      help='Additional flags to pass to the run of the first configuration')
-  parser.add_argument(
-      '--second-config-extra-flags', action='append', default=[],
-      help='Additional flags to pass to the run of the second configuration')
-  parser.add_argument(
-      '--first-d8', default='d8',
-      help='optional path to first d8 executable, '
-           'default: bundled in the same directory as this script')
-  parser.add_argument(
-      '--second-d8',
-      help='optional path to second d8 executable, default: same as first')
-  parser.add_argument(
       '--skip-sanity-checks', default=False, action='store_true',
       help='skip sanity checks for testing purposes')
+  parser.add_argument(
+      '--skip-suppressions', default=False, action='store_true',
+      help='skip suppressions to reproduce known issues')
+
+  # Add arguments for each run configuration.
+  first_config_arguments.add_arguments(parser, 'ignition')
+  second_config_arguments.add_arguments(parser, 'ignition_turbo')
+
   parser.add_argument('testcase', help='path to test case')
   options = parser.parse_args()
 
@@ -200,31 +226,13 @@ def parse_args():
           os.path.isfile(options.testcase)), (
       'Test case %s doesn\'t exist' % options.testcase)
 
-  # Use first d8 as default for second d8.
-  options.second_d8 = options.second_d8 or options.first_d8
-
-  # Ensure absolute paths.
-  if not os.path.isabs(options.first_d8):
-    options.first_d8 = os.path.join(BASE_PATH, options.first_d8)
-  if not os.path.isabs(options.second_d8):
-    options.second_d8 = os.path.join(BASE_PATH, options.second_d8)
-
-  # Ensure executables exist.
-  assert os.path.exists(options.first_d8)
-  assert os.path.exists(options.second_d8)
-
-  # Infer architecture from build artifacts.
-  options.first_arch = infer_arch(options.first_d8)
-  options.second_arch = infer_arch(options.second_d8)
+  options.first = first_config_arguments.make_options(options)
+  options.second = second_config_arguments.make_options(options)
 
   # Ensure we make a sane comparison.
-  if (options.first_arch == options.second_arch and
-      options.first_config == options.second_config):
-    parser.error('Need either arch or config difference.')
-  assert options.first_arch in SUPPORTED_ARCHS
-  assert options.second_arch in SUPPORTED_ARCHS
-  assert options.first_config in CONFIGS
-  assert options.second_config in CONFIGS
+  if (options.first.d8 == options.second.d8 and
+      options.first.config == options.second.config):
+    parser.error('Need either executable or config difference.')
 
   return options
 
@@ -249,15 +257,12 @@ def content_bailout(content, ignore_fun):
   return False
 
 
-def pass_bailout(output, step_number):
-  """Print info and return if in timeout or crash pass states."""
+def timeout_bailout(output, step_number):
+  """Print info and return if in timeout pass state."""
   if output.HasTimedOut():
     # Dashed output, so that no other clusterfuzz tools can match the
     # words timeout or crash.
     print('# V8 correctness - T-I-M-E-O-U-T %d' % step_number)
-    return True
-  if output.HasCrashed():
-    print('# V8 correctness - C-R-A-S-H %d' % step_number)
     return True
   return False
 
@@ -273,29 +278,39 @@ def fail_bailout(output, ignore_by_output_fun):
 
 
 def print_difference(
-    options, source_key, first_config_flags, second_config_flags,
+    options, source_key, first_command, second_command,
     first_config_output, second_config_output, difference, source=None):
   # The first three entries will be parsed by clusterfuzz. Format changes
   # will require changes on the clusterfuzz side.
-  first_config_label = '%s,%s' % (options.first_arch, options.first_config)
-  second_config_label = '%s,%s' % (options.second_arch, options.second_config)
+  first_config_label = '%s,%s' % (options.first.arch, options.first.config)
+  second_config_label = '%s,%s' % (options.second.arch, options.second.config)
   source_file_text = SOURCE_FILE_TEMPLATE % source if source else ''
-  print((FAILURE_TEMPLATE % dict(
+
+  if PYTHON3:
+    first_stdout = first_config_output.stdout
+    second_stdout = second_config_output.stdout
+  else:
+    first_stdout = first_config_output.stdout.decode('utf-8', 'replace')
+    second_stdout = second_config_output.stdout.decode('utf-8', 'replace')
+
+  text = (FAILURE_TEMPLATE % dict(
       configs='%s:%s' % (first_config_label, second_config_label),
       source_file_text=source_file_text,
       source_key=source_key,
       suppression='', # We can't tie bugs to differences.
       first_config_label=first_config_label,
       second_config_label=second_config_label,
-      first_config_flags=' '.join(first_config_flags),
-      second_config_flags=' '.join(second_config_flags),
-      first_config_output=
-          first_config_output.stdout.decode('utf-8', 'replace'),
-      second_config_output=
-          second_config_output.stdout.decode('utf-8', 'replace'),
+      first_config_flags=' '.join(first_command.flags),
+      second_config_flags=' '.join(second_command.flags),
+      first_config_output=first_stdout,
+      second_config_output=second_stdout,
       source=source,
-      difference=difference.decode('utf-8', 'replace'),
-  )).encode('utf-8', 'replace'))
+      difference=difference,
+  ))
+  if PYTHON3:
+    print(text)
+  else:
+    print(text.encode('utf-8', 'replace'))
 
 
 def main():
@@ -303,78 +318,59 @@ def main():
 
   # Suppressions are architecture and configuration specific.
   suppress = v8_suppressions.get_suppression(
-      options.first_arch, options.first_config,
-      options.second_arch, options.second_config,
+      options.first.arch, options.first.config,
+      options.second.arch, options.second.config,
+      options.skip_suppressions,
   )
 
   # Static bailout based on test case content or metadata.
-  with open(options.testcase) as f:
+  kwargs = {}
+  if PYTHON3:
+    kwargs['encoding'] = 'utf-8'
+  with open(options.testcase, 'r', **kwargs) as f:
     content = f.read()
   if content_bailout(get_meta_data(content), suppress.ignore_by_metadata):
     return RETURN_FAIL
   if content_bailout(content, suppress.ignore_by_content):
     return RETURN_FAIL
 
-  # Set up runtime arguments.
-  common_flags = FLAGS + ['--random-seed', str(options.random_seed)]
-  first_config_flags = (common_flags + CONFIGS[options.first_config] +
-                        options.first_config_extra_flags)
-  second_config_flags = (common_flags + CONFIGS[options.second_config] +
-                         options.second_config_extra_flags)
-
-  def run_d8(d8, config_flags, config_label=None, testcase=options.testcase):
-    preamble = PREAMBLE[:]
-    if options.first_arch != options.second_arch:
-      preamble.append(ARCH_MOCKS)
-    args = [d8] + config_flags + preamble + [testcase]
-    if config_label:
-      print('# Command line for %s comparison:' % config_label)
-      print(' '.join(args))
-    if d8.endswith('.py'):
-      # Wrap with python in tests.
-      args = [sys.executable] + args
-    return v8_commands.Execute(
-        args,
-        cwd=os.path.dirname(os.path.abspath(testcase)),
-        timeout=TIMEOUT,
-    )
+  first_cmd = v8_commands.Command(
+      options,'first', options.first.d8, options.first.flags)
+  second_cmd = v8_commands.Command(
+      options, 'second', options.second.d8, options.second.flags)
 
   # Sanity checks. Run both configurations with the sanity-checks file only and
   # bail out early if different.
   if not options.skip_sanity_checks:
-    first_config_output = run_d8(
-        options.first_d8, first_config_flags, testcase=SANITY_CHECKS)
-    second_config_output = run_d8(
-        options.second_d8, second_config_flags, testcase=SANITY_CHECKS)
-    difference, _ = suppress.diff(
-        first_config_output.stdout, second_config_output.stdout)
+    first_config_output = first_cmd.run(SANITY_CHECKS)
+    second_config_output = second_cmd.run(SANITY_CHECKS)
+    difference, _ = suppress.diff(first_config_output, second_config_output)
     if difference:
       # Special source key for sanity checks so that clusterfuzz dedupes all
       # cases on this in case it's hit.
       source_key = 'sanity check failed'
       print_difference(
-          options, source_key, first_config_flags, second_config_flags,
+          options, source_key, first_cmd, second_cmd,
           first_config_output, second_config_output, difference)
       return RETURN_FAIL
 
-  first_config_output = run_d8(options.first_d8, first_config_flags, 'first')
+  first_config_output = first_cmd.run(options.testcase, verbose=True)
 
-  # Early bailout based on first run's output.
-  if pass_bailout(first_config_output, 1):
+  # Early bailout if first run was a timeout.
+  if timeout_bailout(first_config_output, 1):
     return RETURN_PASS
 
-  second_config_output = run_d8(
-      options.second_d8, second_config_flags, 'second')
+  second_config_output = second_cmd.run(options.testcase, verbose=True)
 
-  # Bailout based on second run's output.
-  if pass_bailout(second_config_output, 2):
+  # Bailout if second run was a timeout.
+  if timeout_bailout(second_config_output, 2):
     return RETURN_PASS
 
-  difference, source = suppress.diff(
-      first_config_output.stdout, second_config_output.stdout)
+  difference, source = suppress.diff(first_config_output, second_config_output)
 
   if source:
-    source_key = hashlib.sha1(source).hexdigest()[:ORIGINAL_SOURCE_HASH_LENGTH]
+    long_key = hashlib.sha1(source.encode('utf-8')).hexdigest()
+    source_key = long_key[:ORIGINAL_SOURCE_HASH_LENGTH]
   else:
     source_key = ORIGINAL_SOURCE_DEFAULT
 
@@ -388,15 +384,22 @@ def main():
       return RETURN_FAIL
 
     print_difference(
-        options, source_key, first_config_flags, second_config_flags,
+        options, source_key, first_cmd, second_cmd,
         first_config_output, second_config_output, difference, source)
     return RETURN_FAIL
 
-  # TODO(machenbach): Figure out if we could also return a bug in case there's
-  # no difference, but one of the line suppressions has matched - and without
-  # the match there would be a difference.
+  # Show if a crash has happened in one of the runs and no difference was
+  # detected.
+  if first_config_output.HasCrashed():
+    print('# V8 correctness - C-R-A-S-H 1')
+  elif second_config_output.HasCrashed():
+    print('# V8 correctness - C-R-A-S-H 2')
+  else:
+    # TODO(machenbach): Figure out if we could also return a bug in case
+    # there's no difference, but one of the line suppressions has matched -
+    # and without the match there would be a difference.
+    print('# V8 correctness - pass')
 
-  print('# V8 correctness - pass')
   return RETURN_PASS
 
 

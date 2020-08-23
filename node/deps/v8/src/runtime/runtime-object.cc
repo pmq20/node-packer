@@ -2,11 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include "src/ast/prettyprinter.h"
 #include "src/common/message-template.h"
 #include "src/debug/debug.h"
 #include "src/execution/arguments-inl.h"
 #include "src/execution/isolate-inl.h"
+#include "src/execution/messages.h"
+#include "src/handles/maybe-handles.h"
 #include "src/heap/heap-inl.h"  // For ToBoolean. TODO(jkummerow): Drop.
+#include "src/heap/memory-chunk.h"
 #include "src/init/bootstrapper.h"
 #include "src/logging/counters.h"
 #include "src/objects/hash-table-inl.h"
@@ -24,29 +28,35 @@ MaybeHandle<Object> Runtime::GetObjectProperty(Isolate* isolate,
                                                Handle<Object> key,
                                                bool* is_found_out) {
   if (object->IsNullOrUndefined(isolate)) {
-    if (*key == ReadOnlyRoots(isolate).iterator_symbol()) {
-      return Runtime::ThrowIteratorError(isolate, object);
-    }
-    THROW_NEW_ERROR(
-        isolate,
-        NewTypeError(MessageTemplate::kNonObjectPropertyLoad, key, object),
-        Object);
+    ErrorUtils::ThrowLoadFromNullOrUndefined(isolate, object, key);
+    return MaybeHandle<Object>();
   }
 
   bool success = false;
-  LookupIterator it =
-      LookupIterator::PropertyOrElement(isolate, object, key, &success);
+  LookupIterator::Key lookup_key(isolate, key, &success);
   if (!success) return MaybeHandle<Object>();
+  LookupIterator it(isolate, object, lookup_key);
 
   MaybeHandle<Object> result = Object::GetProperty(&it);
   if (is_found_out) *is_found_out = it.IsFound();
 
   if (!it.IsFound() && key->IsSymbol() &&
       Symbol::cast(*key).is_private_name()) {
-    Handle<Object> name_string(Symbol::cast(*key).name(), isolate);
-    DCHECK(name_string->IsString());
+    Handle<Symbol> sym = Handle<Symbol>::cast(key);
+    Handle<Object> name(sym->description(), isolate);
+    DCHECK(name->IsString());
+    Handle<String> name_string = Handle<String>::cast(name);
+    if (sym->IsPrivateBrand()) {
+      Handle<String> class_name = (name_string->length() == 0)
+                                      ? isolate->factory()->anonymous_string()
+                                      : name_string;
+      THROW_NEW_ERROR(isolate,
+                      NewTypeError(MessageTemplate::kInvalidPrivateBrand,
+                                   class_name, object),
+                      Object);
+    }
     THROW_NEW_ERROR(isolate,
-                    NewTypeError(MessageTemplate::kInvalidPrivateFieldRead,
+                    NewTypeError(MessageTemplate::kInvalidPrivateMemberRead,
                                  name_string, object),
                     Object);
   }
@@ -93,7 +103,7 @@ bool DeleteObjectPropertyFast(Isolate* isolate, Handle<JSReceiver> receiver,
   // (2) The property to be deleted must be the last property.
   int nof = receiver_map->NumberOfOwnDescriptors();
   if (nof == 0) return false;
-  int descriptor = nof - 1;
+  InternalIndex descriptor(nof - 1);
   Handle<DescriptorArray> descriptors(receiver_map->instance_descriptors(),
                                       isolate);
   if (descriptors->GetKey(descriptor) != *key) return false;
@@ -134,8 +144,12 @@ bool DeleteObjectPropertyFast(Isolate* isolate, Handle<JSReceiver> receiver,
   // for properties stored in the descriptor array.
   if (details.location() == kField) {
     DisallowHeapAllocation no_allocation;
-    isolate->heap()->NotifyObjectLayoutChange(
-        *receiver, receiver_map->instance_size(), no_allocation);
+
+    // Invalidate slots manually later in case we delete an in-object tagged
+    // property. In this case we might later store an untagged value in the
+    // recorded slot.
+    isolate->heap()->NotifyObjectLayoutChange(*receiver, no_allocation,
+                                              InvalidateRecordedSlots::kNo);
     FieldIndex index =
         FieldIndex::ForPropertyIndex(*receiver_map, details.field_index());
     // Special case deleting the last out-of object property.
@@ -151,8 +165,13 @@ bool DeleteObjectPropertyFast(Isolate* isolate, Handle<JSReceiver> receiver,
       // Slot clearing is the reason why this entire function cannot currently
       // be implemented in the DeleteProperty stub.
       if (index.is_inobject() && !receiver_map->IsUnboxedDoubleField(index)) {
+        // We need to clear the recorded slot in this case because in-object
+        // slack tracking might not be finished. This ensures that we don't
+        // have recorded slots in free space.
         isolate->heap()->ClearRecordedSlot(*receiver,
                                            receiver->RawField(index.offset()));
+        MemoryChunk* chunk = MemoryChunk::FromHeapObject(*receiver);
+        chunk->InvalidateRecordedSlots(*receiver);
       }
     }
   }
@@ -179,9 +198,9 @@ Maybe<bool> Runtime::DeleteObjectProperty(Isolate* isolate,
   if (DeleteObjectPropertyFast(isolate, receiver, key)) return Just(true);
 
   bool success = false;
-  LookupIterator it = LookupIterator::PropertyOrElement(
-      isolate, receiver, key, &success, LookupIterator::OWN);
+  LookupIterator::Key lookup_key(isolate, key, &success);
   if (!success) return Nothing<bool>();
+  LookupIterator it(isolate, receiver, lookup_key, LookupIterator::OWN);
 
   return JSReceiver::DeleteProperty(&it, language_mode);
 }
@@ -263,27 +282,22 @@ RUNTIME_FUNCTION(Runtime_ObjectHasOwnProperty) {
   HandleScope scope(isolate);
   Handle<Object> property = args.at(1);
 
-  Handle<Name> key;
-  uint32_t index;
-  bool key_is_array_index = property->ToArrayIndex(&index);
-
-  if (!key_is_array_index) {
-    ASSIGN_RETURN_FAILURE_ON_EXCEPTION(isolate, key,
-                                       Object::ToName(isolate, property));
-    key_is_array_index = key->AsArrayIndex(&index);
-  }
+  // TODO(ishell): To improve performance, consider performing the to-string
+  // conversion of {property} before calling into the runtime.
+  bool success;
+  LookupIterator::Key key(isolate, property, &success);
+  if (!success) return ReadOnlyRoots(isolate).exception();
 
   Handle<Object> object = args.at(0);
 
   if (object->IsJSModuleNamespace()) {
-    if (key.is_null()) {
-      DCHECK(key_is_array_index);
+    if (key.is_element()) {
       // Namespace objects can't have indexed properties.
       return ReadOnlyRoots(isolate).false_value();
     }
-
-    Maybe<bool> result =
-        JSReceiver::HasOwnProperty(Handle<JSReceiver>::cast(object), key);
+    LookupIterator it(isolate, object, key, LookupIterator::OWN);
+    PropertyDescriptor desc;
+    Maybe<bool> result = JSReceiver::GetOwnPropertyDescriptor(&it, &desc);
     if (!result.IsJust()) return ReadOnlyRoots(isolate).exception();
     return isolate->heap()->ToBoolean(result.FromJust());
 
@@ -296,9 +310,7 @@ RUNTIME_FUNCTION(Runtime_ObjectHasOwnProperty) {
     // handle all cases directly (without this custom fast path).
     {
       LookupIterator::Configuration c = LookupIterator::OWN_SKIP_INTERCEPTOR;
-      LookupIterator it =
-          key_is_array_index ? LookupIterator(isolate, js_obj, index, js_obj, c)
-                             : LookupIterator(js_obj, key, js_obj, c);
+      LookupIterator it(isolate, js_obj, key, js_obj, c);
       Maybe<bool> maybe = JSReceiver::HasProperty(&it);
       if (maybe.IsNothing()) return ReadOnlyRoots(isolate).exception();
       DCHECK(!isolate->has_pending_exception());
@@ -307,38 +319,32 @@ RUNTIME_FUNCTION(Runtime_ObjectHasOwnProperty) {
 
     Map map = js_obj->map();
     if (!map.IsJSGlobalProxyMap() &&
-        (key_is_array_index ? !map.has_indexed_interceptor()
-                            : !map.has_named_interceptor())) {
+        (key.is_element() && key.index() <= JSArray::kMaxArrayIndex
+             ? !map.has_indexed_interceptor()
+             : !map.has_named_interceptor())) {
       return ReadOnlyRoots(isolate).false_value();
     }
 
     // Slow case.
-    LookupIterator::Configuration c = LookupIterator::OWN;
-    LookupIterator it = key_is_array_index
-                            ? LookupIterator(isolate, js_obj, index, js_obj, c)
-                            : LookupIterator(js_obj, key, js_obj, c);
-
+    LookupIterator it(isolate, js_obj, key, js_obj, LookupIterator::OWN);
     Maybe<bool> maybe = JSReceiver::HasProperty(&it);
     if (maybe.IsNothing()) return ReadOnlyRoots(isolate).exception();
     DCHECK(!isolate->has_pending_exception());
     return isolate->heap()->ToBoolean(maybe.FromJust());
 
   } else if (object->IsJSProxy()) {
-    if (key.is_null()) {
-      DCHECK(key_is_array_index);
-      key = isolate->factory()->Uint32ToString(index);
-    }
-
-    Maybe<bool> result =
-        JSReceiver::HasOwnProperty(Handle<JSProxy>::cast(object), key);
-    if (result.IsNothing()) return ReadOnlyRoots(isolate).exception();
-    return isolate->heap()->ToBoolean(result.FromJust());
+    LookupIterator it(isolate, object, key, Handle<JSProxy>::cast(object),
+                      LookupIterator::OWN);
+    Maybe<PropertyAttributes> attributes =
+        JSReceiver::GetPropertyAttributes(&it);
+    if (attributes.IsNothing()) return ReadOnlyRoots(isolate).exception();
+    return isolate->heap()->ToBoolean(attributes.FromJust() != ABSENT);
 
   } else if (object->IsString()) {
     return isolate->heap()->ToBoolean(
-        key_is_array_index
-            ? index < static_cast<uint32_t>(String::cast(*object).length())
-            : key->Equals(ReadOnlyRoots(isolate).length_string()));
+        key.is_element()
+            ? key.index() < static_cast<size_t>(String::cast(*object).length())
+            : key.name()->Equals(ReadOnlyRoots(isolate).length_string()));
   } else if (object->IsNullOrUndefined(isolate)) {
     THROW_NEW_ERROR_RETURN_FAILURE(
         isolate, NewTypeError(MessageTemplate::kUndefinedOrNullToObject));
@@ -404,16 +410,16 @@ MaybeHandle<Object> Runtime::SetObjectProperty(
 
   // Check if the given key is an array index.
   bool success = false;
-  LookupIterator it =
-      LookupIterator::PropertyOrElement(isolate, object, key, &success);
+  LookupIterator::Key lookup_key(isolate, key, &success);
   if (!success) return MaybeHandle<Object>();
+  LookupIterator it(isolate, object, lookup_key);
 
   if (!it.IsFound() && key->IsSymbol() &&
       Symbol::cast(*key).is_private_name()) {
-    Handle<Object> name_string(Symbol::cast(*key).name(), isolate);
+    Handle<Object> name_string(Symbol::cast(*key).description(), isolate);
     DCHECK(name_string->IsString());
     THROW_NEW_ERROR(isolate,
-                    NewTypeError(MessageTemplate::kInvalidPrivateFieldWrite,
+                    NewTypeError(MessageTemplate::kInvalidPrivateMemberWrite,
                                  name_string, object),
                     Object);
   }
@@ -610,8 +616,8 @@ RUNTIME_FUNCTION(Runtime_GetProperty) {
         // Attempt dictionary lookup.
         GlobalDictionary dictionary =
             JSGlobalObject::cast(*receiver).global_dictionary();
-        int entry = dictionary.FindEntry(isolate, key);
-        if (entry != GlobalDictionary::kNotFound) {
+        InternalIndex entry = dictionary.FindEntry(isolate, key);
+        if (entry.is_found()) {
           PropertyCell cell = dictionary.CellAt(entry);
           if (cell.property_details().kind() == kData) {
             Object value = cell.value();
@@ -622,8 +628,8 @@ RUNTIME_FUNCTION(Runtime_GetProperty) {
       } else if (!receiver->HasFastProperties()) {
         // Attempt dictionary lookup.
         NameDictionary dictionary = receiver->property_dictionary();
-        int entry = dictionary.FindEntry(isolate, key);
-        if ((entry != NameDictionary::kNotFound) &&
+        InternalIndex entry = dictionary.FindEntry(isolate, key);
+        if ((entry.is_found()) &&
             (dictionary.DetailsAt(entry).kind() == kData)) {
           return dictionary.ValueAt(entry);
         }
@@ -702,9 +708,8 @@ RUNTIME_FUNCTION(Runtime_StoreDataPropertyInLiteral) {
   CONVERT_ARG_HANDLE_CHECKED(Object, key, 1);
   CONVERT_ARG_HANDLE_CHECKED(Object, value, 2);
 
-  bool success;
-  LookupIterator it = LookupIterator::PropertyOrElement(
-      isolate, object, key, &success, LookupIterator::OWN);
+  LookupIterator::Key lookup_key(isolate, key);
+  LookupIterator it(isolate, object, lookup_key, LookupIterator::OWN);
 
   Maybe<bool> result = JSObject::DefineOwnPropertyIgnoreAttributes(
       &it, value, NONE, Just(kDontThrow));
@@ -749,7 +754,7 @@ RUNTIME_FUNCTION(Runtime_ShrinkPropertyDictionary) {
   Handle<NameDictionary> new_properties =
       NameDictionary::Shrink(isolate, dictionary);
   receiver->SetProperties(*new_properties);
-  return Smi::kZero;
+  return Smi::zero();
 }
 
 // ES6 section 12.9.3, operator in.
@@ -778,7 +783,6 @@ RUNTIME_FUNCTION(Runtime_HasProperty) {
   return isolate->heap()->ToBoolean(maybe.FromJust());
 }
 
-
 RUNTIME_FUNCTION(Runtime_GetOwnPropertyKeys) {
   HandleScope scope(isolate);
   DCHECK_EQ(2, args.length());
@@ -795,7 +799,6 @@ RUNTIME_FUNCTION(Runtime_GetOwnPropertyKeys) {
   return *isolate->factory()->NewJSArrayWithElements(keys);
 }
 
-
 RUNTIME_FUNCTION(Runtime_ToFastProperties) {
   HandleScope scope(isolate);
   DCHECK_EQ(1, args.length());
@@ -807,13 +810,11 @@ RUNTIME_FUNCTION(Runtime_ToFastProperties) {
   return *object;
 }
 
-
 RUNTIME_FUNCTION(Runtime_AllocateHeapNumber) {
   HandleScope scope(isolate);
   DCHECK_EQ(0, args.length());
   return *isolate->factory()->NewHeapNumber(0);
 }
-
 
 RUNTIME_FUNCTION(Runtime_NewObject) {
   HandleScope scope(isolate);
@@ -845,28 +846,25 @@ RUNTIME_FUNCTION(Runtime_CompleteInobjectSlackTrackingForMap) {
   return ReadOnlyRoots(isolate).undefined_value();
 }
 
-
 RUNTIME_FUNCTION(Runtime_TryMigrateInstance) {
   HandleScope scope(isolate);
   DCHECK_EQ(1, args.length());
   CONVERT_ARG_HANDLE_CHECKED(Object, object, 0);
-  if (!object->IsJSObject()) return Smi::kZero;
+  if (!object->IsJSObject()) return Smi::zero();
   Handle<JSObject> js_object = Handle<JSObject>::cast(object);
   // It could have been a DCHECK but we call this function directly from tests.
-  if (!js_object->map().is_deprecated()) return Smi::kZero;
+  if (!js_object->map().is_deprecated()) return Smi::zero();
   // This call must not cause lazy deopts, because it's called from deferred
   // code where we can't handle lazy deopts for lack of a suitable bailout
   // ID. So we just try migration and signal failure if necessary,
   // which will also trigger a deopt.
-  if (!JSObject::TryMigrateInstance(isolate, js_object)) return Smi::kZero;
+  if (!JSObject::TryMigrateInstance(isolate, js_object)) return Smi::zero();
   return *object;
 }
-
 
 static bool IsValidAccessor(Isolate* isolate, Handle<Object> obj) {
   return obj->IsNullOrUndefined(isolate) || obj->IsCallable();
 }
-
 
 // Implements part of 8.12.9 DefineOwnProperty.
 // There are 3 cases that lead here:
@@ -891,7 +889,6 @@ RUNTIME_FUNCTION(Runtime_DefineAccessorPropertyUnchecked) {
   return ReadOnlyRoots(isolate).undefined_value();
 }
 
-
 RUNTIME_FUNCTION(Runtime_DefineDataPropertyInLiteral) {
   HandleScope scope(isolate);
   DCHECK_EQ(6, args.length());
@@ -900,7 +897,7 @@ RUNTIME_FUNCTION(Runtime_DefineDataPropertyInLiteral) {
   CONVERT_ARG_HANDLE_CHECKED(Object, value, 2);
   CONVERT_SMI_ARG_CHECKED(flag, 3);
   CONVERT_ARG_HANDLE_CHECKED(HeapObject, maybe_vector, 4);
-  CONVERT_SMI_ARG_CHECKED(index, 5);
+  CONVERT_TAGGED_INDEX_ARG_CHECKED(index, 5);
 
   if (!maybe_vector->IsUndefined()) {
     DCHECK(maybe_vector->IsFeedbackVector());
@@ -914,16 +911,13 @@ RUNTIME_FUNCTION(Runtime_DefineDataPropertyInLiteral) {
         nexus.ConfigureMegamorphic(PROPERTY);
       }
     } else if (nexus.ic_state() == MONOMORPHIC) {
-      if (nexus.GetFirstMap() != object->map() ||
-          nexus.GetFeedbackExtra() != MaybeObject::FromObject(*name)) {
+      if (nexus.GetFirstMap() != object->map() || nexus.GetName() != *name) {
         nexus.ConfigureMegamorphic(PROPERTY);
       }
     }
   }
 
-  DataPropertyInLiteralFlags flags =
-      static_cast<DataPropertyInLiteralFlag>(flag);
-
+  DataPropertyInLiteralFlags flags(flag);
   PropertyAttributes attrs = (flags & DataPropertyInLiteralFlag::kDontEnum)
                                  ? PropertyAttributes::DONT_ENUM
                                  : PropertyAttributes::NONE;
@@ -942,8 +936,8 @@ RUNTIME_FUNCTION(Runtime_DefineDataPropertyInLiteral) {
                   *function_map == function->map());
   }
 
-  LookupIterator it = LookupIterator::PropertyOrElement(
-      isolate, object, name, object, LookupIterator::OWN);
+  LookupIterator::Key key(isolate, name);
+  LookupIterator it(isolate, object, key, object, LookupIterator::OWN);
   // Cannot fail since this should only be called when
   // creating an object literal.
   CHECK(JSObject::DefineOwnPropertyIgnoreAttributes(&it, value, attrs,
@@ -957,6 +951,11 @@ RUNTIME_FUNCTION(Runtime_CollectTypeProfile) {
   DCHECK_EQ(3, args.length());
   CONVERT_ARG_HANDLE_CHECKED(Smi, position, 0);
   CONVERT_ARG_HANDLE_CHECKED(Object, value, 1);
+  CONVERT_ARG_HANDLE_CHECKED(HeapObject, maybe_vector, 2);
+
+  if (maybe_vector->IsUndefined()) {
+    return ReadOnlyRoots(isolate).undefined_value();
+  }
   CONVERT_ARG_HANDLE_CHECKED(FeedbackVector, vector, 2);
 
   Handle<String> type = Object::TypeOf(isolate, value);
@@ -984,21 +983,11 @@ RUNTIME_FUNCTION(Runtime_HasFastPackedElements) {
       IsFastPackedElementsKind(obj.map().elements_kind()));
 }
 
-
 RUNTIME_FUNCTION(Runtime_IsJSReceiver) {
   SealHandleScope shs(isolate);
   DCHECK_EQ(1, args.length());
   CONVERT_ARG_CHECKED(Object, obj, 0);
   return isolate->heap()->ToBoolean(obj.IsJSReceiver());
-}
-
-
-RUNTIME_FUNCTION(Runtime_ClassOf) {
-  SealHandleScope shs(isolate);
-  DCHECK_EQ(1, args.length());
-  CONVERT_ARG_CHECKED(Object, obj, 0);
-  if (!obj.IsJSReceiver()) return ReadOnlyRoots(isolate).null_value();
-  return JSReceiver::cast(obj).class_name();
 }
 
 RUNTIME_FUNCTION(Runtime_GetFunctionName) {
@@ -1069,9 +1058,9 @@ RUNTIME_FUNCTION(Runtime_CopyDataPropertiesWithExcludedProperties) {
   DCHECK_LE(1, args.length());
   CONVERT_ARG_HANDLE_CHECKED(Object, source, 0);
 
-  // 2. If source is undefined or null, let keys be an empty List.
-  if (source->IsUndefined(isolate) || source->IsNull(isolate)) {
-    return ReadOnlyRoots(isolate).undefined_value();
+  // If source is undefined or null, throw a non-coercible error.
+  if (source->IsNullOrUndefined(isolate)) {
+    return ErrorUtils::ThrowLoadFromNullOrUndefined(isolate, source);
   }
 
   ScopedVector<Handle<Object>> excluded_properties(args.length() - 1);
@@ -1141,7 +1130,6 @@ RUNTIME_FUNCTION(Runtime_ToNumeric) {
   RETURN_RESULT_OR_FAILURE(isolate, Object::ToNumeric(isolate, input));
 }
 
-
 RUNTIME_FUNCTION(Runtime_ToLength) {
   HandleScope scope(isolate);
   DCHECK_EQ(1, args.length());
@@ -1175,7 +1163,6 @@ RUNTIME_FUNCTION(Runtime_HasInPrototypeChain) {
   return isolate->heap()->ToBoolean(result.FromJust());
 }
 
-
 // ES6 section 7.4.7 CreateIterResultObject ( value, done )
 RUNTIME_FUNCTION(Runtime_CreateIterResultObject) {
   HandleScope scope(isolate);
@@ -1193,9 +1180,9 @@ RUNTIME_FUNCTION(Runtime_CreateDataProperty) {
   CONVERT_ARG_HANDLE_CHECKED(Object, key, 1);
   CONVERT_ARG_HANDLE_CHECKED(Object, value, 2);
   bool success;
-  LookupIterator it = LookupIterator::PropertyOrElement(
-      isolate, o, key, &success, LookupIterator::OWN);
+  LookupIterator::Key lookup_key(isolate, key, &success);
   if (!success) return ReadOnlyRoots(isolate).exception();
+  LookupIterator it(isolate, o, lookup_key, LookupIterator::OWN);
   MAYBE_RETURN(JSReceiver::CreateDataProperty(&it, value, Just(kThrowOnError)),
                ReadOnlyRoots(isolate).exception());
   return *value;
@@ -1217,15 +1204,41 @@ RUNTIME_FUNCTION(Runtime_GetOwnPropertyDescriptor) {
   return *desc.ToPropertyDescriptorObject(isolate);
 }
 
-RUNTIME_FUNCTION(Runtime_AddPrivateBrand) {
+RUNTIME_FUNCTION(Runtime_LoadPrivateSetter) {
+  HandleScope scope(isolate);
+  DCHECK_EQ(args.length(), 1);
+  CONVERT_ARG_HANDLE_CHECKED(AccessorPair, pair, 0);
+  DCHECK(pair->setter().IsJSFunction());
+  return pair->setter();
+}
+
+RUNTIME_FUNCTION(Runtime_LoadPrivateGetter) {
+  HandleScope scope(isolate);
+  DCHECK_EQ(args.length(), 1);
+  CONVERT_ARG_HANDLE_CHECKED(AccessorPair, pair, 0);
+  DCHECK(pair->getter().IsJSFunction());
+  return pair->getter();
+}
+
+RUNTIME_FUNCTION(Runtime_CreatePrivateAccessors) {
   HandleScope scope(isolate);
   DCHECK_EQ(args.length(), 2);
+  DCHECK(args[0].IsNull() || args[0].IsJSFunction());
+  DCHECK(args[1].IsNull() || args[1].IsJSFunction());
+  Handle<AccessorPair> pair = isolate->factory()->NewAccessorPair();
+  pair->SetComponents(args[0], args[1]);
+  return *pair;
+}
+
+RUNTIME_FUNCTION(Runtime_AddPrivateBrand) {
+  HandleScope scope(isolate);
+  DCHECK_EQ(args.length(), 3);
   CONVERT_ARG_HANDLE_CHECKED(JSReceiver, receiver, 0);
   CONVERT_ARG_HANDLE_CHECKED(Symbol, brand, 1);
+  CONVERT_ARG_HANDLE_CHECKED(Context, context, 2);
   DCHECK(brand->is_private_name());
 
-  LookupIterator it = LookupIterator::PropertyOrElement(
-      isolate, receiver, brand, LookupIterator::OWN);
+  LookupIterator it(isolate, receiver, brand, LookupIterator::OWN);
 
   if (it.IsFound()) {
     THROW_NEW_ERROR_RETURN_FAILURE(
@@ -1234,9 +1247,7 @@ RUNTIME_FUNCTION(Runtime_AddPrivateBrand) {
 
   PropertyAttributes attributes =
       static_cast<PropertyAttributes>(DONT_ENUM | DONT_DELETE | READ_ONLY);
-  // TODO(joyee): we could use this slot to store something useful. For now,
-  // store the brand itself.
-  CHECK(Object::AddDataProperty(&it, brand, attributes, Just(kDontThrow),
+  CHECK(Object::AddDataProperty(&it, context, attributes, Just(kDontThrow),
                                 StoreOrigin::kMaybeKeyed)
             .FromJust());
   return *receiver;
@@ -1250,8 +1261,7 @@ RUNTIME_FUNCTION(Runtime_AddPrivateField) {
   CONVERT_ARG_HANDLE_CHECKED(Object, value, 2);
   DCHECK(key->is_private_name());
 
-  LookupIterator it =
-      LookupIterator::PropertyOrElement(isolate, o, key, LookupIterator::OWN);
+  LookupIterator it(isolate, o, key, LookupIterator::OWN);
 
   if (it.IsFound()) {
     THROW_NEW_ERROR_RETURN_FAILURE(

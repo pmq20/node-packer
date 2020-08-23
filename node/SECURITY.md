@@ -1,6 +1,6 @@
 # Security
 
-## Reporting a Bug in Node.js
+## Reporting a bug in Node.js
 
 Report security bugs in Node.js via [HackerOne](https://hackerone.com/nodejs).
 
@@ -11,20 +11,19 @@ handling your submission.
 After the initial reply to your report, the security team will endeavor to keep
 you informed of the progress being made towards a fix and full announcement,
 and may ask for additional information or guidance surrounding the reported
-issue.  These updates will be sent at least every five days; in practice, this
-is more likely to be every 24-48 hours.
+issue.
 
-### Node.js Bug Bounty Program
+### Node.js bug bounty program
 
 The Node.js project engages in an official bug bounty program for security
 researchers and responsible public disclosures.  The program is managed through
 the HackerOne platform. See <https://hackerone.com/nodejs> for further details.
 
-## Reporting a Bug in a third party module
+## Reporting a bug in a third party module
 
 Security bugs in third party modules should be reported to their respective
-maintainers and should also be coordinated through the Node Ecosystem Security
-Team via [HackerOne](https://hackerone.com/nodejs-ecosystem).
+maintainers and should also be coordinated through the Node.js Ecosystem
+Security Team via [HackerOne](https://hackerone.com/nodejs-ecosystem).
 
 Details regarding this process can be found in the
 [Security Working Group repository](https://github.com/nodejs/security-wg/blob/master/processes/third_party_vuln_process.md).
@@ -32,7 +31,7 @@ Details regarding this process can be found in the
 Thank you for improving the security of Node.js and its ecosystem. Your efforts
 and responsible disclosure are greatly appreciated and will be acknowledged.
 
-## Disclosure Policy
+## Disclosure policy
 
 Here is the security disclosure policy for Node.js
 
@@ -61,14 +60,14 @@ Here is the security disclosure policy for Node.js
   the release process above to ensure that the disclosure is handled in a
   consistent manner.
 
-## Receiving Security Updates
+## Receiving security updates
 
 Security notifications will be distributed via the following methods.
 
 * <https://groups.google.com/group/nodejs-sec>
 * <https://nodejs.org/en/blog/>
 
-## Comments on this Policy
+## Comments on this policy
 
 If you have suggestions on how this process could be improved please submit a
 [pull request](https://github.com/nodejs/nodejs.org) or

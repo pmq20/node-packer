@@ -45,9 +45,6 @@ using v8::Isolate;
 using v8::Local;
 using v8::Message;
 using v8::Object;
-using v8::String;
-using v8::Task;
-using v8::TaskRunner;
 using v8::Value;
 
 using v8_inspector::StringBuffer;
@@ -60,18 +57,8 @@ static uv_async_t start_io_thread_async;
 // This is just an additional check to make sure start_io_thread_async
 // is not accidentally re-used or used when uninitialized.
 static std::atomic_bool start_io_thread_async_initialized { false };
-
-class StartIoTask : public Task {
- public:
-  explicit StartIoTask(Agent* agent) : agent(agent) {}
-
-  void Run() override {
-    agent->StartIoThread();
-  }
-
- private:
-  Agent* agent;
-};
+// Protects the Agent* stored in start_io_thread_async.data.
+static Mutex start_io_thread_async_mutex;
 
 std::unique_ptr<StringBuffer> ToProtocolString(Isolate* isolate,
                                                Local<Value> value) {
@@ -84,19 +71,17 @@ void StartIoThreadAsyncCallback(uv_async_t* handle) {
   static_cast<Agent*>(handle->data)->StartIoThread();
 }
 
-void StartIoInterrupt(Isolate* isolate, void* agent) {
-  static_cast<Agent*>(agent)->StartIoThread();
-}
-
 
 #ifdef __POSIX__
-static void StartIoThreadWakeup(int signo) {
+static void StartIoThreadWakeup(int signo, siginfo_t* info, void* ucontext) {
   uv_sem_post(&start_io_thread_semaphore);
 }
 
 inline void* StartIoThreadMain(void* unused) {
   for (;;) {
     uv_sem_wait(&start_io_thread_semaphore);
+    Mutex::ScopedLock lock(start_io_thread_async_mutex);
+
     CHECK(start_io_thread_async_initialized);
     Agent* agent = static_cast<Agent*>(start_io_thread_async.data);
     if (agent != nullptr)
@@ -157,6 +142,7 @@ static int StartDebugSignalHandler() {
 
 #ifdef _WIN32
 DWORD WINAPI StartIoThreadProc(void* arg) {
+  Mutex::ScopedLock lock(start_io_thread_async_mutex);
   CHECK(start_io_thread_async_initialized);
   Agent* agent = static_cast<Agent*>(start_io_thread_async.data);
   if (agent != nullptr)
@@ -352,30 +338,24 @@ class InspectorTimer {
     int64_t interval_ms = 1000 * interval_s;
     uv_timer_start(&timer_, OnTimer, interval_ms, interval_ms);
     timer_.data = this;
-
-    env->AddCleanupHook(CleanupHook, this);
   }
 
   InspectorTimer(const InspectorTimer&) = delete;
 
   void Stop() {
-    env_->RemoveCleanupHook(CleanupHook, this);
+    if (timer_.data == nullptr) return;
 
-    if (timer_.data == this) {
-      timer_.data = nullptr;
-      uv_timer_stop(&timer_);
-      env_->CloseHandle(reinterpret_cast<uv_handle_t*>(&timer_), TimerClosedCb);
-    }
+    timer_.data = nullptr;
+    uv_timer_stop(&timer_);
+    env_->CloseHandle(reinterpret_cast<uv_handle_t*>(&timer_), TimerClosedCb);
   }
+
+  inline Environment* env() const { return env_; }
 
  private:
   static void OnTimer(uv_timer_t* uvtimer) {
     InspectorTimer* timer = node::ContainerOf(&InspectorTimer::timer_, uvtimer);
     timer->callback_(timer->data_);
-  }
-
-  static void CleanupHook(void* data) {
-    static_cast<InspectorTimer*>(data)->Stop();
   }
 
   static void TimerClosedCb(uv_handle_t* uvtimer) {
@@ -400,16 +380,29 @@ class InspectorTimerHandle {
   InspectorTimerHandle(Environment* env, double interval_s,
                        V8InspectorClient::TimerCallback callback, void* data) {
     timer_ = new InspectorTimer(env, interval_s, callback, data);
+
+    env->AddCleanupHook(CleanupHook, this);
   }
 
   InspectorTimerHandle(const InspectorTimerHandle&) = delete;
 
   ~InspectorTimerHandle() {
-    CHECK_NOT_NULL(timer_);
-    timer_->Stop();
+    Stop();
+  }
+
+ private:
+  void Stop() {
+    if (timer_ != nullptr) {
+      timer_->env()->RemoveCleanupHook(CleanupHook, this);
+      timer_->Stop();
+    }
     timer_ = nullptr;
   }
- private:
+
+  static void CleanupHook(void* data) {
+    static_cast<InspectorTimerHandle*>(data)->Stop();
+  }
+
   InspectorTimer* timer_;
 };
 
@@ -665,10 +658,9 @@ class NodeInspectorClient : public V8InspectorClient {
   }
 
   std::shared_ptr<MainThreadHandle> getThreadHandle() {
-    if (interface_ == nullptr) {
-      interface_.reset(new MainThreadInterface(
-          env_->inspector_agent(), env_->event_loop(), env_->isolate(),
-          env_->isolate_data()->platform()));
+    if (!interface_) {
+      interface_ = std::make_shared<MainThreadInterface>(
+          env_->inspector_agent());
     }
     return interface_->GetHandle();
   }
@@ -704,10 +696,9 @@ class NodeInspectorClient : public V8InspectorClient {
 
     running_nested_loop_ = true;
 
-    MultiIsolatePlatform* platform = env_->isolate_data()->platform();
     while (shouldRunMessageLoop()) {
       if (interface_) interface_->WaitForFrontendEvent();
-      while (platform->FlushForegroundTasks(env_->isolate())) {}
+      env_->RunAndClearInterrupts();
     }
     running_nested_loop_ = false;
   }
@@ -732,14 +723,15 @@ class NodeInspectorClient : public V8InspectorClient {
   bool is_main_;
   bool running_nested_loop_ = false;
   std::unique_ptr<V8Inspector> client_;
-  std::unordered_map<int, std::unique_ptr<ChannelImpl>> channels_;
+  // Note: ~ChannelImpl may access timers_ so timers_ has to come first.
   std::unordered_map<void*, InspectorTimerHandle> timers_;
+  std::unordered_map<int, std::unique_ptr<ChannelImpl>> channels_;
   int next_session_id_ = 1;
   bool waiting_for_resume_ = false;
   bool waiting_for_frontend_ = false;
   bool waiting_for_sessions_disconnect_ = false;
   // Allows accessing Inspector from non-main threads
-  std::unique_ptr<MainThreadInterface> interface_;
+  std::shared_ptr<MainThreadInterface> interface_;
   std::shared_ptr<WorkerManager> worker_manager_;
 };
 
@@ -748,18 +740,11 @@ Agent::Agent(Environment* env)
       debug_options_(env->options()->debug_options()),
       host_port_(env->inspector_host_port()) {}
 
-Agent::~Agent() {
-  if (start_io_thread_async.data == this) {
-    CHECK(start_io_thread_async_initialized.exchange(false));
-    start_io_thread_async.data = nullptr;
-    // This is global, will never get freed
-    uv_close(reinterpret_cast<uv_handle_t*>(&start_io_thread_async), nullptr);
-  }
-}
+Agent::~Agent() {}
 
 bool Agent::Start(const std::string& path,
                   const DebugOptions& options,
-                  std::shared_ptr<HostPort> host_port,
+                  std::shared_ptr<ExclusiveAccess<HostPort>> host_port,
                   bool is_main) {
   path_ = path;
   debug_options_ = options;
@@ -768,6 +753,7 @@ bool Agent::Start(const std::string& path,
 
   client_ = std::make_shared<NodeInspectorClient>(parent_env_, is_main);
   if (parent_env_->owns_inspector()) {
+    Mutex::ScopedLock lock(start_io_thread_async_mutex);
     CHECK_EQ(start_io_thread_async_initialized.exchange(true), false);
     CHECK_EQ(0, uv_async_init(parent_env_->event_loop(),
                               &start_io_thread_async,
@@ -776,7 +762,28 @@ bool Agent::Start(const std::string& path,
     start_io_thread_async.data = this;
     // Ignore failure, SIGUSR1 won't work, but that should not block node start.
     StartDebugSignalHandler();
+
+    parent_env_->AddCleanupHook([](void* data) {
+      Environment* env = static_cast<Environment*>(data);
+
+      {
+        Mutex::ScopedLock lock(start_io_thread_async_mutex);
+        start_io_thread_async.data = nullptr;
+      }
+
+      // This is global, will never get freed
+      env->CloseHandle(&start_io_thread_async, [](uv_async_t*) {
+        CHECK(start_io_thread_async_initialized.exchange(false));
+      });
+    }, parent_env_);
   }
+
+  AtExit(parent_env_, [](void* env) {
+    Agent* agent = static_cast<Environment*>(env)->inspector_agent();
+    if (agent->IsActive()) {
+      agent->WaitForDisconnect();
+    }
+  }, parent_env_);
 
   bool wait_for_connect = options.wait_for_connect();
   if (parent_handle_) {
@@ -910,13 +917,18 @@ void Agent::DisableAsyncHook() {
 
 void Agent::ToggleAsyncHook(Isolate* isolate,
                             const Global<Function>& fn) {
+  // Guard against running this during cleanup -- no async events will be
+  // emitted anyway at that point anymore, and calling into JS is not possible.
+  // This should probably not be something we're attempting in the first place,
+  // Refs: https://github.com/nodejs/node/pull/34362#discussion_r456006039
+  if (!parent_env_->can_call_into_js()) return;
   CHECK(parent_env_->has_run_bootstrapping_code());
   HandleScope handle_scope(isolate);
   CHECK(!fn.IsEmpty());
   auto context = parent_env_->context();
   v8::TryCatch try_catch(isolate);
   USE(fn.Get(isolate)->Call(context, Undefined(isolate), 0, nullptr));
-  if (try_catch.HasCaught()) {
+  if (try_catch.HasCaught() && !try_catch.HasTerminated()) {
     PrintCaughtException(isolate, context, try_catch);
     FatalError("\nnode::inspector::Agent::ToggleAsyncHook",
                "Cannot toggle Inspector's AsyncHook, please report this.");
@@ -950,12 +962,10 @@ void Agent::RequestIoThreadStart() {
   // for IO events)
   CHECK(start_io_thread_async_initialized);
   uv_async_send(&start_io_thread_async);
-  Isolate* isolate = parent_env_->isolate();
-  v8::Platform* platform = parent_env_->isolate_data()->platform();
-  std::shared_ptr<TaskRunner> taskrunner =
-    platform->GetForegroundTaskRunner(isolate);
-  taskrunner->PostTask(std::make_unique<StartIoTask>(this));
-  isolate->RequestInterrupt(StartIoInterrupt, this);
+  parent_env_->RequestInterrupt([this](Environment*) {
+    StartIoThread();
+  });
+
   CHECK(start_io_thread_async_initialized);
   uv_async_send(&start_io_thread_async);
 }

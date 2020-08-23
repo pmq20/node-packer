@@ -52,7 +52,9 @@
         'src/ares_fds.c',
         'src/ares_free_hostent.c',
         'src/ares_free_string.c',
+        'src/ares_freeaddrinfo.c',
         'src/ares_getenv.h',
+        'src/ares_getaddrinfo.c',
         'src/ares_gethostbyaddr.c',
         'src/ares_gethostbyname.c',
         'src/ares__get_hostent.c',
@@ -70,6 +72,7 @@
         'src/ares_nowarn.c',
         'src/ares_nowarn.h',
         'src/ares_options.c',
+        'src/ares__parse_into_addrinfo.c',
         'src/ares_parse_aaaa_reply.c',
         'src/ares_parse_a_reply.c',
         'src/ares_parse_mx_reply.c',
@@ -84,9 +87,11 @@
         'src/ares_process.c',
         'src/ares_query.c',
         'src/ares__read_line.c',
+        'src/ares__readaddrinfo.c',
         'src/ares_search.c',
         'src/ares_send.c',
         'src/ares_setup.h',
+        'src/ares__sortaddrinfo.c',
         'src/ares_strcasecmp.c',
         'src/ares_strcasecmp.h',
         'src/ares_strdup.c',
@@ -112,7 +117,10 @@
           'defines': [ 'CARES_BUILDING_LIBRARY' ]
         }],
         [ 'OS=="win"', {
-          'defines': [ 'CARES_PULL_WS2TCPIP_H=1' ],
+          'defines': [
+            'CARES_PULL_WS2TCPIP_H=1',
+            '_WINSOCK_DEPRECATED_NO_WARNINGS',
+          ],
           'include_dirs': [ 'config/win32' ],
           'sources': [
             'src/config-win32.h',

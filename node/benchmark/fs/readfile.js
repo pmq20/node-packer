@@ -5,32 +5,35 @@
 
 const path = require('path');
 const common = require('../common.js');
-const filename = path.resolve(process.env.NODE_TMPDIR || __dirname,
-                              `.removeme-benchmark-garbage-${process.pid}`);
 const fs = require('fs');
 const assert = require('assert');
 
+const tmpdir = require('../../test/common/tmpdir');
+tmpdir.refresh();
+const filename = path.resolve(tmpdir.path,
+                              `.removeme-benchmark-garbage-${process.pid}`);
+
 const bench = common.createBenchmark(main, {
-  dur: [5],
+  duration: [5],
   len: [1024, 16 * 1024 * 1024],
   concurrent: [1, 10]
 });
 
-function main({ len, dur, concurrent }) {
+function main({ len, duration, concurrent }) {
   try { fs.unlinkSync(filename); } catch {}
-  var data = Buffer.alloc(len, 'x');
+  let data = Buffer.alloc(len, 'x');
   fs.writeFileSync(filename, data);
   data = null;
 
-  var reads = 0;
-  var benchEnded = false;
+  let reads = 0;
+  let benchEnded = false;
   bench.start();
   setTimeout(() => {
     benchEnded = true;
     bench.end(reads);
     try { fs.unlinkSync(filename); } catch {}
     process.exit(0);
-  }, dur * 1000);
+  }, duration * 1000);
 
   function read() {
     fs.readFile(filename, afterRead);

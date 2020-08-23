@@ -7,9 +7,7 @@
 #include "src/codegen/assembler-inl.h"
 #include "src/codegen/macro-assembler.h"
 #include "src/codegen/optimized-compilation-info.h"
-#include "src/compiler/common-operator.h"
 #include "src/compiler/frame.h"
-#include "src/compiler/node.h"
 #include "src/compiler/osr.h"
 #include "src/compiler/pipeline.h"
 
@@ -20,6 +18,10 @@ namespace compiler {
 namespace {
 
 inline LinkageLocation regloc(Register reg, MachineType type) {
+  return LinkageLocation::ForRegister(reg.code(), type);
+}
+
+inline LinkageLocation regloc(DoubleRegister reg, MachineType type) {
   return LinkageLocation::ForRegister(reg.code(), type);
 }
 
@@ -75,15 +77,6 @@ MachineSignature* CallDescriptor::GetMachineSignature(Zone* zone) const {
   return new (zone) MachineSignature(return_count, param_count, types);
 }
 
-bool CallDescriptor::HasSameReturnLocationsAs(
-    const CallDescriptor* other) const {
-  if (ReturnCount() != other->ReturnCount()) return false;
-  for (size_t i = 0; i < ReturnCount(); ++i) {
-    if (GetReturnLocation(i) != other->GetReturnLocation(i)) return false;
-  }
-  return true;
-}
-
 int CallDescriptor::GetFirstUnusedStackSlot() const {
   int slots_above_sp = 0;
   for (size_t i = 0; i < InputCount(); ++i) {
@@ -104,19 +97,16 @@ int CallDescriptor::GetStackParameterDelta(
   int callee_slots_above_sp = GetFirstUnusedStackSlot();
   int tail_caller_slots_above_sp = tail_caller->GetFirstUnusedStackSlot();
   int stack_param_delta = callee_slots_above_sp - tail_caller_slots_above_sp;
-  if (kPadArguments) {
-    // Adjust stack delta when it is odd.
-    if (stack_param_delta % 2 != 0) {
-      if (callee_slots_above_sp % 2 != 0) {
-        // The delta is odd due to the callee - we will need to add one slot
-        // of padding.
-        ++stack_param_delta;
-      } else {
-        // The delta is odd because of the caller. We already have one slot of
-        // padding that we can reuse for arguments, so we will need one fewer
-        // slot.
-        --stack_param_delta;
-      }
+  if (ShouldPadArguments(stack_param_delta)) {
+    if (callee_slots_above_sp % 2 != 0) {
+      // The delta is odd due to the callee - we will need to add one slot
+      // of padding.
+      ++stack_param_delta;
+    } else {
+      // The delta is odd because of the caller. We already have one slot of
+      // padding that we can reuse for arguments, so we will need one fewer
+      // slot.
+      --stack_param_delta;
     }
   }
   return stack_param_delta;
@@ -133,8 +123,14 @@ int CallDescriptor::GetTaggedParameterSlots() const {
   return result;
 }
 
-bool CallDescriptor::CanTailCall(const Node* node) const {
-  return HasSameReturnLocationsAs(CallDescriptorOf(node->op()));
+bool CallDescriptor::CanTailCall(const CallDescriptor* callee) const {
+  if (ReturnCount() != callee->ReturnCount()) return false;
+  for (size_t i = 0; i < ReturnCount(); ++i) {
+    if (!LinkageLocation::IsSameLocation(GetReturnLocation(i),
+                                         callee->GetReturnLocation(i)))
+      return false;
+  }
+  return true;
 }
 
 // TODO(jkummerow, sigurds): Arguably frame size calculation should be
@@ -157,7 +153,7 @@ int CallDescriptor::CalculateFixedFrameSize(Code::Kind code_kind) const {
       return TypedFrameConstants::kFixedSlotCount;
     case kCallWasmFunction:
     case kCallWasmImportWrapper:
-      return WasmCompiledFrameConstants::kFixedSlotCount;
+      return WasmFrameConstants::kFixedSlotCount;
     case kCallWasmCapiFunction:
       return WasmExitFrameConstants::kFixedSlotCount;
   }
@@ -388,20 +384,33 @@ CallDescriptor* Linkage::GetStubCallDescriptor(
   LocationSignature::Builder locations(zone, return_count, parameter_count);
 
   // Add returns.
-  if (locations.return_count_ > 0) {
-    locations.AddReturn(regloc(kReturnRegister0, descriptor.GetReturnType(0)));
-  }
-  if (locations.return_count_ > 1) {
-    locations.AddReturn(regloc(kReturnRegister1, descriptor.GetReturnType(1)));
-  }
-  if (locations.return_count_ > 2) {
-    locations.AddReturn(regloc(kReturnRegister2, descriptor.GetReturnType(2)));
+  static constexpr Register return_registers[] = {
+      kReturnRegister0, kReturnRegister1, kReturnRegister2};
+  size_t num_returns = 0;
+  size_t num_fp_returns = 0;
+  for (size_t i = 0; i < locations.return_count_; i++) {
+    MachineType type = descriptor.GetReturnType(static_cast<int>(i));
+    if (IsFloatingPoint(type.representation())) {
+      DCHECK_LT(num_fp_returns, 1);  // Only 1 FP return is supported.
+      locations.AddReturn(regloc(kFPReturnRegister0, type));
+      num_fp_returns++;
+    } else {
+      DCHECK_LT(num_returns, arraysize(return_registers));
+      locations.AddReturn(regloc(return_registers[num_returns], type));
+      num_returns++;
+    }
   }
 
   // Add parameters in registers and on the stack.
   for (int i = 0; i < js_parameter_count; i++) {
     if (i < register_parameter_count) {
       // The first parameters go in registers.
+      // TODO(bbudge) Add floating point registers to the InterfaceDescriptor
+      // and use them for FP types. Currently, this works because on most
+      // platforms, all FP registers are available for use. On ia32, xmm0 is
+      // not allocatable and so we must work around that with platform-specific
+      // descriptors, adjusting the GP register set to avoid eax, which has
+      // register code 0.
       Register reg = descriptor.GetRegisterParameter(i);
       MachineType type = descriptor.GetParameterType(i);
       locations.AddParam(regloc(reg, type));
@@ -409,7 +418,9 @@ CallDescriptor* Linkage::GetStubCallDescriptor(
       // The rest of the parameters go on the stack.
       int stack_slot = i - register_parameter_count - stack_parameter_count;
       locations.AddParam(LinkageLocation::ForCallerFrameSlot(
-          stack_slot, MachineType::AnyTagged()));
+          stack_slot, i < descriptor.GetParameterCount()
+                          ? descriptor.GetParameterType(i)
+                          : MachineType::AnyTagged()));
     }
   }
   // Add context.

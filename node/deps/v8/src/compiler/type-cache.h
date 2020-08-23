@@ -33,10 +33,12 @@ class V8_EXPORT_PRIVATE TypeCache final {
       Type::Union(kUint8, Type::MinusZeroOrNaN(), zone());
   Type const kInt16 = CreateRange<int16_t>();
   Type const kUint16 = CreateRange<uint16_t>();
+  Type const kUnsigned31 = Type::Unsigned31();
   Type const kInt32 = Type::Signed32();
   Type const kUint32 = Type::Unsigned32();
   Type const kInt64 = CreateRange<int64_t>();
   Type const kUint64 = CreateRange<uint64_t>();
+  Type const kIntPtr = CreateRange<intptr_t>();
   Type const kFloat32 = Type::Number();
   Type const kFloat64 = Type::Number();
   Type const kBigInt64 = Type::BigInt();
@@ -114,7 +116,7 @@ class V8_EXPORT_PRIVATE TypeCache final {
   Type const kJSArrayBufferViewByteOffsetType = kJSArrayBufferByteLengthType;
 
   // The JSTypedArray::length property always contains an untagged number in
-  // the range [0, kMaxSmiValue].
+  // the range [0, JSTypedArray::kMaxLength].
   Type const kJSTypedArrayLengthType =
       CreateRange(0.0, JSTypedArray::kMaxLength);
 

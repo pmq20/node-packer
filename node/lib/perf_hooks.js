@@ -1,6 +1,15 @@
 'use strict';
 
-const { Object } = primordials;
+const {
+  ArrayIsArray,
+  Boolean,
+  NumberIsSafeInteger,
+  ObjectDefineProperties,
+  ObjectDefineProperty,
+  ObjectKeys,
+  Set,
+  Symbol,
+} = primordials;
 
 const {
   ELDHistogram: _ELDHistogram,
@@ -42,16 +51,18 @@ const kInspect = require('internal/util').customInspectSymbol;
 
 const {
   ERR_INVALID_CALLBACK,
-  ERR_INVALID_ARG_VALUE,
   ERR_INVALID_ARG_TYPE,
   ERR_INVALID_OPT_VALUE,
   ERR_VALID_PERFORMANCE_ENTRY_TYPE,
   ERR_INVALID_PERFORMANCE_MARK
 } = require('internal/errors').codes;
 
+const {
+  Histogram,
+  kHandle,
+} = require('internal/histogram');
+
 const { setImmediate } = require('timers');
-const kHandle = Symbol('handle');
-const kMap = Symbol('map');
 const kCallback = Symbol('callback');
 const kTypes = Symbol('types');
 const kEntries = Symbol('entries');
@@ -215,7 +226,7 @@ const nodeTiming = new PerformanceNodeTiming();
 // Maintains a list of entries as a linked list stored in insertion order.
 class PerformanceObserverEntryList {
   constructor() {
-    Object.defineProperties(this, {
+    ObjectDefineProperties(this, {
       [kEntries]: {
         writable: true,
         enumerable: false,
@@ -280,7 +291,7 @@ class PerformanceObserver extends AsyncResource {
       throw new ERR_INVALID_CALLBACK(callback);
     }
     super('PerformanceObserver');
-    Object.defineProperties(this, {
+    ObjectDefineProperties(this, {
       [kTypes]: {
         enumerable: false,
         writable: true,
@@ -312,12 +323,11 @@ class PerformanceObserver extends AsyncResource {
   disconnect() {
     const observerCountsGC = observerCounts[NODE_PERFORMANCE_ENTRY_TYPE_GC];
     const types = this[kTypes];
-    const keys = Object.keys(types);
-    for (var n = 0; n < keys.length; n++) {
-      const item = types[keys[n]];
+    for (const key of ObjectKeys(types)) {
+      const item = types[key];
       if (item) {
         L.remove(item);
-        observerCounts[keys[n]]--;
+        observerCounts[key]--;
       }
     }
     this[kTypes] = {};
@@ -331,11 +341,12 @@ class PerformanceObserver extends AsyncResource {
     if (typeof options !== 'object' || options === null) {
       throw new ERR_INVALID_ARG_TYPE('options', 'Object', options);
     }
-    if (!Array.isArray(options.entryTypes)) {
-      throw new ERR_INVALID_OPT_VALUE('entryTypes', options);
+    const { entryTypes } = options;
+    if (!ArrayIsArray(entryTypes)) {
+      throw new ERR_INVALID_OPT_VALUE('entryTypes', entryTypes);
     }
-    const entryTypes = options.entryTypes.filter(filterTypes).map(mapTypes);
-    if (entryTypes.length === 0) {
+    const filteredEntryTypes = entryTypes.filter(filterTypes).map(mapTypes);
+    if (filteredEntryTypes.length === 0) {
       throw new ERR_VALID_PERFORMANCE_ENTRY_TYPE();
     }
     this.disconnect();
@@ -343,8 +354,7 @@ class PerformanceObserver extends AsyncResource {
     this[kBuffer][kEntries] = [];
     L.init(this[kBuffer][kEntries]);
     this[kBuffering] = Boolean(options.buffered);
-    for (var n = 0; n < entryTypes.length; n++) {
-      const entryType = entryTypes[n];
+    for (const entryType of filteredEntryTypes) {
       const list = getObserversList(entryType);
       if (this[kTypes][entryType]) continue;
       const item = { obs: this };
@@ -386,18 +396,20 @@ class Performance {
 
   measure(name, startMark, endMark) {
     name = `${name}`;
-    endMark = `${endMark}`;
-    startMark = startMark !== undefined ? `${startMark}` : '';
     const marks = this[kIndex][kMarks];
-    if (!marks.has(endMark) && !(endMark in nodeTiming)) {
-      throw new ERR_INVALID_PERFORMANCE_MARK(endMark);
+    if (arguments.length >= 3) {
+      if (!marks.has(endMark) && !(endMark in nodeTiming))
+        throw new ERR_INVALID_PERFORMANCE_MARK(endMark);
+      else
+        endMark = `${endMark}`;
     }
+    startMark = startMark !== undefined ? `${startMark}` : '';
     _measure(name, startMark, endMark);
   }
 
   clearMarks(name) {
-    name = name !== undefined ? `${name}` : name;
     if (name !== undefined) {
+      name = `${name}`;
       this[kIndex][kMarks].delete(name);
       _clearMark(name);
     } else {
@@ -413,13 +425,13 @@ class Performance {
     if (fn[kTimerified])
       return fn[kTimerified];
     const ret = timerify(fn, fn.length);
-    Object.defineProperty(fn, kTimerified, {
+    ObjectDefineProperty(fn, kTimerified, {
       enumerable: false,
       configurable: true,
       writable: false,
       value: ret
     });
-    Object.defineProperties(ret, {
+    ObjectDefineProperties(ret, {
       [kTimerified]: {
         enumerable: false,
         configurable: true,
@@ -455,11 +467,14 @@ function getObserversList(type) {
   return list;
 }
 
-function doNotify() {
-  this[kQueued] = false;
-  this.runInAsyncScope(this[kCallback], this, this[kBuffer], this);
-  this[kBuffer][kEntries] = [];
-  L.init(this[kBuffer][kEntries]);
+function doNotify(observer) {
+  observer[kQueued] = false;
+  observer.runInAsyncScope(observer[kCallback],
+                           observer,
+                           observer[kBuffer],
+                           observer);
+  observer[kBuffer][kEntries] = [];
+  L.init(observer[kBuffer][kEntries]);
 }
 
 // Set up the callback used to receive PerformanceObserver notifications
@@ -485,11 +500,11 @@ function observersCallback(entry) {
         observer[kQueued] = true;
         // Use setImmediate instead of nextTick to give more time
         // for multiple entries to collect.
-        setImmediate(doNotify.bind(observer));
+        setImmediate(doNotify, observer);
       }
     } else {
       // If not buffering, notify immediately
-      doNotify.call(observer);
+      doNotify(observer);
     }
     current = current._idlePrev;
   }
@@ -546,47 +561,9 @@ function sortedInsert(list, entry) {
   list.splice(location, 0, entry);
 }
 
-class ELDHistogram {
-  constructor(handle) {
-    this[kHandle] = handle;
-    this[kMap] = new Map();
-  }
-
-  reset() { this[kHandle].reset(); }
+class ELDHistogram extends Histogram {
   enable() { return this[kHandle].enable(); }
   disable() { return this[kHandle].disable(); }
-
-  get exceeds() { return this[kHandle].exceeds(); }
-  get min() { return this[kHandle].min(); }
-  get max() { return this[kHandle].max(); }
-  get mean() { return this[kHandle].mean(); }
-  get stddev() { return this[kHandle].stddev(); }
-  percentile(percentile) {
-    if (typeof percentile !== 'number') {
-      throw new ERR_INVALID_ARG_TYPE('percentile', 'number', percentile);
-    }
-    if (percentile <= 0 || percentile > 100) {
-      throw new ERR_INVALID_ARG_VALUE.RangeError('percentile',
-                                                 percentile);
-    }
-    return this[kHandle].percentile(percentile);
-  }
-  get percentiles() {
-    this[kMap].clear();
-    this[kHandle].percentiles(this[kMap]);
-    return this[kMap];
-  }
-
-  [kInspect]() {
-    return {
-      min: this.min,
-      max: this.max,
-      mean: this.mean,
-      stddev: this.stddev,
-      percentiles: this.percentiles,
-      exceeds: this.exceeds
-    };
-  }
 }
 
 function monitorEventLoopDelay(options = {}) {
@@ -598,7 +575,7 @@ function monitorEventLoopDelay(options = {}) {
     throw new ERR_INVALID_ARG_TYPE('options.resolution',
                                    'number', resolution);
   }
-  if (resolution <= 0 || !Number.isSafeInteger(resolution)) {
+  if (resolution <= 0 || !NumberIsSafeInteger(resolution)) {
     throw new ERR_INVALID_OPT_VALUE.RangeError('resolution', resolution);
   }
   return new ELDHistogram(new _ELDHistogram(resolution));
@@ -610,7 +587,7 @@ module.exports = {
   monitorEventLoopDelay
 };
 
-Object.defineProperty(module.exports, 'constants', {
+ObjectDefineProperty(module.exports, 'constants', {
   configurable: false,
   enumerable: true,
   value: constants

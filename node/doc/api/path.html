@@ -3,10 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Path | Node.js v12.13.0 Documentation</title>
+  <meta name="nodejs.org:node-version" content="v14.8.0">
+  <title>Path | Node.js v14.8.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
-  <link rel="stylesheet" href="assets/sh.css">
+  <link rel="stylesheet" href="assets/hljs.css">
   <link rel="canonical" href="https://nodejs.org/api/path.html">
 </head>
 <body class="alt apidoc" id="api-section-path">
@@ -18,29 +19,30 @@
         </a>
       </div>
       <ul>
-<li><a href="documentation.html" class="nav-documentation">About these Docs</a></li>
-<li><a href="synopsis.html" class="nav-synopsis">Usage &#x26; Example</a></li>
+<li><a href="documentation.html" class="nav-documentation">About this documentation</a></li>
+<li><a href="synopsis.html" class="nav-synopsis">Usage and example</a></li>
 </ul>
 <div class="line"></div>
 <ul>
-<li><a href="assert.html" class="nav-assert">Assertion Testing</a></li>
-<li><a href="async_hooks.html" class="nav-async_hooks">Async Hooks</a></li>
+<li><a href="assert.html" class="nav-assert">Assertion testing</a></li>
+<li><a href="async_hooks.html" class="nav-async_hooks">Async hooks</a></li>
 <li><a href="buffer.html" class="nav-buffer">Buffer</a></li>
-<li><a href="addons.html" class="nav-addons">C++ Addons</a></li>
-<li><a href="n-api.html" class="nav-n-api">C/C++ Addons - N-API</a></li>
-<li><a href="child_process.html" class="nav-child_process">Child Processes</a></li>
+<li><a href="addons.html" class="nav-addons">C++ addons</a></li>
+<li><a href="n-api.html" class="nav-n-api">C/C++ addons with N-API</a></li>
+<li><a href="embedding.html" class="nav-embedding">C++ embedder API</a></li>
+<li><a href="child_process.html" class="nav-child_process">Child processes</a></li>
 <li><a href="cluster.html" class="nav-cluster">Cluster</a></li>
-<li><a href="cli.html" class="nav-cli">Command Line Options</a></li>
+<li><a href="cli.html" class="nav-cli">Command line options</a></li>
 <li><a href="console.html" class="nav-console">Console</a></li>
 <li><a href="crypto.html" class="nav-crypto">Crypto</a></li>
 <li><a href="debugger.html" class="nav-debugger">Debugger</a></li>
 <li><a href="deprecations.html" class="nav-deprecations">Deprecated APIs</a></li>
 <li><a href="dns.html" class="nav-dns">DNS</a></li>
 <li><a href="domain.html" class="nav-domain">Domain</a></li>
-<li><a href="esm.html" class="nav-esm">ECMAScript Modules</a></li>
+<li><a href="esm.html" class="nav-esm">ECMAScript modules</a></li>
 <li><a href="errors.html" class="nav-errors">Errors</a></li>
 <li><a href="events.html" class="nav-events">Events</a></li>
-<li><a href="fs.html" class="nav-fs">File System</a></li>
+<li><a href="fs.html" class="nav-fs">File system</a></li>
 <li><a href="globals.html" class="nav-globals">Globals</a></li>
 <li><a href="http.html" class="nav-http">HTTP</a></li>
 <li><a href="http2.html" class="nav-http2">HTTP/2</a></li>
@@ -51,37 +53,38 @@
 <li><a href="net.html" class="nav-net">Net</a></li>
 <li><a href="os.html" class="nav-os">OS</a></li>
 <li><a href="path.html" class="nav-path active">Path</a></li>
-<li><a href="perf_hooks.html" class="nav-perf_hooks">Performance Hooks</a></li>
+<li><a href="perf_hooks.html" class="nav-perf_hooks">Performance hooks</a></li>
 <li><a href="policy.html" class="nav-policy">Policies</a></li>
 <li><a href="process.html" class="nav-process">Process</a></li>
 <li><a href="punycode.html" class="nav-punycode">Punycode</a></li>
-<li><a href="querystring.html" class="nav-querystring">Query Strings</a></li>
+<li><a href="querystring.html" class="nav-querystring">Query strings</a></li>
 <li><a href="readline.html" class="nav-readline">Readline</a></li>
 <li><a href="repl.html" class="nav-repl">REPL</a></li>
 <li><a href="report.html" class="nav-report">Report</a></li>
 <li><a href="stream.html" class="nav-stream">Stream</a></li>
-<li><a href="string_decoder.html" class="nav-string_decoder">String Decoder</a></li>
+<li><a href="string_decoder.html" class="nav-string_decoder">String decoder</a></li>
 <li><a href="timers.html" class="nav-timers">Timers</a></li>
 <li><a href="tls.html" class="nav-tls">TLS/SSL</a></li>
-<li><a href="tracing.html" class="nav-tracing">Trace Events</a></li>
+<li><a href="tracing.html" class="nav-tracing">Trace events</a></li>
 <li><a href="tty.html" class="nav-tty">TTY</a></li>
-<li><a href="dgram.html" class="nav-dgram">UDP/Datagram</a></li>
+<li><a href="dgram.html" class="nav-dgram">UDP/datagram</a></li>
 <li><a href="url.html" class="nav-url">URL</a></li>
 <li><a href="util.html" class="nav-util">Utilities</a></li>
 <li><a href="v8.html" class="nav-v8">V8</a></li>
 <li><a href="vm.html" class="nav-vm">VM</a></li>
-<li><a href="worker_threads.html" class="nav-worker_threads">Worker Threads</a></li>
+<li><a href="wasi.html" class="nav-wasi">WASI</a></li>
+<li><a href="worker_threads.html" class="nav-worker_threads">Worker threads</a></li>
 <li><a href="zlib.html" class="nav-zlib">Zlib</a></li>
 </ul>
 <div class="line"></div>
 <ul>
-<li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">GitHub Repo &#x26; Issue Tracker</a></li>
+<li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">Code repository and issue tracker</a></li>
 </ul>
     </div>
 
     <div id="column1" data-id="path" class="interior">
       <header>
-        <h1>Node.js v12.13.0 Documentation</h1>
+        <h1>Node.js v14.8.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -96,11 +99,13 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v12.x/api/path.html">12.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v14.x/api/path.html">14.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v13.x/api/path.html">13.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v12.x/api/path.html">12.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v11.x/api/path.html">11.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v10.x/api/path.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/path.html">9.x</a></li>
-<li><a href="https://nodejs.org/docs/latest-v8.x/api/path.html">8.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v8.x/api/path.html">8.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/path.html">7.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v6.x/api/path.html">6.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v5.x/api/path.html">5.x</a></li>
@@ -122,21 +127,21 @@
 <p><span class="stability_2"><a href="#path_path">Path</a></span></p>
 <ul>
 <li><a href="#path_windows_vs_posix">Windows vs. POSIX</a></li>
-<li><a href="#path_path_basename_path_ext">path.basename(path[, ext])</a></li>
-<li><a href="#path_path_delimiter">path.delimiter</a></li>
-<li><a href="#path_path_dirname_path">path.dirname(path)</a></li>
-<li><a href="#path_path_extname_path">path.extname(path)</a></li>
-<li><a href="#path_path_format_pathobject">path.format(pathObject)</a></li>
-<li><a href="#path_path_isabsolute_path">path.isAbsolute(path)</a></li>
-<li><a href="#path_path_join_paths">path.join([...paths])</a></li>
-<li><a href="#path_path_normalize_path">path.normalize(path)</a></li>
-<li><a href="#path_path_parse_path">path.parse(path)</a></li>
-<li><a href="#path_path_posix">path.posix</a></li>
-<li><a href="#path_path_relative_from_to">path.relative(from, to)</a></li>
-<li><a href="#path_path_resolve_paths">path.resolve([...paths])</a></li>
-<li><a href="#path_path_sep">path.sep</a></li>
-<li><a href="#path_path_tonamespacedpath_path">path.toNamespacedPath(path)</a></li>
-<li><a href="#path_path_win32">path.win32</a></li>
+<li><a href="#path_path_basename_path_ext"><code>path.basename(path[, ext])</code></a></li>
+<li><a href="#path_path_delimiter"><code>path.delimiter</code></a></li>
+<li><a href="#path_path_dirname_path"><code>path.dirname(path)</code></a></li>
+<li><a href="#path_path_extname_path"><code>path.extname(path)</code></a></li>
+<li><a href="#path_path_format_pathobject"><code>path.format(pathObject)</code></a></li>
+<li><a href="#path_path_isabsolute_path"><code>path.isAbsolute(path)</code></a></li>
+<li><a href="#path_path_join_paths"><code>path.join([...paths])</code></a></li>
+<li><a href="#path_path_normalize_path"><code>path.normalize(path)</code></a></li>
+<li><a href="#path_path_parse_path"><code>path.parse(path)</code></a></li>
+<li><a href="#path_path_posix"><code>path.posix</code></a></li>
+<li><a href="#path_path_relative_from_to"><code>path.relative(from, to)</code></a></li>
+<li><a href="#path_path_resolve_paths"><code>path.resolve([...paths])</code></a></li>
+<li><a href="#path_path_sep"><code>path.sep</code></a></li>
+<li><a href="#path_path_tonamespacedpath_path"><code>path.toNamespacedPath(path)</code></a></li>
+<li><a href="#path_path_win32"><code>path.win32</code></a></li>
 </ul>
 </li>
 </ul>
@@ -146,10 +151,10 @@
         <h1>Path<span><a class="mark" href="#path_path" id="path_path">#</a></span></h1>
 
 <p></p><div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p></p>
+<p><strong>Source Code:</strong> <a href="https://github.com/nodejs/node/blob/v14.8.0/lib/path.js">lib/path.js</a></p>
 <p>The <code>path</code> module provides utilities for working with file and directory paths.
 It can be accessed using:</p>
-<pre><code class="language-js">const path = require('path');
-</code></pre>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> path = <span class="hljs-built_in">require</span>(<span class="hljs-string">'path'</span>);</code></pre>
 <h2>Windows vs. POSIX<span><a class="mark" href="#path_windows_vs_posix" id="path_windows_vs_posix">#</a></span></h2>
 <p>The default operation of the <code>path</code> module varies based on the operating system
 on which a Node.js application is running. Specifically, when running on a
@@ -157,31 +162,27 @@ Windows operating system, the <code>path</code> module will assume that Windows-
 paths are being used.</p>
 <p>So using <code>path.basename()</code> might yield different results on POSIX and Windows:</p>
 <p>On POSIX:</p>
-<pre><code class="language-js">path.basename('C:\\temp\\myfile.html');
-// Returns: 'C:\\temp\\myfile.html'
-</code></pre>
+<pre><code class="language-js">path.basename(<span class="hljs-string">'C:\\temp\\myfile.html'</span>);
+<span class="hljs-comment">// Returns: 'C:\\temp\\myfile.html'</span></code></pre>
 <p>On Windows:</p>
-<pre><code class="language-js">path.basename('C:\\temp\\myfile.html');
-// Returns: 'myfile.html'
-</code></pre>
+<pre><code class="language-js">path.basename(<span class="hljs-string">'C:\\temp\\myfile.html'</span>);
+<span class="hljs-comment">// Returns: 'myfile.html'</span></code></pre>
 <p>To achieve consistent results when working with Windows file paths on any
 operating system, use <a href="#path_path_win32"><code>path.win32</code></a>:</p>
 <p>On POSIX and Windows:</p>
-<pre><code class="language-js">path.win32.basename('C:\\temp\\myfile.html');
-// Returns: 'myfile.html'
-</code></pre>
+<pre><code class="language-js">path.win32.basename(<span class="hljs-string">'C:\\temp\\myfile.html'</span>);
+<span class="hljs-comment">// Returns: 'myfile.html'</span></code></pre>
 <p>To achieve consistent results when working with POSIX file paths on any
 operating system, use <a href="#path_path_posix"><code>path.posix</code></a>:</p>
 <p>On POSIX and Windows:</p>
-<pre><code class="language-js">path.posix.basename('/tmp/myfile.html');
-// Returns: 'myfile.html'
-</code></pre>
+<pre><code class="language-js">path.posix.basename(<span class="hljs-string">'/tmp/myfile.html'</span>);
+<span class="hljs-comment">// Returns: 'myfile.html'</span></code></pre>
 <p>On Windows Node.js follows the concept of per-drive working directory.
 This behavior can be observed when using a drive path without a backslash. For
-example, <code>path.resolve('c:\\')</code> can potentially return a different result than
-<code>path.resolve('c:')</code>. For more information, see
+example, <code>path.resolve('C:\\')</code> can potentially return a different result than
+<code>path.resolve('C:')</code>. For more information, see
 <a href="https://docs.microsoft.com/en-us/windows/desktop/FileIO/naming-a-file#fully-qualified-vs-relative-paths">this MSDN page</a>.</p>
-<h2>path.basename(path[, ext])<span><a class="mark" href="#path_path_basename_path_ext" id="path_path_basename_path_ext">#</a></span></h2>
+<h2><code>path.basename(path[, ext])</code><span><a class="mark" href="#path_path_basename_path_ext" id="path_path_basename_path_ext">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -198,18 +199,17 @@ example, <code>path.resolve('c:\\')</code> can potentially return a different re
 <li><code>ext</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> An optional file extension</li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
-<p>The <code>path.basename()</code> methods returns the last portion of a <code>path</code>, similar to
+<p>The <code>path.basename()</code> method returns the last portion of a <code>path</code>, similar to
 the Unix <code>basename</code> command. Trailing directory separators are ignored, see
 <a href="#path_path_sep"><code>path.sep</code></a>.</p>
-<pre><code class="language-js">path.basename('/foo/bar/baz/asdf/quux.html');
-// Returns: 'quux.html'
+<pre><code class="language-js">path.basename(<span class="hljs-string">'/foo/bar/baz/asdf/quux.html'</span>);
+<span class="hljs-comment">// Returns: 'quux.html'</span>
 
-path.basename('/foo/bar/baz/asdf/quux.html', '.html');
-// Returns: 'quux'
-</code></pre>
+path.basename(<span class="hljs-string">'/foo/bar/baz/asdf/quux.html'</span>, <span class="hljs-string">'.html'</span>);
+<span class="hljs-comment">// Returns: 'quux'</span></code></pre>
 <p>A <a href="errors.html#errors_class_typeerror"><code>TypeError</code></a> is thrown if <code>path</code> is not a string or if <code>ext</code> is given
 and is not a string.</p>
-<h2>path.delimiter<span><a class="mark" href="#path_path_delimiter" id="path_path_delimiter">#</a></span></h2>
+<h2><code>path.delimiter</code><span><a class="mark" href="#path_path_delimiter" id="path_path_delimiter">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.9.3</span>
 </div>
@@ -222,20 +222,18 @@ and is not a string.</p>
 <li><code>:</code> for POSIX</li>
 </ul>
 <p>For example, on POSIX:</p>
-<pre><code class="language-js">console.log(process.env.PATH);
-// Prints: '/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin'
+<pre><code class="language-js"><span class="hljs-built_in">console</span>.log(process.env.PATH);
+<span class="hljs-comment">// Prints: '/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin'</span>
 
 process.env.PATH.split(path.delimiter);
-// Returns: ['/usr/bin', '/bin', '/usr/sbin', '/sbin', '/usr/local/bin']
-</code></pre>
+<span class="hljs-comment">// Returns: ['/usr/bin', '/bin', '/usr/sbin', '/sbin', '/usr/local/bin']</span></code></pre>
 <p>On Windows:</p>
-<pre><code class="language-js">console.log(process.env.PATH);
-// Prints: 'C:\Windows\system32;C:\Windows;C:\Program Files\node\'
+<pre><code class="language-js"><span class="hljs-built_in">console</span>.log(process.env.PATH);
+<span class="hljs-comment">// Prints: 'C:\Windows\system32;C:\Windows;C:\Program Files\node\'</span>
 
 process.env.PATH.split(path.delimiter);
-// Returns ['C:\\Windows\\system32', 'C:\\Windows', 'C:\\Program Files\\node\\']
-</code></pre>
-<h2>path.dirname(path)<span><a class="mark" href="#path_path_dirname_path" id="path_path_dirname_path">#</a></span></h2>
+<span class="hljs-comment">// Returns ['C:\\Windows\\system32', 'C:\\Windows', 'C:\\Program Files\\node\\']</span></code></pre>
+<h2><code>path.dirname(path)</code><span><a class="mark" href="#path_path_dirname_path" id="path_path_dirname_path">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -254,11 +252,10 @@ process.env.PATH.split(path.delimiter);
 <p>The <code>path.dirname()</code> method returns the directory name of a <code>path</code>, similar to
 the Unix <code>dirname</code> command. Trailing directory separators are ignored, see
 <a href="#path_path_sep"><code>path.sep</code></a>.</p>
-<pre><code class="language-js">path.dirname('/foo/bar/baz/asdf/quux');
-// Returns: '/foo/bar/baz/asdf'
-</code></pre>
+<pre><code class="language-js">path.dirname(<span class="hljs-string">'/foo/bar/baz/asdf/quux'</span>);
+<span class="hljs-comment">// Returns: '/foo/bar/baz/asdf'</span></code></pre>
 <p>A <a href="errors.html#errors_class_typeerror"><code>TypeError</code></a> is thrown if <code>path</code> is not a string.</p>
-<h2>path.extname(path)<span><a class="mark" href="#path_path_extname_path" id="path_path_extname_path">#</a></span></h2>
+<h2><code>path.extname(path)</code><span><a class="mark" href="#path_path_extname_path" id="path_path_extname_path">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -279,26 +276,25 @@ occurrence of the <code>.</code> (period) character to end of string in the last
 the <code>path</code>. If there is no <code>.</code> in the last portion of the <code>path</code>, or if
 there are no <code>.</code> characters other than the first character of
 the basename of <code>path</code> (see <code>path.basename()</code>) , an empty string is returned.</p>
-<pre><code class="language-js">path.extname('index.html');
-// Returns: '.html'
+<pre><code class="language-js">path.extname(<span class="hljs-string">'index.html'</span>);
+<span class="hljs-comment">// Returns: '.html'</span>
 
-path.extname('index.coffee.md');
-// Returns: '.md'
+path.extname(<span class="hljs-string">'index.coffee.md'</span>);
+<span class="hljs-comment">// Returns: '.md'</span>
 
-path.extname('index.');
-// Returns: '.'
+path.extname(<span class="hljs-string">'index.'</span>);
+<span class="hljs-comment">// Returns: '.'</span>
 
-path.extname('index');
-// Returns: ''
+path.extname(<span class="hljs-string">'index'</span>);
+<span class="hljs-comment">// Returns: ''</span>
 
-path.extname('.index');
-// Returns: ''
+path.extname(<span class="hljs-string">'.index'</span>);
+<span class="hljs-comment">// Returns: ''</span>
 
-path.extname('.index.md');
-// Returns: '.md'
-</code></pre>
+path.extname(<span class="hljs-string">'.index.md'</span>);
+<span class="hljs-comment">// Returns: '.md'</span></code></pre>
 <p>A <a href="errors.html#errors_class_typeerror"><code>TypeError</code></a> is thrown if <code>path</code> is not a string.</p>
-<h2>path.format(pathObject)<span><a class="mark" href="#path_path_format_pathobject" id="path_path_format_pathobject">#</a></span></h2>
+<h2><code>path.format(pathObject)</code><span><a class="mark" href="#path_path_format_pathobject" id="path_path_format_pathobject">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.11.15</span>
 </div>
@@ -324,42 +320,40 @@ combinations where one property has priority over another:</p>
 <li><code>pathObject.ext</code> and <code>pathObject.name</code> are ignored if <code>pathObject.base</code> exists</li>
 </ul>
 <p>For example, on POSIX:</p>
-<pre><code class="language-js">// If `dir`, `root` and `base` are provided,
-// `${dir}${path.sep}${base}`
-// will be returned. `root` is ignored.
+<pre><code class="language-js"><span class="hljs-comment">// If `dir`, `root` and `base` are provided,</span>
+<span class="hljs-comment">// `${dir}${path.sep}${base}`</span>
+<span class="hljs-comment">// will be returned. `root` is ignored.</span>
 path.format({
-  root: '/ignored',
-  dir: '/home/user/dir',
-  base: 'file.txt'
+  <span class="hljs-attr">root</span>: <span class="hljs-string">'/ignored'</span>,
+  <span class="hljs-attr">dir</span>: <span class="hljs-string">'/home/user/dir'</span>,
+  <span class="hljs-attr">base</span>: <span class="hljs-string">'file.txt'</span>
 });
-// Returns: '/home/user/dir/file.txt'
+<span class="hljs-comment">// Returns: '/home/user/dir/file.txt'</span>
 
-// `root` will be used if `dir` is not specified.
-// If only `root` is provided or `dir` is equal to `root` then the
-// platform separator will not be included. `ext` will be ignored.
+<span class="hljs-comment">// `root` will be used if `dir` is not specified.</span>
+<span class="hljs-comment">// If only `root` is provided or `dir` is equal to `root` then the</span>
+<span class="hljs-comment">// platform separator will not be included. `ext` will be ignored.</span>
 path.format({
-  root: '/',
-  base: 'file.txt',
-  ext: 'ignored'
+  <span class="hljs-attr">root</span>: <span class="hljs-string">'/'</span>,
+  <span class="hljs-attr">base</span>: <span class="hljs-string">'file.txt'</span>,
+  <span class="hljs-attr">ext</span>: <span class="hljs-string">'ignored'</span>
 });
-// Returns: '/file.txt'
+<span class="hljs-comment">// Returns: '/file.txt'</span>
 
-// `name` + `ext` will be used if `base` is not specified.
+<span class="hljs-comment">// `name` + `ext` will be used if `base` is not specified.</span>
 path.format({
-  root: '/',
-  name: 'file',
-  ext: '.txt'
+  <span class="hljs-attr">root</span>: <span class="hljs-string">'/'</span>,
+  <span class="hljs-attr">name</span>: <span class="hljs-string">'file'</span>,
+  <span class="hljs-attr">ext</span>: <span class="hljs-string">'.txt'</span>
 });
-// Returns: '/file.txt'
-</code></pre>
+<span class="hljs-comment">// Returns: '/file.txt'</span></code></pre>
 <p>On Windows:</p>
 <pre><code class="language-js">path.format({
-  dir: 'C:\\path\\dir',
-  base: 'file.txt'
+  <span class="hljs-attr">dir</span>: <span class="hljs-string">'C:\\path\\dir'</span>,
+  <span class="hljs-attr">base</span>: <span class="hljs-string">'file.txt'</span>
 });
-// Returns: 'C:\\path\\dir\\file.txt'
-</code></pre>
-<h2>path.isAbsolute(path)<span><a class="mark" href="#path_path_isabsolute_path" id="path_path_isabsolute_path">#</a></span></h2>
+<span class="hljs-comment">// Returns: 'C:\\path\\dir\\file.txt'</span></code></pre>
+<h2><code>path.isAbsolute(path)</code><span><a class="mark" href="#path_path_isabsolute_path" id="path_path_isabsolute_path">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.11.2</span>
 </div>
@@ -370,22 +364,20 @@ path.format({
 <p>The <code>path.isAbsolute()</code> method determines if <code>path</code> is an absolute path.</p>
 <p>If the given <code>path</code> is a zero-length string, <code>false</code> will be returned.</p>
 <p>For example, on POSIX:</p>
-<pre><code class="language-js">path.isAbsolute('/foo/bar'); // true
-path.isAbsolute('/baz/..');  // true
-path.isAbsolute('qux/');     // false
-path.isAbsolute('.');        // false
-</code></pre>
+<pre><code class="language-js">path.isAbsolute(<span class="hljs-string">'/foo/bar'</span>); <span class="hljs-comment">// true</span>
+path.isAbsolute(<span class="hljs-string">'/baz/..'</span>);  <span class="hljs-comment">// true</span>
+path.isAbsolute(<span class="hljs-string">'qux/'</span>);     <span class="hljs-comment">// false</span>
+path.isAbsolute(<span class="hljs-string">'.'</span>);        <span class="hljs-comment">// false</span></code></pre>
 <p>On Windows:</p>
-<pre><code class="language-js">path.isAbsolute('//server');    // true
-path.isAbsolute('\\\\server');  // true
-path.isAbsolute('C:/foo/..');   // true
-path.isAbsolute('C:\\foo\\..'); // true
-path.isAbsolute('bar\\baz');    // false
-path.isAbsolute('bar/baz');     // false
-path.isAbsolute('.');           // false
-</code></pre>
+<pre><code class="language-js">path.isAbsolute(<span class="hljs-string">'//server'</span>);    <span class="hljs-comment">// true</span>
+path.isAbsolute(<span class="hljs-string">'\\\\server'</span>);  <span class="hljs-comment">// true</span>
+path.isAbsolute(<span class="hljs-string">'C:/foo/..'</span>);   <span class="hljs-comment">// true</span>
+path.isAbsolute(<span class="hljs-string">'C:\\foo\\..'</span>); <span class="hljs-comment">// true</span>
+path.isAbsolute(<span class="hljs-string">'bar\\baz'</span>);    <span class="hljs-comment">// false</span>
+path.isAbsolute(<span class="hljs-string">'bar/baz'</span>);     <span class="hljs-comment">// false</span>
+path.isAbsolute(<span class="hljs-string">'.'</span>);           <span class="hljs-comment">// false</span></code></pre>
 <p>A <a href="errors.html#errors_class_typeerror"><code>TypeError</code></a> is thrown if <code>path</code> is not a string.</p>
-<h2>path.join([...paths])<span><a class="mark" href="#path_path_join_paths" id="path_path_join_paths">#</a></span></h2>
+<h2><code>path.join([...paths])</code><span><a class="mark" href="#path_path_join_paths" id="path_path_join_paths">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.16</span>
 </div>
@@ -398,14 +390,13 @@ platform-specific separator as a delimiter, then normalizes the resulting path.<
 <p>Zero-length <code>path</code> segments are ignored. If the joined path string is a
 zero-length string then <code>'.'</code> will be returned, representing the current
 working directory.</p>
-<pre><code class="language-js">path.join('/foo', 'bar', 'baz/asdf', 'quux', '..');
-// Returns: '/foo/bar/baz/asdf'
+<pre><code class="language-js">path.join(<span class="hljs-string">'/foo'</span>, <span class="hljs-string">'bar'</span>, <span class="hljs-string">'baz/asdf'</span>, <span class="hljs-string">'quux'</span>, <span class="hljs-string">'..'</span>);
+<span class="hljs-comment">// Returns: '/foo/bar/baz/asdf'</span>
 
-path.join('foo', {}, 'bar');
-// Throws 'TypeError: Path must be a string. Received {}'
-</code></pre>
+path.join(<span class="hljs-string">'foo'</span>, {}, <span class="hljs-string">'bar'</span>);
+<span class="hljs-comment">// Throws 'TypeError: Path must be a string. Received {}'</span></code></pre>
 <p>A <a href="errors.html#errors_class_typeerror"><code>TypeError</code></a> is thrown if any of the path segments is not a string.</p>
-<h2>path.normalize(path)<span><a class="mark" href="#path_path_normalize_path" id="path_path_normalize_path">#</a></span></h2>
+<h2><code>path.normalize(path)</code><span><a class="mark" href="#path_path_normalize_path" id="path_path_normalize_path">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.23</span>
 </div>
@@ -422,20 +413,17 @@ instance of the platform-specific path segment separator (<code>/</code> on POSI
 <p>If the <code>path</code> is a zero-length string, <code>'.'</code> is returned, representing the
 current working directory.</p>
 <p>For example, on POSIX:</p>
-<pre><code class="language-js">path.normalize('/foo/bar//baz/asdf/quux/..');
-// Returns: '/foo/bar/baz/asdf'
-</code></pre>
+<pre><code class="language-js">path.normalize(<span class="hljs-string">'/foo/bar//baz/asdf/quux/..'</span>);
+<span class="hljs-comment">// Returns: '/foo/bar/baz/asdf'</span></code></pre>
 <p>On Windows:</p>
-<pre><code class="language-js">path.normalize('C:\\temp\\\\foo\\bar\\..\\');
-// Returns: 'C:\\temp\\foo\\'
-</code></pre>
+<pre><code class="language-js">path.normalize(<span class="hljs-string">'C:\\temp\\\\foo\\bar\\..\\'</span>);
+<span class="hljs-comment">// Returns: 'C:\\temp\\foo\\'</span></code></pre>
 <p>Since Windows recognizes multiple path separators, both separators will be
 replaced by instances of the Windows preferred separator (<code>\</code>):</p>
-<pre><code class="language-js">path.win32.normalize('C:////temp\\\\/\\/\\/foo/bar');
-// Returns: 'C:\\temp\\foo\\bar'
-</code></pre>
+<pre><code class="language-js">path.win32.normalize(<span class="hljs-string">'C:////temp\\\\/\\/\\/foo/bar'</span>);
+<span class="hljs-comment">// Returns: 'C:\\temp\\foo\\bar'</span></code></pre>
 <p>A <a href="errors.html#errors_class_typeerror"><code>TypeError</code></a> is thrown if <code>path</code> is not a string.</p>
-<h2>path.parse(path)<span><a class="mark" href="#path_path_parse_path" id="path_path_parse_path">#</a></span></h2>
+<h2><code>path.parse(path)</code><span><a class="mark" href="#path_path_parse_path" id="path_path_parse_path">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.11.15</span>
 </div>
@@ -455,41 +443,37 @@ see <a href="#path_path_sep"><code>path.sep</code></a>.</p>
 <li><code>ext</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
 <p>For example, on POSIX:</p>
-<pre><code class="language-js">path.parse('/home/user/dir/file.txt');
-// Returns:
-// { root: '/',
-//   dir: '/home/user/dir',
-//   base: 'file.txt',
-//   ext: '.txt',
-//   name: 'file' }
-</code></pre>
+<pre><code class="language-js">path.parse(<span class="hljs-string">'/home/user/dir/file.txt'</span>);
+<span class="hljs-comment">// Returns:</span>
+<span class="hljs-comment">// { root: '/',</span>
+<span class="hljs-comment">//   dir: '/home/user/dir',</span>
+<span class="hljs-comment">//   base: 'file.txt',</span>
+<span class="hljs-comment">//   ext: '.txt',</span>
+<span class="hljs-comment">//   name: 'file' }</span></code></pre>
 <pre><code class="language-text">┌─────────────────────┬────────────┐
 │          dir        │    base    │
 ├──────┬              ├──────┬─────┤
 │ root │              │ name │ ext │
 "  /    home/user/dir / file  .txt "
 └──────┴──────────────┴──────┴─────┘
-(all spaces in the "" line should be ignored — they are purely for formatting)
-</code></pre>
+(All spaces in the "" line should be ignored. They are purely for formatting.)</code></pre>
 <p>On Windows:</p>
-<pre><code class="language-js">path.parse('C:\\path\\dir\\file.txt');
-// Returns:
-// { root: 'C:\\',
-//   dir: 'C:\\path\\dir',
-//   base: 'file.txt',
-//   ext: '.txt',
-//   name: 'file' }
-</code></pre>
+<pre><code class="language-js">path.parse(<span class="hljs-string">'C:\\path\\dir\\file.txt'</span>);
+<span class="hljs-comment">// Returns:</span>
+<span class="hljs-comment">// { root: 'C:\\',</span>
+<span class="hljs-comment">//   dir: 'C:\\path\\dir',</span>
+<span class="hljs-comment">//   base: 'file.txt',</span>
+<span class="hljs-comment">//   ext: '.txt',</span>
+<span class="hljs-comment">//   name: 'file' }</span></code></pre>
 <pre><code class="language-text">┌─────────────────────┬────────────┐
 │          dir        │    base    │
 ├──────┬              ├──────┬─────┤
 │ root │              │ name │ ext │
 " C:\      path\dir   \ file  .txt "
 └──────┴──────────────┴──────┴─────┘
-(all spaces in the "" line should be ignored — they are purely for formatting)
-</code></pre>
+(All spaces in the "" line should be ignored. They are purely for formatting.)</code></pre>
 <p>A <a href="errors.html#errors_class_typeerror"><code>TypeError</code></a> is thrown if <code>path</code> is not a string.</p>
-<h2>path.posix<span><a class="mark" href="#path_path_posix" id="path_path_posix">#</a></span></h2>
+<h2><code>path.posix</code><span><a class="mark" href="#path_path_posix" id="path_path_posix">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.11.15</span>
 </div>
@@ -498,7 +482,7 @@ see <a href="#path_path_sep"><code>path.sep</code></a>.</p>
 </ul>
 <p>The <code>path.posix</code> property provides access to POSIX specific implementations
 of the <code>path</code> methods.</p>
-<h2>path.relative(from, to)<span><a class="mark" href="#path_path_relative_from_to" id="path_path_relative_from_to">#</a></span></h2>
+<h2><code>path.relative(from, to)</code><span><a class="mark" href="#path_path_relative_from_to" id="path_path_relative_from_to">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -521,15 +505,13 @@ path (after calling <code>path.resolve()</code> on each), a zero-length string i
 <p>If a zero-length string is passed as <code>from</code> or <code>to</code>, the current working
 directory will be used instead of the zero-length strings.</p>
 <p>For example, on POSIX:</p>
-<pre><code class="language-js">path.relative('/data/orandea/test/aaa', '/data/orandea/impl/bbb');
-// Returns: '../../impl/bbb'
-</code></pre>
+<pre><code class="language-js">path.relative(<span class="hljs-string">'/data/orandea/test/aaa'</span>, <span class="hljs-string">'/data/orandea/impl/bbb'</span>);
+<span class="hljs-comment">// Returns: '../../impl/bbb'</span></code></pre>
 <p>On Windows:</p>
-<pre><code class="language-js">path.relative('C:\\orandea\\test\\aaa', 'C:\\orandea\\impl\\bbb');
-// Returns: '..\\..\\impl\\bbb'
-</code></pre>
+<pre><code class="language-js">path.relative(<span class="hljs-string">'C:\\orandea\\test\\aaa'</span>, <span class="hljs-string">'C:\\orandea\\impl\\bbb'</span>);
+<span class="hljs-comment">// Returns: '..\\..\\impl\\bbb'</span></code></pre>
 <p>A <a href="errors.html#errors_class_typeerror"><code>TypeError</code></a> is thrown if either <code>from</code> or <code>to</code> is not a string.</p>
-<h2>path.resolve([...paths])<span><a class="mark" href="#path_path_resolve_paths" id="path_path_resolve_paths">#</a></span></h2>
+<h2><code>path.resolve([...paths])</code><span><a class="mark" href="#path_path_resolve_paths" id="path_path_resolve_paths">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.3.4</span>
 </div>
@@ -542,7 +524,8 @@ an absolute path.</p>
 <p>The given sequence of paths is processed from right to left, with each
 subsequent <code>path</code> prepended until an absolute path is constructed.
 For instance, given the sequence of path segments: <code>/foo</code>, <code>/bar</code>, <code>baz</code>,
-calling <code>path.resolve('/foo', '/bar', 'baz')</code> would return <code>/bar/baz</code>.</p>
+calling <code>path.resolve('/foo', '/bar', 'baz')</code> would return <code>/bar/baz</code>
+because <code>'baz'</code> is not an absolute path but <code>'/bar' + '/' + 'baz'</code> is.</p>
 <p>If after processing all given <code>path</code> segments an absolute path has not yet
 been generated, the current working directory is used.</p>
 <p>The resulting path is normalized and trailing slashes are removed unless the
@@ -550,18 +533,17 @@ path is resolved to the root directory.</p>
 <p>Zero-length <code>path</code> segments are ignored.</p>
 <p>If no <code>path</code> segments are passed, <code>path.resolve()</code> will return the absolute path
 of the current working directory.</p>
-<pre><code class="language-js">path.resolve('/foo/bar', './baz');
-// Returns: '/foo/bar/baz'
+<pre><code class="language-js">path.resolve(<span class="hljs-string">'/foo/bar'</span>, <span class="hljs-string">'./baz'</span>);
+<span class="hljs-comment">// Returns: '/foo/bar/baz'</span>
 
-path.resolve('/foo/bar', '/tmp/file/');
-// Returns: '/tmp/file'
+path.resolve(<span class="hljs-string">'/foo/bar'</span>, <span class="hljs-string">'/tmp/file/'</span>);
+<span class="hljs-comment">// Returns: '/tmp/file'</span>
 
-path.resolve('wwwroot', 'static_files/png/', '../gif/image.gif');
-// If the current working directory is /home/myself/node,
-// this returns '/home/myself/node/wwwroot/static_files/gif/image.gif'
-</code></pre>
+path.resolve(<span class="hljs-string">'wwwroot'</span>, <span class="hljs-string">'static_files/png/'</span>, <span class="hljs-string">'../gif/image.gif'</span>);
+<span class="hljs-comment">// If the current working directory is /home/myself/node,</span>
+<span class="hljs-comment">// this returns '/home/myself/node/wwwroot/static_files/gif/image.gif'</span></code></pre>
 <p>A <a href="errors.html#errors_class_typeerror"><code>TypeError</code></a> is thrown if any of the arguments is not a string.</p>
-<h2>path.sep<span><a class="mark" href="#path_path_sep" id="path_path_sep">#</a></span></h2>
+<h2><code>path.sep</code><span><a class="mark" href="#path_path_sep" id="path_path_sep">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.7.9</span>
 </div>
@@ -574,17 +556,15 @@ path.resolve('wwwroot', 'static_files/png/', '../gif/image.gif');
 <li><code>/</code> on POSIX</li>
 </ul>
 <p>For example, on POSIX:</p>
-<pre><code class="language-js">'foo/bar/baz'.split(path.sep);
-// Returns: ['foo', 'bar', 'baz']
-</code></pre>
+<pre><code class="language-js"><span class="hljs-string">'foo/bar/baz'</span>.split(path.sep);
+<span class="hljs-comment">// Returns: ['foo', 'bar', 'baz']</span></code></pre>
 <p>On Windows:</p>
-<pre><code class="language-js">'foo\\bar\\baz'.split(path.sep);
-// Returns: ['foo', 'bar', 'baz']
-</code></pre>
+<pre><code class="language-js"><span class="hljs-string">'foo\\bar\\baz'</span>.split(path.sep);
+<span class="hljs-comment">// Returns: ['foo', 'bar', 'baz']</span></code></pre>
 <p>On Windows, both the forward slash (<code>/</code>) and backward slash (<code>\</code>) are accepted
 as path segment separators; however, the <code>path</code> methods only add backward
 slashes (<code>\</code>).</p>
-<h2>path.toNamespacedPath(path)<span><a class="mark" href="#path_path_tonamespacedpath_path" id="path_path_tonamespacedpath_path">#</a></span></h2>
+<h2><code>path.toNamespacedPath(path)</code><span><a class="mark" href="#path_path_tonamespacedpath_path" id="path_path_tonamespacedpath_path">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v9.0.0</span>
 </div>
@@ -595,9 +575,9 @@ slashes (<code>\</code>).</p>
 <p>On Windows systems only, returns an equivalent <a href="https://docs.microsoft.com/en-us/windows/desktop/FileIO/naming-a-file#namespaces">namespace-prefixed path</a> for
 the given <code>path</code>. If <code>path</code> is not a string, <code>path</code> will be returned without
 modifications.</p>
-<p>This method is meaningful only on Windows system. On POSIX systems, the
+<p>This method is meaningful only on Windows systems. On POSIX systems, the
 method is non-operational and always returns <code>path</code> without modifications.</p>
-<h2>path.win32<span><a class="mark" href="#path_path_win32" id="path_path_win32">#</a></span></h2>
+<h2><code>path.win32</code><span><a class="mark" href="#path_path_win32" id="path_path_win32">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.11.15</span>
 </div>
@@ -606,11 +586,9 @@ method is non-operational and always returns <code>path</code> without modificat
 </ul>
 <p>The <code>path.win32</code> property provides access to Windows-specific implementations
 of the <code>path</code> methods.</p>
+        <!-- API END -->
       </div>
     </div>
   </div>
-  <script src="assets/sh_main.js"></script>
-  <script src="assets/sh_javascript.min.js"></script>
-  <script>highlight(undefined, undefined, 'pre');</script>
 </body>
 </html>

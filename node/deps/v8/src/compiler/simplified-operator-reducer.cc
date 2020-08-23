@@ -143,6 +143,7 @@ Reduction SimplifiedOperatorReducer::Reduce(Node* node) {
       }
       break;
     }
+    case IrOpcode::kCheckedTaggedToArrayIndex:
     case IrOpcode::kCheckedTaggedToInt32:
     case IrOpcode::kCheckedTaggedSignedToInt32: {
       NodeMatcher m(node->InputAt(0));
@@ -265,6 +266,10 @@ Graph* SimplifiedOperatorReducer::graph() const { return jsgraph()->graph(); }
 
 MachineOperatorBuilder* SimplifiedOperatorReducer::machine() const {
   return jsgraph()->machine();
+}
+
+SimplifiedOperatorBuilder* SimplifiedOperatorReducer::simplified() const {
+  return jsgraph()->simplified();
 }
 
 }  // namespace compiler

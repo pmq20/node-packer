@@ -1,6 +1,6 @@
 'use strict';
 
-const common = require('../common');
+require('../common');
 
 const assert = require('assert');
 const { Console } = require('console');
@@ -23,7 +23,7 @@ function test(data, only, expected) {
   );
 }
 
-common.expectsError(() => console.table([], false), {
+assert.throws(() => console.table([], false), {
   code: 'ERR_INVALID_ARG_TYPE',
 });
 
@@ -32,7 +32,7 @@ test(undefined, 'undefined\n');
 test(false, 'false\n');
 test('hi', 'hi\n');
 test(Symbol(), 'Symbol()\n');
-test(function() {}, '[Function]\n');
+test(function() {}, '[Function (anonymous)]\n');
 
 test([1, 2, 3], `
 ┌─────────┬────────┐

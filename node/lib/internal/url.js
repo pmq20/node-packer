@@ -1,6 +1,20 @@
 'use strict';
 
-const { Object, Reflect } = primordials;
+const {
+  Array,
+  Number,
+  ObjectCreate,
+  ObjectDefineProperties,
+  ObjectDefineProperty,
+  ObjectGetOwnPropertySymbols,
+  ObjectGetPrototypeOf,
+  ObjectKeys,
+  ReflectGetOwnPropertyDescriptor,
+  ReflectOwnKeys,
+  Symbol,
+  SymbolIterator,
+  SymbolToStringTag,
+} = primordials;
 
 const { inspect } = require('internal/util/inspect');
 const {
@@ -74,8 +88,8 @@ const searchParams = Symbol('query');
 const kFormat = Symbol('format');
 
 // https://tc39.github.io/ecma262/#sec-%iteratorprototype%-object
-const IteratorPrototype = Object.getPrototypeOf(
-  Object.getPrototypeOf([][Symbol.iterator]())
+const IteratorPrototype = ObjectGetPrototypeOf(
+  ObjectGetPrototypeOf([][SymbolIterator]())
 );
 
 const unpairedSurrogateRe =
@@ -127,8 +141,8 @@ class URLSearchParams {
     if (init === null || init === undefined) {
       this[searchParams] = [];
     } else if (typeof init === 'object' || typeof init === 'function') {
-      const method = init[Symbol.iterator];
-      if (method === this[Symbol.iterator]) {
+      const method = init[SymbolIterator];
+      if (method === this[SymbolIterator]) {
         // While the spec does not have this branch, we can use it as a
         // shortcut to avoid having to go through the costly generic iterator.
         const childParams = init[searchParams];
@@ -144,7 +158,7 @@ class URLSearchParams {
         for (const pair of init) {
           if ((typeof pair !== 'object' && typeof pair !== 'function') ||
               pair === null ||
-              typeof pair[Symbol.iterator] !== 'function') {
+              typeof pair[SymbolIterator] !== 'function') {
             throw new ERR_INVALID_TUPLE('Each query pair', '[name, value]');
           }
           const convertedPair = [];
@@ -164,10 +178,10 @@ class URLSearchParams {
         // Record<USVString, USVString>
         // Need to use reflection APIs for full spec compliance.
         this[searchParams] = [];
-        const keys = Reflect.ownKeys(init);
-        for (var i = 0; i < keys.length; i++) {
+        const keys = ReflectOwnKeys(init);
+        for (let i = 0; i < keys.length; i++) {
           const key = keys[i];
-          const desc = Reflect.getOwnPropertyDescriptor(init, key);
+          const desc = ReflectGetOwnPropertyDescriptor(init, key);
           if (desc !== undefined && desc.enumerable) {
             const typedKey = toUSVString(key);
             const typedValue = toUSVString(init[key]);
@@ -203,7 +217,7 @@ class URLSearchParams {
 
     const list = this[searchParams];
     const output = [];
-    for (var i = 0; i < list.length; i += 2)
+    for (let i = 0; i < list.length; i += 2)
       output.push(`${innerInspect(list[i])} => ${innerInspect(list[i + 1])}`);
 
     const length = output.reduce(
@@ -214,9 +228,8 @@ class URLSearchParams {
       return `${this.constructor.name} {\n  ${output.join(',\n  ')} }`;
     } else if (output.length) {
       return `${this.constructor.name} { ${output.join(separator)} }`;
-    } else {
-      return `${this.constructor.name} {}`;
     }
+    return `${this.constructor.name} {}`;
   }
 }
 
@@ -338,18 +351,15 @@ class URL {
 
   [inspect.custom](depth, opts) {
     if (this == null ||
-        Object.getPrototypeOf(this[context]) !== URLContext.prototype) {
+        ObjectGetPrototypeOf(this[context]) !== URLContext.prototype) {
       throw new ERR_INVALID_THIS('URL');
     }
 
     if (typeof depth === 'number' && depth < 0)
       return this;
 
-    const ctor = getConstructorOf(this);
-
-    const obj = Object.create({
-      constructor: ctor === null ? URL : ctor
-    });
+    const constructor = getConstructorOf(this) || URL;
+    const obj = ObjectCreate({ constructor });
 
     obj.href = this.href;
     obj.origin = this.origin;
@@ -370,11 +380,11 @@ class URL {
       obj[context] = this[context];
     }
 
-    return inspect(obj, opts);
+    return `${constructor.name} ${inspect(obj, opts)}`;
   }
 }
 
-Object.defineProperties(URL.prototype, {
+ObjectDefineProperties(URL.prototype, {
   [kFormat]: {
     enumerable: false,
     configurable: false,
@@ -390,7 +400,7 @@ Object.defineProperties(URL.prototype, {
         ...options
       };
       const ctx = this[context];
-      var ret = ctx.scheme;
+      let ret = ctx.scheme;
       if (ctx.host !== null) {
         ret += '//';
         const has_username = ctx.username !== '';
@@ -418,7 +428,7 @@ Object.defineProperties(URL.prototype, {
       return ret;
     }
   },
-  [Symbol.toStringTag]: {
+  [SymbolToStringTag]: {
     configurable: true,
     value: 'URL'
   },
@@ -539,7 +549,7 @@ Object.defineProperties(URL.prototype, {
     configurable: true,
     get() {
       const ctx = this[context];
-      var ret = ctx.host || '';
+      let ret = ctx.host || '';
       if (ctx.port !== null)
         ret += `:${ctx.port}`;
       return ret;
@@ -707,13 +717,13 @@ function initSearchParams(url, init) {
 // Ref: https://url.spec.whatwg.org/#concept-urlencoded-parser
 function parseParams(qs) {
   const out = [];
-  var pairStart = 0;
-  var lastPos = 0;
-  var seenSep = false;
-  var buf = '';
-  var encoded = false;
-  var encodeCheck = 0;
-  var i;
+  let pairStart = 0;
+  let lastPos = 0;
+  let seenSep = false;
+  let buf = '';
+  let encoded = false;
+  let encodeCheck = 0;
+  let i;
   for (i = 0; i < qs.length; ++i) {
     const code = qs.charCodeAt(i);
 
@@ -834,7 +844,7 @@ function serializeParams(array) {
   const firstEncodedValue = encodeStr(array[1], noEscape, paramHexTable);
   let output = `${firstEncodedParam}=${firstEncodedValue}`;
 
-  for (var i = 2; i < len; i += 2) {
+  for (let i = 2; i < len; i += 2) {
     const encodedParam = encodeStr(array[i], noEscape, paramHexTable);
     const encodedValue = encodeStr(array[i + 1], noEscape, paramHexTable);
     output += `&${encodedParam}=${encodedValue}`;
@@ -846,7 +856,7 @@ function serializeParams(array) {
 // Mainly to mitigate func-name-matching ESLint rule
 function defineIDLClass(proto, classStr, obj) {
   // https://heycam.github.io/webidl/#dfn-class-string
-  Object.defineProperty(proto, Symbol.toStringTag, {
+  ObjectDefineProperty(proto, SymbolToStringTag, {
     writable: false,
     enumerable: false,
     configurable: true,
@@ -854,16 +864,16 @@ function defineIDLClass(proto, classStr, obj) {
   });
 
   // https://heycam.github.io/webidl/#es-operations
-  for (const key of Object.keys(obj)) {
-    Object.defineProperty(proto, key, {
+  for (const key of ObjectKeys(obj)) {
+    ObjectDefineProperty(proto, key, {
       writable: true,
       enumerable: true,
       configurable: true,
       value: obj[key]
     });
   }
-  for (const key of Object.getOwnPropertySymbols(obj)) {
-    Object.defineProperty(proto, key, {
+  for (const key of ObjectGetOwnPropertySymbols(obj)) {
+    ObjectDefineProperty(proto, key, {
       writable: true,
       enumerable: false,
       configurable: true,
@@ -876,7 +886,7 @@ function defineIDLClass(proto, classStr, obj) {
 function merge(out, start, mid, end, lBuffer, rBuffer) {
   const sizeLeft = mid - start;
   const sizeRight = end - mid;
-  var l, r, o;
+  let l, r, o;
 
   for (l = 0; l < sizeLeft; l++)
     lBuffer[l] = out[start + l];
@@ -926,7 +936,7 @@ defineIDLClass(URLSearchParams.prototype, 'URLSearchParams', {
 
     const list = this[searchParams];
     name = toUSVString(name);
-    for (var i = 0; i < list.length;) {
+    for (let i = 0; i < list.length;) {
       const cur = list[i];
       if (cur === name) {
         list.splice(i, 2);
@@ -947,7 +957,7 @@ defineIDLClass(URLSearchParams.prototype, 'URLSearchParams', {
 
     const list = this[searchParams];
     name = toUSVString(name);
-    for (var i = 0; i < list.length; i += 2) {
+    for (let i = 0; i < list.length; i += 2) {
       if (list[i] === name) {
         return list[i + 1];
       }
@@ -966,7 +976,7 @@ defineIDLClass(URLSearchParams.prototype, 'URLSearchParams', {
     const list = this[searchParams];
     const values = [];
     name = toUSVString(name);
-    for (var i = 0; i < list.length; i += 2) {
+    for (let i = 0; i < list.length; i += 2) {
       if (list[i] === name) {
         values.push(list[i + 1]);
       }
@@ -984,7 +994,7 @@ defineIDLClass(URLSearchParams.prototype, 'URLSearchParams', {
 
     const list = this[searchParams];
     name = toUSVString(name);
-    for (var i = 0; i < list.length; i += 2) {
+    for (let i = 0; i < list.length; i += 2) {
       if (list[i] === name) {
         return true;
       }
@@ -1007,8 +1017,8 @@ defineIDLClass(URLSearchParams.prototype, 'URLSearchParams', {
     // If there are any name-value pairs whose name is `name`, in `list`, set
     // the value of the first such name-value pair to `value` and remove the
     // others.
-    var found = false;
-    for (var i = 0; i < list.length;) {
+    let found = false;
+    for (let i = 0; i < list.length;) {
       const cur = list[i];
       if (cur === name) {
         if (!found) {
@@ -1042,10 +1052,10 @@ defineIDLClass(URLSearchParams.prototype, 'URLSearchParams', {
       // 100 is found through testing.
       // Simple stable in-place insertion sort
       // Derived from v8/src/js/array.js
-      for (var i = 2; i < len; i += 2) {
-        var curKey = a[i];
-        var curVal = a[i + 1];
-        var j;
+      for (let i = 2; i < len; i += 2) {
+        const curKey = a[i];
+        const curVal = a[i + 1];
+        let j;
         for (j = i - 2; j >= 0; j -= 2) {
           if (a[j] > curKey) {
             a[j + 2] = a[j];
@@ -1061,10 +1071,10 @@ defineIDLClass(URLSearchParams.prototype, 'URLSearchParams', {
       // Bottom-up iterative stable merge sort
       const lBuffer = new Array(len);
       const rBuffer = new Array(len);
-      for (var step = 2; step < len; step *= 2) {
-        for (var start = 0; start < len - 2; start += 2 * step) {
-          var mid = start + step;
-          var end = mid + step;
+      for (let step = 2; step < len; step *= 2) {
+        for (let start = 0; start < len - 2; start += 2 * step) {
+          const mid = start + step;
+          let end = mid + step;
           end = end < len ? end : len;
           if (mid > end)
             continue;
@@ -1097,7 +1107,7 @@ defineIDLClass(URLSearchParams.prototype, 'URLSearchParams', {
 
     let list = this[searchParams];
 
-    var i = 0;
+    let i = 0;
     while (i < list.length) {
       const key = list[i];
       const value = list[i + 1];
@@ -1137,7 +1147,7 @@ defineIDLClass(URLSearchParams.prototype, 'URLSearchParams', {
 });
 
 // https://heycam.github.io/webidl/#es-iterable-entries
-Object.defineProperty(URLSearchParams.prototype, Symbol.iterator, {
+ObjectDefineProperty(URLSearchParams.prototype, SymbolIterator, {
   writable: true,
   configurable: true,
   value: URLSearchParams.prototype.entries
@@ -1145,7 +1155,7 @@ Object.defineProperty(URLSearchParams.prototype, Symbol.iterator, {
 
 // https://heycam.github.io/webidl/#dfn-default-iterator-object
 function createSearchParamsIterator(target, kind) {
-  const iterator = Object.create(URLSearchParamsIteratorPrototype);
+  const iterator = ObjectCreate(URLSearchParamsIteratorPrototype);
   iterator[context] = {
     target,
     kind,
@@ -1155,12 +1165,12 @@ function createSearchParamsIterator(target, kind) {
 }
 
 // https://heycam.github.io/webidl/#dfn-iterator-prototype-object
-const URLSearchParamsIteratorPrototype = Object.create(IteratorPrototype);
+const URLSearchParamsIteratorPrototype = ObjectCreate(IteratorPrototype);
 
 defineIDLClass(URLSearchParamsIteratorPrototype, 'URLSearchParams Iterator', {
   next() {
     if (!this ||
-        Object.getPrototypeOf(this) !== URLSearchParamsIteratorPrototype) {
+        ObjectGetPrototypeOf(this) !== URLSearchParamsIteratorPrototype) {
       throw new ERR_INVALID_THIS('URLSearchParamsIterator');
     }
 
@@ -1231,7 +1241,7 @@ defineIDLClass(URLSearchParamsIteratorPrototype, 'URLSearchParams Iterator', {
     } else {
       outputStr = ` ${outputStrs.join(', ')}`;
     }
-    return `${this[Symbol.toStringTag]} {${outputStr} }`;
+    return `${this[SymbolToStringTag]} {${outputStr} }`;
   }
 });
 
@@ -1279,10 +1289,10 @@ const forwardSlashRegEx = /\//g;
 
 function getPathFromURLWin32(url) {
   const hostname = url.hostname;
-  var pathname = url.pathname;
-  for (var n = 0; n < pathname.length; n++) {
+  let pathname = url.pathname;
+  for (let n = 0; n < pathname.length; n++) {
     if (pathname[n] === '%') {
-      var third = pathname.codePointAt(n + 2) | 0x20;
+      const third = pathname.codePointAt(n + 2) | 0x20;
       if ((pathname[n + 1] === '2' && third === 102) || // 2f 2F /
           (pathname[n + 1] === '5' && third === 99)) {  // 5c 5C \
         throw new ERR_INVALID_FILE_URL_PATH(
@@ -1301,16 +1311,15 @@ function getPathFromURLWin32(url) {
     // already taken care of that for us. Note that this only
     // causes IDNs with an appropriate `xn--` prefix to be decoded.
     return `\\\\${domainToUnicode(hostname)}${pathname}`;
-  } else {
-    // Otherwise, it's a local path that requires a drive letter
-    var letter = pathname.codePointAt(1) | 0x20;
-    var sep = pathname[2];
-    if (letter < CHAR_LOWERCASE_A || letter > CHAR_LOWERCASE_Z ||   // a..z A..Z
-        (sep !== ':')) {
-      throw new ERR_INVALID_FILE_URL_PATH('must be absolute');
-    }
-    return pathname.slice(1);
   }
+  // Otherwise, it's a local path that requires a drive letter
+  const letter = pathname.codePointAt(1) | 0x20;
+  const sep = pathname[2];
+  if (letter < CHAR_LOWERCASE_A || letter > CHAR_LOWERCASE_Z ||   // a..z A..Z
+      (sep !== ':')) {
+    throw new ERR_INVALID_FILE_URL_PATH('must be absolute');
+  }
+  return pathname.slice(1);
 }
 
 function getPathFromURLPosix(url) {
@@ -1318,9 +1327,9 @@ function getPathFromURLPosix(url) {
     throw new ERR_INVALID_FILE_URL_HOST(platform);
   }
   const pathname = url.pathname;
-  for (var n = 0; n < pathname.length; n++) {
+  for (let n = 0; n < pathname.length; n++) {
     if (pathname[n] === '%') {
-      var third = pathname.codePointAt(n + 2) | 0x20;
+      const third = pathname.codePointAt(n + 2) | 0x20;
       if (pathname[n + 1] === '2' && third === 102) {
         throw new ERR_INVALID_FILE_URL_PATH(
           'must not include encoded / characters'
@@ -1334,8 +1343,7 @@ function getPathFromURLPosix(url) {
 function fileURLToPath(path) {
   if (typeof path === 'string')
     path = new URL(path);
-  else if (path == null || !path[searchParams] ||
-           !path[searchParams][searchParams])
+  else if (!isURLInstance(path))
     throw new ERR_INVALID_ARG_TYPE('path', ['string', 'URL'], path);
   if (path.protocol !== 'file:')
     throw new ERR_INVALID_URL_SCHEME('file');
@@ -1382,9 +1390,12 @@ function pathToFileURL(filepath) {
   return outURL;
 }
 
+function isURLInstance(fileURLOrPath) {
+  return fileURLOrPath != null && fileURLOrPath.href && fileURLOrPath.origin;
+}
+
 function toPathIfFileURL(fileURLOrPath) {
-  if (fileURLOrPath == null || !fileURLOrPath[searchParams] ||
-      !fileURLOrPath[searchParams][searchParams])
+  if (!isURLInstance(fileURLOrPath))
     return fileURLOrPath;
   return fileURLToPath(fileURLOrPath);
 }
@@ -1402,7 +1413,7 @@ function constructUrl(flags, protocol, username, password,
   ctx.fragment = fragment;
   ctx.host = host;
 
-  const url = Object.create(URL.prototype);
+  const url = ObjectCreate(URL.prototype);
   url[context] = ctx;
   const params = new URLSearchParams();
   url[searchParams] = params;
@@ -1417,6 +1428,7 @@ module.exports = {
   fileURLToPath,
   pathToFileURL,
   toPathIfFileURL,
+  isURLInstance,
   URL,
   URLSearchParams,
   domainToASCII,

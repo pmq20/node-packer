@@ -47,7 +47,7 @@ class Preparation(Step):
       if self._options.force:
         os.remove(self.Config("ALREADY_MERGING_SENTINEL_FILE"))
       elif self._options.step == 0:  # pragma: no cover
-        self.Die("A merge is already in progress")
+        self.Die("A merge is already in progress. Use -f to continue")
     open(self.Config("ALREADY_MERGING_SENTINEL_FILE"), "a").close()
 
     self.InitialEnvironmentChecks(self.default_cwd)
@@ -145,7 +145,7 @@ class CreateCommitMessage(Step):
     if bug_aggregate:
       # TODO(machenbach): Use proper gerrit footer for bug after switch to
       # gerrit. Keep BUG= for now for backwards-compatibility.
-      msg_pieces.append("BUG=%s\nLOG=N\n" % bug_aggregate)
+      msg_pieces.append("BUG=%s\n" % bug_aggregate)
 
     msg_pieces.append("NOTRY=true\nNOPRESUBMIT=true\nNOTREECHECKS=true\n")
 

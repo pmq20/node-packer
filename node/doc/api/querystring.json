@@ -3,15 +3,15 @@
   "source": "doc/api/querystring.md",
   "modules": [
     {
-      "textRaw": "Query String",
+      "textRaw": "Query string",
       "name": "querystring",
       "introduced_in": "v0.1.25",
       "stability": 2,
       "stabilityText": "Stable",
-      "desc": "<p>The <code>querystring</code> module provides utilities for parsing and formatting URL\nquery strings. It can be accessed using:</p>\n<pre><code class=\"language-js\">const querystring = require('querystring');\n</code></pre>",
+      "desc": "<p><strong>Source Code:</strong> <a href=\"https://github.com/nodejs/node/blob/v14.8.0/lib/querystring.js\">lib/querystring.js</a></p>\n<p>The <code>querystring</code> module provides utilities for parsing and formatting URL\nquery strings. It can be accessed using:</p>\n<pre><code class=\"language-js\">const querystring = require('querystring');\n</code></pre>",
       "methods": [
         {
-          "textRaw": "querystring.decode()",
+          "textRaw": "`querystring.decode()`",
           "type": "method",
           "name": "decode",
           "meta": {
@@ -28,7 +28,7 @@
           "desc": "<p>The <code>querystring.decode()</code> function is an alias for <code>querystring.parse()</code>.</p>"
         },
         {
-          "textRaw": "querystring.encode()",
+          "textRaw": "`querystring.encode()`",
           "type": "method",
           "name": "encode",
           "meta": {
@@ -45,7 +45,7 @@
           "desc": "<p>The <code>querystring.encode()</code> function is an alias for <code>querystring.stringify()</code>.</p>"
         },
         {
-          "textRaw": "querystring.escape(str)",
+          "textRaw": "`querystring.escape(str)`",
           "type": "method",
           "name": "escape",
           "meta": {
@@ -68,7 +68,7 @@
           "desc": "<p>The <code>querystring.escape()</code> method performs URL percent-encoding on the given\n<code>str</code> in a manner that is optimized for the specific requirements of URL\nquery strings.</p>\n<p>The <code>querystring.escape()</code> method is used by <code>querystring.stringify()</code> and is\ngenerally not expected to be used directly. It is exported primarily to allow\napplication code to provide a replacement percent-encoding implementation if\nnecessary by assigning <code>querystring.escape</code> to an alternative function.</p>"
         },
         {
-          "textRaw": "querystring.parse(str[, sep[, eq[, options]]])",
+          "textRaw": "`querystring.parse(str[, sep[, eq[, options]]])`",
           "type": "method",
           "name": "parse",
           "meta": {
@@ -107,16 +107,14 @@
                   "name": "sep",
                   "type": "string",
                   "default": "`'&'`",
-                  "desc": "The substring used to delimit key and value pairs in the query string.",
-                  "optional": true
+                  "desc": "The substring used to delimit key and value pairs in the query string."
                 },
                 {
                   "textRaw": "`eq` {string}. The substring used to delimit keys and values in the query string. **Default:** `'='`.",
                   "name": "eq",
                   "type": "string",
                   "default": "`'='`",
-                  "desc": ". The substring used to delimit keys and values in the query string.",
-                  "optional": true
+                  "desc": ". The substring used to delimit keys and values in the query string."
                 },
                 {
                   "textRaw": "`options` {Object}",
@@ -137,8 +135,7 @@
                       "default": "`1000`",
                       "desc": "Specifies the maximum number of keys to parse. Specify `0` to remove key counting limitations."
                     }
-                  ],
-                  "optional": true
+                  ]
                 }
               ]
             }
@@ -146,7 +143,7 @@
           "desc": "<p>The <code>querystring.parse()</code> method parses a URL query string (<code>str</code>) into a\ncollection of key and value pairs.</p>\n<p>For example, the query string <code>'foo=bar&#x26;abc=xyz&#x26;abc=123'</code> is parsed into:</p>\n<!-- eslint-skip -->\n<pre><code class=\"language-js\">{\n  foo: 'bar',\n  abc: ['xyz', '123']\n}\n</code></pre>\n<p>The object returned by the <code>querystring.parse()</code> method <em>does not</em>\nprototypically inherit from the JavaScript <code>Object</code>. This means that typical\n<code>Object</code> methods such as <code>obj.toString()</code>, <code>obj.hasOwnProperty()</code>, and others\nare not defined and <em>will not work</em>.</p>\n<p>By default, percent-encoded characters within the query string will be assumed\nto use UTF-8 encoding. If an alternative character encoding is used, then an\nalternative <code>decodeURIComponent</code> option will need to be specified:</p>\n<pre><code class=\"language-js\">// Assuming gbkDecodeURIComponent function already exists...\n\nquerystring.parse('w=%D6%D0%CE%C4&#x26;foo=bar', null, null,\n                  { decodeURIComponent: gbkDecodeURIComponent });\n</code></pre>"
         },
         {
-          "textRaw": "querystring.stringify(obj[, sep[, eq[, options]]])",
+          "textRaw": "`querystring.stringify(obj[, sep[, eq[, options]]])`",
           "type": "method",
           "name": "stringify",
           "meta": {
@@ -169,16 +166,14 @@
                   "name": "sep",
                   "type": "string",
                   "default": "`'&'`",
-                  "desc": "The substring used to delimit key and value pairs in the query string.",
-                  "optional": true
+                  "desc": "The substring used to delimit key and value pairs in the query string."
                 },
                 {
                   "textRaw": "`eq` {string}. The substring used to delimit keys and values in the query string. **Default:** `'='`.",
                   "name": "eq",
                   "type": "string",
                   "default": "`'='`",
-                  "desc": ". The substring used to delimit keys and values in the query string.",
-                  "optional": true
+                  "desc": ". The substring used to delimit keys and values in the query string."
                 },
                 {
                   "textRaw": "`options`",
@@ -191,8 +186,7 @@
                       "default": "`querystring.escape()`",
                       "desc": "The function to use when converting URL-unsafe characters to percent-encoding in the query string."
                     }
-                  ],
-                  "optional": true
+                  ]
                 }
               ]
             }
@@ -200,7 +194,7 @@
           "desc": "<p>The <code>querystring.stringify()</code> method produces a URL query string from a\ngiven <code>obj</code> by iterating through the object's \"own properties\".</p>\n<p>It serializes the following types of values passed in <code>obj</code>:\n<a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type\" class=\"type\">&lt;string&gt;</a> | <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a> | <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type\" class=\"type\">&lt;boolean&gt;</a> | <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type\" class=\"type\">&lt;string[]&gt;</a> | <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number[]&gt;</a> | <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type\" class=\"type\">&lt;boolean[]&gt;</a>\nAny other input values will be coerced to empty strings.</p>\n<pre><code class=\"language-js\">querystring.stringify({ foo: 'bar', baz: ['qux', 'quux'], corge: '' });\n// Returns 'foo=bar&#x26;baz=qux&#x26;baz=quux&#x26;corge='\n\nquerystring.stringify({ foo: 'bar', baz: 'qux' }, ';', ':');\n// Returns 'foo:bar;baz:qux'\n</code></pre>\n<p>By default, characters requiring percent-encoding within the query string will\nbe encoded as UTF-8. If an alternative encoding is required, then an alternative\n<code>encodeURIComponent</code> option will need to be specified:</p>\n<pre><code class=\"language-js\">// Assuming gbkEncodeURIComponent function already exists,\n\nquerystring.stringify({ w: '中文', foo: 'bar' }, null, null,\n                      { encodeURIComponent: gbkEncodeURIComponent });\n</code></pre>"
         },
         {
-          "textRaw": "querystring.unescape(str)",
+          "textRaw": "`querystring.unescape(str)`",
           "type": "method",
           "name": "unescape",
           "meta": {

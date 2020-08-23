@@ -1,8 +1,19 @@
 'use strict';
 
-const { Object, Reflect } = primordials;
+const {
+  ArrayIsArray,
+  BigInt,
+  DateNow,
+  Error,
+  Number,
+  NumberIsFinite,
+  MathMin,
+  ObjectSetPrototypeOf,
+  ReflectOwnKeys,
+  Symbol,
+} = primordials;
 
-const { Buffer, kMaxLength } = require('buffer');
+const { Buffer } = require('buffer');
 const {
   codes: {
     ERR_FS_INVALID_SYMLINK_TYPE,
@@ -30,8 +41,16 @@ const {
 const pathModule = require('path');
 const kType = Symbol('type');
 const kStats = Symbol('stats');
+const assert = require('internal/assert');
 
 const {
+  F_OK = 0,
+  W_OK = 0,
+  R_OK = 0,
+  X_OK = 0,
+  COPYFILE_EXCL,
+  COPYFILE_FICLONE,
+  COPYFILE_FICLONE_FORCE,
   O_APPEND,
   O_CREAT,
   O_EXCL,
@@ -59,6 +78,26 @@ const {
   UV_DIRENT_CHAR,
   UV_DIRENT_BLOCK
 } = internalBinding('constants').fs;
+
+// The access modes can be any of F_OK, R_OK, W_OK or X_OK. Some might not be
+// available on specific systems. They can be used in combination as well
+// (F_OK | R_OK | W_OK | X_OK).
+const kMinimumAccessMode = MathMin(F_OK, W_OK, R_OK, X_OK);
+const kMaximumAccessMode = F_OK | W_OK | R_OK | X_OK;
+
+const kDefaultCopyMode = 0;
+// The copy modes can be any of COPYFILE_EXCL, COPYFILE_FICLONE or
+// COPYFILE_FICLONE_FORCE. They can be used in combination as well
+// (COPYFILE_EXCL | COPYFILE_FICLONE | COPYFILE_FICLONE_FORCE).
+const kMinimumCopyMode = MathMin(
+  kDefaultCopyMode,
+  COPYFILE_EXCL,
+  COPYFILE_FICLONE,
+  COPYFILE_FICLONE_FORCE
+);
+const kMaximumCopyMode = COPYFILE_EXCL |
+                         COPYFILE_FICLONE |
+                         COPYFILE_FICLONE_FORCE;
 
 const isWindows = process.platform === 'win32';
 
@@ -118,7 +157,7 @@ class DirentFromStats extends Dirent {
   }
 }
 
-for (const name of Reflect.ownKeys(Dirent.prototype)) {
+for (const name of ReflectOwnKeys(Dirent.prototype)) {
   if (name === 'constructor') {
     continue;
   }
@@ -134,6 +173,31 @@ function copyObject(source) {
   return target;
 }
 
+const bufferSep = Buffer.from(pathModule.sep);
+
+function join(path, name) {
+  if ((typeof path === 'string' || isUint8Array(path)) &&
+      name === undefined) {
+    return path;
+  }
+
+  if (typeof path === 'string' && isUint8Array(name)) {
+    const pathBuffer = Buffer.from(pathModule.join(path, pathModule.sep));
+    return Buffer.concat([pathBuffer, name]);
+  }
+
+  if (typeof path === 'string' && typeof name === 'string') {
+    return pathModule.join(path, name);
+  }
+
+  if (isUint8Array(path) && isUint8Array(name)) {
+    return Buffer.concat([path, bufferSep, name]);
+  }
+
+  throw new ERR_INVALID_ARG_TYPE(
+    'path', ['string', 'Buffer'], path);
+}
+
 function getDirents(path, [names, types], callback) {
   let i;
   if (typeof callback === 'function') {
@@ -146,7 +210,14 @@ function getDirents(path, [names, types], callback) {
         const name = names[i];
         const idx = i;
         toFinish++;
-        lazyLoadFs().lstat(pathModule.join(path, name), (err, stats) => {
+        let filepath;
+        try {
+          filepath = join(path, name);
+        } catch (err) {
+          callback(err);
+          return;
+        }
+        lazyLoadFs().lstat(filepath, (err, stats) => {
           if (err) {
             callback(err);
             return;
@@ -175,7 +246,14 @@ function getDirents(path, [names, types], callback) {
 function getDirent(path, name, type, callback) {
   if (typeof callback === 'function') {
     if (type === UV_DIRENT_UNKNOWN) {
-      lazyLoadFs().lstat(pathModule.join(path, name), (err, stats) => {
+      let filepath;
+      try {
+        filepath = join(path, name);
+      } catch (err) {
+        callback(err);
+        return;
+      }
+      lazyLoadFs().lstat(filepath, (err, stats) => {
         if (err) {
           callback(err);
           return;
@@ -186,7 +264,7 @@ function getDirent(path, name, type, callback) {
       callback(null, new Dirent(name, type));
     }
   } else if (type === UV_DIRENT_UNKNOWN) {
-    const stats = lazyLoadFs().lstatSync(pathModule.join(path, name));
+    const stats = lazyLoadFs().lstatSync(join(path, name));
     return new DirentFromStats(name, stats);
   } else {
     return new Dirent(name, type);
@@ -257,15 +335,19 @@ function preprocessSymlinkDestination(path, type, linkPath) {
   if (!isWindows) {
     // No preprocessing is needed on Unix.
     return path;
-  } else if (type === 'junction') {
+  }
+  if (type === 'junction') {
     // Junctions paths need to be absolute and \\?\-prefixed.
     // A relative target is relative to the link's parent directory.
     path = pathModule.resolve(linkPath, '..', path);
     return pathModule.toNamespacedPath(path);
-  } else {
-    // Windows symlinks don't tolerate forward slashes.
-    return ('' + path).replace(/\//g, '\\');
   }
+  if (pathModule.isAbsolute(path)) {
+    // If the path is absolute, use the \\?\-prefix to enable long filenames
+    return pathModule.toNamespacedPath(path);
+  }
+  // Windows symlinks don't tolerate forward slashes.
+  return ('' + path).replace(/\//g, '\\');
 }
 
 // Constructor for file stats.
@@ -353,8 +435,8 @@ function BigIntStats(dev, mode, nlink, uid, gid, rdev, blksize,
   this.birthtime = dateFromMs(this.birthtimeMs);
 }
 
-Object.setPrototypeOf(BigIntStats.prototype, StatsBase.prototype);
-Object.setPrototypeOf(BigIntStats, StatsBase);
+ObjectSetPrototypeOf(BigIntStats.prototype, StatsBase.prototype);
+ObjectSetPrototypeOf(BigIntStats, StatsBase);
 
 BigIntStats.prototype._checkModeProperty = function(property) {
   if (isWindows && (property === S_IFIFO || property === S_IFBLK ||
@@ -379,8 +461,8 @@ function Stats(dev, mode, nlink, uid, gid, rdev, blksize,
   this.birthtime = dateFromMs(birthtimeMs);
 }
 
-Object.setPrototypeOf(Stats.prototype, StatsBase.prototype);
-Object.setPrototypeOf(Stats, StatsBase);
+ObjectSetPrototypeOf(Stats.prototype, StatsBase.prototype);
+ObjectSetPrototypeOf(Stats, StatsBase);
 
 // HACK: Workaround for https://github.com/standard-things/esm/issues/821.
 // TODO(ronag): Remove this as soon as `esm` publishes a fixed version.
@@ -422,6 +504,10 @@ function getStatsFromBinding(stats, offset = 0) {
 function stringToFlags(flags) {
   if (typeof flags === 'number') {
     return flags;
+  }
+
+  if (flags == null) {
+    return O_RDONLY;
   }
 
   switch (flags) {
@@ -481,9 +567,9 @@ function toUnixTimestamp(time, name = 'time') {
   if (typeof time === 'string' && +time == time) {
     return +time;
   }
-  if (Number.isFinite(time)) {
+  if (NumberIsFinite(time)) {
     if (time < 0) {
-      return Date.now() / 1000;
+      return DateNow() / 1000;
     }
     return time;
   }
@@ -496,13 +582,15 @@ function toUnixTimestamp(time, name = 'time') {
 
 const validateOffsetLengthRead = hideStackFrames(
   (offset, length, bufferLength) => {
-    if (offset < 0 || offset >= bufferLength) {
-      throw new ERR_OUT_OF_RANGE('offset',
-                                 `>= 0 && <= ${bufferLength}`, offset);
+    if (offset < 0) {
+      throw new ERR_OUT_OF_RANGE('offset', '>= 0', offset);
     }
-    if (length < 0 || offset + length > bufferLength) {
+    if (length < 0) {
+      throw new ERR_OUT_OF_RANGE('length', '>= 0', length);
+    }
+    if (offset + length > bufferLength) {
       throw new ERR_OUT_OF_RANGE('length',
-                                 `>= 0 && <= ${bufferLength - offset}`, length);
+                                 `<= ${bufferLength - offset}`, length);
     }
   }
 );
@@ -513,9 +601,8 @@ const validateOffsetLengthWrite = hideStackFrames(
       throw new ERR_OUT_OF_RANGE('offset', `<= ${byteLength}`, offset);
     }
 
-    const max = byteLength > kMaxLength ? kMaxLength : byteLength;
-    if (length > max - offset) {
-      throw new ERR_OUT_OF_RANGE('length', `<= ${max - offset}`, length);
+    if (length > byteLength - offset) {
+      throw new ERR_OUT_OF_RANGE('length', `<= ${byteLength - offset}`, length);
     }
   }
 );
@@ -539,7 +626,7 @@ const getValidatedPath = hideStackFrames((fileURLOrPath, propName = 'path') => {
 });
 
 const validateBufferArray = hideStackFrames((buffers, propName = 'buffers') => {
-  if (!Array.isArray(buffers))
+  if (!ArrayIsArray(buffers))
     throw new ERR_INVALID_ARG_TYPE(propName, 'ArrayBufferView[]', buffers);
 
   for (let i = 0; i < buffers.length; i++) {
@@ -563,8 +650,8 @@ function warnOnNonPortableTemplate(template) {
 }
 
 const defaultRmdirOptions = {
-  emfileWait: 1000,
-  maxBusyTries: 3,
+  retryDelay: 100,
+  maxRetries: 0,
   recursive: false,
 };
 
@@ -579,12 +666,45 @@ const validateRmdirOptions = hideStackFrames((options) => {
   if (typeof options.recursive !== 'boolean')
     throw new ERR_INVALID_ARG_TYPE('recursive', 'boolean', options.recursive);
 
-  validateInt32(options.emfileWait, 'emfileWait', 0);
-  validateUint32(options.maxBusyTries, 'maxBusyTries');
+  validateInt32(options.retryDelay, 'retryDelay', 0);
+  validateUint32(options.maxRetries, 'maxRetries');
 
   return options;
 });
 
+const getValidMode = hideStackFrames((mode, type) => {
+  let min = kMinimumAccessMode;
+  let max = kMaximumAccessMode;
+  let def = F_OK;
+  if (type === 'copyFile') {
+    min = kMinimumCopyMode;
+    max = kMaximumCopyMode;
+    def = mode || kDefaultCopyMode;
+  } else {
+    assert(type === 'access');
+  }
+  if (mode == null) {
+    return def;
+  }
+  if (Number.isInteger(mode) && mode >= min && mode <= max) {
+    return mode;
+  }
+  if (typeof mode !== 'number') {
+    throw new ERR_INVALID_ARG_TYPE('mode', 'integer', mode);
+  }
+  throw new ERR_OUT_OF_RANGE(
+    'mode', `an integer >= ${min} && <= ${max}`, mode);
+});
+
+const validateStringAfterArrayBufferView = hideStackFrames((buffer, name) => {
+  if (typeof buffer !== 'string') {
+    throw new ERR_INVALID_ARG_TYPE(
+      name,
+      ['string', 'Buffer', 'TypedArray', 'DataView'],
+      buffer
+    );
+  }
+});
 
 module.exports = {
   assertEncoding,
@@ -595,6 +715,7 @@ module.exports = {
   getDirents,
   getOptions,
   getValidatedPath,
+  getValidMode,
   handleErrorFromBinding,
   nullCheck,
   preprocessSymlinkDestination,
@@ -609,5 +730,6 @@ module.exports = {
   validateOffsetLengthWrite,
   validatePath,
   validateRmdirOptions,
+  validateStringAfterArrayBufferView,
   warnOnNonPortableTemplate
 };

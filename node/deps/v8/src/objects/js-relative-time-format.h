@@ -12,6 +12,7 @@
 #include <set>
 #include <string>
 
+#include "src/base/bit-field.h"
 #include "src/execution/isolate.h"
 #include "src/heap/factory.h"
 #include "src/objects/managed.h"
@@ -28,7 +29,9 @@ class RelativeDateTimeFormatter;
 namespace v8 {
 namespace internal {
 
-class JSRelativeTimeFormat : public JSObject {
+class JSRelativeTimeFormat
+    : public TorqueGeneratedJSRelativeTimeFormat<JSRelativeTimeFormat,
+                                                 JSObject> {
  public:
   // Creates relative time format object with properties derived from input
   // locales and options.
@@ -39,7 +42,6 @@ class JSRelativeTimeFormat : public JSObject {
   V8_WARN_UNUSED_RESULT static Handle<JSObject> ResolvedOptions(
       Isolate* isolate, Handle<JSRelativeTimeFormat> format_holder);
 
-  Handle<String> StyleAsString() const;
   Handle<String> NumericAsString() const;
 
   // ecma402/#sec-Intl.RelativeTimeFormat.prototype.format
@@ -54,24 +56,8 @@ class JSRelativeTimeFormat : public JSObject {
 
   V8_EXPORT_PRIVATE static const std::set<std::string>& GetAvailableLocales();
 
-  DECL_CAST(JSRelativeTimeFormat)
-
   // RelativeTimeFormat accessors.
-  DECL_ACCESSORS(locale, String)
-
   DECL_ACCESSORS(icu_formatter, Managed<icu::RelativeDateTimeFormatter>)
-
-  // Style: identifying the relative time format style used.
-  //
-  // ecma402/#sec-properties-of-intl-relativetimeformat-instances
-
-  enum class Style {
-    LONG,   // Everything spelled out.
-    SHORT,  // Abbreviations used when possible.
-    NARROW  // Use the shortest possible form.
-  };
-  inline void set_style(Style style);
-  inline Style style() const;
 
   // Numeric: identifying whether numerical descriptions are always used, or
   // used only when no more specific version is available (e.g., "1 day ago" vs
@@ -86,34 +72,15 @@ class JSRelativeTimeFormat : public JSObject {
   inline void set_numeric(Numeric numeric);
   inline Numeric numeric() const;
 
-// Bit positions in |flags|.
-#define FLAGS_BIT_FIELDS(V, _) \
-  V(StyleBits, Style, 2, _)    \
-  V(NumericBits, Numeric, 1, _)
-  DEFINE_BIT_FIELDS(FLAGS_BIT_FIELDS)
-#undef FLAGS_BIT_FIELDS
+  // Bit positions in |flags|.
+  DEFINE_TORQUE_GENERATED_JS_RELATIVE_TIME_FORMAT_FLAGS()
 
-  STATIC_ASSERT(Style::LONG <= StyleBits::kMax);
-  STATIC_ASSERT(Style::SHORT <= StyleBits::kMax);
-  STATIC_ASSERT(Style::NARROW <= StyleBits::kMax);
-  STATIC_ASSERT(Numeric::AUTO <= NumericBits::kMax);
-  STATIC_ASSERT(Numeric::ALWAYS <= NumericBits::kMax);
-
-  // [flags] Bit field containing various flags about the function.
-  DECL_INT_ACCESSORS(flags)
+  STATIC_ASSERT(Numeric::AUTO <= NumericBit::kMax);
+  STATIC_ASSERT(Numeric::ALWAYS <= NumericBit::kMax);
 
   DECL_PRINTER(JSRelativeTimeFormat)
-  DECL_VERIFIER(JSRelativeTimeFormat)
 
-  // Layout description.
-  DEFINE_FIELD_OFFSET_CONSTANTS(JSObject::kHeaderSize,
-                                TORQUE_GENERATED_JSRELATIVE_TIME_FORMAT_FIELDS)
-
- private:
-  static Style getStyle(const char* str);
-  static Numeric getNumeric(const char* str);
-
-  OBJECT_CONSTRUCTORS(JSRelativeTimeFormat, JSObject);
+  TQ_OBJECT_CONSTRUCTORS(JSRelativeTimeFormat)
 };
 
 }  // namespace internal

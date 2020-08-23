@@ -15,10 +15,8 @@ using v8::EscapableHandleScope;
 using v8::Function;
 using v8::FunctionCallbackInfo;
 using v8::FunctionTemplate;
-using v8::HandleScope;
 using v8::Integer;
 using v8::Isolate;
-using v8::Just;
 using v8::Local;
 using v8::MaybeLocal;
 using v8::Name;
@@ -32,11 +30,11 @@ using v8::Value;
 
 static void ProcessTitleGetter(Local<Name> property,
                                const PropertyCallbackInfo<Value>& info) {
-  char buffer[512];
-  uv_get_process_title(buffer, sizeof(buffer));
+  std::string title = GetProcessTitle("node");
   info.GetReturnValue().Set(
-      String::NewFromUtf8(info.GetIsolate(), buffer, NewStringType::kNormal)
-          .ToLocalChecked());
+      String::NewFromUtf8(info.GetIsolate(), title.data(),
+                          NewStringType::kNormal, title.size())
+      .ToLocalChecked());
 }
 
 static void ProcessTitleSetter(Local<Name> property,
@@ -51,7 +49,8 @@ static void ProcessTitleSetter(Local<Name> property,
 static void DebugPortGetter(Local<Name> property,
                             const PropertyCallbackInfo<Value>& info) {
   Environment* env = Environment::GetCurrent(info);
-  int port = env->inspector_host_port()->port();
+  ExclusiveAccess<HostPort>::Scoped host_port(env->inspector_host_port());
+  int port = host_port->port();
   info.GetReturnValue().Set(port);
 }
 
@@ -60,7 +59,8 @@ static void DebugPortSetter(Local<Name> property,
                             const PropertyCallbackInfo<void>& info) {
   Environment* env = Environment::GetCurrent(info);
   int32_t port = value->Int32Value(env->context()).FromMaybe(0);
-  env->inspector_host_port()->set_port(static_cast<int>(port));
+  ExclusiveAccess<HostPort>::Scoped host_port(env->inspector_host_port());
+  host_port->set_port(static_cast<int>(port));
 }
 
 static void GetParentProcessId(Local<Name> property,
@@ -74,7 +74,7 @@ MaybeLocal<Object> CreateProcessObject(Environment* env) {
   Local<Context> context = env->context();
 
   Local<FunctionTemplate> process_template = FunctionTemplate::New(isolate);
-  process_template->SetClassName(FIXED_ONE_BYTE_STRING(isolate, "process"));
+  process_template->SetClassName(env->process_string());
   Local<Function> process_ctor;
   Local<Object> process;
   if (!process_template->GetFunction(context).ToLocal(&process_ctor) ||
@@ -145,7 +145,7 @@ void PatchProcessObject(const FunctionCallbackInfo<Value>& args) {
                 FIXED_ONE_BYTE_STRING(isolate, "title"),
                 ProcessTitleGetter,
                 env->owns_process_state() ? ProcessTitleSetter : nullptr,
-                env->as_callback_data(),
+                Local<Value>(),
                 DEFAULT,
                 None,
                 SideEffectType::kHasNoSideEffect)
@@ -196,7 +196,7 @@ void PatchProcessObject(const FunctionCallbackInfo<Value>& args) {
                           FIXED_ONE_BYTE_STRING(isolate, "debugPort"),
                           DebugPortGetter,
                           env->owns_process_state() ? DebugPortSetter : nullptr,
-                          env->as_callback_data())
+                          Local<Value>())
             .FromJust());
 }
 

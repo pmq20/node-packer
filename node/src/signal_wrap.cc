@@ -18,7 +18,7 @@
 // DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
-#define NODE_WANT_INTERNALS 1
+
 #include "async_wrap-inl.h"
 #include "env-inl.h"
 #include "handle_wrap.h"
@@ -38,7 +38,12 @@ using v8::Object;
 using v8::String;
 using v8::Value;
 
+void DecreaseSignalHandlerCount(int signum);
+
 namespace {
+
+static Mutex handled_signals_mutex;
+static std::map<int, int64_t> handled_signals;  // Signal -> number of handlers
 
 class SignalWrap : public HandleWrap {
  public:
@@ -48,7 +53,8 @@ class SignalWrap : public HandleWrap {
                          void* priv) {
     Environment* env = Environment::GetCurrent(context);
     Local<FunctionTemplate> constructor = env->NewFunctionTemplate(New);
-    constructor->InstanceTemplate()->SetInternalFieldCount(1);
+    constructor->InstanceTemplate()->SetInternalFieldCount(
+        SignalWrap::kInternalFieldCount);
     Local<String> signalString =
         FIXED_ONE_BYTE_STRING(env->isolate(), "Signal");
     constructor->SetClassName(signalString);
@@ -57,11 +63,9 @@ class SignalWrap : public HandleWrap {
     env->SetProtoMethod(constructor, "start", Start);
     env->SetProtoMethod(constructor, "stop", Stop);
 
-    target
-        ->Set(env->context(),
-              signalString,
-              constructor->GetFunction(env->context()).ToLocalChecked())
-        .Check();
+    target->Set(env->context(), signalString,
+                constructor->GetFunction(env->context()).ToLocalChecked())
+                .Check();
   }
 
   SET_NO_MEMORY_INFO()
@@ -85,6 +89,14 @@ class SignalWrap : public HandleWrap {
                    AsyncWrap::PROVIDER_SIGNALWRAP) {
     int r = uv_signal_init(env->event_loop(), &handle_);
     CHECK_EQ(r, 0);
+  }
+
+  void Close(v8::Local<v8::Value> close_callback) override {
+    if (active_) {
+      DecreaseSignalHandlerCount(handle_.signum);
+      active_ = false;
+    }
+    HandleWrap::Close(close_callback);
   }
 
   static void Start(const FunctionCallbackInfo<Value>& args) {
@@ -114,20 +126,50 @@ class SignalWrap : public HandleWrap {
           wrap->MakeCallback(env->onsignal_string(), 1, &arg);
         },
         signum);
+
+    if (err == 0) {
+      CHECK(!wrap->active_);
+      wrap->active_ = true;
+      Mutex::ScopedLock lock(handled_signals_mutex);
+      handled_signals[signum]++;
+    }
+
     args.GetReturnValue().Set(err);
   }
 
   static void Stop(const FunctionCallbackInfo<Value>& args) {
     SignalWrap* wrap;
     ASSIGN_OR_RETURN_UNWRAP(&wrap, args.Holder());
+
+    if (wrap->active_)  {
+      wrap->active_ = false;
+      DecreaseSignalHandlerCount(wrap->handle_.signum);
+    }
+
     int err = uv_signal_stop(&wrap->handle_);
     args.GetReturnValue().Set(err);
   }
 
   uv_signal_t handle_;
+  bool active_ = false;
 };
 
+
 }  // anonymous namespace
+
+void DecreaseSignalHandlerCount(int signum) {
+  Mutex::ScopedLock lock(handled_signals_mutex);
+  int new_handler_count = --handled_signals[signum];
+  CHECK_GE(new_handler_count, 0);
+  if (new_handler_count == 0)
+    handled_signals.erase(signum);
+}
+
+bool HasSignalJSHandler(int signum) {
+  Mutex::ScopedLock lock(handled_signals_mutex);
+  return handled_signals.find(signum) != handled_signals.end();
+}
 }  // namespace node
+
 
 NODE_MODULE_CONTEXT_AWARE_INTERNAL(signal_wrap, node::SignalWrap::Initialize)

@@ -13,14 +13,11 @@ const {
 
 const { pathToFileURL } = require('url');
 
-const vm = require('vm');
 const {
-  stripShebang, stripBOM
-} = require('internal/modules/cjs/helpers');
-
-const {
-  _resolveFilename: resolveCJSModuleName,
-  wrap: wrapCJSModule
+  Module: {
+    _resolveFilename: resolveCJSModuleName,
+  },
+  wrapSafe,
 } = require('internal/modules/cjs/loader');
 
 // TODO(joyeecheung): not every one of these are necessary
@@ -49,31 +46,22 @@ if (process.argv[1] && process.argv[1] !== '-') {
 }
 
 function checkSyntax(source, filename) {
-  // Remove Shebang.
-  source = stripShebang(source);
-
   const { getOptionValue } = require('internal/options');
-  const experimentalModules = getOptionValue('--experimental-modules');
-  if (experimentalModules) {
-    let isModule = false;
-    if (filename === '[stdin]' || filename === '[eval]') {
-      isModule = getOptionValue('--input-type') === 'module';
-    } else {
-      const resolve = require('internal/modules/esm/default_resolve');
-      const { format } = resolve(pathToFileURL(filename).toString());
-      isModule = format === 'module';
-    }
-    if (isModule) {
-      const { ModuleWrap } = internalBinding('module_wrap');
-      new ModuleWrap(source, filename);
-      return;
-    }
+  let isModule = false;
+  if (filename === '[stdin]' || filename === '[eval]') {
+    isModule = getOptionValue('--input-type') === 'module';
+  } else {
+    const { defaultResolve } = require('internal/modules/esm/resolve');
+    const { defaultGetFormat } = require('internal/modules/esm/get_format');
+    const { url } = defaultResolve(pathToFileURL(filename).toString());
+    const { format } = defaultGetFormat(url);
+    isModule = format === 'module';
+  }
+  if (isModule) {
+    const { ModuleWrap } = internalBinding('module_wrap');
+    new ModuleWrap(filename, undefined, source, 0, 0);
+    return;
   }
 
-  // Remove BOM.
-  source = stripBOM(source);
-  // Wrap it.
-  source = wrapCJSModule(source);
-  // Compile the script, this will throw if it fails.
-  new vm.Script(source, { displayErrors: true, filename });
+  wrapSafe(filename, source);
 }

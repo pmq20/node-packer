@@ -12,6 +12,7 @@
 
 #include "src/objects/module-inl.h"
 #include "src/objects/objects-inl.h"
+#include "src/roots/roots.h"
 
 namespace v8 {
 namespace internal {
@@ -60,7 +61,9 @@ bool ScopeInfo::Equals(ScopeInfo other) const {
 #endif
 
 // static
-Handle<ScopeInfo> ScopeInfo::Create(Isolate* isolate, Zone* zone, Scope* scope,
+template <typename LocalIsolate>
+Handle<ScopeInfo> ScopeInfo::Create(LocalIsolate* isolate, Zone* zone,
+                                    Scope* scope,
                                     MaybeHandle<ScopeInfo> outer_scope) {
   // Collect variables.
   int context_local_count = 0;
@@ -72,6 +75,7 @@ Handle<ScopeInfo> ScopeInfo::Create(Isolate* isolate, Zone* zone, Scope* scope,
   for (Variable* var : *scope->locals()) {
     switch (var->location()) {
       case VariableLocation::CONTEXT:
+      case VariableLocation::REPL_GLOBAL:
         context_local_count++;
         break;
       case VariableLocation::MODULE:
@@ -87,16 +91,16 @@ Handle<ScopeInfo> ScopeInfo::Create(Isolate* isolate, Zone* zone, Scope* scope,
       scope->AsDeclarationScope()->has_this_declaration()) {
     Variable* var = scope->AsDeclarationScope()->receiver();
     if (!var->is_used()) {
-      receiver_info = UNUSED;
+      receiver_info = VariableAllocationInfo::UNUSED;
     } else if (var->IsContextSlot()) {
-      receiver_info = CONTEXT;
+      receiver_info = VariableAllocationInfo::CONTEXT;
       context_local_count++;
     } else {
       DCHECK(var->IsParameter());
-      receiver_info = STACK;
+      receiver_info = VariableAllocationInfo::STACK;
     }
   } else {
-    receiver_info = NONE;
+    receiver_info = VariableAllocationInfo::NONE;
   }
 
   DCHECK(module_vars_count == 0 || scope->is_module_scope());
@@ -116,37 +120,45 @@ Handle<ScopeInfo> ScopeInfo::Create(Isolate* isolate, Zone* zone, Scope* scope,
     if (scope->AsDeclarationScope()->function_var() != nullptr) {
       Variable* var = scope->AsDeclarationScope()->function_var();
       if (!var->is_used()) {
-        function_name_info = UNUSED;
+        function_name_info = VariableAllocationInfo::UNUSED;
       } else if (var->IsContextSlot()) {
-        function_name_info = CONTEXT;
+        function_name_info = VariableAllocationInfo::CONTEXT;
       } else {
         DCHECK(var->IsStackLocal());
-        function_name_info = STACK;
+        function_name_info = VariableAllocationInfo::STACK;
       }
     } else {
       // Always reserve space for the debug name in the scope info.
-      function_name_info = UNUSED;
+      function_name_info = VariableAllocationInfo::UNUSED;
     }
   } else if (scope->is_module_scope() || scope->is_script_scope() ||
              scope->is_eval_scope()) {
     // Always reserve space for the debug name in the scope info.
-    function_name_info = UNUSED;
+    function_name_info = VariableAllocationInfo::UNUSED;
   } else {
-    function_name_info = NONE;
+    function_name_info = VariableAllocationInfo::NONE;
   }
 
   const bool has_brand = scope->is_class_scope()
                              ? scope->AsClassScope()->brand() != nullptr
                              : false;
-  const bool has_function_name = function_name_info != NONE;
+  const bool should_save_class_variable_index =
+      scope->is_class_scope()
+          ? scope->AsClassScope()->should_save_class_variable_index()
+          : false;
+  const bool has_function_name =
+      function_name_info != VariableAllocationInfo::NONE;
   const bool has_position_info = NeedsPositionInfo(scope->scope_type());
-  const bool has_receiver = receiver_info == STACK || receiver_info == CONTEXT;
+  const bool has_receiver = receiver_info == VariableAllocationInfo::STACK ||
+                            receiver_info == VariableAllocationInfo::CONTEXT;
   const int parameter_count =
       scope->is_declaration_scope()
           ? scope->AsDeclarationScope()->num_parameters()
           : 0;
   const bool has_outer_scope_info = !outer_scope.is_null();
+
   const int length = kVariablePartIndex + 2 * context_local_count +
+                     (should_save_class_variable_index ? 1 : 0) +
                      (has_receiver ? 1 : 0) +
                      (has_function_name ? kFunctionNameEntries : 0) +
                      (has_inferred_function_name ? 1 : 0) +
@@ -166,7 +178,7 @@ Handle<ScopeInfo> ScopeInfo::Create(Isolate* isolate, Zone* zone, Scope* scope,
 
     bool has_simple_parameters = false;
     bool is_asm_module = false;
-    bool calls_sloppy_eval = false;
+    bool sloppy_eval_can_extend_vars = false;
     if (scope->is_function_scope()) {
       DeclarationScope* function_scope = scope->AsDeclarationScope();
       has_simple_parameters = function_scope->has_simple_parameters();
@@ -175,27 +187,35 @@ Handle<ScopeInfo> ScopeInfo::Create(Isolate* isolate, Zone* zone, Scope* scope,
     FunctionKind function_kind = kNormalFunction;
     if (scope->is_declaration_scope()) {
       function_kind = scope->AsDeclarationScope()->function_kind();
-      calls_sloppy_eval = scope->AsDeclarationScope()->calls_sloppy_eval();
+      sloppy_eval_can_extend_vars =
+          scope->AsDeclarationScope()->sloppy_eval_can_extend_vars();
     }
 
     // Encode the flags.
     int flags =
-        ScopeTypeField::encode(scope->scope_type()) |
-        CallsSloppyEvalField::encode(calls_sloppy_eval) |
-        LanguageModeField::encode(scope->language_mode()) |
-        DeclarationScopeField::encode(scope->is_declaration_scope()) |
-        ReceiverVariableField::encode(receiver_info) |
-        HasClassBrandField::encode(has_brand) |
-        HasNewTargetField::encode(has_new_target) |
-        FunctionVariableField::encode(function_name_info) |
-        HasInferredFunctionNameField::encode(has_inferred_function_name) |
-        IsAsmModuleField::encode(is_asm_module) |
-        HasSimpleParametersField::encode(has_simple_parameters) |
-        FunctionKindField::encode(function_kind) |
-        HasOuterScopeInfoField::encode(has_outer_scope_info) |
-        IsDebugEvaluateScopeField::encode(scope->is_debug_evaluate_scope()) |
-        ForceContextAllocationField::encode(
-            scope->ForceContextForLanguageMode());
+        ScopeTypeBits::encode(scope->scope_type()) |
+        SloppyEvalCanExtendVarsBit::encode(sloppy_eval_can_extend_vars) |
+        LanguageModeBit::encode(scope->language_mode()) |
+        DeclarationScopeBit::encode(scope->is_declaration_scope()) |
+        ReceiverVariableBits::encode(receiver_info) |
+        HasClassBrandBit::encode(has_brand) |
+        HasSavedClassVariableIndexBit::encode(
+            should_save_class_variable_index) |
+        HasNewTargetBit::encode(has_new_target) |
+        FunctionVariableBits::encode(function_name_info) |
+        HasInferredFunctionNameBit::encode(has_inferred_function_name) |
+        IsAsmModuleBit::encode(is_asm_module) |
+        HasSimpleParametersBit::encode(has_simple_parameters) |
+        FunctionKindBits::encode(function_kind) |
+        HasOuterScopeInfoBit::encode(has_outer_scope_info) |
+        IsDebugEvaluateScopeBit::encode(scope->is_debug_evaluate_scope()) |
+        ForceContextAllocationBit::encode(
+            scope->ForceContextForLanguageMode()) |
+        PrivateNameLookupSkipsOuterClassBit::encode(
+            scope->private_name_lookup_skips_outer_class()) |
+        HasContextExtensionSlotBit::encode(scope->HasContextExtensionSlot()) |
+        IsReplModeScopeBit::encode(scope->is_repl_mode_scope()) |
+        HasLocalsBlackListBit::encode(false);
     scope_info.SetFlags(flags);
 
     scope_info.SetParameterCount(parameter_count);
@@ -209,19 +229,19 @@ Handle<ScopeInfo> ScopeInfo::Create(Isolate* isolate, Zone* zone, Scope* scope,
 
     for (Variable* var : *scope->locals()) {
       switch (var->location()) {
-        case VariableLocation::CONTEXT: {
+        case VariableLocation::CONTEXT:
+        case VariableLocation::REPL_GLOBAL: {
           // Due to duplicate parameters, context locals aren't guaranteed to
           // come in order.
-          int local_index = var->index() - Context::MIN_CONTEXT_SLOTS;
+          int local_index = var->index() - scope->ContextHeaderLength();
           DCHECK_LE(0, local_index);
           DCHECK_LT(local_index, context_local_count);
           uint32_t info =
               VariableModeField::encode(var->mode()) |
               InitFlagField::encode(var->initialization_flag()) |
-              RequiresBrandCheckField::encode(
-                  var->get_requires_brand_check_flag()) |
               MaybeAssignedFlagField::encode(var->maybe_assigned()) |
-              ParameterNumberField::encode(ParameterNumberField::kMax);
+              ParameterNumberField::encode(ParameterNumberField::kMax) |
+              IsStaticFlagField::encode(var->is_static_flag());
           scope_info.set(context_local_base + local_index, *var->name(), mode);
           scope_info.set(context_local_info_base + local_index,
                          Smi::FromInt(info));
@@ -236,9 +256,8 @@ Handle<ScopeInfo> ScopeInfo::Create(Isolate* isolate, Zone* zone, Scope* scope,
               VariableModeField::encode(var->mode()) |
               InitFlagField::encode(var->initialization_flag()) |
               MaybeAssignedFlagField::encode(var->maybe_assigned()) |
-              RequiresBrandCheckField::encode(
-                  var->get_requires_brand_check_flag()) |
-              ParameterNumberField::encode(ParameterNumberField::kMax);
+              ParameterNumberField::encode(ParameterNumberField::kMax) |
+              IsStaticFlagField::encode(var->is_static_flag());
           scope_info.set(module_var_entry + kModuleVariablePropertiesOffset,
                          Smi::FromInt(properties));
           module_var_entry += kModuleVariableEntryLength;
@@ -260,7 +279,7 @@ Handle<ScopeInfo> ScopeInfo::Create(Isolate* isolate, Zone* zone, Scope* scope,
       for (int i = 0; i < parameter_count; i++) {
         Variable* parameter = scope->AsDeclarationScope()->parameter(i);
         if (parameter->location() != VariableLocation::CONTEXT) continue;
-        int index = parameter->index() - Context::MIN_CONTEXT_SLOTS;
+        int index = parameter->index() - scope->ContextHeaderLength();
         int info_index = context_local_info_base + index;
         int info = Smi::ToInt(scope_info.get(info_index));
         info = ParameterNumberField::update(info, i);
@@ -271,14 +290,13 @@ Handle<ScopeInfo> ScopeInfo::Create(Isolate* isolate, Zone* zone, Scope* scope,
       if (scope->AsDeclarationScope()->has_this_declaration()) {
         Variable* var = scope->AsDeclarationScope()->receiver();
         if (var->location() == VariableLocation::CONTEXT) {
-          int local_index = var->index() - Context::MIN_CONTEXT_SLOTS;
+          int local_index = var->index() - scope->ContextHeaderLength();
           uint32_t info =
               VariableModeField::encode(var->mode()) |
               InitFlagField::encode(var->initialization_flag()) |
               MaybeAssignedFlagField::encode(var->maybe_assigned()) |
-              RequiresBrandCheckField::encode(
-                  var->get_requires_brand_check_flag()) |
-              ParameterNumberField::encode(ParameterNumberField::kMax);
+              ParameterNumberField::encode(ParameterNumberField::kMax) |
+              IsStaticFlagField::encode(var->is_static_flag());
           scope_info.set(context_local_base + local_index, *var->name(), mode);
           scope_info.set(context_local_info_base + local_index,
                          Smi::FromInt(info));
@@ -287,6 +305,16 @@ Handle<ScopeInfo> ScopeInfo::Create(Isolate* isolate, Zone* zone, Scope* scope,
     }
 
     index += 2 * context_local_count;
+
+    DCHECK_EQ(index, scope_info.SavedClassVariableInfoIndex());
+    // If the scope is a class scope and has used static private methods, save
+    // the context slot index of the class variable.
+    // Store the class variable index.
+    if (should_save_class_variable_index) {
+      Variable* class_variable = scope->AsClassScope()->class_variable();
+      DCHECK_EQ(class_variable->location(), VariableLocation::CONTEXT);
+      scope_info.set(index++, Smi::FromInt(class_variable->index()));
+    }
 
     // If the receiver is allocated, add its index.
     DCHECK_EQ(index, scope_info.ReceiverInfoIndex());
@@ -302,14 +330,14 @@ Handle<ScopeInfo> ScopeInfo::Create(Isolate* isolate, Zone* zone, Scope* scope,
     if (has_function_name) {
       Variable* var = scope->AsDeclarationScope()->function_var();
       int var_index = -1;
-      Object name = Smi::kZero;
+      Object name = Smi::zero();
       if (var != nullptr) {
         var_index = var->index();
         name = *var->name();
       }
       scope_info.set(index++, name, mode);
       scope_info.set(index++, Smi::FromInt(var_index));
-      DCHECK(function_name_info != CONTEXT ||
+      DCHECK(function_name_info != VariableAllocationInfo::CONTEXT ||
              var_index == scope_info.ContextLength() - 1);
     }
 
@@ -351,6 +379,15 @@ Handle<ScopeInfo> ScopeInfo::Create(Isolate* isolate, Zone* zone, Scope* scope,
   return scope_info_handle;
 }
 
+template EXPORT_TEMPLATE_DEFINE(V8_EXPORT_PRIVATE)
+    Handle<ScopeInfo> ScopeInfo::Create<Isolate>(
+        Isolate* isolate, Zone* zone, Scope* scope,
+        MaybeHandle<ScopeInfo> outer_scope);
+template EXPORT_TEMPLATE_DEFINE(V8_EXPORT_PRIVATE)
+    Handle<ScopeInfo> ScopeInfo::Create<OffThreadIsolate>(
+        OffThreadIsolate* isolate, Zone* zone, Scope* scope,
+        MaybeHandle<ScopeInfo> outer_scope);
+
 // static
 Handle<ScopeInfo> ScopeInfo::CreateForWithScope(
     Isolate* isolate, MaybeHandle<ScopeInfo> outer_scope) {
@@ -362,15 +399,23 @@ Handle<ScopeInfo> ScopeInfo::CreateForWithScope(
 
   // Encode the flags.
   int flags =
-      ScopeTypeField::encode(WITH_SCOPE) | CallsSloppyEvalField::encode(false) |
-      LanguageModeField::encode(LanguageMode::kSloppy) |
-      DeclarationScopeField::encode(false) |
-      ReceiverVariableField::encode(NONE) | HasClassBrandField::encode(false) |
-      HasNewTargetField::encode(false) | FunctionVariableField::encode(NONE) |
-      IsAsmModuleField::encode(false) | HasSimpleParametersField::encode(true) |
-      FunctionKindField::encode(kNormalFunction) |
-      HasOuterScopeInfoField::encode(has_outer_scope_info) |
-      IsDebugEvaluateScopeField::encode(false);
+      ScopeTypeBits::encode(WITH_SCOPE) |
+      SloppyEvalCanExtendVarsBit::encode(false) |
+      LanguageModeBit::encode(LanguageMode::kSloppy) |
+      DeclarationScopeBit::encode(false) |
+      ReceiverVariableBits::encode(VariableAllocationInfo::NONE) |
+      HasClassBrandBit::encode(false) |
+      HasSavedClassVariableIndexBit::encode(false) |
+      HasNewTargetBit::encode(false) |
+      FunctionVariableBits::encode(VariableAllocationInfo::NONE) |
+      IsAsmModuleBit::encode(false) | HasSimpleParametersBit::encode(true) |
+      FunctionKindBits::encode(kNormalFunction) |
+      HasOuterScopeInfoBit::encode(has_outer_scope_info) |
+      IsDebugEvaluateScopeBit::encode(false) |
+      ForceContextAllocationBit::encode(false) |
+      PrivateNameLookupSkipsOuterClassBit::encode(false) |
+      HasContextExtensionSlotBit::encode(true) |
+      IsReplModeScopeBit::encode(false) | HasLocalsBlackListBit::encode(false);
   scope_info->SetFlags(flags);
 
   scope_info->SetParameterCount(0);
@@ -387,29 +432,35 @@ Handle<ScopeInfo> ScopeInfo::CreateForWithScope(
   }
   DCHECK_EQ(index, scope_info->length());
   DCHECK_EQ(0, scope_info->ParameterCount());
-  DCHECK_EQ(Context::MIN_CONTEXT_SLOTS, scope_info->ContextLength());
+  DCHECK_EQ(scope_info->ContextHeaderLength(), scope_info->ContextLength());
   return scope_info;
 }
 
 // static
 Handle<ScopeInfo> ScopeInfo::CreateGlobalThisBinding(Isolate* isolate) {
-  return CreateForBootstrapping(isolate, SCRIPT_SCOPE);
+  return CreateForBootstrapping(isolate, BootstrappingType::kScript);
 }
 
 // static
 Handle<ScopeInfo> ScopeInfo::CreateForEmptyFunction(Isolate* isolate) {
-  return CreateForBootstrapping(isolate, FUNCTION_SCOPE);
+  return CreateForBootstrapping(isolate, BootstrappingType::kFunction);
+}
+
+// static
+Handle<ScopeInfo> ScopeInfo::CreateForNativeContext(Isolate* isolate) {
+  return CreateForBootstrapping(isolate, BootstrappingType::kNative);
 }
 
 // static
 Handle<ScopeInfo> ScopeInfo::CreateForBootstrapping(Isolate* isolate,
-                                                    ScopeType type) {
-  DCHECK(type == SCRIPT_SCOPE || type == FUNCTION_SCOPE);
-
+                                                    BootstrappingType type) {
   const int parameter_count = 0;
-  const bool is_empty_function = type == FUNCTION_SCOPE;
-  const int context_local_count = is_empty_function ? 0 : 1;
-  const bool has_receiver = !is_empty_function;
+  const bool is_empty_function = type == BootstrappingType::kFunction;
+  const bool is_native_context = type == BootstrappingType::kNative;
+  const bool is_script = type == BootstrappingType::kScript;
+  const int context_local_count =
+      is_empty_function || is_native_context ? 0 : 1;
+  const bool has_receiver = is_script;
   const bool has_inferred_function_name = is_empty_function;
   const bool has_position_info = true;
   const int length = kVariablePartIndex + 2 * context_local_count +
@@ -419,21 +470,32 @@ Handle<ScopeInfo> ScopeInfo::CreateForBootstrapping(Isolate* isolate,
                      (has_position_info ? kPositionInfoEntries : 0);
 
   Factory* factory = isolate->factory();
-  Handle<ScopeInfo> scope_info = factory->NewScopeInfo(length);
+  Handle<ScopeInfo> scope_info =
+      factory->NewScopeInfo(length, AllocationType::kReadOnly);
 
   // Encode the flags.
   int flags =
-      ScopeTypeField::encode(type) | CallsSloppyEvalField::encode(false) |
-      LanguageModeField::encode(LanguageMode::kSloppy) |
-      DeclarationScopeField::encode(true) |
-      ReceiverVariableField::encode(is_empty_function ? UNUSED : CONTEXT) |
-      HasClassBrandField::encode(false) | HasNewTargetField::encode(false) |
-      FunctionVariableField::encode(is_empty_function ? UNUSED : NONE) |
-      HasInferredFunctionNameField::encode(has_inferred_function_name) |
-      IsAsmModuleField::encode(false) | HasSimpleParametersField::encode(true) |
-      FunctionKindField::encode(FunctionKind::kNormalFunction) |
-      HasOuterScopeInfoField::encode(false) |
-      IsDebugEvaluateScopeField::encode(false);
+      ScopeTypeBits::encode(is_empty_function ? FUNCTION_SCOPE : SCRIPT_SCOPE) |
+      SloppyEvalCanExtendVarsBit::encode(false) |
+      LanguageModeBit::encode(LanguageMode::kSloppy) |
+      DeclarationScopeBit::encode(true) |
+      ReceiverVariableBits::encode(is_script ? VariableAllocationInfo::CONTEXT
+                                             : VariableAllocationInfo::UNUSED) |
+      HasClassBrandBit::encode(false) |
+      HasSavedClassVariableIndexBit::encode(false) |
+      HasNewTargetBit::encode(false) |
+      FunctionVariableBits::encode(is_empty_function
+                                       ? VariableAllocationInfo::UNUSED
+                                       : VariableAllocationInfo::NONE) |
+      HasInferredFunctionNameBit::encode(has_inferred_function_name) |
+      IsAsmModuleBit::encode(false) | HasSimpleParametersBit::encode(true) |
+      FunctionKindBits::encode(FunctionKind::kNormalFunction) |
+      HasOuterScopeInfoBit::encode(false) |
+      IsDebugEvaluateScopeBit::encode(false) |
+      ForceContextAllocationBit::encode(false) |
+      PrivateNameLookupSkipsOuterClassBit::encode(false) |
+      HasContextExtensionSlotBit::encode(is_native_context) |
+      IsReplModeScopeBit::encode(false) | HasLocalsBlackListBit::encode(false);
   scope_info->SetFlags(flags);
   scope_info->SetParameterCount(parameter_count);
   scope_info->SetContextLocalCount(context_local_count);
@@ -446,27 +508,27 @@ Handle<ScopeInfo> ScopeInfo::CreateForBootstrapping(Isolate* isolate,
     scope_info->set(index++, ReadOnlyRoots(isolate).this_string());
   }
   DCHECK_EQ(index, scope_info->ContextLocalInfosIndex());
-  if (context_local_count) {
+  if (context_local_count > 0) {
     const uint32_t value =
         VariableModeField::encode(VariableMode::kConst) |
         InitFlagField::encode(kCreatedInitialized) |
         MaybeAssignedFlagField::encode(kNotAssigned) |
-        RequiresBrandCheckField::encode(kNoBrandCheck) |
-        ParameterNumberField::encode(ParameterNumberField::kMax);
+        ParameterNumberField::encode(ParameterNumberField::kMax) |
+        IsStaticFlagField::encode(IsStaticFlag::kNotStatic);
     scope_info->set(index++, Smi::FromInt(value));
   }
 
   // And here we record that this scopeinfo binds a receiver.
   DCHECK_EQ(index, scope_info->ReceiverInfoIndex());
-  const int receiver_index = Context::MIN_CONTEXT_SLOTS + 0;
-  if (!is_empty_function) {
+  if (has_receiver) {
+    const int receiver_index = scope_info->ContextHeaderLength();
     scope_info->set(index++, Smi::FromInt(receiver_index));
   }
 
   DCHECK_EQ(index, scope_info->FunctionNameInfoIndex());
   if (is_empty_function) {
     scope_info->set(index++, *isolate->factory()->empty_string());
-    scope_info->set(index++, Smi::kZero);
+    scope_info->set(index++, Smi::zero());
   }
   DCHECK_EQ(index, scope_info->InferredFunctionNameIndex());
   if (has_inferred_function_name) {
@@ -474,17 +536,51 @@ Handle<ScopeInfo> ScopeInfo::CreateForBootstrapping(Isolate* isolate,
   }
   DCHECK_EQ(index, scope_info->PositionInfoIndex());
   // Store dummy position to be in sync with the {scope_type}.
-  scope_info->set(index++, Smi::kZero);
-  scope_info->set(index++, Smi::kZero);
+  scope_info->set(index++, Smi::zero());
+  scope_info->set(index++, Smi::zero());
   DCHECK_EQ(index, scope_info->OuterScopeInfoIndex());
   DCHECK_EQ(index, scope_info->length());
   DCHECK_EQ(scope_info->ParameterCount(), parameter_count);
-  if (type == FUNCTION_SCOPE) {
+  if (is_empty_function || is_native_context) {
     DCHECK_EQ(scope_info->ContextLength(), 0);
   } else {
-    DCHECK_EQ(scope_info->ContextLength(), Context::MIN_CONTEXT_SLOTS + 1);
+    DCHECK_EQ(scope_info->ContextLength(),
+              scope_info->ContextHeaderLength() + 1);
   }
 
+  return scope_info;
+}
+
+// static
+Handle<ScopeInfo> ScopeInfo::RecreateWithBlackList(
+    Isolate* isolate, Handle<ScopeInfo> original, Handle<StringSet> blacklist) {
+  DCHECK(!original.is_null());
+  if (original->HasLocalsBlackList()) return original;
+
+  Handle<ScopeInfo> scope_info =
+      isolate->factory()->NewScopeInfo(original->length() + 1);
+
+  // Copy the static part first and update the flags to include the
+  // blacklist field, so {LocalsBlackListIndex} returns the correct value.
+  scope_info->CopyElements(isolate, 0, *original, 0, kVariablePartIndex,
+                           WriteBarrierMode::UPDATE_WRITE_BARRIER);
+  scope_info->SetFlags(
+      HasLocalsBlackListBit::update(scope_info->Flags(), true));
+
+  // Copy the dynamic part including the provided blacklist:
+  //   1) copy all the fields up to the blacklist index
+  //   2) add the blacklist
+  //   3) copy the remaining fields
+  scope_info->CopyElements(
+      isolate, kVariablePartIndex, *original, kVariablePartIndex,
+      scope_info->LocalsBlackListIndex() - kVariablePartIndex,
+      WriteBarrierMode::UPDATE_WRITE_BARRIER);
+  scope_info->set(scope_info->LocalsBlackListIndex(), *blacklist);
+  scope_info->CopyElements(
+      isolate, scope_info->LocalsBlackListIndex() + 1, *original,
+      scope_info->LocalsBlackListIndex(),
+      scope_info->length() - scope_info->LocalsBlackListIndex() - 1,
+      WriteBarrierMode::UPDATE_WRITE_BARRIER);
   return scope_info;
 }
 
@@ -494,76 +590,94 @@ ScopeInfo ScopeInfo::Empty(Isolate* isolate) {
 
 ScopeType ScopeInfo::scope_type() const {
   DCHECK_LT(0, length());
-  return ScopeTypeField::decode(Flags());
+  return ScopeTypeBits::decode(Flags());
 }
 
-bool ScopeInfo::CallsSloppyEval() const {
-  bool calls_sloppy_eval =
-      length() > 0 && CallsSloppyEvalField::decode(Flags());
-  DCHECK_IMPLIES(calls_sloppy_eval, is_sloppy(language_mode()));
-  DCHECK_IMPLIES(calls_sloppy_eval, is_declaration_scope());
-  return calls_sloppy_eval;
+bool ScopeInfo::is_script_scope() const {
+  return length() > 0 && scope_type() == SCRIPT_SCOPE;
+}
+
+bool ScopeInfo::SloppyEvalCanExtendVars() const {
+  bool sloppy_eval_can_extend_vars =
+      length() > 0 && SloppyEvalCanExtendVarsBit::decode(Flags());
+  DCHECK_IMPLIES(sloppy_eval_can_extend_vars, is_sloppy(language_mode()));
+  DCHECK_IMPLIES(sloppy_eval_can_extend_vars, is_declaration_scope());
+  return sloppy_eval_can_extend_vars;
 }
 
 LanguageMode ScopeInfo::language_mode() const {
-  return length() > 0 ? LanguageModeField::decode(Flags())
+  return length() > 0 ? LanguageModeBit::decode(Flags())
                       : LanguageMode::kSloppy;
 }
 
 bool ScopeInfo::is_declaration_scope() const {
-  return DeclarationScopeField::decode(Flags());
+  return DeclarationScopeBit::decode(Flags());
 }
 
 int ScopeInfo::ContextLength() const {
   if (length() > 0) {
     int context_locals = ContextLocalCount();
-    bool function_name_context_slot =
-        FunctionVariableField::decode(Flags()) == CONTEXT;
-    bool force_context = ForceContextAllocationField::decode(Flags());
+    bool function_name_context_slot = FunctionVariableBits::decode(Flags()) ==
+                                      VariableAllocationInfo::CONTEXT;
+    bool force_context = ForceContextAllocationBit::decode(Flags());
     bool has_context =
         context_locals > 0 || force_context || function_name_context_slot ||
         scope_type() == WITH_SCOPE || scope_type() == CLASS_SCOPE ||
-        (scope_type() == BLOCK_SCOPE && CallsSloppyEval() &&
+        (scope_type() == BLOCK_SCOPE && SloppyEvalCanExtendVars() &&
          is_declaration_scope()) ||
-        (scope_type() == FUNCTION_SCOPE && CallsSloppyEval()) ||
+        (scope_type() == FUNCTION_SCOPE && SloppyEvalCanExtendVars()) ||
         (scope_type() == FUNCTION_SCOPE && IsAsmModule()) ||
         scope_type() == MODULE_SCOPE;
 
     if (has_context) {
-      return Context::MIN_CONTEXT_SLOTS + context_locals +
+      return ContextHeaderLength() + context_locals +
              (function_name_context_slot ? 1 : 0);
     }
   }
   return 0;
 }
 
+bool ScopeInfo::HasContextExtensionSlot() const {
+  return HasContextExtensionSlotBit::decode(Flags());
+}
+
+int ScopeInfo::ContextHeaderLength() const {
+  return HasContextExtensionSlot() ? Context::MIN_CONTEXT_EXTENDED_SLOTS
+                                   : Context::MIN_CONTEXT_SLOTS;
+}
+
 bool ScopeInfo::HasReceiver() const {
   if (length() == 0) return false;
-  return NONE != ReceiverVariableField::decode(Flags());
+  return VariableAllocationInfo::NONE != ReceiverVariableBits::decode(Flags());
 }
 
 bool ScopeInfo::HasAllocatedReceiver() const {
   if (length() == 0) return false;
-  VariableAllocationInfo allocation = ReceiverVariableField::decode(Flags());
-  return allocation == STACK || allocation == CONTEXT;
+  VariableAllocationInfo allocation = ReceiverVariableBits::decode(Flags());
+  return allocation == VariableAllocationInfo::STACK ||
+         allocation == VariableAllocationInfo::CONTEXT;
 }
 
 bool ScopeInfo::HasClassBrand() const {
-  return HasClassBrandField::decode(Flags());
+  return HasClassBrandBit::decode(Flags());
+}
+
+bool ScopeInfo::HasSavedClassVariableIndex() const {
+  return HasSavedClassVariableIndexBit::decode(Flags());
 }
 
 bool ScopeInfo::HasNewTarget() const {
-  return HasNewTargetField::decode(Flags());
+  return HasNewTargetBit::decode(Flags());
 }
 
 bool ScopeInfo::HasFunctionName() const {
   if (length() == 0) return false;
-  return NONE != FunctionVariableField::decode(Flags());
+  return VariableAllocationInfo::NONE != FunctionVariableBits::decode(Flags());
 }
 
 bool ScopeInfo::HasInferredFunctionName() const {
   if (length() == 0) return false;
-  return HasInferredFunctionNameField::decode(Flags());
+  return HasInferredFunctionNameBit::decode(Flags());
 }
 
 bool ScopeInfo::HasPositionInfo() const {
@@ -594,21 +708,41 @@ void ScopeInfo::SetInferredFunctionName(String name) {
 
 bool ScopeInfo::HasOuterScopeInfo() const {
   if (length() == 0) return false;
-  return HasOuterScopeInfoField::decode(Flags());
+  return HasOuterScopeInfoBit::decode(Flags());
 }
 
 bool ScopeInfo::IsDebugEvaluateScope() const {
   if (length() == 0) return false;
-  return IsDebugEvaluateScopeField::decode(Flags());
+  return IsDebugEvaluateScopeBit::decode(Flags());
 }
 
 void ScopeInfo::SetIsDebugEvaluateScope() {
   if (length() > 0) {
     DCHECK_EQ(scope_type(), WITH_SCOPE);
-    SetFlags(Flags() | IsDebugEvaluateScopeField::encode(true));
+    SetFlags(Flags() | IsDebugEvaluateScopeBit::encode(true));
   } else {
     UNREACHABLE();
   }
+}
+
+bool ScopeInfo::PrivateNameLookupSkipsOuterClass() const {
+  if (length() == 0) return false;
+  return PrivateNameLookupSkipsOuterClassBit::decode(Flags());
+}
+
+bool ScopeInfo::IsReplModeScope() const {
+  if (length() == 0) return false;
+  return IsReplModeScopeBit::decode(Flags());
+}
+
+bool ScopeInfo::HasLocalsBlackList() const {
+  if (length() == 0) return false;
+  return HasLocalsBlackListBit::decode(Flags());
+}
+
+StringSet ScopeInfo::LocalsBlackList() const {
+  DCHECK(HasLocalsBlackList());
+  return StringSet::cast(get(LocalsBlackListIndex()));
 }
 
 bool ScopeInfo::HasContext() const { return ContextLength() > 0; }
@@ -624,6 +758,7 @@ Object ScopeInfo::InferredFunctionName() const {
 }
 
 String ScopeInfo::FunctionDebugName() const {
+  if (!HasFunctionName()) return GetReadOnlyRoots().empty_string();
   Object name = FunctionName();
   if (name.IsString() && String::cast(name).length() > 0) {
     return String::cast(name);
@@ -677,6 +812,14 @@ VariableMode ScopeInfo::ContextLocalMode(int var) const {
   return VariableModeField::decode(value);
 }
 
+IsStaticFlag ScopeInfo::ContextLocalIsStaticFlag(int var) const {
+  DCHECK_LE(0, var);
+  DCHECK_LT(var, ContextLocalCount());
+  int info_index = ContextLocalInfosIndex() + var;
+  int value = Smi::ToInt(get(info_index));
+  return IsStaticFlagField::decode(value);
+}
+
 InitializationFlag ScopeInfo::ContextLocalInitFlag(int var) const {
   DCHECK_LE(0, var);
   DCHECK_LT(var, ContextLocalCount());
@@ -708,21 +851,13 @@ MaybeAssignedFlag ScopeInfo::ContextLocalMaybeAssignedFlag(int var) const {
   return MaybeAssignedFlagField::decode(value);
 }
 
-RequiresBrandCheckFlag ScopeInfo::RequiresBrandCheck(int var) const {
-  DCHECK_LE(0, var);
-  DCHECK_LT(var, ContextLocalCount());
-  int info_index = ContextLocalInfosIndex() + var;
-  int value = Smi::ToInt(get(info_index));
-  return RequiresBrandCheckField::decode(value);
-}
-
 // static
 bool ScopeInfo::VariableIsSynthetic(String name) {
   // There's currently no flag stored on the ScopeInfo to indicate that a
   // variable is a compiler-introduced temporary. However, to avoid conflict
   // with user declarations, the current temporaries like .generator_object and
   // .result start with a dot, so we can use that as a flag. It's a hack!
-  return name.length() == 0 || name.Get(0) == '.' ||
+  return name.length() == 0 || name.Get(0) == '.' || name.Get(0) == '#' ||
          name.Equals(name.GetReadOnlyRoots().this_string());
 }
 
@@ -756,7 +891,7 @@ int ScopeInfo::ContextSlotIndex(ScopeInfo scope_info, String name,
                                 VariableMode* mode,
                                 InitializationFlag* init_flag,
                                 MaybeAssignedFlag* maybe_assigned_flag,
-                                RequiresBrandCheckFlag* requires_brand_check) {
+                                IsStaticFlag* is_static_flag) {
   DisallowHeapAllocation no_gc;
   DCHECK(name.IsInternalizedString());
   DCHECK_NOT_NULL(mode);
@@ -771,10 +906,10 @@ int ScopeInfo::ContextSlotIndex(ScopeInfo scope_info, String name,
     if (name != scope_info.get(i)) continue;
     int var = i - start;
     *mode = scope_info.ContextLocalMode(var);
+    *is_static_flag = scope_info.ContextLocalIsStaticFlag(var);
     *init_flag = scope_info.ContextLocalInitFlag(var);
     *maybe_assigned_flag = scope_info.ContextLocalMaybeAssignedFlag(var);
-    *requires_brand_check = scope_info.RequiresBrandCheck(var);
-    int result = Context::MIN_CONTEXT_SLOTS + var;
+    int result = scope_info.ContextHeaderLength() + var;
 
     DCHECK_LT(result, scope_info.ContextLength());
     return result;
@@ -783,8 +918,17 @@ int ScopeInfo::ContextSlotIndex(ScopeInfo scope_info, String name,
   return -1;
 }
 
+int ScopeInfo::SavedClassVariableContextLocalIndex() const {
+  if (length() > 0 && HasSavedClassVariableIndexBit::decode(Flags())) {
+    int index = Smi::ToInt(get(SavedClassVariableInfoIndex()));
+    return index - Context::MIN_CONTEXT_SLOTS;
+  }
+  return -1;
+}
+
 int ScopeInfo::ReceiverContextSlotIndex() const {
-  if (length() > 0 && ReceiverVariableField::decode(Flags()) == CONTEXT) {
+  if (length() > 0 && ReceiverVariableBits::decode(Flags()) ==
+                          VariableAllocationInfo::CONTEXT) {
     return Smi::ToInt(get(ReceiverInfoIndex()));
   }
   return -1;
@@ -793,7 +937,8 @@ int ScopeInfo::ReceiverContextSlotIndex() const {
 int ScopeInfo::FunctionContextSlotIndex(String name) const {
   DCHECK(name.IsInternalizedString());
   if (length() > 0) {
-    if (FunctionVariableField::decode(Flags()) == CONTEXT &&
+    if (FunctionVariableBits::decode(Flags()) ==
+            VariableAllocationInfo::CONTEXT &&
         FunctionName() == name) {
       return Smi::ToInt(get(FunctionNameInfoIndex() + 1));
     }
@@ -802,7 +947,7 @@ int ScopeInfo::FunctionContextSlotIndex(String name) const {
 }
 
 FunctionKind ScopeInfo::function_kind() const {
-  return FunctionKindField::decode(Flags());
+  return FunctionKindBits::decode(Flags());
 }
 
 int ScopeInfo::ContextLocalNamesIndex() const {
@@ -814,8 +959,12 @@ int ScopeInfo::ContextLocalInfosIndex() const {
   return ContextLocalNamesIndex() + ContextLocalCount();
 }
 
-int ScopeInfo::ReceiverInfoIndex() const {
+int ScopeInfo::SavedClassVariableInfoIndex() const {
   return ContextLocalInfosIndex() + ContextLocalCount();
+}
+
+int ScopeInfo::ReceiverInfoIndex() const {
+  return SavedClassVariableInfoIndex() + (HasSavedClassVariableIndex() ? 1 : 0);
 }
 
 int ScopeInfo::FunctionNameInfoIndex() const {
@@ -835,8 +984,12 @@ int ScopeInfo::OuterScopeInfoIndex() const {
   return PositionInfoIndex() + (HasPositionInfo() ? kPositionInfoEntries : 0);
 }
 
-int ScopeInfo::ModuleInfoIndex() const {
+int ScopeInfo::LocalsBlackListIndex() const {
   return OuterScopeInfoIndex() + (HasOuterScopeInfo() ? 1 : 0);
+}
+
+int ScopeInfo::ModuleInfoIndex() const {
+  return LocalsBlackListIndex() + (HasLocalsBlackList() ? 1 : 0);
 }
 
 int ScopeInfo::ModuleVariableCountIndex() const {
@@ -875,26 +1028,27 @@ void ScopeInfo::ModuleVariable(int i, String* name, int* index,
   }
 }
 
-std::ostream& operator<<(std::ostream& os,
-                         ScopeInfo::VariableAllocationInfo var_info) {
+std::ostream& operator<<(std::ostream& os, VariableAllocationInfo var_info) {
   switch (var_info) {
-    case ScopeInfo::VariableAllocationInfo::NONE:
+    case VariableAllocationInfo::NONE:
       return os << "NONE";
-    case ScopeInfo::VariableAllocationInfo::STACK:
+    case VariableAllocationInfo::STACK:
       return os << "STACK";
-    case ScopeInfo::VariableAllocationInfo::CONTEXT:
+    case VariableAllocationInfo::CONTEXT:
       return os << "CONTEXT";
-    case ScopeInfo::VariableAllocationInfo::UNUSED:
+    case VariableAllocationInfo::UNUSED:
       return os << "UNUSED";
   }
   UNREACHABLE();
   return os;
 }
 
+template <typename LocalIsolate>
 Handle<SourceTextModuleInfoEntry> SourceTextModuleInfoEntry::New(
-    Isolate* isolate, Handle<Object> export_name, Handle<Object> local_name,
-    Handle<Object> import_name, int module_request, int cell_index, int beg_pos,
-    int end_pos) {
+    LocalIsolate* isolate, Handle<PrimitiveHeapObject> export_name,
+    Handle<PrimitiveHeapObject> local_name,
+    Handle<PrimitiveHeapObject> import_name, int module_request, int cell_index,
+    int beg_pos, int end_pos) {
   Handle<SourceTextModuleInfoEntry> result =
       Handle<SourceTextModuleInfoEntry>::cast(isolate->factory()->NewStruct(
           SOURCE_TEXT_MODULE_INFO_ENTRY_TYPE, AllocationType::kOld));
@@ -908,8 +1062,20 @@ Handle<SourceTextModuleInfoEntry> SourceTextModuleInfoEntry::New(
   return result;
 }
 
+template Handle<SourceTextModuleInfoEntry> SourceTextModuleInfoEntry::New(
+    Isolate* isolate, Handle<PrimitiveHeapObject> export_name,
+    Handle<PrimitiveHeapObject> local_name,
+    Handle<PrimitiveHeapObject> import_name, int module_request, int cell_index,
+    int beg_pos, int end_pos);
+template Handle<SourceTextModuleInfoEntry> SourceTextModuleInfoEntry::New(
+    OffThreadIsolate* isolate, Handle<PrimitiveHeapObject> export_name,
+    Handle<PrimitiveHeapObject> local_name,
+    Handle<PrimitiveHeapObject> import_name, int module_request, int cell_index,
+    int beg_pos, int end_pos);
+
+template <typename LocalIsolate>
 Handle<SourceTextModuleInfo> SourceTextModuleInfo::New(
-    Isolate* isolate, Zone* zone, SourceTextModuleDescriptor* descr) {
+    LocalIsolate* isolate, Zone* zone, SourceTextModuleDescriptor* descr) {
   // Serialize module requests.
   int size = static_cast<int>(descr->module_requests().size());
   Handle<FixedArray> module_requests = isolate->factory()->NewFixedArray(size);
@@ -971,6 +1137,10 @@ Handle<SourceTextModuleInfo> SourceTextModuleInfo::New(
   result->set(kModuleRequestPositionsIndex, *module_request_positions);
   return result;
 }
+template Handle<SourceTextModuleInfo> SourceTextModuleInfo::New(
+    Isolate* isolate, Zone* zone, SourceTextModuleDescriptor* descr);
+template Handle<SourceTextModuleInfo> SourceTextModuleInfo::New(
+    OffThreadIsolate* isolate, Zone* zone, SourceTextModuleDescriptor* descr);
 
 int SourceTextModuleInfo::RegularExportCount() const {
   DCHECK_EQ(regular_exports().length() % kRegularExportLength, 0);

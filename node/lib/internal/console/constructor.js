@@ -3,7 +3,24 @@
 // The Console constructor is not actually used to construct the global
 // console. It's exported for backwards compatibility.
 
-const { Object, ObjectPrototype, Reflect } = primordials;
+const {
+  ArrayFrom,
+  ArrayIsArray,
+  Boolean,
+  Error,
+  Map,
+  MathFloor,
+  Number,
+  ObjectDefineProperties,
+  ObjectDefineProperty,
+  ObjectKeys,
+  ObjectPrototypeHasOwnProperty,
+  ObjectValues,
+  ReflectOwnKeys,
+  Symbol,
+  SymbolHasInstance,
+  WeakMap,
+} = primordials;
 
 const { trace } = internalBinding('trace_events');
 const {
@@ -15,6 +32,7 @@ const {
     ERR_INCOMPATIBLE_OPTION_PAIR,
   },
 } = require('internal/errors');
+const { validateInteger } = require('internal/validators');
 const { previewEntries } = internalBinding('util');
 const { Buffer: { isBuffer } } = require('buffer');
 const {
@@ -24,24 +42,31 @@ const {
 const {
   isTypedArray, isSet, isMap, isSetIterator, isMapIterator,
 } = require('internal/util/types');
+const {
+  CHAR_LOWERCASE_B,
+  CHAR_LOWERCASE_E,
+  CHAR_LOWERCASE_N,
+  CHAR_UPPERCASE_C,
+} = require('internal/constants');
 const kCounts = Symbol('counts');
 
 const kTraceConsoleCategory = 'node,node.console';
-const kTraceCount = 'C'.charCodeAt(0);
-const kTraceBegin = 'b'.charCodeAt(0);
-const kTraceEnd = 'e'.charCodeAt(0);
-const kTraceInstant = 'n'.charCodeAt(0);
+const kTraceCount = CHAR_UPPERCASE_C;
+const kTraceBegin = CHAR_LOWERCASE_B;
+const kTraceEnd = CHAR_LOWERCASE_E;
+const kTraceInstant = CHAR_LOWERCASE_N;
 
-const {
-  isArray: ArrayIsArray,
-  from: ArrayFrom,
-} = Array;
+const kSecond = 1000;
+const kMinute = 60 * kSecond;
+const kHour = 60 * kMinute;
+const kMaxGroupIndentation = 1000;
 
 // Lazy loaded for startup performance.
 let cliTable;
 
 // Track amount of indentation required via `console.group()`.
 const kGroupIndent = Symbol('kGroupIndent');
+const kGroupIndentationWidth = Symbol('kGroupIndentWidth');
 const kFormatForStderr = Symbol('kFormatForStderr');
 const kFormatForStdout = Symbol('kFormatForStdout');
 const kGetInspectOptions = Symbol('kGetInspectOptions');
@@ -77,7 +102,8 @@ function Console(options /* or: stdout, stderr, ignoreErrors = true */) {
     stderr = stdout,
     ignoreErrors = true,
     colorMode = 'auto',
-    inspectOptions
+    inspectOptions,
+    groupIndentation,
   } = options;
 
   if (!stdout || typeof stdout.write !== 'function') {
@@ -90,29 +116,39 @@ function Console(options /* or: stdout, stderr, ignoreErrors = true */) {
   if (typeof colorMode !== 'boolean' && colorMode !== 'auto')
     throw new ERR_INVALID_ARG_VALUE('colorMode', colorMode);
 
+  if (groupIndentation !== undefined) {
+    validateInteger(groupIndentation, 'groupIndentation',
+                    0, kMaxGroupIndentation);
+  }
+
   if (typeof inspectOptions === 'object' && inspectOptions !== null) {
     if (inspectOptions.colors !== undefined &&
         options.colorMode !== undefined) {
       throw new ERR_INCOMPATIBLE_OPTION_PAIR(
-        'inspectOptions.color', 'colorMode');
+        'options.inspectOptions.color', 'colorMode');
     }
     optionsMap.set(this, inspectOptions);
   } else if (inspectOptions !== undefined) {
-    throw new ERR_INVALID_ARG_TYPE('inspectOptions', 'object', inspectOptions);
+    throw new ERR_INVALID_ARG_TYPE(
+      'options.inspectOptions',
+      'object',
+      inspectOptions);
   }
 
   // Bind the prototype functions to this Console instance
-  const keys = Object.keys(Console.prototype);
-  for (var v = 0; v < keys.length; v++) {
-    var k = keys[v];
+  const keys = ObjectKeys(Console.prototype);
+  for (const key of keys) {
     // We have to bind the methods grabbed from the instance instead of from
     // the prototype so that users extending the Console can override them
     // from the prototype chain of the subclass.
-    this[k] = this[k].bind(this);
+    this[key] = this[key].bind(this);
+    ObjectDefineProperty(this[key], 'name', {
+      value: key
+    });
   }
 
   this[kBindStreamsEager](stdout, stderr);
-  this[kBindProperties](ignoreErrors, colorMode);
+  this[kBindProperties](ignoreErrors, colorMode, groupIndentation);
 }
 
 const consolePropAttributes = {
@@ -122,69 +158,162 @@ const consolePropAttributes = {
 };
 
 // Fixup global.console instanceof global.console.Console
-Object.defineProperty(Console, Symbol.hasInstance, {
+ObjectDefineProperty(Console, SymbolHasInstance, {
   value(instance) {
     return instance[kIsConsole];
   }
 });
 
-// Eager version for the Console constructor
-Console.prototype[kBindStreamsEager] = function(stdout, stderr) {
-  Object.defineProperties(this, {
-    '_stdout': { ...consolePropAttributes, value: stdout },
-    '_stderr': { ...consolePropAttributes, value: stderr }
-  });
-};
+const kColorInspectOptions = { colors: true };
+const kNoColorInspectOptions = {};
 
-// Lazily load the stdout and stderr from an object so we don't
-// create the stdio streams when they are not even accessed
-Console.prototype[kBindStreamsLazy] = function(object) {
-  let stdout;
-  let stderr;
-  Object.defineProperties(this, {
-    '_stdout': {
-      enumerable: false,
-      configurable: true,
-      get() {
-        if (!stdout) stdout = object.stdout;
-        return stdout;
-      },
-      set(value) { stdout = value; }
-    },
-    '_stderr': {
-      enumerable: false,
-      configurable: true,
-      get() {
-        if (!stderr) { stderr = object.stderr; }
-        return stderr;
-      },
-      set(value) { stderr = value; }
+ObjectDefineProperties(Console.prototype, {
+  [kBindStreamsEager]: {
+    ...consolePropAttributes,
+    // Eager version for the Console constructor
+    value: function(stdout, stderr) {
+      ObjectDefineProperties(this, {
+        '_stdout': { ...consolePropAttributes, value: stdout },
+        '_stderr': { ...consolePropAttributes, value: stderr }
+      });
     }
-  });
-};
+  },
+  [kBindStreamsLazy]: {
+    ...consolePropAttributes,
+    // Lazily load the stdout and stderr from an object so we don't
+    // create the stdio streams when they are not even accessed
+    value: function(object) {
+      let stdout;
+      let stderr;
+      ObjectDefineProperties(this, {
+        '_stdout': {
+          enumerable: false,
+          configurable: true,
+          get() {
+            if (!stdout) stdout = object.stdout;
+            return stdout;
+          },
+          set(value) { stdout = value; }
+        },
+        '_stderr': {
+          enumerable: false,
+          configurable: true,
+          get() {
+            if (!stderr) { stderr = object.stderr; }
+            return stderr;
+          },
+          set(value) { stderr = value; }
+        }
+      });
+    }
+  },
+  [kBindProperties]: {
+    ...consolePropAttributes,
+    value: function(ignoreErrors, colorMode, groupIndentation = 2) {
+      ObjectDefineProperties(this, {
+        '_stdoutErrorHandler': {
+          ...consolePropAttributes,
+          value: createWriteErrorHandler(this, kUseStdout)
+        },
+        '_stderrErrorHandler': {
+          ...consolePropAttributes,
+          value: createWriteErrorHandler(this, kUseStderr)
+        },
+        '_ignoreErrors': {
+          ...consolePropAttributes,
+          value: Boolean(ignoreErrors)
+        },
+        '_times': { ...consolePropAttributes, value: new Map() },
+        // Corresponds to https://console.spec.whatwg.org/#count-map
+        [kCounts]: { ...consolePropAttributes, value: new Map() },
+        [kColorMode]: { ...consolePropAttributes, value: colorMode },
+        [kIsConsole]: { ...consolePropAttributes, value: true },
+        [kGroupIndent]: { ...consolePropAttributes, value: '' },
+        [kGroupIndentationWidth]: {
+          ...consolePropAttributes,
+          value: groupIndentation
+        },
+      });
+    }
+  },
+  [kWriteToConsole]: {
+    ...consolePropAttributes,
+    value: function(streamSymbol, string) {
+      const ignoreErrors = this._ignoreErrors;
+      const groupIndent = this[kGroupIndent];
 
-Console.prototype[kBindProperties] = function(ignoreErrors, colorMode) {
-  Object.defineProperties(this, {
-    '_stdoutErrorHandler': {
-      ...consolePropAttributes,
-      value: createWriteErrorHandler(this, kUseStdout)
-    },
-    '_stderrErrorHandler': {
-      ...consolePropAttributes,
-      value: createWriteErrorHandler(this, kUseStderr)
-    },
-    '_ignoreErrors': {
-      ...consolePropAttributes,
-      value: Boolean(ignoreErrors)
-    },
-    '_times': { ...consolePropAttributes, value: new Map() },
-    // Corresponds to https://console.spec.whatwg.org/#count-map
-    [kCounts]: { ...consolePropAttributes, value: new Map() },
-    [kColorMode]: { ...consolePropAttributes, value: colorMode },
-    [kIsConsole]: { ...consolePropAttributes, value: true },
-    [kGroupIndent]: { ...consolePropAttributes, value: '' }
-  });
-};
+      const useStdout = streamSymbol === kUseStdout;
+      const stream = useStdout ? this._stdout : this._stderr;
+      const errorHandler = useStdout ?
+        this._stdoutErrorHandler : this._stderrErrorHandler;
+
+      if (groupIndent.length !== 0) {
+        if (string.includes('\n')) {
+          string = string.replace(/\n/g, `\n${groupIndent}`);
+        }
+        string = groupIndent + string;
+      }
+      string += '\n';
+
+      if (ignoreErrors === false) return stream.write(string);
+
+      // There may be an error occurring synchronously (e.g. for files or TTYs
+      // on POSIX systems) or asynchronously (e.g. pipes on POSIX systems), so
+      // handle both situations.
+      try {
+        // Add and later remove a noop error handler to catch synchronous
+        // errors.
+        if (stream.listenerCount('error') === 0)
+          stream.once('error', noop);
+
+        stream.write(string, errorHandler);
+      } catch (e) {
+        // Console is a debugging utility, so it swallowing errors is not
+        // desirable even in edge cases such as low stack space.
+        if (isStackOverflowError(e))
+          throw e;
+        // Sorry, there's no proper way to pass along the error here.
+      } finally {
+        stream.removeListener('error', noop);
+      }
+    }
+  },
+  [kGetInspectOptions]: {
+    ...consolePropAttributes,
+    value: function(stream) {
+      let color = this[kColorMode];
+      if (color === 'auto') {
+        color = stream.isTTY && (
+          typeof stream.getColorDepth === 'function' ?
+            stream.getColorDepth() > 2 : true);
+      }
+
+      const options = optionsMap.get(this);
+      if (options) {
+        if (options.colors === undefined) {
+          options.colors = color;
+        }
+        return options;
+      }
+
+      return color ? kColorInspectOptions : kNoColorInspectOptions;
+    }
+  },
+  [kFormatForStdout]: {
+    ...consolePropAttributes,
+    value: function(args) {
+      const opts = this[kGetInspectOptions](this._stdout);
+      return formatWithOptions(opts, ...args);
+    }
+  },
+  [kFormatForStderr]: {
+    ...consolePropAttributes,
+    value: function(args) {
+      const opts = this[kGetInspectOptions](this._stderr);
+      return formatWithOptions(opts, ...args);
+    }
+  },
+});
 
 // Make a function that can serve as the callback passed to `stream.write()`.
 function createWriteErrorHandler(instance, streamSymbol) {
@@ -201,81 +330,11 @@ function createWriteErrorHandler(instance, streamSymbol) {
       // removed after the event, non-console.* writes won't be affected.
       // we are only adding noop if there is no one else listening for 'error'
       if (stream.listenerCount('error') === 0) {
-        stream.on('error', noop);
+        stream.once('error', noop);
       }
     }
   };
 }
-
-Console.prototype[kWriteToConsole] = function(streamSymbol, string) {
-  const ignoreErrors = this._ignoreErrors;
-  const groupIndent = this[kGroupIndent];
-
-  const useStdout = streamSymbol === kUseStdout;
-  const stream = useStdout ? this._stdout : this._stderr;
-  const errorHandler = useStdout ?
-    this._stdoutErrorHandler : this._stderrErrorHandler;
-
-  if (groupIndent.length !== 0) {
-    if (string.includes('\n')) {
-      string = string.replace(/\n/g, `\n${groupIndent}`);
-    }
-    string = groupIndent + string;
-  }
-  string += '\n';
-
-  if (ignoreErrors === false) return stream.write(string);
-
-  // There may be an error occurring synchronously (e.g. for files or TTYs
-  // on POSIX systems) or asynchronously (e.g. pipes on POSIX systems), so
-  // handle both situations.
-  try {
-    // Add and later remove a noop error handler to catch synchronous errors.
-    if (stream.listenerCount('error') === 0)
-      stream.once('error', noop);
-
-    stream.write(string, errorHandler);
-  } catch (e) {
-    // Console is a debugging utility, so it swallowing errors is not desirable
-    // even in edge cases such as low stack space.
-    if (isStackOverflowError(e))
-      throw e;
-    // Sorry, there's no proper way to pass along the error here.
-  } finally {
-    stream.removeListener('error', noop);
-  }
-};
-
-const kColorInspectOptions = { colors: true };
-const kNoColorInspectOptions = {};
-Console.prototype[kGetInspectOptions] = function(stream) {
-  let color = this[kColorMode];
-  if (color === 'auto') {
-    color = stream.isTTY && (
-      typeof stream.getColorDepth === 'function' ?
-        stream.getColorDepth() > 2 : true);
-  }
-
-  const options = optionsMap.get(this);
-  if (options) {
-    if (options.colors === undefined) {
-      options.colors = color;
-    }
-    return options;
-  }
-
-  return color ? kColorInspectOptions : kNoColorInspectOptions;
-};
-
-Console.prototype[kFormatForStdout] = function(args) {
-  const opts = this[kGetInspectOptions](this._stdout);
-  return formatWithOptions(opts, ...args);
-};
-
-Console.prototype[kFormatForStderr] = function(args) {
-  const opts = this[kGetInspectOptions](this._stderr);
-  return formatWithOptions(opts, ...args);
-};
 
 const consoleMethods = {
   log(...args) {
@@ -385,12 +444,13 @@ const consoleMethods = {
     if (data.length > 0) {
       this.log(...data);
     }
-    this[kGroupIndent] += '  ';
+    this[kGroupIndent] += ' '.repeat(this[kGroupIndentationWidth]);
   },
 
   groupEnd() {
     this[kGroupIndent] =
-      this[kGroupIndent].slice(0, this[kGroupIndent].length - 2);
+      this[kGroupIndent].slice(0, this[kGroupIndent].length -
+        this[kGroupIndentationWidth]);
   },
 
   // https://console.spec.whatwg.org/#table
@@ -408,7 +468,7 @@ const consoleMethods = {
       const depth = v !== null &&
                     typeof v === 'object' &&
                     !isArray(v) &&
-                    Object.keys(v).length > 2 ? -1 : 0;
+                    ObjectKeys(v).length > 2 ? -1 : 0;
       const opt = {
         depth,
         maxArrayLength: 3,
@@ -459,7 +519,7 @@ const consoleMethods = {
     if (setIter)
       tabularData = previewEntries(tabularData);
 
-    const setlike = setIter || (mapIter && !isKeyValue) || isSet(tabularData);
+    const setlike = setIter || mapIter || isSet(tabularData);
     if (setlike) {
       const values = [];
       let length = 0;
@@ -473,7 +533,7 @@ const consoleMethods = {
     const map = {};
     let hasPrimitives = false;
     const valuesKeyArray = [];
-    const indexKeyArray = Object.keys(tabularData);
+    const indexKeyArray = ObjectKeys(tabularData);
 
     for (; i < indexKeyArray.length; i++) {
       const item = tabularData[indexKeyArray[i]];
@@ -483,12 +543,12 @@ const consoleMethods = {
         hasPrimitives = true;
         valuesKeyArray[i] = _inspect(item);
       } else {
-        const keys = properties || Object.keys(item);
+        const keys = properties || ObjectKeys(item);
         for (const key of keys) {
           if (map[key] === undefined)
             map[key] = [];
           if ((primitive && properties) ||
-               !ObjectPrototype.hasOwnProperty(item, key))
+               !ObjectPrototypeHasOwnProperty(item, key))
             map[key][i] = '';
           else
             map[key][i] = _inspect(item[key]);
@@ -496,8 +556,8 @@ const consoleMethods = {
       }
     }
 
-    const keys = Object.keys(map);
-    const values = Object.values(map);
+    const keys = ObjectKeys(map);
+    const values = ObjectValues(map);
     if (hasPrimitives) {
       keys.push(valuesKey);
       values.push(valuesKeyArray);
@@ -518,12 +578,49 @@ function timeLogImpl(self, name, label, data) {
   }
   const duration = process.hrtime(time);
   const ms = duration[0] * 1000 + duration[1] / 1e6;
+
+  const formatted = formatTime(ms);
+
   if (data === undefined) {
-    self.log('%s: %sms', label, ms.toFixed(3));
+    self.log('%s: %s', label, formatted);
   } else {
-    self.log('%s: %sms', label, ms.toFixed(3), ...data);
+    self.log('%s: %s', label, formatted, ...data);
   }
   return true;
+}
+
+function pad(value) {
+  return `${value}`.padStart(2, '0');
+}
+
+function formatTime(ms) {
+  let hours = 0;
+  let minutes = 0;
+  let seconds = 0;
+
+  if (ms >= kSecond) {
+    if (ms >= kMinute) {
+      if (ms >= kHour) {
+        hours = MathFloor(ms / kHour);
+        ms = ms % kHour;
+      }
+      minutes = MathFloor(ms / kMinute);
+      ms = ms % kMinute;
+    }
+    seconds = ms / kSecond;
+  }
+
+  if (hours !== 0 || minutes !== 0) {
+    [seconds, ms] = seconds.toFixed(3).split('.');
+    const res = hours !== 0 ? `${hours}:${pad(minutes)}` : minutes;
+    return `${res}:${pad(seconds)}.${ms} (${hours !== 0 ? 'h:m' : ''}m:ss.mmm)`;
+  }
+
+  if (seconds !== 0) {
+    return `${seconds.toFixed(3)}s`;
+  }
+
+  return `${Number(ms.toFixed(3))}ms`;
 }
 
 const keyKey = 'Key';
@@ -535,7 +632,7 @@ const isArray = (v) => ArrayIsArray(v) || isTypedArray(v) || isBuffer(v);
 
 function noop() {}
 
-for (const method of Reflect.ownKeys(consoleMethods))
+for (const method of ReflectOwnKeys(consoleMethods))
   Console.prototype[method] = consoleMethods[method];
 
 Console.prototype.debug = Console.prototype.log;
@@ -547,5 +644,6 @@ Console.prototype.groupCollapsed = Console.prototype.group;
 module.exports = {
   Console,
   kBindStreamsLazy,
-  kBindProperties
+  kBindProperties,
+  formatTime // exported for tests
 };

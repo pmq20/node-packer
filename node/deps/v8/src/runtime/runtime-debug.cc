@@ -27,6 +27,7 @@
 #include "src/objects/js-promise-inl.h"
 #include "src/runtime/runtime-utils.h"
 #include "src/runtime/runtime.h"
+#include "src/snapshot/embedded/embedded-data.h"
 #include "src/snapshot/snapshot.h"
 #include "src/wasm/wasm-objects-inl.h"
 
@@ -66,16 +67,19 @@ RUNTIME_FUNCTION_RETURN_PAIR(Runtime_DebugBreakOnBytecode) {
   DCHECK(it.frame()->is_interpreted());
   InterpretedFrame* interpreted_frame =
       reinterpret_cast<InterpretedFrame*>(it.frame());
-  SharedFunctionInfo shared = interpreted_frame->function().shared();
-  BytecodeArray bytecode_array = shared.GetBytecodeArray();
-  int bytecode_offset = interpreted_frame->GetBytecodeOffset();
-  Bytecode bytecode = Bytecodes::FromByte(bytecode_array.get(bytecode_offset));
 
   bool side_effect_check_failed = false;
   if (isolate->debug_execution_mode() == DebugInfo::kSideEffects) {
     side_effect_check_failed =
         !isolate->debug()->PerformSideEffectCheckAtBytecode(interpreted_frame);
   }
+
+  // Make sure to only access these objects after the side effect check, as the
+  // check can allocate on failure.
+  SharedFunctionInfo shared = interpreted_frame->function().shared();
+  BytecodeArray bytecode_array = shared.GetBytecodeArray();
+  int bytecode_offset = interpreted_frame->GetBytecodeOffset();
+  Bytecode bytecode = Bytecodes::FromByte(bytecode_array.get(bytecode_offset));
 
   if (Bytecodes::Returns(bytecode)) {
     // If we are returning (or suspending), reset the bytecode array on the
@@ -115,10 +119,17 @@ RUNTIME_FUNCTION(Runtime_DebugBreakAtEntry) {
   DCHECK(function->shared().HasDebugInfo());
   DCHECK(function->shared().GetDebugInfo().BreakAtEntry());
 
-  // Get the top-most JavaScript frame.
+  // Get the top-most JavaScript frame. This is the debug target function.
   JavaScriptFrameIterator it(isolate);
   DCHECK_EQ(*function, it.frame()->function());
-  isolate->debug()->Break(it.frame(), function);
+  // Check whether the next JS frame is closer than the last API entry.
+  // if yes, then the call to the debug target came from JavaScript. Otherwise,
+  // the call to the debug target came from API. Do not break for the latter.
+  it.Advance();
+  if (!it.done() &&
+      it.frame()->fp() < isolate->thread_local_top()->last_api_entry_) {
+    isolate->debug()->Break(it.frame(), function);
+  }
 
   return ReadOnlyRoots(isolate).undefined_value();
 }
@@ -301,14 +312,14 @@ RUNTIME_FUNCTION(Runtime_GetGeneratorScopeCount) {
   HandleScope scope(isolate);
   DCHECK_EQ(1, args.length());
 
-  if (!args[0].IsJSGeneratorObject()) return Smi::kZero;
+  if (!args[0].IsJSGeneratorObject()) return Smi::zero();
 
   // Check arguments.
   CONVERT_ARG_HANDLE_CHECKED(JSGeneratorObject, gen, 0);
 
   // Only inspect suspended generator scopes.
   if (!gen->is_suspended()) {
-    return Smi::kZero;
+    return Smi::zero();
   }
 
   // Count the visible scopes.
@@ -484,11 +495,10 @@ int ScriptLinePosition(Handle<Script> script, int line) {
   if (line < 0) return -1;
 
   if (script->type() == Script::TYPE_WASM) {
-    return WasmModuleObject::cast(script->wasm_module_object())
-        .GetFunctionOffset(line);
+    return GetWasmFunctionOffset(script->wasm_native_module()->module(), line);
   }
 
-  Script::InitLineEnds(script);
+  Script::InitLineEnds(script->GetIsolate(), script);
 
   FixedArray line_ends_array = FixedArray::cast(script->line_ends());
   const int line_count = line_ends_array.length();
@@ -688,7 +698,7 @@ RUNTIME_FUNCTION(Runtime_DebugCollectCoverage) {
   int num_scripts = static_cast<int>(coverage->size());
   // Prepare property keys.
   Handle<FixedArray> scripts_array = factory->NewFixedArray(num_scripts);
-  Handle<String> script_string = factory->NewStringFromStaticChars("script");
+  Handle<String> script_string = factory->script_string();
   for (int i = 0; i < num_scripts; i++) {
     const auto& script_data = coverage->at(i);
     HandleScope inner_scope(isolate);
@@ -820,19 +830,6 @@ RUNTIME_FUNCTION(Runtime_LiveEditPatchScript) {
   return ReadOnlyRoots(isolate).undefined_value();
 }
 
-RUNTIME_FUNCTION(Runtime_PerformSideEffectCheckForObject) {
-  HandleScope scope(isolate);
-  DCHECK_EQ(1, args.length());
-  CONVERT_ARG_HANDLE_CHECKED(JSReceiver, object, 0);
-
-  DCHECK_EQ(isolate->debug_execution_mode(), DebugInfo::kSideEffects);
-  if (!isolate->debug()->PerformSideEffectCheckForObject(object)) {
-    DCHECK(isolate->has_pending_exception());
-    return ReadOnlyRoots(isolate).exception();
-  }
-  return ReadOnlyRoots(isolate).undefined_value();
-}
-
 RUNTIME_FUNCTION(Runtime_ProfileCreateSnapshotDataBlob) {
   HandleScope scope(isolate);
   DCHECK_EQ(0, args.length());
@@ -851,10 +848,8 @@ RUNTIME_FUNCTION(Runtime_ProfileCreateSnapshotDataBlob) {
   // Track the embedded blob size as well.
   {
     int embedded_blob_size = 0;
-    if (FLAG_embedded_builtins) {
-      i::EmbeddedData d = i::EmbeddedData::FromBlob();
-      embedded_blob_size = static_cast<int>(d.size());
-    }
+    i::EmbeddedData d = i::EmbeddedData::FromBlob();
+    embedded_blob_size = static_cast<int>(d.size());
     PrintF("Embedded blob is %d bytes\n", embedded_blob_size);
   }
 

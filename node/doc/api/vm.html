@@ -3,10 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>VM (Executing JavaScript) | Node.js v12.13.0 Documentation</title>
+  <meta name="nodejs.org:node-version" content="v14.8.0">
+  <title>VM (executing JavaScript) | Node.js v14.8.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
-  <link rel="stylesheet" href="assets/sh.css">
+  <link rel="stylesheet" href="assets/hljs.css">
   <link rel="canonical" href="https://nodejs.org/api/vm.html">
 </head>
 <body class="alt apidoc" id="api-section-vm">
@@ -18,29 +19,30 @@
         </a>
       </div>
       <ul>
-<li><a href="documentation.html" class="nav-documentation">About these Docs</a></li>
-<li><a href="synopsis.html" class="nav-synopsis">Usage &#x26; Example</a></li>
+<li><a href="documentation.html" class="nav-documentation">About this documentation</a></li>
+<li><a href="synopsis.html" class="nav-synopsis">Usage and example</a></li>
 </ul>
 <div class="line"></div>
 <ul>
-<li><a href="assert.html" class="nav-assert">Assertion Testing</a></li>
-<li><a href="async_hooks.html" class="nav-async_hooks">Async Hooks</a></li>
+<li><a href="assert.html" class="nav-assert">Assertion testing</a></li>
+<li><a href="async_hooks.html" class="nav-async_hooks">Async hooks</a></li>
 <li><a href="buffer.html" class="nav-buffer">Buffer</a></li>
-<li><a href="addons.html" class="nav-addons">C++ Addons</a></li>
-<li><a href="n-api.html" class="nav-n-api">C/C++ Addons - N-API</a></li>
-<li><a href="child_process.html" class="nav-child_process">Child Processes</a></li>
+<li><a href="addons.html" class="nav-addons">C++ addons</a></li>
+<li><a href="n-api.html" class="nav-n-api">C/C++ addons with N-API</a></li>
+<li><a href="embedding.html" class="nav-embedding">C++ embedder API</a></li>
+<li><a href="child_process.html" class="nav-child_process">Child processes</a></li>
 <li><a href="cluster.html" class="nav-cluster">Cluster</a></li>
-<li><a href="cli.html" class="nav-cli">Command Line Options</a></li>
+<li><a href="cli.html" class="nav-cli">Command line options</a></li>
 <li><a href="console.html" class="nav-console">Console</a></li>
 <li><a href="crypto.html" class="nav-crypto">Crypto</a></li>
 <li><a href="debugger.html" class="nav-debugger">Debugger</a></li>
 <li><a href="deprecations.html" class="nav-deprecations">Deprecated APIs</a></li>
 <li><a href="dns.html" class="nav-dns">DNS</a></li>
 <li><a href="domain.html" class="nav-domain">Domain</a></li>
-<li><a href="esm.html" class="nav-esm">ECMAScript Modules</a></li>
+<li><a href="esm.html" class="nav-esm">ECMAScript modules</a></li>
 <li><a href="errors.html" class="nav-errors">Errors</a></li>
 <li><a href="events.html" class="nav-events">Events</a></li>
-<li><a href="fs.html" class="nav-fs">File System</a></li>
+<li><a href="fs.html" class="nav-fs">File system</a></li>
 <li><a href="globals.html" class="nav-globals">Globals</a></li>
 <li><a href="http.html" class="nav-http">HTTP</a></li>
 <li><a href="http2.html" class="nav-http2">HTTP/2</a></li>
@@ -51,37 +53,38 @@
 <li><a href="net.html" class="nav-net">Net</a></li>
 <li><a href="os.html" class="nav-os">OS</a></li>
 <li><a href="path.html" class="nav-path">Path</a></li>
-<li><a href="perf_hooks.html" class="nav-perf_hooks">Performance Hooks</a></li>
+<li><a href="perf_hooks.html" class="nav-perf_hooks">Performance hooks</a></li>
 <li><a href="policy.html" class="nav-policy">Policies</a></li>
 <li><a href="process.html" class="nav-process">Process</a></li>
 <li><a href="punycode.html" class="nav-punycode">Punycode</a></li>
-<li><a href="querystring.html" class="nav-querystring">Query Strings</a></li>
+<li><a href="querystring.html" class="nav-querystring">Query strings</a></li>
 <li><a href="readline.html" class="nav-readline">Readline</a></li>
 <li><a href="repl.html" class="nav-repl">REPL</a></li>
 <li><a href="report.html" class="nav-report">Report</a></li>
 <li><a href="stream.html" class="nav-stream">Stream</a></li>
-<li><a href="string_decoder.html" class="nav-string_decoder">String Decoder</a></li>
+<li><a href="string_decoder.html" class="nav-string_decoder">String decoder</a></li>
 <li><a href="timers.html" class="nav-timers">Timers</a></li>
 <li><a href="tls.html" class="nav-tls">TLS/SSL</a></li>
-<li><a href="tracing.html" class="nav-tracing">Trace Events</a></li>
+<li><a href="tracing.html" class="nav-tracing">Trace events</a></li>
 <li><a href="tty.html" class="nav-tty">TTY</a></li>
-<li><a href="dgram.html" class="nav-dgram">UDP/Datagram</a></li>
+<li><a href="dgram.html" class="nav-dgram">UDP/datagram</a></li>
 <li><a href="url.html" class="nav-url">URL</a></li>
 <li><a href="util.html" class="nav-util">Utilities</a></li>
 <li><a href="v8.html" class="nav-v8">V8</a></li>
 <li><a href="vm.html" class="nav-vm active">VM</a></li>
-<li><a href="worker_threads.html" class="nav-worker_threads">Worker Threads</a></li>
+<li><a href="wasi.html" class="nav-wasi">WASI</a></li>
+<li><a href="worker_threads.html" class="nav-worker_threads">Worker threads</a></li>
 <li><a href="zlib.html" class="nav-zlib">Zlib</a></li>
 </ul>
 <div class="line"></div>
 <ul>
-<li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">GitHub Repo &#x26; Issue Tracker</a></li>
+<li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">Code repository and issue tracker</a></li>
 </ul>
     </div>
 
     <div id="column1" data-id="vm" class="interior">
       <header>
-        <h1>Node.js v12.13.0 Documentation</h1>
+        <h1>Node.js v14.8.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -96,11 +99,13 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v12.x/api/vm.html">12.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v14.x/api/vm.html">14.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v13.x/api/vm.html">13.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v12.x/api/vm.html">12.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v11.x/api/vm.html">11.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v10.x/api/vm.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/vm.html">9.x</a></li>
-<li><a href="https://nodejs.org/docs/latest-v8.x/api/vm.html">8.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v8.x/api/vm.html">8.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/vm.html">7.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v6.x/api/vm.html">6.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v5.x/api/vm.html">5.x</a></li>
@@ -119,88 +124,99 @@
         <h2>Table of Contents</h2>
         <ul>
 <li>
-<p><span class="stability_2"><a href="#vm_vm_executing_javascript">VM (Executing JavaScript)</a></span></p>
+<p><span class="stability_2"><a href="#vm_vm_executing_javascript">VM (executing JavaScript)</a></span></p>
 <ul>
 <li>
-<p><a href="#vm_class_vm_script">Class: vm.Script</a></p>
+<p><a href="#vm_class_vm_script">Class: <code>vm.Script</code></a></p>
 <ul>
-<li><a href="#vm_constructor_new_vm_script_code_options">Constructor: new vm.Script(code[, options])</a></li>
-<li><a href="#vm_script_createcacheddata">script.createCachedData()</a></li>
-<li><a href="#vm_script_runincontext_contextifiedsandbox_options">script.runInContext(contextifiedSandbox[, options])</a></li>
-<li><a href="#vm_script_runinnewcontext_sandbox_options">script.runInNewContext([sandbox[, options]])</a></li>
-<li><a href="#vm_script_runinthiscontext_options">script.runInThisContext([options])</a></li>
+<li><a href="#vm_new_vm_script_code_options"><code>new vm.Script(code[, options])</code></a></li>
+<li><a href="#vm_script_createcacheddata"><code>script.createCachedData()</code></a></li>
+<li><a href="#vm_script_runincontext_contextifiedobject_options"><code>script.runInContext(contextifiedObject[, options])</code></a></li>
+<li><a href="#vm_script_runinnewcontext_contextobject_options"><code>script.runInNewContext([contextObject[, options]])</code></a></li>
+<li><a href="#vm_script_runinthiscontext_options"><code>script.runInThisContext([options])</code></a></li>
+</ul>
+</li>
+<li><span class="stability_1"><a href="#vm_vm_measurememory_options"><code>vm.measureMemory([options])</code></a></span></li>
+<li>
+<p><span class="stability_1"><a href="#vm_class_vm_module">Class: <code>vm.Module</code></a></span></p>
+<ul>
+<li><a href="#vm_module_dependencyspecifiers"><code>module.dependencySpecifiers</code></a></li>
+<li><a href="#vm_module_error"><code>module.error</code></a></li>
+<li><a href="#vm_module_evaluate_options"><code>module.evaluate([options])</code></a></li>
+<li><a href="#vm_module_link_linker"><code>module.link(linker)</code></a></li>
+<li><a href="#vm_module_namespace"><code>module.namespace</code></a></li>
+<li><a href="#vm_module_status"><code>module.status</code></a></li>
+<li><a href="#vm_module_identifier"><code>module.identifier</code></a></li>
 </ul>
 </li>
 <li>
-<p><span class="stability_1"><a href="#vm_class_vm_sourcetextmodule">Class: vm.SourceTextModule</a></span></p>
+<p><span class="stability_1"><a href="#vm_class_vm_sourcetextmodule">Class: <code>vm.SourceTextModule</code></a></span></p>
 <ul>
-<li><a href="#vm_constructor_new_vm_sourcetextmodule_code_options">Constructor: new vm.SourceTextModule(code[, options])</a></li>
-<li><a href="#vm_module_dependencyspecifiers">module.dependencySpecifiers</a></li>
-<li><a href="#vm_module_error">module.error</a></li>
-<li><a href="#vm_module_evaluate_options">module.evaluate([options])</a></li>
-<li><a href="#vm_module_link_linker">module.link(linker)</a></li>
-<li><a href="#vm_module_namespace">module.namespace</a></li>
-<li><a href="#vm_module_status">module.status</a></li>
-<li><a href="#vm_module_identifier">module.identifier</a></li>
+<li><a href="#vm_new_vm_sourcetextmodule_code_options"><code>new vm.SourceTextModule(code[, options])</code></a></li>
+<li><a href="#vm_sourcetextmodule_createcacheddata"><code>sourceTextModule.createCachedData()</code></a></li>
 </ul>
 </li>
-<li><a href="#vm_vm_compilefunction_code_params_options">vm.compileFunction(code[, params[, options]])</a></li>
-<li><a href="#vm_vm_createcontext_sandbox_options">vm.createContext([sandbox[, options]])</a></li>
-<li><a href="#vm_vm_iscontext_sandbox">vm.isContext(sandbox)</a></li>
-<li><a href="#vm_vm_runincontext_code_contextifiedsandbox_options">vm.runInContext(code, contextifiedSandbox[, options])</a></li>
-<li><a href="#vm_vm_runinnewcontext_code_sandbox_options">vm.runInNewContext(code[, sandbox[, options]])</a></li>
-<li><a href="#vm_vm_runinthiscontext_code_options">vm.runInThisContext(code[, options])</a></li>
-<li><a href="#vm_example_running_an_http_server_within_a_vm">Example: Running an HTTP Server within a VM</a></li>
+<li>
+<p><span class="stability_1"><a href="#vm_class_vm_syntheticmodule">Class: <code>vm.SyntheticModule</code></a></span></p>
+<ul>
+<li><a href="#vm_new_vm_syntheticmodule_exportnames_evaluatecallback_options"><code>new vm.SyntheticModule(exportNames, evaluateCallback[, options])</code></a></li>
+<li><a href="#vm_syntheticmodule_setexport_name_value"><code>syntheticModule.setExport(name, value)</code></a></li>
+</ul>
+</li>
+<li><a href="#vm_vm_compilefunction_code_params_options"><code>vm.compileFunction(code[, params[, options]])</code></a></li>
+<li><a href="#vm_vm_createcontext_contextobject_options"><code>vm.createContext([contextObject[, options]])</code></a></li>
+<li><a href="#vm_vm_iscontext_object"><code>vm.isContext(object)</code></a></li>
+<li><a href="#vm_vm_runincontext_code_contextifiedobject_options"><code>vm.runInContext(code, contextifiedObject[, options])</code></a></li>
+<li><a href="#vm_vm_runinnewcontext_code_contextobject_options"><code>vm.runInNewContext(code[, contextObject[, options]])</code></a></li>
+<li><a href="#vm_vm_runinthiscontext_code_options"><code>vm.runInThisContext(code[, options])</code></a></li>
+<li><a href="#vm_example_running_an_http_server_within_a_vm">Example: Running an HTTP server within a VM</a></li>
 <li><a href="#vm_what_does_it_mean_to_contextify_an_object">What does it mean to "contextify" an object?</a></li>
-<li><a href="#vm_timeout_limitations_when_using_process_nexttick_promises_and_queuemicrotask">Timeout limitations when using process.nextTick(), Promises, and queueMicrotask()</a></li>
+<li><a href="#vm_timeout_interactions_with_asynchronous_tasks_and_promises">Timeout interactions with asynchronous tasks and Promises</a></li>
 </ul>
 </li>
 </ul>
       </div>
 
       <div id="apicontent">
-        <h1>VM (Executing JavaScript)<span><a class="mark" href="#vm_vm_executing_javascript" id="vm_vm_executing_javascript">#</a></span></h1>
+        <h1>VM (executing JavaScript)<span><a class="mark" href="#vm_vm_executing_javascript" id="vm_vm_executing_javascript">#</a></span></h1>
 
 <p></p><div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p></p>
 
-<p>The <code>vm</code> module provides APIs for compiling and running code within V8 Virtual
+<p><strong>Source Code:</strong> <a href="https://github.com/nodejs/node/blob/v14.8.0/lib/vm.js">lib/vm.js</a></p>
+<p>The <code>vm</code> module enables compiling and running code within V8 Virtual
 Machine contexts. <strong>The <code>vm</code> module is not a security mechanism. Do
-not use it to run untrusted code</strong>. The term "sandbox" is used throughout these
-docs simply to refer to a separate context, and does not confer any security
-guarantees.</p>
+not use it to run untrusted code</strong>.</p>
 <p>JavaScript code can be compiled and run immediately or
 compiled, saved, and run later.</p>
-<p>A common use case is to run the code in a sandboxed environment.
-The sandboxed code uses a different V8 Context, meaning that
-it has a different global object than the rest of the code.</p>
-<p>One can provide the context by <a href="#vm_what_does_it_mean_to_contextify_an_object">"contextifying"</a> a sandbox
-object. The sandboxed code treats any property in the sandbox like a
-global variable. Any changes to global variables caused by the sandboxed
-code are reflected in the sandbox object.</p>
-<pre><code class="language-js">const vm = require('vm');
+<p>A common use case is to run the code in a different V8 Context. This means
+invoked code has a different global object than the invoking code.</p>
+<p>One can provide the context by <a href="#vm_what_does_it_mean_to_contextify_an_object"><em>contextifying</em></a> an
+object. The invoked code treats any property in the context like a
+global variable. Any changes to global variables caused by the invoked
+code are reflected in the context object.</p>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> vm = <span class="hljs-built_in">require</span>(<span class="hljs-string">'vm'</span>);
 
-const x = 1;
+<span class="hljs-keyword">const</span> x = <span class="hljs-number">1</span>;
 
-const sandbox = { x: 2 };
-vm.createContext(sandbox); // Contextify the sandbox.
+<span class="hljs-keyword">const</span> context = { <span class="hljs-attr">x</span>: <span class="hljs-number">2</span> };
+vm.createContext(context); <span class="hljs-comment">// Contextify the object.</span>
 
-const code = 'x += 40; var y = 17;';
-// `x` and `y` are global variables in the sandboxed environment.
-// Initially, x has the value 2 because that is the value of sandbox.x.
-vm.runInContext(code, sandbox);
+<span class="hljs-keyword">const</span> code = <span class="hljs-string">'x += 40; var y = 17;'</span>;
+<span class="hljs-comment">// `x` and `y` are global variables in the context.</span>
+<span class="hljs-comment">// Initially, x has the value 2 because that is the value of context.x.</span>
+vm.runInContext(code, context);
 
-console.log(sandbox.x); // 42
-console.log(sandbox.y); // 17
+<span class="hljs-built_in">console</span>.log(context.x); <span class="hljs-comment">// 42</span>
+<span class="hljs-built_in">console</span>.log(context.y); <span class="hljs-comment">// 17</span>
 
-console.log(x); // 1; y is not defined.
-</code></pre>
-<h2>Class: vm.Script<span><a class="mark" href="#vm_class_vm_script" id="vm_class_vm_script">#</a></span></h2>
+<span class="hljs-built_in">console</span>.log(x); <span class="hljs-comment">// 1; y is not defined.</span></code></pre>
+<h2>Class: <code>vm.Script</code><span><a class="mark" href="#vm_class_vm_script" id="vm_class_vm_script">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.3.1</span>
 </div>
 <p>Instances of the <code>vm.Script</code> class contain precompiled scripts that can be
-executed in specific sandboxes (or "contexts").</p>
-<h3>Constructor: new vm.Script(code[, options])<span><a class="mark" href="#vm_constructor_new_vm_script_code_options" id="vm_constructor_new_vm_script_code_options">#</a></span></h3>
+executed in specific contexts.</p>
+<h3><code>new vm.Script(code[, options])</code><span><a class="mark" href="#vm_new_vm_script_code_options" id="vm_new_vm_script_code_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -241,15 +257,14 @@ This option is <strong>deprecated</strong> in favor of <code>script.createCached
 <p><code>importModuleDynamically</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> Called during evaluation of this module
 when <code>import()</code> is called. If this option is not specified, calls to
 <code>import()</code> will reject with <a href="errors.html#ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING"><code>ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING</code></a>.
-This option is part of the experimental API for the <code>--experimental-modules</code>
-flag, and should not be considered stable.</p>
+This option is part of the experimental modules API, and should not be
+considered stable.</p>
 <ul>
 <li><code>specifier</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> specifier passed to <code>import()</code></li>
-<li><code>module</code> <a href="vm.html#vm_class_vm_sourcetextmodule" class="type">&#x3C;vm.SourceTextModule></a></li>
-<li>Returns: <a href="https://tc39.github.io/ecma262/#sec-module-namespace-exotic-objects" class="type">&#x3C;Module Namespace Object></a> | <a href="vm.html#vm_class_vm_sourcetextmodule" class="type">&#x3C;vm.SourceTextModule></a> Returning a
-<code>vm.SourceTextModule</code> is recommended in order to take advantage of error
-tracking, and to avoid issues with namespaces that contain <code>then</code>
-function exports.</li>
+<li><code>module</code> <a href="vm.html#vm_class_vm_module" class="type">&#x3C;vm.Module></a></li>
+<li>Returns: <a href="https://tc39.github.io/ecma262/#sec-module-namespace-exotic-objects" class="type">&#x3C;Module Namespace Object></a> | <a href="vm.html#vm_class_vm_module" class="type">&#x3C;vm.Module></a> Returning a <code>vm.Module</code> is
+recommended in order to take advantage of error tracking, and to avoid
+issues with namespaces that contain <code>then</code> function exports.</li>
 </ul>
 </li>
 </ul>
@@ -259,31 +274,30 @@ function exports.</li>
 <p>Creating a new <code>vm.Script</code> object compiles <code>code</code> but does not run it. The
 compiled <code>vm.Script</code> can be run later multiple times. The <code>code</code> is not bound to
 any global object; rather, it is bound before each run, just for that run.</p>
-<h3>script.createCachedData()<span><a class="mark" href="#vm_script_createcacheddata" id="vm_script_createcacheddata">#</a></span></h3>
+<h3><code>script.createCachedData()</code><span><a class="mark" href="#vm_script_createcacheddata" id="vm_script_createcacheddata">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v10.6.0</span>
 </div>
 <ul>
 <li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a></li>
 </ul>
-<p>Creates a code cache that can be used with the Script constructor's
-<code>cachedData</code> option. Returns a Buffer. This method may be called at any
+<p>Creates a code cache that can be used with the <code>Script</code> constructor's
+<code>cachedData</code> option. Returns a <code>Buffer</code>. This method may be called at any
 time and any number of times.</p>
-<pre><code class="language-js">const script = new vm.Script(`
+<pre><code class="language-js"><span class="hljs-keyword">const</span> script = <span class="hljs-keyword">new</span> vm.Script(<span class="hljs-string">`
 function add(a, b) {
   return a + b;
 }
 
 const x = add(1, 2);
-`);
+`</span>);
 
-const cacheWithoutX = script.createCachedData();
+<span class="hljs-keyword">const</span> cacheWithoutX = script.createCachedData();
 
 script.runInThisContext();
 
-const cacheWithX = script.createCachedData();
-</code></pre>
-<h3>script.runInContext(contextifiedSandbox[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/vm.js#L120">[src]</a><span><a class="mark" href="#vm_script_runincontext_contextifiedsandbox_options" id="vm_script_runincontext_contextifiedsandbox_options">#</a></span></h3>
+<span class="hljs-keyword">const</span> cacheWithX = script.createCachedData();</code></pre>
+<h3><code>script.runInContext(contextifiedObject[, options])</code><span><a class="mark" href="#vm_script_runincontext_contextifiedobject_options" id="vm_script_runincontext_contextifiedobject_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -296,7 +310,7 @@ const cacheWithX = script.createCachedData();
 </details>
 </div>
 <ul>
-<li><code>contextifiedSandbox</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> A <a href="#vm_what_does_it_mean_to_contextify_an_object">contextified</a> object as returned by the
+<li><code>contextifiedObject</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> A <a href="#vm_what_does_it_mean_to_contextify_an_object">contextified</a> object as returned by the
 <code>vm.createContext()</code> method.</li>
 <li>
 <p><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
@@ -317,38 +331,37 @@ is terminated, an <a href="errors.html#errors_class_error"><code>Error</code></a
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types" class="type">&#x3C;any></a> the result of the very last statement executed in the script.</li>
 </ul>
 <p>Runs the compiled code contained by the <code>vm.Script</code> object within the given
-<code>contextifiedSandbox</code> and returns the result. Running code does not have access
+<code>contextifiedObject</code> and returns the result. Running code does not have access
 to local scope.</p>
 <p>The following example compiles code that increments a global variable, sets
 the value of another global variable, then execute the code multiple times.
-The globals are contained in the <code>sandbox</code> object.</p>
-<pre><code class="language-js">const util = require('util');
-const vm = require('vm');
+The globals are contained in the <code>context</code> object.</p>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> vm = <span class="hljs-built_in">require</span>(<span class="hljs-string">'vm'</span>);
 
-const sandbox = {
-  animal: 'cat',
-  count: 2
+<span class="hljs-keyword">const</span> context = {
+  <span class="hljs-attr">animal</span>: <span class="hljs-string">'cat'</span>,
+  <span class="hljs-attr">count</span>: <span class="hljs-number">2</span>
 };
 
-const script = new vm.Script('count += 1; name = "kitty";');
+<span class="hljs-keyword">const</span> script = <span class="hljs-keyword">new</span> vm.Script(<span class="hljs-string">'count += 1; name = "kitty";'</span>);
 
-const context = vm.createContext(sandbox);
-for (let i = 0; i &#x3C; 10; ++i) {
+vm.createContext(context);
+<span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &#x3C; <span class="hljs-number">10</span>; ++i) {
   script.runInContext(context);
 }
 
-console.log(util.inspect(sandbox));
-
-// { animal: 'cat', count: 12, name: 'kitty' }
-</code></pre>
+<span class="hljs-built_in">console</span>.log(context);
+<span class="hljs-comment">// Prints: { animal: 'cat', count: 12, name: 'kitty' }</span></code></pre>
 <p>Using the <code>timeout</code> or <code>breakOnSigint</code> options will result in new event loops
 and corresponding threads being started, which have a non-zero performance
 overhead.</p>
-<h3>script.runInNewContext([sandbox[, options]])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/vm.js#L131">[src]</a><span><a class="mark" href="#vm_script_runinnewcontext_sandbox_options" id="vm_script_runinnewcontext_sandbox_options">#</a></span></h3>
+<h3><code>script.runInNewContext([contextObject[, options]])</code><span><a class="mark" href="#vm_script_runinnewcontext_contextobject_options" id="vm_script_runinnewcontext_contextobject_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v14.6.0</td>
+<td><p>The <code>microtaskMode</code> option is supported now.</p></td></tr>
 <tr><td>v10.0.0</td>
 <td><p>The <code>contextCodeGeneration</code> option is supported now.</p></td></tr>
 <tr><td>v6.3.0</td>
@@ -359,8 +372,8 @@ overhead.</p>
 </details>
 </div>
 <ul>
-<li><code>sandbox</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> An object that will be <a href="#vm_what_does_it_mean_to_contextify_an_object">contextified</a>. If <code>undefined</code>, a
-new object will be created.</li>
+<li><code>contextObject</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> An object that will be <a href="#vm_what_does_it_mean_to_contextify_an_object">contextified</a>. If
+<code>undefined</code>, a new object will be created.</li>
 <li>
 <p><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
 <ul>
@@ -394,31 +407,32 @@ constructors (<code>Function</code>, <code>GeneratorFunction</code>, etc) will t
 module will throw a <code>WebAssembly.CompileError</code>. <strong>Default:</strong> <code>true</code>.</li>
 </ul>
 </li>
+<li><code>microtaskMode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> If set to <code>afterEvaluate</code>, microtasks (tasks
+scheduled through <code>Promise</code>s any <code>async function</code>s) will be run immediately
+after the script has run. They are included in the <code>timeout</code> and
+<code>breakOnSigint</code> scopes in that case.</li>
 </ul>
 </li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types" class="type">&#x3C;any></a> the result of the very last statement executed in the script.</li>
 </ul>
-<p>First contextifies the given <code>sandbox</code>, runs the compiled code contained by
-the <code>vm.Script</code> object within the created sandbox, and returns the result.
+<p>First contextifies the given <code>contextObject</code>, runs the compiled code contained
+by the <code>vm.Script</code> object within the created context, and returns the result.
 Running code does not have access to local scope.</p>
 <p>The following example compiles code that sets a global variable, then executes
 the code multiple times in different contexts. The globals are set on and
-contained within each individual <code>sandbox</code>.</p>
-<pre><code class="language-js">const util = require('util');
-const vm = require('vm');
+contained within each individual <code>context</code>.</p>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> vm = <span class="hljs-built_in">require</span>(<span class="hljs-string">'vm'</span>);
 
-const script = new vm.Script('globalVar = "set"');
+<span class="hljs-keyword">const</span> script = <span class="hljs-keyword">new</span> vm.Script(<span class="hljs-string">'globalVar = "set"'</span>);
 
-const sandboxes = [{}, {}, {}];
-sandboxes.forEach((sandbox) => {
-  script.runInNewContext(sandbox);
+<span class="hljs-keyword">const</span> contexts = [{}, {}, {}];
+contexts.forEach(<span class="hljs-function">(<span class="hljs-params">context</span>) =></span> {
+  script.runInNewContext(context);
 });
 
-console.log(util.inspect(sandboxes));
-
-// [{ globalVar: 'set' }, { globalVar: 'set' }, { globalVar: 'set' }]
-</code></pre>
-<h3>script.runInThisContext([options])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/vm.js#L111">[src]</a><span><a class="mark" href="#vm_script_runinthiscontext_options" id="vm_script_runinthiscontext_options">#</a></span></h3>
+<span class="hljs-built_in">console</span>.log(contexts);
+<span class="hljs-comment">// Prints: [{ globalVar: 'set' }, { globalVar: 'set' }, { globalVar: 'set' }]</span></code></pre>
+<h3><code>script.runInThisContext([options])</code><span><a class="mark" href="#vm_script_runinthiscontext_options" id="vm_script_runinthiscontext_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -454,195 +468,191 @@ current <code>global</code> object. Running code does not have access to local s
 <em>does</em> have access to the current <code>global</code> object.</p>
 <p>The following example compiles code that increments a <code>global</code> variable then
 executes that code multiple times:</p>
-<pre><code class="language-js">const vm = require('vm');
+<pre><code class="language-js"><span class="hljs-keyword">const</span> vm = <span class="hljs-built_in">require</span>(<span class="hljs-string">'vm'</span>);
 
-global.globalVar = 0;
+global.globalVar = <span class="hljs-number">0</span>;
 
-const script = new vm.Script('globalVar += 1', { filename: 'myfile.vm' });
+<span class="hljs-keyword">const</span> script = <span class="hljs-keyword">new</span> vm.Script(<span class="hljs-string">'globalVar += 1'</span>, { <span class="hljs-attr">filename</span>: <span class="hljs-string">'myfile.vm'</span> });
 
-for (let i = 0; i &#x3C; 1000; ++i) {
+<span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &#x3C; <span class="hljs-number">1000</span>; ++i) {
   script.runInThisContext();
 }
 
-console.log(globalVar);
+<span class="hljs-built_in">console</span>.log(globalVar);
 
-// 1000
-</code></pre>
-<h2>Class: vm.SourceTextModule<span><a class="mark" href="#vm_class_vm_sourcetextmodule" id="vm_class_vm_sourcetextmodule">#</a></span></h2>
+<span class="hljs-comment">// 1000</span></code></pre>
+<h2><code>vm.measureMemory([options])</code><span><a class="mark" href="#vm_vm_measurememory_options" id="vm_vm_measurememory_options">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v9.6.0</span>
+<span>Added in: v13.10.0</span>
+</div>
+<p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
+<p>Measure the memory known to V8 and used by all contexts known to the
+current V8 isolate, or the main context.</p>
+<ul>
+<li>
+<p><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> Optional.</p>
+<ul>
+<li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Either <code>'summary'</code> or <code>'detailed'</code>. In summary mode,
+only the memory measured for the main context will be returned. In
+detailed mode, the measure measured for all contexts known to the
+current V8 isolate will be returned.
+<strong>Default:</strong> <code>'summary'</code></li>
+<li><code>execution</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Either <code>'default'</code> or <code>'eager'</code>. With default
+execution, the promise will not resolve until after the next scheduled
+garbage collection starts, which may take a while (or never if the program
+exits before the next GC). With eager execution, the GC will be started
+right away to measure the memory.
+<strong>Default:</strong> <code>'default'</code></li>
+</ul>
+</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise" class="type">&#x3C;Promise></a> If the memory is successfully measured the promise will
+resolve with an object containing information about the memory usage.</li>
+</ul>
+<p>The format of the object that the returned Promise may resolve with is
+specific to the V8 engine and may change from one version of V8 to the next.</p>
+<p>The returned result is different from the statistics returned by
+<code>v8.getHeapSpaceStatistics()</code> in that <code>vm.measureMemory()</code> measure the
+memory reachable by each V8 specific contexts in the current instance of
+the V8 engine, while the result of <code>v8.getHeapSpaceStatistics()</code> measure
+the memory occupied by each heap space in the current V8 instance.</p>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> vm = <span class="hljs-built_in">require</span>(<span class="hljs-string">'vm'</span>);
+<span class="hljs-comment">// Measure the memory used by the main context.</span>
+vm.measureMemory({ <span class="hljs-attr">mode</span>: <span class="hljs-string">'summary'</span> })
+  <span class="hljs-comment">// This is the same as vm.measureMemory()</span>
+  .then(<span class="hljs-function">(<span class="hljs-params">result</span>) =></span> {
+    <span class="hljs-comment">// The current format is:</span>
+    <span class="hljs-comment">// {</span>
+    <span class="hljs-comment">//   total: {</span>
+    <span class="hljs-comment">//      jsMemoryEstimate: 2418479, jsMemoryRange: [ 2418479, 2745799 ]</span>
+    <span class="hljs-comment">//    }</span>
+    <span class="hljs-comment">// }</span>
+    <span class="hljs-built_in">console</span>.log(result);
+  });
+
+<span class="hljs-keyword">const</span> context = vm.createContext({ <span class="hljs-attr">a</span>: <span class="hljs-number">1</span> });
+vm.measureMemory({ <span class="hljs-attr">mode</span>: <span class="hljs-string">'detailed'</span>, <span class="hljs-attr">execution</span>: <span class="hljs-string">'eager'</span> })
+  .then(<span class="hljs-function">(<span class="hljs-params">result</span>) =></span> {
+    <span class="hljs-comment">// Reference the context here so that it won't be GC'ed</span>
+    <span class="hljs-comment">// until the measurement is complete.</span>
+    <span class="hljs-built_in">console</span>.log(context.a);
+    <span class="hljs-comment">// {</span>
+    <span class="hljs-comment">//   total: {</span>
+    <span class="hljs-comment">//     jsMemoryEstimate: 2574732,</span>
+    <span class="hljs-comment">//     jsMemoryRange: [ 2574732, 2904372 ]</span>
+    <span class="hljs-comment">//   },</span>
+    <span class="hljs-comment">//   current: {</span>
+    <span class="hljs-comment">//     jsMemoryEstimate: 2438996,</span>
+    <span class="hljs-comment">//     jsMemoryRange: [ 2438996, 2768636 ]</span>
+    <span class="hljs-comment">//   },</span>
+    <span class="hljs-comment">//   other: [</span>
+    <span class="hljs-comment">//     {</span>
+    <span class="hljs-comment">//       jsMemoryEstimate: 135736,</span>
+    <span class="hljs-comment">//       jsMemoryRange: [ 135736, 465376 ]</span>
+    <span class="hljs-comment">//     }</span>
+    <span class="hljs-comment">//   ]</span>
+    <span class="hljs-comment">// }</span>
+    <span class="hljs-built_in">console</span>.log(result);
+  });</code></pre>
+<h2>Class: <code>vm.Module</code><span><a class="mark" href="#vm_class_vm_module" id="vm_class_vm_module">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v13.0.0, v12.16.0</span>
 </div>
 <p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
 <p><em>This feature is only available with the <code>--experimental-vm-modules</code> command
 flag enabled.</em></p>
-<p>The <code>vm.SourceTextModule</code> class provides a low-level interface for using
+<p>The <code>vm.Module</code> class provides a low-level interface for using
 ECMAScript modules in VM contexts. It is the counterpart of the <code>vm.Script</code>
-class that closely mirrors <a href="https://tc39.es/ecma262/#sec-source-text-module-records">Source Text Module Record</a>s as defined in the
-ECMAScript specification.</p>
-<p>Unlike <code>vm.Script</code> however, every <code>vm.SourceTextModule</code> object is bound to a
-context from its creation. Operations on <code>vm.SourceTextModule</code> objects are
-intrinsically asynchronous, in contrast with the synchronous nature of
-<code>vm.Script</code> objects. With the help of async functions, however, manipulating
-<code>vm.SourceTextModule</code> objects is fairly straightforward.</p>
-<p>Using a <code>vm.SourceTextModule</code> object requires three distinct steps:
-creation/parsing, linking, and evaluation. These three steps are illustrated in
-the following example.</p>
+class that closely mirrors <a href="https://www.ecma-international.org/ecma-262/#sec-abstract-module-records">Module Record</a>s as defined in the ECMAScript
+specification.</p>
+<p>Unlike <code>vm.Script</code> however, every <code>vm.Module</code> object is bound to a context from
+its creation. Operations on <code>vm.Module</code> objects are intrinsically asynchronous,
+in contrast with the synchronous nature of <code>vm.Script</code> objects. The use of
+'async' functions can help with manipulating <code>vm.Module</code> objects.</p>
+<p>Using a <code>vm.Module</code> object requires three distinct steps: creation/parsing,
+linking, and evaluation. These three steps are illustrated in the following
+example.</p>
 <p>This implementation lies at a lower level than the <a href="esm.html#esm_ecmascript_modules">ECMAScript Module
-loader</a>. There is also currently no way to interact with the Loader, though
+loader</a>. There is also no way to interact with the Loader yet, though
 support is planned.</p>
-<pre><code class="language-js">const vm = require('vm');
+<pre><code class="language-js"><span class="hljs-keyword">const</span> vm = <span class="hljs-built_in">require</span>(<span class="hljs-string">'vm'</span>);
 
-const contextifiedSandbox = vm.createContext({ secret: 42 });
+<span class="hljs-keyword">const</span> contextifiedObject = vm.createContext({
+  <span class="hljs-attr">secret</span>: <span class="hljs-number">42</span>,
+  <span class="hljs-attr">print</span>: <span class="hljs-built_in">console</span>.log,
+});
 
-(async () => {
-  // Step 1
-  //
-  // Create a Module by constructing a new `vm.SourceTextModule` object. This
-  // parses the provided source text, throwing a `SyntaxError` if anything goes
-  // wrong. By default, a Module is created in the top context. But here, we
-  // specify `contextifiedSandbox` as the context this Module belongs to.
-  //
-  // Here, we attempt to obtain the default export from the module "foo", and
-  // put it into local binding "secret".
+<span class="hljs-function">(<span class="hljs-params"><span class="hljs-keyword">async</span> (</span>) =></span> {
+  <span class="hljs-comment">// Step 1</span>
+  <span class="hljs-comment">//</span>
+  <span class="hljs-comment">// Create a Module by constructing a new `vm.SourceTextModule` object. This</span>
+  <span class="hljs-comment">// parses the provided source text, throwing a `SyntaxError` if anything goes</span>
+  <span class="hljs-comment">// wrong. By default, a Module is created in the top context. But here, we</span>
+  <span class="hljs-comment">// specify `contextifiedObject` as the context this Module belongs to.</span>
+  <span class="hljs-comment">//</span>
+  <span class="hljs-comment">// Here, we attempt to obtain the default export from the module "foo", and</span>
+  <span class="hljs-comment">// put it into local binding "secret".</span>
 
-  const bar = new vm.SourceTextModule(`
+  <span class="hljs-keyword">const</span> bar = <span class="hljs-keyword">new</span> vm.SourceTextModule(<span class="hljs-string">`
     import s from 'foo';
     s;
-  `, { context: contextifiedSandbox });
+    print(s);
+  `</span>, { <span class="hljs-attr">context</span>: contextifiedObject });
 
-  // Step 2
-  //
-  // "Link" the imported dependencies of this Module to it.
-  //
-  // The provided linking callback (the "linker") accepts two arguments: the
-  // parent module (`bar` in this case) and the string that is the specifier of
-  // the imported module. The callback is expected to return a Module that
-  // corresponds to the provided specifier, with certain requirements documented
-  // in `module.link()`.
-  //
-  // If linking has not started for the returned Module, the same linker
-  // callback will be called on the returned Module.
-  //
-  // Even top-level Modules without dependencies must be explicitly linked. The
-  // callback provided would never be called, however.
-  //
-  // The link() method returns a Promise that will be resolved when all the
-  // Promises returned by the linker resolve.
-  //
-  // Note: This is a contrived example in that the linker function creates a new
-  // "foo" module every time it is called. In a full-fledged module system, a
-  // cache would probably be used to avoid duplicated modules.
+  <span class="hljs-comment">// Step 2</span>
+  <span class="hljs-comment">//</span>
+  <span class="hljs-comment">// "Link" the imported dependencies of this Module to it.</span>
+  <span class="hljs-comment">//</span>
+  <span class="hljs-comment">// The provided linking callback (the "linker") accepts two arguments: the</span>
+  <span class="hljs-comment">// parent module (`bar` in this case) and the string that is the specifier of</span>
+  <span class="hljs-comment">// the imported module. The callback is expected to return a Module that</span>
+  <span class="hljs-comment">// corresponds to the provided specifier, with certain requirements documented</span>
+  <span class="hljs-comment">// in `module.link()`.</span>
+  <span class="hljs-comment">//</span>
+  <span class="hljs-comment">// If linking has not started for the returned Module, the same linker</span>
+  <span class="hljs-comment">// callback will be called on the returned Module.</span>
+  <span class="hljs-comment">//</span>
+  <span class="hljs-comment">// Even top-level Modules without dependencies must be explicitly linked. The</span>
+  <span class="hljs-comment">// callback provided would never be called, however.</span>
+  <span class="hljs-comment">//</span>
+  <span class="hljs-comment">// The link() method returns a Promise that will be resolved when all the</span>
+  <span class="hljs-comment">// Promises returned by the linker resolve.</span>
+  <span class="hljs-comment">//</span>
+  <span class="hljs-comment">// Note: This is a contrived example in that the linker function creates a new</span>
+  <span class="hljs-comment">// "foo" module every time it is called. In a full-fledged module system, a</span>
+  <span class="hljs-comment">// cache would probably be used to avoid duplicated modules.</span>
 
-  async function linker(specifier, referencingModule) {
-    if (specifier === 'foo') {
-      return new vm.SourceTextModule(`
+  <span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">linker</span>(<span class="hljs-params">specifier, referencingModule</span>) </span>{
+    <span class="hljs-keyword">if</span> (specifier === <span class="hljs-string">'foo'</span>) {
+      <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> vm.SourceTextModule(<span class="hljs-string">`
         // The "secret" variable refers to the global variable we added to
-        // "contextifiedSandbox" when creating the context.
+        // "contextifiedObject" when creating the context.
         export default secret;
-      `, { context: referencingModule.context });
+      `</span>, { <span class="hljs-attr">context</span>: referencingModule.context });
 
-      // Using `contextifiedSandbox` instead of `referencingModule.context`
-      // here would work as well.
+      <span class="hljs-comment">// Using `contextifiedObject` instead of `referencingModule.context`</span>
+      <span class="hljs-comment">// here would work as well.</span>
     }
-    throw new Error(`Unable to resolve dependency: ${specifier}`);
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">`Unable to resolve dependency: <span class="hljs-subst">${specifier}</span>`</span>);
   }
-  await bar.link(linker);
+  <span class="hljs-keyword">await</span> bar.link(linker);
 
-  // Step 3
-  //
-  // Evaluate the Module. The evaluate() method returns a Promise with a single
-  // property "result" that contains the result of the very last statement
-  // executed in the Module. In the case of `bar`, it is `s;`, which refers to
-  // the default export of the `foo` module, the `secret` we set in the
-  // beginning to 42.
+  <span class="hljs-comment">// Step 3</span>
+  <span class="hljs-comment">//</span>
+  <span class="hljs-comment">// Evaluate the Module. The evaluate() method returns a promise which will</span>
+  <span class="hljs-comment">// resolve after the module has finished evaluating.</span>
 
-  const { result } = await bar.evaluate();
-
-  console.log(result);
-  // Prints 42.
-})();
-</code></pre>
-<h3>Constructor: new vm.SourceTextModule(code[, options])<span><a class="mark" href="#vm_constructor_new_vm_sourcetextmodule_code_options" id="vm_constructor_new_vm_sourcetextmodule_code_options">#</a></span></h3>
-<ul>
-<li><code>code</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> JavaScript Module code to parse</li>
-<li>
-<p><code>options</code></p>
-<ul>
-<li><code>identifier</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> String used in stack traces.
-<strong>Default:</strong> <code>'vm:module(i)'</code> where <code>i</code> is a context-specific ascending
-index.</li>
-<li><code>context</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> The <a href="#vm_what_does_it_mean_to_contextify_an_object">contextified</a> object as returned by the
-<code>vm.createContext()</code> method, to compile and evaluate this <code>Module</code> in.</li>
-<li><code>lineOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> Specifies the line number offset that is displayed
-in stack traces produced by this <code>Module</code>. <strong>Default:</strong> <code>0</code>.</li>
-<li><code>columnOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> Specifies the column number offset that is
-displayed in stack traces produced by this <code>Module</code>. <strong>Default:</strong> <code>0</code>.</li>
-<li>
-<p><code>initializeImportMeta</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> Called during evaluation of this <code>Module</code>
-to initialize the <code>import.meta</code>.</p>
-<ul>
-<li><code>meta</code> <a href="esm.html#esm_import_meta" class="type">&#x3C;import.meta></a></li>
-<li><code>module</code> <a href="vm.html#vm_class_vm_sourcetextmodule" class="type">&#x3C;vm.SourceTextModule></a></li>
-</ul>
-</li>
-<li>
-<p><code>importModuleDynamically</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> Called during evaluation of this module
-when <code>import()</code> is called. If this option is not specified, calls to
-<code>import()</code> will reject with <a href="errors.html#ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING"><code>ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING</code></a>.</p>
-<ul>
-<li><code>specifier</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> specifier passed to <code>import()</code></li>
-<li><code>module</code> <a href="vm.html#vm_class_vm_sourcetextmodule" class="type">&#x3C;vm.SourceTextModule></a></li>
-<li>Returns: <a href="https://tc39.github.io/ecma262/#sec-module-namespace-exotic-objects" class="type">&#x3C;Module Namespace Object></a> | <a href="vm.html#vm_class_vm_sourcetextmodule" class="type">&#x3C;vm.SourceTextModule></a> Returning a
-<code>vm.SourceTextModule</code> is recommended in order to take advantage of error
-tracking, and to avoid issues with namespaces that contain <code>then</code>
-function exports.</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<p>Creates a new ES <code>Module</code> object.</p>
-<p>Properties assigned to the <code>import.meta</code> object that are objects may
-allow the <code>Module</code> to access information outside the specified <code>context</code>, if the
-object is created in the top level context. Use <code>vm.runInContext()</code> to create
-objects in a specific context.</p>
-<pre><code class="language-js">const vm = require('vm');
-
-const contextifiedSandbox = vm.createContext({ secret: 42 });
-
-(async () => {
-  const module = new vm.SourceTextModule(
-    'Object.getPrototypeOf(import.meta.prop).secret = secret;',
-    {
-      initializeImportMeta(meta) {
-        // Note: this object is created in the top context. As such,
-        // Object.getPrototypeOf(import.meta.prop) points to the
-        // Object.prototype in the top context rather than that in
-        // the sandbox.
-        meta.prop = {};
-      }
-    });
-  // Since module has no dependencies, the linker function will never be called.
-  await module.link(() => {});
-  await module.evaluate();
-
-  // Now, Object.prototype.secret will be equal to 42.
-  //
-  // To fix this problem, replace
-  //     meta.prop = {};
-  // above with
-  //     meta.prop = vm.runInContext('{}', contextifiedSandbox);
-})();
-</code></pre>
-<h3>module.dependencySpecifiers<span><a class="mark" href="#vm_module_dependencyspecifiers" id="vm_module_dependencyspecifiers">#</a></span></h3>
+  <span class="hljs-comment">// Prints 42.</span>
+  <span class="hljs-keyword">await</span> bar.evaluate();
+})();</code></pre>
+<h3><code>module.dependencySpecifiers</code><span><a class="mark" href="#vm_module_dependencyspecifiers" id="vm_module_dependencyspecifiers">#</a></span></h3>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string[]></a></li>
 </ul>
 <p>The specifiers of all dependencies of this module. The returned array is frozen
 to disallow any changes to it.</p>
-<p>Corresponds to the <code>[[RequestedModules]]</code> field of
-<a href="https://tc39.es/ecma262/#sec-source-text-module-records">Source Text Module Record</a>s in the ECMAScript specification.</p>
-<h3>module.error<span><a class="mark" href="#vm_module_error" id="vm_module_error">#</a></span></h3>
+<p>Corresponds to the <code>[[RequestedModules]]</code> field of <a href="https://tc39.es/ecma262/#sec-cyclic-module-records">Cyclic Module Record</a>s in
+the ECMAScript specification.</p>
+<h3><code>module.error</code><span><a class="mark" href="#vm_module_error" id="vm_module_error">#</a></span></h3>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types" class="type">&#x3C;any></a></li>
 </ul>
@@ -651,9 +661,9 @@ thrown by the module during evaluation. If the status is anything else,
 accessing this property will result in a thrown exception.</p>
 <p>The value <code>undefined</code> cannot be used for cases where there is not a thrown
 exception due to possible ambiguity with <code>throw undefined;</code>.</p>
-<p>Corresponds to the <code>[[EvaluationError]]</code> field of <a href="https://tc39.es/ecma262/#sec-source-text-module-records">Source Text Module Record</a>s
+<p>Corresponds to the <code>[[EvaluationError]]</code> field of <a href="https://tc39.es/ecma262/#sec-cyclic-module-records">Cyclic Module Record</a>s
 in the ECMAScript specification.</p>
-<h3>module.evaluate([options])<span><a class="mark" href="#vm_module_evaluate_options" id="vm_module_evaluate_options">#</a></span></h3>
+<h3><code>module.evaluate([options])</code><span><a class="mark" href="#vm_module_evaluate_options" id="vm_module_evaluate_options">#</a></span></h3>
 <ul>
 <li>
 <p><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
@@ -671,20 +681,16 @@ interrupted, an <a href="errors.html#errors_class_error"><code>Error</code></a> 
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise" class="type">&#x3C;Promise></a></li>
 </ul>
 <p>Evaluate the module.</p>
-<p>This must be called after the module has been linked; otherwise it will
-throw an error. It could be called also when the module has already been
-evaluated, in which case it will do one of the following two things:</p>
-<ul>
-<li>return <code>undefined</code> if the initial evaluation ended in success (<code>module.status</code>
-is <code>'evaluated'</code>)</li>
-<li>rethrow the same exception the initial evaluation threw if the initial
-evaluation ended in an error (<code>module.status</code> is <code>'errored'</code>)</li>
-</ul>
+<p>This must be called after the module has been linked; otherwise it will reject.
+It could be called also when the module has already been evaluated, in which
+case it will either do nothing if the initial evaluation ended in success
+(<code>module.status</code> is <code>'evaluated'</code>) or it will re-throw the exception that the
+initial evaluation resulted in (<code>module.status</code> is <code>'errored'</code>).</p>
 <p>This method cannot be called while the module is being evaluated
-(<code>module.status</code> is <code>'evaluating'</code>) to prevent infinite recursion.</p>
-<p>Corresponds to the <a href="https://tc39.es/ecma262/#sec-moduleevaluation">Evaluate() concrete method</a> field of <a href="https://tc39.es/ecma262/#sec-source-text-module-records">Source Text Module
+(<code>module.status</code> is <code>'evaluating'</code>).</p>
+<p>Corresponds to the <a href="https://tc39.es/ecma262/#sec-moduleevaluation">Evaluate() concrete method</a> field of <a href="https://tc39.es/ecma262/#sec-cyclic-module-records">Cyclic Module
 Record</a>s in the ECMAScript specification.</p>
-<h3>module.link(linker)<span><a class="mark" href="#vm_module_link_linker" id="vm_module_link_linker">#</a></span></h3>
+<h3><code>module.link(linker)</code><span><a class="mark" href="#vm_module_link_linker" id="vm_module_link_linker">#</a></span></h3>
 <ul>
 <li>
 <p><code>linker</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></p>
@@ -692,16 +698,14 @@ Record</a>s in the ECMAScript specification.</p>
 <li>
 <p><code>specifier</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The specifier of the requested module:</p>
 <!-- eslint-skip -->
-<pre><code class="language-js">import foo from 'foo';
-//              ^^^^^ the module specifier
-</code></pre>
+<pre><code class="language-js"><span class="hljs-keyword">import</span> foo <span class="hljs-keyword">from</span> <span class="hljs-string">'foo'</span>;
+<span class="hljs-comment">//              ^^^^^ the module specifier</span></code></pre>
 </li>
 <li>
-<p><code>referencingModule</code> <a href="vm.html#vm_class_vm_sourcetextmodule" class="type">&#x3C;vm.SourceTextModule></a> The <code>Module</code> object <code>link()</code> is
-called on.</p>
+<p><code>referencingModule</code> <a href="vm.html#vm_class_vm_module" class="type">&#x3C;vm.Module></a> The <code>Module</code> object <code>link()</code> is called on.</p>
 </li>
 <li>
-<p>Returns: <a href="vm.html#vm_class_vm_sourcetextmodule" class="type">&#x3C;vm.SourceTextModule></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise" class="type">&#x3C;Promise></a></p>
+<p>Returns: <a href="vm.html#vm_class_vm_module" class="type">&#x3C;vm.Module></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise" class="type">&#x3C;Promise></a></p>
 </li>
 </ul>
 </li>
@@ -736,9 +740,9 @@ linking is one that returns the modules linked during linking. Since at
 that point all modules would have been fully linked already, the
 <a href="https://tc39.es/ecma262/#sec-hostresolveimportedmodule">HostResolveImportedModule</a> implementation is fully synchronous per
 specification.</p>
-<p>Corresponds to the <a href="https://tc39.es/ecma262/#sec-moduledeclarationlinking">Link() concrete method</a> field of <a href="https://tc39.es/ecma262/#sec-source-text-module-records">Source Text Module
+<p>Corresponds to the <a href="https://tc39.es/ecma262/#sec-moduledeclarationlinking">Link() concrete method</a> field of <a href="https://tc39.es/ecma262/#sec-cyclic-module-records">Cyclic Module
 Record</a>s in the ECMAScript specification.</p>
-<h3>module.namespace<span><a class="mark" href="#vm_module_namespace" id="vm_module_namespace">#</a></span></h3>
+<h3><code>module.namespace</code><span><a class="mark" href="#vm_module_namespace" id="vm_module_namespace">#</a></span></h3>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></li>
 </ul>
@@ -746,7 +750,7 @@ Record</a>s in the ECMAScript specification.</p>
 (<code>module.link()</code>) has completed.</p>
 <p>Corresponds to the <a href="https://tc39.es/ecma262/#sec-getmodulenamespace">GetModuleNamespace</a> abstract operation in the ECMAScript
 specification.</p>
-<h3>module.status<span><a class="mark" href="#vm_module_status" id="vm_module_status">#</a></span></h3>
+<h3><code>module.status</code><span><a class="mark" href="#vm_module_status" id="vm_module_status">#</a></span></h3>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
@@ -775,17 +779,198 @@ itself or a parent module.</p>
 </li>
 </ul>
 <p>Other than <code>'errored'</code>, this status string corresponds to the specification's
-<a href="https://tc39.es/ecma262/#sec-source-text-module-records">Source Text Module Record</a>'s <code>[[Status]]</code> field. <code>'errored'</code> corresponds to
+<a href="https://tc39.es/ecma262/#sec-cyclic-module-records">Cyclic Module Record</a>'s <code>[[Status]]</code> field. <code>'errored'</code> corresponds to
 <code>'evaluated'</code> in the specification, but with <code>[[EvaluationError]]</code> set to a
 value that is not <code>undefined</code>.</p>
-<h3>module.identifier<span><a class="mark" href="#vm_module_identifier" id="vm_module_identifier">#</a></span></h3>
+<h3><code>module.identifier</code><span><a class="mark" href="#vm_module_identifier" id="vm_module_identifier">#</a></span></h3>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
 <p>The identifier of the current module, as set in the constructor.</p>
-<h2>vm.compileFunction(code[, params[, options]])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/vm.js#L309">[src]</a><span><a class="mark" href="#vm_vm_compilefunction_code_params_options" id="vm_vm_compilefunction_code_params_options">#</a></span></h2>
+<h2>Class: <code>vm.SourceTextModule</code><span><a class="mark" href="#vm_class_vm_sourcetextmodule" id="vm_class_vm_sourcetextmodule">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v10.10.0</span>
+<span>Added in: v9.6.0</span>
+</div>
+<p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
+<p><em>This feature is only available with the <code>--experimental-vm-modules</code> command
+flag enabled.</em></p>
+<ul>
+<li>Extends: <a href="vm.html#vm_class_vm_module" class="type">&#x3C;vm.Module></a></li>
+</ul>
+<p>The <code>vm.SourceTextModule</code> class provides the <a href="https://tc39.es/ecma262/#sec-source-text-module-records">Source Text Module Record</a> as
+defined in the ECMAScript specification.</p>
+<h3><code>new vm.SourceTextModule(code[, options])</code><span><a class="mark" href="#vm_new_vm_sourcetextmodule_code_options" id="vm_new_vm_sourcetextmodule_code_options">#</a></span></h3>
+<ul>
+<li><code>code</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> JavaScript Module code to parse</li>
+<li>
+<p><code>options</code></p>
+<ul>
+<li><code>identifier</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> String used in stack traces.
+<strong>Default:</strong> <code>'vm:module(i)'</code> where <code>i</code> is a context-specific ascending
+index.</li>
+<li><code>cachedData</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a> Provides an optional <code>Buffer</code> or
+<code>TypedArray</code>, or <code>DataView</code> with V8's code cache data for the supplied
+source. The <code>code</code> must be the same as the module from which this
+<code>cachedData</code> was created.</li>
+<li><code>context</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> The <a href="#vm_what_does_it_mean_to_contextify_an_object">contextified</a> object as returned by the
+<code>vm.createContext()</code> method, to compile and evaluate this <code>Module</code> in.</li>
+<li><code>lineOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> Specifies the line number offset that is displayed
+in stack traces produced by this <code>Module</code>. <strong>Default:</strong> <code>0</code>.</li>
+<li><code>columnOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> Specifies the column number offset that is
+displayed in stack traces produced by this <code>Module</code>. <strong>Default:</strong> <code>0</code>.</li>
+<li>
+<p><code>initializeImportMeta</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> Called during evaluation of this <code>Module</code>
+to initialize the <code>import.meta</code>.</p>
+<ul>
+<li><code>meta</code> <a href="esm.html#esm_import_meta" class="type">&#x3C;import.meta></a></li>
+<li><code>module</code> <a href="vm.html#vm_class_vm_sourcetextmodule" class="type">&#x3C;vm.SourceTextModule></a></li>
+</ul>
+</li>
+<li>
+<p><code>importModuleDynamically</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> Called during evaluation of this module
+when <code>import()</code> is called. If this option is not specified, calls to
+<code>import()</code> will reject with <a href="errors.html#ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING"><code>ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING</code></a>.</p>
+<ul>
+<li><code>specifier</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> specifier passed to <code>import()</code></li>
+<li><code>module</code> <a href="vm.html#vm_class_vm_module" class="type">&#x3C;vm.Module></a></li>
+<li>Returns: <a href="https://tc39.github.io/ecma262/#sec-module-namespace-exotic-objects" class="type">&#x3C;Module Namespace Object></a> | <a href="vm.html#vm_class_vm_module" class="type">&#x3C;vm.Module></a> Returning a <code>vm.Module</code> is
+recommended in order to take advantage of error tracking, and to avoid
+issues with namespaces that contain <code>then</code> function exports.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>Creates a new <code>SourceTextModule</code> instance.</p>
+<p>Properties assigned to the <code>import.meta</code> object that are objects may
+allow the module to access information outside the specified <code>context</code>. Use
+<code>vm.runInContext()</code> to create objects in a specific context.</p>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> vm = <span class="hljs-built_in">require</span>(<span class="hljs-string">'vm'</span>);
+
+<span class="hljs-keyword">const</span> contextifiedObject = vm.createContext({ <span class="hljs-attr">secret</span>: <span class="hljs-number">42</span> });
+
+<span class="hljs-function">(<span class="hljs-params"><span class="hljs-keyword">async</span> (</span>) =></span> {
+  <span class="hljs-keyword">const</span> <span class="hljs-built_in">module</span> = <span class="hljs-keyword">new</span> vm.SourceTextModule(
+    <span class="hljs-string">'Object.getPrototypeOf(import.meta.prop).secret = secret;'</span>,
+    {
+      initializeImportMeta(meta) {
+        <span class="hljs-comment">// Note: this object is created in the top context. As such,</span>
+        <span class="hljs-comment">// Object.getPrototypeOf(import.meta.prop) points to the</span>
+        <span class="hljs-comment">// Object.prototype in the top context rather than that in</span>
+        <span class="hljs-comment">// the contextified object.</span>
+        meta.prop = {};
+      }
+    });
+  <span class="hljs-comment">// Since module has no dependencies, the linker function will never be called.</span>
+  <span class="hljs-keyword">await</span> <span class="hljs-built_in">module</span>.link(<span class="hljs-function"><span class="hljs-params">()</span> =></span> {});
+  <span class="hljs-keyword">await</span> <span class="hljs-built_in">module</span>.evaluate();
+
+  <span class="hljs-comment">// Now, Object.prototype.secret will be equal to 42.</span>
+  <span class="hljs-comment">//</span>
+  <span class="hljs-comment">// To fix this problem, replace</span>
+  <span class="hljs-comment">//     meta.prop = {};</span>
+  <span class="hljs-comment">// above with</span>
+  <span class="hljs-comment">//     meta.prop = vm.runInContext('{}', contextifiedObject);</span>
+})();</code></pre>
+<h3><code>sourceTextModule.createCachedData()</code><span><a class="mark" href="#vm_sourcetextmodule_createcacheddata" id="vm_sourcetextmodule_createcacheddata">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v13.7.0</span>
+</div>
+<ul>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a></li>
+</ul>
+<p>Creates a code cache that can be used with the <code>SourceTextModule</code> constructor's
+<code>cachedData</code> option. Returns a <code>Buffer</code>. This method may be called any number
+of times before the module has been evaluated.</p>
+<pre><code class="language-js"><span class="hljs-comment">// Create an initial module</span>
+<span class="hljs-keyword">const</span> <span class="hljs-built_in">module</span> = <span class="hljs-keyword">new</span> vm.SourceTextModule(<span class="hljs-string">'const a = 1;'</span>);
+
+<span class="hljs-comment">// Create cached data from this module</span>
+<span class="hljs-keyword">const</span> cachedData = <span class="hljs-built_in">module</span>.createCachedData();
+
+<span class="hljs-comment">// Create a new module using the cached data. The code must be the same.</span>
+<span class="hljs-keyword">const</span> module2 = <span class="hljs-keyword">new</span> vm.SourceTextModule(<span class="hljs-string">'const a = 1;'</span>, { cachedData });</code></pre>
+<h2>Class: <code>vm.SyntheticModule</code><span><a class="mark" href="#vm_class_vm_syntheticmodule" id="vm_class_vm_syntheticmodule">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v13.0.0, v12.16.0</span>
+</div>
+<p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
+<p><em>This feature is only available with the <code>--experimental-vm-modules</code> command
+flag enabled.</em></p>
+<ul>
+<li>Extends: <a href="vm.html#vm_class_vm_module" class="type">&#x3C;vm.Module></a></li>
+</ul>
+<p>The <code>vm.SyntheticModule</code> class provides the <a href="https://heycam.github.io/webidl/#synthetic-module-records">Synthetic Module Record</a> as
+defined in the WebIDL specification. The purpose of synthetic modules is to
+provide a generic interface for exposing non-JavaScript sources to ECMAScript
+module graphs.</p>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> vm = <span class="hljs-built_in">require</span>(<span class="hljs-string">'vm'</span>);
+
+<span class="hljs-keyword">const</span> source = <span class="hljs-string">'{ "a": 1 }'</span>;
+<span class="hljs-keyword">const</span> <span class="hljs-built_in">module</span> = <span class="hljs-keyword">new</span> vm.SyntheticModule([<span class="hljs-string">'default'</span>], <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">const</span> obj = <span class="hljs-built_in">JSON</span>.parse(source);
+  <span class="hljs-keyword">this</span>.setExport(<span class="hljs-string">'default'</span>, obj);
+});
+
+<span class="hljs-comment">// Use `module` in linking...</span></code></pre>
+<h3><code>new vm.SyntheticModule(exportNames, evaluateCallback[, options])</code><span><a class="mark" href="#vm_new_vm_syntheticmodule_exportnames_evaluatecallback_options" id="vm_new_vm_syntheticmodule_exportnames_evaluatecallback_options">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v13.0.0, v12.16.0</span>
+</div>
+<ul>
+<li><code>exportNames</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string[]></a> Array of names that will be exported from the module.</li>
+<li><code>evaluateCallback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> Called when the module is evaluated.</li>
+<li>
+<p><code>options</code></p>
+<ul>
+<li><code>identifier</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> String used in stack traces.
+<strong>Default:</strong> <code>'vm:module(i)'</code> where <code>i</code> is a context-specific ascending
+index.</li>
+<li><code>context</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> The <a href="#vm_what_does_it_mean_to_contextify_an_object">contextified</a> object as returned by the
+<code>vm.createContext()</code> method, to compile and evaluate this <code>Module</code> in.</li>
+</ul>
+</li>
+</ul>
+<p>Creates a new <code>SyntheticModule</code> instance.</p>
+<p>Objects assigned to the exports of this instance may allow importers of
+the module to access information outside the specified <code>context</code>. Use
+<code>vm.runInContext()</code> to create objects in a specific context.</p>
+<h3><code>syntheticModule.setExport(name, value)</code><span><a class="mark" href="#vm_syntheticmodule_setexport_name_value" id="vm_syntheticmodule_setexport_name_value">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v13.0.0, v12.16.0</span>
+</div>
+<ul>
+<li><code>name</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Name of the export to set.</li>
+<li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types" class="type">&#x3C;any></a> The value to set the export to.</li>
+</ul>
+<p>This method is used after the module is linked to set the values of exports. If
+it is called before the module is linked, an <a href="errors.html#ERR_VM_MODULE_STATUS"><code>ERR_VM_MODULE_STATUS</code></a> error
+will be thrown.</p>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> vm = <span class="hljs-built_in">require</span>(<span class="hljs-string">'vm'</span>);
+
+<span class="hljs-function">(<span class="hljs-params"><span class="hljs-keyword">async</span> (</span>) =></span> {
+  <span class="hljs-keyword">const</span> m = <span class="hljs-keyword">new</span> vm.SyntheticModule([<span class="hljs-string">'x'</span>], () => {
+    m.setExport(<span class="hljs-string">'x'</span>, <span class="hljs-number">1</span>);
+  });
+
+  <span class="hljs-keyword">await</span> m.link(<span class="hljs-function"><span class="hljs-params">()</span> =></span> {});
+  <span class="hljs-keyword">await</span> m.evaluate();
+
+  assert.strictEqual(m.namespace.x, <span class="hljs-number">1</span>);
+})();</code></pre>
+<h2><code>vm.compileFunction(code[, params[, options]])</code><span><a class="mark" href="#vm_vm_compilefunction_code_params_options" id="vm_vm_compilefunction_code_params_options">#</a></span></h2>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v14.3.0</td>
+<td><p>Removal of <code>importModuleDynamically</code> due to compatibility issues</p></td></tr>
+<tr><td>v14.1.0</td>
+<td><p>The <code>importModuleDynamically</code> option is now supported.</p></td></tr>
+<tr><td>v10.10.0</td>
+<td><p><span>Added in: v10.10.0</span></p></td></tr>
+</tbody></table>
+</details>
 </div>
 <ul>
 <li><code>code</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The body of the function to compile.</li>
@@ -805,7 +990,7 @@ in stack traces produced by this script. <strong>Default:</strong> <code>0</code
 source.</li>
 <li><code>produceCachedData</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> Specifies whether to produce new cache data.
 <strong>Default:</strong> <code>false</code>.</li>
-<li><code>parsingContext</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> The <a href="#vm_what_does_it_mean_to_contextify_an_object">contextified</a> sandbox in which the said
+<li><code>parsingContext</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> The <a href="#vm_what_does_it_mean_to_contextify_an_object">contextified</a> object in which the said
 function should be compiled in.</li>
 <li><code>contextExtensions</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object[]></a> An array containing a collection of context
 extensions (objects wrapping the current scope) to be applied while
@@ -814,16 +999,18 @@ compiling. <strong>Default:</strong> <code>[]</code>.</li>
 </li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
 </ul>
-<p>Compiles the given code into the provided context/sandbox (if no context is
+<p>Compiles the given code into the provided context (if no context is
 supplied, the current context is used), and returns it wrapped inside a
 function with the given <code>params</code>.</p>
-<h2>vm.createContext([sandbox[, options]])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/vm.js#L225">[src]</a><span><a class="mark" href="#vm_vm_createcontext_sandbox_options" id="vm_vm_createcontext_sandbox_options">#</a></span></h2>
+<h2><code>vm.createContext([contextObject[, options]])</code><span><a class="mark" href="#vm_vm_createcontext_contextobject_options" id="vm_vm_createcontext_contextobject_options">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v14.6.0</td>
+<td><p>The <code>microtaskMode</code> option is supported now.</p></td></tr>
 <tr><td>v10.0.0</td>
-<td><p>The <code>sandbox</code> object can no longer be a function.</p></td></tr>
+<td><p>The first argument can no longer be a function.</p></td></tr>
 <tr><td>v10.0.0</td>
 <td><p>The <code>codeGeneration</code> option is supported now.</p></td></tr>
 <tr><td>v0.3.1</td>
@@ -832,7 +1019,7 @@ function with the given <code>params</code>.</p>
 </details>
 </div>
 <ul>
-<li><code>sandbox</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></li>
+<li><code>contextObject</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></li>
 <li>
 <p><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
 <ul>
@@ -855,51 +1042,55 @@ constructors (<code>Function</code>, <code>GeneratorFunction</code>, etc) will t
 module will throw a <code>WebAssembly.CompileError</code>. <strong>Default:</strong> <code>true</code>.</li>
 </ul>
 </li>
+<li><code>microtaskMode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> If set to <code>afterEvaluate</code>, microtasks (tasks
+scheduled through <code>Promise</code>s any <code>async function</code>s) will be run immediately
+after a script has run through <a href="#vm_script_runincontext_contextifiedobject_options"><code>script.runInContext()</code></a>.
+They are included in the <code>timeout</code> and <code>breakOnSigint</code> scopes in that case.</li>
 </ul>
 </li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> contextified sandbox.</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> contextified object.</li>
 </ul>
-<p>If given a <code>sandbox</code> object, the <code>vm.createContext()</code> method will <a href="#vm_what_does_it_mean_to_contextify_an_object">prepare
-that sandbox</a> so that it can be used in calls to
-<a href="#vm_vm_runincontext_code_contextifiedsandbox_options"><code>vm.runInContext()</code></a> or <a href="#vm_script_runincontext_contextifiedsandbox_options"><code>script.runInContext()</code></a>. Inside such scripts,
-the <code>sandbox</code> object will be the global object, retaining all of its existing
+<p>If given a <code>contextObject</code>, the <code>vm.createContext()</code> method will <a href="#vm_what_does_it_mean_to_contextify_an_object">prepare
+that object</a> so that it can be used in calls to
+<a href="#vm_vm_runincontext_code_contextifiedobject_options"><code>vm.runInContext()</code></a> or <a href="#vm_script_runincontext_contextifiedobject_options"><code>script.runInContext()</code></a>. Inside such scripts,
+the <code>contextObject</code> will be the global object, retaining all of its existing
 properties but also having the built-in objects and functions any standard
 <a href="https://es5.github.io/#x15.1">global object</a> has. Outside of scripts run by the vm module, global variables
 will remain unchanged.</p>
-<pre><code class="language-js">const util = require('util');
-const vm = require('vm');
+<pre><code class="language-js"><span class="hljs-keyword">const</span> vm = <span class="hljs-built_in">require</span>(<span class="hljs-string">'vm'</span>);
 
-global.globalVar = 3;
+global.globalVar = <span class="hljs-number">3</span>;
 
-const sandbox = { globalVar: 1 };
-vm.createContext(sandbox);
+<span class="hljs-keyword">const</span> context = { <span class="hljs-attr">globalVar</span>: <span class="hljs-number">1</span> };
+vm.createContext(context);
 
-vm.runInContext('globalVar *= 2;', sandbox);
+vm.runInContext(<span class="hljs-string">'globalVar *= 2;'</span>, context);
 
-console.log(util.inspect(sandbox)); // { globalVar: 2 }
+<span class="hljs-built_in">console</span>.log(context);
+<span class="hljs-comment">// Prints: { globalVar: 2 }</span>
 
-console.log(util.inspect(globalVar)); // 3
-</code></pre>
-<p>If <code>sandbox</code> is omitted (or passed explicitly as <code>undefined</code>), a new, empty
-<a href="#vm_what_does_it_mean_to_contextify_an_object">contextified</a> sandbox object will be returned.</p>
+<span class="hljs-built_in">console</span>.log(global.globalVar);
+<span class="hljs-comment">// Prints: 3</span></code></pre>
+<p>If <code>contextObject</code> is omitted (or passed explicitly as <code>undefined</code>), a new,
+empty <a href="#vm_what_does_it_mean_to_contextify_an_object">contextified</a> object will be returned.</p>
 <p>The <code>vm.createContext()</code> method is primarily useful for creating a single
-sandbox that can be used to run multiple scripts. For instance, if emulating a
-web browser, the method can be used to create a single sandbox representing a
-window's global object, then run all <code>&#x3C;script></code> tags together within the context
-of that sandbox.</p>
+context that can be used to run multiple scripts. For instance, if emulating a
+web browser, the method can be used to create a single context representing a
+window's global object, then run all <code>&#x3C;script></code> tags together within that
+context.</p>
 <p>The provided <code>name</code> and <code>origin</code> of the context are made visible through the
 Inspector API.</p>
-<h2>vm.isContext(sandbox)<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/vm.js#L217">[src]</a><span><a class="mark" href="#vm_vm_iscontext_sandbox" id="vm_vm_iscontext_sandbox">#</a></span></h2>
+<h2><code>vm.isContext(object)</code><span><a class="mark" href="#vm_vm_iscontext_object" id="vm_vm_iscontext_object">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.11.7</span>
 </div>
 <ul>
-<li><code>sandbox</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></li>
+<li><code>object</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a></li>
 </ul>
-<p>Returns <code>true</code> if the given <code>sandbox</code> object has been <a href="#vm_what_does_it_mean_to_contextify_an_object">contextified</a> using
-<a href="#vm_vm_createcontext_sandbox_options"><code>vm.createContext()</code></a>.</p>
-<h2>vm.runInContext(code, contextifiedSandbox[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/vm.js#L279">[src]</a><span><a class="mark" href="#vm_vm_runincontext_code_contextifiedsandbox_options" id="vm_vm_runincontext_code_contextifiedsandbox_options">#</a></span></h2>
+<p>Returns <code>true</code> if the given <code>oject</code> object has been <a href="#vm_what_does_it_mean_to_contextify_an_object">contextified</a> using
+<a href="#vm_vm_createcontext_contextobject_options"><code>vm.createContext()</code></a>.</p>
+<h2><code>vm.runInContext(code, contextifiedObject[, options])</code><span><a class="mark" href="#vm_vm_runincontext_code_contextifiedobject_options" id="vm_vm_runincontext_code_contextifiedobject_options">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -913,7 +1104,7 @@ Inspector API.</p>
 </div>
 <ul>
 <li><code>code</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The JavaScript code to compile and run.</li>
-<li><code>contextifiedSandbox</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> The <a href="#vm_what_does_it_mean_to_contextify_an_object">contextified</a> object that will be used
+<li><code>contextifiedObject</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> The <a href="#vm_what_does_it_mean_to_contextify_an_object">contextified</a> object that will be used
 as the <code>global</code> when the <code>code</code> is compiled and run.</li>
 <li>
 <p><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></p>
@@ -951,15 +1142,14 @@ This option is <strong>deprecated</strong> in favor of <code>script.createCached
 <p><code>importModuleDynamically</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> Called during evaluation of this module
 when <code>import()</code> is called. If this option is not specified, calls to
 <code>import()</code> will reject with <a href="errors.html#ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING"><code>ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING</code></a>.
-This option is part of the experimental API for the <code>--experimental-modules</code>
-flag, and should not be considered stable.</p>
+This option is part of the experimental modules API, and should not be
+considered stable.</p>
 <ul>
 <li><code>specifier</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> specifier passed to <code>import()</code></li>
-<li><code>module</code> <a href="vm.html#vm_class_vm_sourcetextmodule" class="type">&#x3C;vm.SourceTextModule></a></li>
-<li>Returns: <a href="https://tc39.github.io/ecma262/#sec-module-namespace-exotic-objects" class="type">&#x3C;Module Namespace Object></a> | <a href="vm.html#vm_class_vm_sourcetextmodule" class="type">&#x3C;vm.SourceTextModule></a> Returning a
-<code>vm.SourceTextModule</code> is recommended in order to take advantage of error
-tracking, and to avoid issues with namespaces that contain <code>then</code>
-function exports.</li>
+<li><code>module</code> <a href="vm.html#vm_class_vm_module" class="type">&#x3C;vm.Module></a></li>
+<li>Returns: <a href="https://tc39.github.io/ecma262/#sec-module-namespace-exotic-objects" class="type">&#x3C;Module Namespace Object></a> | <a href="vm.html#vm_class_vm_module" class="type">&#x3C;vm.Module></a> Returning a <code>vm.Module</code> is
+recommended in order to take advantage of error tracking, and to avoid
+issues with namespaces that contain <code>then</code> function exports.</li>
 </ul>
 </li>
 </ul>
@@ -967,30 +1157,29 @@ function exports.</li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types" class="type">&#x3C;any></a> the result of the very last statement executed in the script.</li>
 </ul>
 <p>The <code>vm.runInContext()</code> method compiles <code>code</code>, runs it within the context of
-the <code>contextifiedSandbox</code>, then returns the result. Running code does not have
-access to the local scope. The <code>contextifiedSandbox</code> object <em>must</em> have been
-previously <a href="#vm_what_does_it_mean_to_contextify_an_object">contextified</a> using the <a href="#vm_vm_createcontext_sandbox_options"><code>vm.createContext()</code></a> method.</p>
+the <code>contextifiedObject</code>, then returns the result. Running code does not have
+access to the local scope. The <code>contextifiedObject</code> object <em>must</em> have been
+previously <a href="#vm_what_does_it_mean_to_contextify_an_object">contextified</a> using the <a href="#vm_vm_createcontext_contextobject_options"><code>vm.createContext()</code></a> method.</p>
 <p>If <code>options</code> is a string, then it specifies the filename.</p>
 <p>The following example compiles and executes different scripts using a single
 <a href="#vm_what_does_it_mean_to_contextify_an_object">contextified</a> object:</p>
-<pre><code class="language-js">const util = require('util');
-const vm = require('vm');
+<pre><code class="language-js"><span class="hljs-keyword">const</span> vm = <span class="hljs-built_in">require</span>(<span class="hljs-string">'vm'</span>);
 
-const sandbox = { globalVar: 1 };
-vm.createContext(sandbox);
+<span class="hljs-keyword">const</span> contextObject = { <span class="hljs-attr">globalVar</span>: <span class="hljs-number">1</span> };
+vm.createContext(contextObject);
 
-for (let i = 0; i &#x3C; 10; ++i) {
-  vm.runInContext('globalVar *= 2;', sandbox);
+<span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &#x3C; <span class="hljs-number">10</span>; ++i) {
+  vm.runInContext(<span class="hljs-string">'globalVar *= 2;'</span>, contextObject);
 }
-console.log(util.inspect(sandbox));
-
-// { globalVar: 1024 }
-</code></pre>
-<h2>vm.runInNewContext(code[, sandbox[, options]])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/vm.js#L293">[src]</a><span><a class="mark" href="#vm_vm_runinnewcontext_code_sandbox_options" id="vm_vm_runinnewcontext_code_sandbox_options">#</a></span></h2>
+<span class="hljs-built_in">console</span>.log(contextObject);
+<span class="hljs-comment">// Prints: { globalVar: 1024 }</span></code></pre>
+<h2><code>vm.runInNewContext(code[, contextObject[, options]])</code><span><a class="mark" href="#vm_vm_runinnewcontext_code_contextobject_options" id="vm_vm_runinnewcontext_code_contextobject_options">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v14.6.0</td>
+<td><p>The <code>microtaskMode</code> option is supported now.</p></td></tr>
 <tr><td>v10.0.0</td>
 <td><p>The <code>contextCodeGeneration</code> option is supported now.</p></td></tr>
 <tr><td>v6.3.0</td>
@@ -1002,8 +1191,8 @@ console.log(util.inspect(sandbox));
 </div>
 <ul>
 <li><code>code</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The JavaScript code to compile and run.</li>
-<li><code>sandbox</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> An object that will be <a href="#vm_what_does_it_mean_to_contextify_an_object">contextified</a>. If <code>undefined</code>, a
-new object will be created.</li>
+<li><code>contextObject</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> An object that will be <a href="#vm_what_does_it_mean_to_contextify_an_object">contextified</a>. If
+<code>undefined</code>, a new object will be created.</li>
 <li>
 <p><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></p>
 <ul>
@@ -1059,42 +1248,42 @@ This option is <strong>deprecated</strong> in favor of <code>script.createCached
 <p><code>importModuleDynamically</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> Called during evaluation of this module
 when <code>import()</code> is called. If this option is not specified, calls to
 <code>import()</code> will reject with <a href="errors.html#ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING"><code>ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING</code></a>.
-This option is part of the experimental API for the <code>--experimental-modules</code>
-flag, and should not be considered stable.</p>
+This option is part of the experimental modules API, and should not be
+considered stable.</p>
 <ul>
 <li><code>specifier</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> specifier passed to <code>import()</code></li>
-<li><code>module</code> <a href="vm.html#vm_class_vm_sourcetextmodule" class="type">&#x3C;vm.SourceTextModule></a></li>
-<li>Returns: <a href="https://tc39.github.io/ecma262/#sec-module-namespace-exotic-objects" class="type">&#x3C;Module Namespace Object></a> | <a href="vm.html#vm_class_vm_sourcetextmodule" class="type">&#x3C;vm.SourceTextModule></a> Returning a
-<code>vm.SourceTextModule</code> is recommended in order to take advantage of error
-tracking, and to avoid issues with namespaces that contain <code>then</code>
-function exports.</li>
+<li><code>module</code> <a href="vm.html#vm_class_vm_module" class="type">&#x3C;vm.Module></a></li>
+<li>Returns: <a href="https://tc39.github.io/ecma262/#sec-module-namespace-exotic-objects" class="type">&#x3C;Module Namespace Object></a> | <a href="vm.html#vm_class_vm_module" class="type">&#x3C;vm.Module></a> Returning a <code>vm.Module</code> is
+recommended in order to take advantage of error tracking, and to avoid
+issues with namespaces that contain <code>then</code> function exports.</li>
 </ul>
 </li>
+<li><code>microtaskMode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> If set to <code>afterEvaluate</code>, microtasks (tasks
+scheduled through <code>Promise</code>s any <code>async function</code>s) will be run immediately
+after the script has run. They are included in the <code>timeout</code> and
+<code>breakOnSigint</code> scopes in that case.</li>
 </ul>
 </li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types" class="type">&#x3C;any></a> the result of the very last statement executed in the script.</li>
 </ul>
-<p>The <code>vm.runInNewContext()</code> first contextifies the given <code>sandbox</code> object (or
-creates a new <code>sandbox</code> if passed as <code>undefined</code>), compiles the <code>code</code>, runs it
-within the context of the created context, then returns the result. Running code
+<p>The <code>vm.runInNewContext()</code> first contextifies the given <code>contextObject</code> (or
+creates a new <code>contextObject</code> if passed as <code>undefined</code>), compiles the <code>code</code>,
+runs it within the created context, then returns the result. Running code
 does not have access to the local scope.</p>
 <p>If <code>options</code> is a string, then it specifies the filename.</p>
 <p>The following example compiles and executes code that increments a global
-variable and sets a new one. These globals are contained in the <code>sandbox</code>.</p>
-<pre><code class="language-js">const util = require('util');
-const vm = require('vm');
+variable and sets a new one. These globals are contained in the <code>contextObject</code>.</p>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> vm = <span class="hljs-built_in">require</span>(<span class="hljs-string">'vm'</span>);
 
-const sandbox = {
-  animal: 'cat',
-  count: 2
+<span class="hljs-keyword">const</span> contextObject = {
+  <span class="hljs-attr">animal</span>: <span class="hljs-string">'cat'</span>,
+  <span class="hljs-attr">count</span>: <span class="hljs-number">2</span>
 };
 
-vm.runInNewContext('count += 1; name = "kitty"', sandbox);
-console.log(util.inspect(sandbox));
-
-// { animal: 'cat', count: 3, name: 'kitty' }
-</code></pre>
-<h2>vm.runInThisContext(code[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/vm.js#L302">[src]</a><span><a class="mark" href="#vm_vm_runinthiscontext_code_options" id="vm_vm_runinthiscontext_code_options">#</a></span></h2>
+vm.runInNewContext(<span class="hljs-string">'count += 1; name = "kitty"'</span>, contextObject);
+<span class="hljs-built_in">console</span>.log(contextObject);
+<span class="hljs-comment">// Prints: { animal: 'cat', count: 3, name: 'kitty' }</span></code></pre>
+<h2><code>vm.runInThisContext(code[, options])</code><span><a class="mark" href="#vm_vm_runinthiscontext_code_options" id="vm_vm_runinthiscontext_code_options">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1144,15 +1333,14 @@ This option is <strong>deprecated</strong> in favor of <code>script.createCached
 <p><code>importModuleDynamically</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> Called during evaluation of this module
 when <code>import()</code> is called. If this option is not specified, calls to
 <code>import()</code> will reject with <a href="errors.html#ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING"><code>ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING</code></a>.
-This option is part of the experimental API for the <code>--experimental-modules</code>
-flag, and should not be considered stable.</p>
+This option is part of the experimental modules API, and should not be
+considered stable.</p>
 <ul>
 <li><code>specifier</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> specifier passed to <code>import()</code></li>
-<li><code>module</code> <a href="vm.html#vm_class_vm_sourcetextmodule" class="type">&#x3C;vm.SourceTextModule></a></li>
-<li>Returns: <a href="https://tc39.github.io/ecma262/#sec-module-namespace-exotic-objects" class="type">&#x3C;Module Namespace Object></a> | <a href="vm.html#vm_class_vm_sourcetextmodule" class="type">&#x3C;vm.SourceTextModule></a> Returning a
-<code>vm.SourceTextModule</code> is recommended in order to take advantage of error
-tracking, and to avoid issues with namespaces that contain <code>then</code>
-function exports.</li>
+<li><code>module</code> <a href="vm.html#vm_class_vm_module" class="type">&#x3C;vm.Module></a></li>
+<li>Returns: <a href="https://tc39.github.io/ecma262/#sec-module-namespace-exotic-objects" class="type">&#x3C;Module Namespace Object></a> | <a href="vm.html#vm_class_vm_module" class="type">&#x3C;vm.Module></a> Returning a <code>vm.Module</code> is
+recommended in order to take advantage of error tracking, and to avoid
+issues with namespaces that contain <code>then</code> function exports.</li>
 </ul>
 </li>
 </ul>
@@ -1166,36 +1354,32 @@ local scope, but does have access to the current <code>global</code> object.</p>
 <p>The following example illustrates using both <code>vm.runInThisContext()</code> and
 the JavaScript <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval"><code>eval()</code></a> function to run the same code:</p>
 <!-- eslint-disable prefer-const -->
-<pre><code class="language-js">const vm = require('vm');
-let localVar = 'initial value';
+<pre><code class="language-js"><span class="hljs-keyword">const</span> vm = <span class="hljs-built_in">require</span>(<span class="hljs-string">'vm'</span>);
+<span class="hljs-keyword">let</span> localVar = <span class="hljs-string">'initial value'</span>;
 
-const vmResult = vm.runInThisContext('localVar = "vm";');
-console.log('vmResult:', vmResult);
-console.log('localVar:', localVar);
+<span class="hljs-keyword">const</span> vmResult = vm.runInThisContext(<span class="hljs-string">'localVar = "vm";'</span>);
+<span class="hljs-built_in">console</span>.log(<span class="hljs-string">`vmResult: '<span class="hljs-subst">${vmResult}</span>', localVar: '<span class="hljs-subst">${localVar}</span>'`</span>);
+<span class="hljs-comment">// Prints: vmResult: 'vm', localVar: 'initial value'</span>
 
-const evalResult = eval('localVar = "eval";');
-console.log('evalResult:', evalResult);
-console.log('localVar:', localVar);
-
-// vmResult: 'vm', localVar: 'initial value'
-// evalResult: 'eval', localVar: 'eval'
-</code></pre>
+<span class="hljs-keyword">const</span> evalResult = <span class="hljs-built_in">eval</span>(<span class="hljs-string">'localVar = "eval";'</span>);
+<span class="hljs-built_in">console</span>.log(<span class="hljs-string">`evalResult: '<span class="hljs-subst">${evalResult}</span>', localVar: '<span class="hljs-subst">${localVar}</span>'`</span>);
+<span class="hljs-comment">// Prints: evalResult: 'eval', localVar: 'eval'</span></code></pre>
 <p>Because <code>vm.runInThisContext()</code> does not have access to the local scope,
 <code>localVar</code> is unchanged. In contrast, <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval"><code>eval()</code></a> <em>does</em> have access to the
 local scope, so the value <code>localVar</code> is changed. In this way
 <code>vm.runInThisContext()</code> is much like an <a href="https://es5.github.io/#x10.4.2">indirect <code>eval()</code> call</a>, e.g.
 <code>(0,eval)('code')</code>.</p>
-<h2>Example: Running an HTTP Server within a VM<span><a class="mark" href="#vm_example_running_an_http_server_within_a_vm" id="vm_example_running_an_http_server_within_a_vm">#</a></span></h2>
+<h2>Example: Running an HTTP server within a VM<span><a class="mark" href="#vm_example_running_an_http_server_within_a_vm" id="vm_example_running_an_http_server_within_a_vm">#</a></span></h2>
 <p>When using either <a href="#vm_script_runinthiscontext_options"><code>script.runInThisContext()</code></a> or
 <a href="#vm_vm_runinthiscontext_code_options"><code>vm.runInThisContext()</code></a>, the code is executed within the current V8 global
 context. The code passed to this VM context will have its own isolated scope.</p>
 <p>In order to run a simple web server using the <code>http</code> module the code passed to
 the context must either call <code>require('http')</code> on its own, or have a reference
 to the <code>http</code> module passed to it. For instance:</p>
-<pre><code class="language-js">'use strict';
-const vm = require('vm');
+<pre><code class="language-js"><span class="hljs-meta">'use strict'</span>;
+<span class="hljs-keyword">const</span> vm = <span class="hljs-built_in">require</span>(<span class="hljs-string">'vm'</span>);
 
-const code = `
+<span class="hljs-keyword">const</span> code = <span class="hljs-string">`
 ((require) => {
   const http = require('http');
 
@@ -1205,10 +1389,9 @@ const code = `
   }).listen(8124);
 
   console.log('Server running at http://127.0.0.1:8124/');
-})`;
+})`</span>;
 
-vm.runInThisContext(code)(require);
-</code></pre>
+vm.runInThisContext(code)(<span class="hljs-built_in">require</span>);</code></pre>
 <p>The <code>require()</code> in the above case shares the state with the context it is
 passed from. This may introduce risks when untrusted code is executed, e.g.
 altering objects in the context in unwanted ways.</p>
@@ -1220,43 +1403,66 @@ According to the <a href="https://v8.dev/docs/embed#contexts">V8 Embedder's Guid
 JavaScript applications to run in a single instance of V8. You must explicitly
 specify the context in which you want any JavaScript code to be run.</p>
 </blockquote>
-<p>When the method <code>vm.createContext()</code> is called, the <code>sandbox</code> object that is
-passed in (or a newly created object if <code>sandbox</code> is <code>undefined</code>) is associated
+<p>When the method <code>vm.createContext()</code> is called, the <code>contextObject</code> argument
+(or a newly-created object if <code>contextObject</code> is <code>undefined</code>) is associated
 internally with a new instance of a V8 Context. This V8 Context provides the
 <code>code</code> run using the <code>vm</code> module's methods with an isolated global environment
 within which it can operate. The process of creating the V8 Context and
-associating it with the <code>sandbox</code> object is what this document refers to as
-"contextifying" the <code>sandbox</code>.</p>
-<h2>Timeout limitations when using process.nextTick(), Promises, and queueMicrotask()<span><a class="mark" href="#vm_timeout_limitations_when_using_process_nexttick_promises_and_queuemicrotask" id="vm_timeout_limitations_when_using_process_nexttick_promises_and_queuemicrotask">#</a></span></h2>
-<p>Because of the internal mechanics of how the <code>process.nextTick()</code> queue and
-the microtask queue that underlies Promises are implemented within V8 and
-Node.js, it is possible for code running within a context to "escape" the
-<code>timeout</code> set using <code>vm.runInContext()</code>, <code>vm.runInNewContext()</code>, and
-<code>vm.runInThisContext()</code>.</p>
+associating it with the <code>contextObject</code> is what this document refers to as
+"contextifying" the object.</p>
+<h2>Timeout interactions with asynchronous tasks and Promises<span><a class="mark" href="#vm_timeout_interactions_with_asynchronous_tasks_and_promises" id="vm_timeout_interactions_with_asynchronous_tasks_and_promises">#</a></span></h2>
+<p><code>Promise</code>s and <code>async function</code>s can schedule tasks run by the JavaScript
+engine asynchronously. By default, these tasks are run after all JavaScript
+functions on the current stack are done executing.
+This allows escaping the functionality of the <code>timeout</code> and
+<code>breakOnSigint</code> options.</p>
 <p>For example, the following code executed by <code>vm.runInNewContext()</code> with a
 timeout of 5 milliseconds schedules an infinite loop to run after a promise
 resolves. The scheduled loop is never interrupted by the timeout:</p>
-<pre><code class="language-js">const vm = require('vm');
+<pre><code class="language-js"><span class="hljs-keyword">const</span> vm = <span class="hljs-built_in">require</span>(<span class="hljs-string">'vm'</span>);
 
-function loop() {
-  while (1) console.log(Date.now());
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">loop</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'entering loop'</span>);
+  <span class="hljs-keyword">while</span> (<span class="hljs-number">1</span>) <span class="hljs-built_in">console</span>.log(<span class="hljs-built_in">Date</span>.now());
 }
 
 vm.runInNewContext(
-  'Promise.resolve().then(loop);',
-  { loop, console },
-  { timeout: 5 }
+  <span class="hljs-string">'Promise.resolve().then(() => loop());'</span>,
+  { loop, <span class="hljs-built_in">console</span> },
+  { <span class="hljs-attr">timeout</span>: <span class="hljs-number">5</span> }
 );
-</code></pre>
-<p>This issue also occurs when the <code>loop()</code> call is scheduled using
-the <code>process.nextTick()</code> and <code>queueMicrotask()</code> functions.</p>
-<p>This issue occurs because all contexts share the same microtask and nextTick
-queues.</p>
+<span class="hljs-comment">// This prints *before* 'entering loop' (!)</span>
+<span class="hljs-built_in">console</span>.log(<span class="hljs-string">'done executing'</span>);</code></pre>
+<p>This can be addressed by passing <code>microtaskMode: 'afterEvaluate'</code> to the code
+that creates the <code>Context</code>:</p>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> vm = <span class="hljs-built_in">require</span>(<span class="hljs-string">'vm'</span>);
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">loop</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">while</span> (<span class="hljs-number">1</span>) <span class="hljs-built_in">console</span>.log(<span class="hljs-built_in">Date</span>.now());
+}
+
+vm.runInNewContext(
+  <span class="hljs-string">'Promise.resolve().then(() => loop());'</span>,
+  { loop, <span class="hljs-built_in">console</span> },
+  { <span class="hljs-attr">timeout</span>: <span class="hljs-number">5</span>, <span class="hljs-attr">microtaskMode</span>: <span class="hljs-string">'afterEvaluate'</span> }
+);</code></pre>
+<p>In this case, the microtask scheduled through <code>promise.then()</code> will be run
+before returning from <code>vm.runInNewContext()</code>, and will be interrupted
+by the <code>timeout</code> functionality. This applies only to code running in a
+<code>vm.Context</code>, so e.g. <a href="#vm_vm_runinthiscontext_code_options"><code>vm.runInThisContext()</code></a> does not take this option.</p>
+<p>Promise callbacks are entered into the microtask queue of the context in which
+they were created. For example, if <code>() => loop()</code> is replaced with just <code>loop</code>
+in the above example, then <code>loop</code> will be pushed into the global microtask
+queue, because it is a function from the outer (main) context, and thus will
+also be able to escape the timeout.</p>
+<p>If asynchronous scheduling functions such as <code>process.nextTick()</code>,
+<code>queueMicrotask()</code>, <code>setTimeout()</code>, <code>setImmediate()</code>, etc. are made available
+inside a <code>vm.Context</code>, functions passed to them will be added to global queues,
+which are shared by all contexts. Therefore, callbacks passed to those functions
+are not controllable through the timeout either.</p>
+        <!-- API END -->
       </div>
     </div>
   </div>
-  <script src="assets/sh_main.js"></script>
-  <script src="assets/sh_javascript.min.js"></script>
-  <script>highlight(undefined, undefined, 'pre');</script>
 </body>
 </html>

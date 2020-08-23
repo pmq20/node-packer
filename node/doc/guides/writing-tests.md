@@ -29,7 +29,7 @@ For example, look for `test-streams` when writing a test for `lib/streams.js`.
 
 Let's analyze this basic test from the Node.js test suite:
 
-```javascript
+```js
 'use strict';                                                          // 1
 const common = require('../common');                                   // 2
 const fixtures = require('../common/fixtures');                        // 3
@@ -57,7 +57,7 @@ server.listen(0, () => {                                               // 14
 
 ### **Lines 1-3**
 
-```javascript
+```js
 'use strict';
 const common = require('../common');
 const fixtures = require('../common/fixtures');
@@ -78,13 +78,13 @@ the test leaks variables into the global space. In situations where a test uses
 no functions or other properties exported by `common`, include it without
 assigning it to an identifier:
 
-```javascript
+```js
 require('../common');
 ```
 
 ### **Lines 5-6**
 
-```javascript
+```js
 // This test ensures that the http-parser can handle UTF-8 characters
 // in the http header.
 ```
@@ -94,7 +94,7 @@ designed to test.
 
 ### **Lines 8-9**
 
-```javascript
+```js
 const assert = require('assert');
 const http = require('http');
 ```
@@ -136,7 +136,7 @@ In the event a test needs a timer, consider using the
 `common.platformTimeout()` method. It allows setting specific timeouts
 depending on the platform:
 
-```javascript
+```js
 const timer = setTimeout(fail, common.platformTimeout(4000));
 ```
 
@@ -155,26 +155,29 @@ One interesting case is `common.mustCall`. The use of `common.mustCall` may
 avoid the use of extra variables and the corresponding assertions. Let's
 explain this with a real test from the test suite.
 
-```javascript
+```js
 'use strict';
 require('../common');
 const assert = require('assert');
 const http = require('http');
 
 let request = 0;
+let listening = 0;
 let response = 0;
-process.on('exit', function() {
+process.on('exit', () => {
   assert.equal(request, 1, 'http server "request" callback was not called');
+  assert.equal(listening, 1, 'http server "listening" callback was not called');
   assert.equal(response, 1, 'http request "response" callback was not called');
 });
 
 const server = http.createServer((req, res) => {
   request++;
   res.end();
-}).listen(0, function() {
+}).listen(0, () => {
+  listening++;
   const options = {
     agent: null,
-    port: this.address().port
+    port: server.address().port
   };
   http.get(options, (res) => {
     response++;
@@ -186,23 +189,23 @@ const server = http.createServer((req, res) => {
 
 This test could be greatly simplified by using `common.mustCall` like this:
 
-```javascript
+```js
 'use strict';
 const common = require('../common');
 const http = require('http');
 
 const server = http.createServer(common.mustCall((req, res) => {
   res.end();
-})).listen(0, function() {
+})).listen(0, common.mustCall(() => {
   const options = {
     agent: null,
-    port: this.address().port
+    port: server.address().port
   };
   http.get(options, common.mustCall((res) => {
     res.resume();
     server.close();
   }));
-});
+}));
 
 ```
 
@@ -213,10 +216,10 @@ provides a simple countdown mechanism for tests that require a particular
 action to be taken after a given number of completed tasks (for instance,
 shutting down an HTTP server after a specific number of requests).
 
-```javascript
+```js
 const Countdown = require('../common/countdown');
 
-const countdown = new Countdown(2, function() {
+const countdown = new Countdown(2, () => {
   console.log('.');
 });
 
@@ -234,7 +237,7 @@ hence, the test fail - in the case of an `unhandledRejection` event. It is
 possible to disable it with `common.disableCrashOnUnhandledRejection()` if
 needed.
 
-```javascript
+```js
 const common = require('../common');
 const assert = require('assert');
 const fs = require('fs').promises;
@@ -254,7 +257,7 @@ test followed by the flags. For example, to allow a test to require some of the
 `internal/*` modules, add the `--expose-internals` flag.
 A test that would require `internal/freelist` could start like this:
 
-```javascript
+```js
 'use strict';
 
 // Flags: --expose-internals
@@ -353,7 +356,7 @@ The unit test should be placed in `test/cctest` and be named with the prefix
 `test` followed by the name of unit being tested. For example, the code below
 would be placed in `test/cctest/test_env.cc`:
 
-```c++
+```cpp
 #include "gtest/gtest.h"
 #include "node_test_fixture.h"
 #include "env.h"
@@ -427,9 +430,9 @@ To generate a test coverage report, see the
 [Test Coverage section of the Building guide][].
 
 Nightly coverage reports for the Node.js master branch are available at
-https://coverage.nodejs.org/.
+<https://coverage.nodejs.org/>.
 
-[ASCII]: http://man7.org/linux/man-pages/man7/ascii.7.html
+[ASCII]: https://man7.org/linux/man-pages/man7/ascii.7.html
 [Google Test]: https://github.com/google/googletest
 [`common` module]: https://github.com/nodejs/node/blob/master/test/common/README.md
 [all maintained branches]: https://github.com/nodejs/lts

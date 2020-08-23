@@ -4,7 +4,7 @@
   "introduced_in": "v0.10.0",
   "globals": [
     {
-      "textRaw": "Class: Buffer",
+      "textRaw": "Class: `Buffer`",
       "type": "global",
       "name": "Buffer",
       "meta": {
@@ -16,7 +16,7 @@
       "desc": "<ul>\n<li><a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function\" class=\"type\">&lt;Function&gt;</a></li>\n</ul>\n<p>Used to handle binary data. See the <a href=\"buffer.html\">buffer section</a>.</p>"
     },
     {
-      "textRaw": "clearImmediate(immediateObject)",
+      "textRaw": "`clearImmediate(immediateObject)`",
       "type": "global",
       "name": "clearImmediate",
       "meta": {
@@ -28,7 +28,7 @@
       "desc": "<p><a href=\"timers.html#timers_clearimmediate_immediate\"><code>clearImmediate</code></a> is described in the <a href=\"timers.html\">timers</a> section.</p>"
     },
     {
-      "textRaw": "clearInterval(intervalObject)",
+      "textRaw": "`clearInterval(intervalObject)`",
       "type": "global",
       "name": "clearInterval",
       "meta": {
@@ -40,7 +40,7 @@
       "desc": "<p><a href=\"timers.html#timers_clearinterval_timeout\"><code>clearInterval</code></a> is described in the <a href=\"timers.html\">timers</a> section.</p>"
     },
     {
-      "textRaw": "clearTimeout(timeoutObject)",
+      "textRaw": "`clearTimeout(timeoutObject)`",
       "type": "global",
       "name": "clearTimeout",
       "meta": {
@@ -52,8 +52,8 @@
       "desc": "<p><a href=\"timers.html#timers_cleartimeout_timeout\"><code>clearTimeout</code></a> is described in the <a href=\"timers.html\">timers</a> section.</p>"
     },
     {
-      "textRaw": "console",
-      "name": "console",
+      "textRaw": "`console`",
+      "name": "`console`",
       "meta": {
         "added": [
           "v0.1.100"
@@ -64,8 +64,8 @@
       "desc": "<ul>\n<li><a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object\" class=\"type\">&lt;Object&gt;</a></li>\n</ul>\n<p>Used to print to stdout and stderr. See the <a href=\"console.html\"><code>console</code></a> section.</p>"
     },
     {
-      "textRaw": "global",
-      "name": "global",
+      "textRaw": "`global`",
+      "name": "`global`",
       "meta": {
         "added": [
           "v0.1.27"
@@ -76,8 +76,8 @@
       "desc": "<ul>\n<li><a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object\" class=\"type\">&lt;Object&gt;</a> The global namespace object.</li>\n</ul>\n<p>In browsers, the top-level scope is the global scope. This means that\nwithin the browser <code>var something</code> will define a new global variable. In\nNode.js this is different. The top-level scope is not the global scope;\n<code>var something</code> inside a Node.js module will be local to that module.</p>"
     },
     {
-      "textRaw": "process",
-      "name": "process",
+      "textRaw": "`process`",
+      "name": "`process`",
       "meta": {
         "added": [
           "v0.1.7"
@@ -88,7 +88,7 @@
       "desc": "<ul>\n<li><a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object\" class=\"type\">&lt;Object&gt;</a></li>\n</ul>\n<p>The process object. See the <a href=\"process.html#process_process\"><code>process</code> object</a> section.</p>"
     },
     {
-      "textRaw": "queueMicrotask(callback)",
+      "textRaw": "`queueMicrotask(callback)`",
       "type": "global",
       "name": "queueMicrotask",
       "meta": {
@@ -100,7 +100,7 @@
       "desc": "<ul>\n<li><code>callback</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function\" class=\"type\">&lt;Function&gt;</a> Function to be queued.</li>\n</ul>\n<p>The <code>queueMicrotask()</code> method queues a microtask to invoke <code>callback</code>. If\n<code>callback</code> throws an exception, the <a href=\"process.html#process_process\"><code>process</code> object</a> <code>'uncaughtException'</code>\nevent will be emitted.</p>\n<p>The microtask queue is managed by V8 and may be used in a similar manner to\nthe <a href=\"process.html#process_process_nexttick_callback_args\"><code>process.nextTick()</code></a> queue, which is managed by Node.js. The\n<code>process.nextTick()</code> queue is always processed before the microtask queue\nwithin each turn of the Node.js event loop.</p>\n<pre><code class=\"language-js\">// Here, `queueMicrotask()` is used to ensure the 'load' event is always\n// emitted asynchronously, and therefore consistently. Using\n// `process.nextTick()` here would result in the 'load' event always emitting\n// before any other promise jobs.\n\nDataHandler.prototype.load = async function load(key) {\n  const hit = this._cache.get(url);\n  if (hit !== undefined) {\n    queueMicrotask(() => {\n      this.emit('load', hit);\n    });\n    return;\n  }\n\n  const data = await fetchData(key);\n  this._cache.set(url, data);\n  this.emit('load', data);\n};\n</code></pre>"
     },
     {
-      "textRaw": "setImmediate(callback[, ...args])",
+      "textRaw": "`setImmediate(callback[, ...args])`",
       "type": "global",
       "name": "setImmediate",
       "meta": {
@@ -112,7 +112,7 @@
       "desc": "<p><a href=\"timers.html#timers_setimmediate_callback_args\"><code>setImmediate</code></a> is described in the <a href=\"timers.html\">timers</a> section.</p>"
     },
     {
-      "textRaw": "setInterval(callback, delay[, ...args])",
+      "textRaw": "`setInterval(callback, delay[, ...args])`",
       "type": "global",
       "name": "setInterval",
       "meta": {
@@ -124,7 +124,7 @@
       "desc": "<p><a href=\"timers.html#timers_setinterval_callback_delay_args\"><code>setInterval</code></a> is described in the <a href=\"timers.html\">timers</a> section.</p>"
     },
     {
-      "textRaw": "setTimeout(callback, delay[, ...args])",
+      "textRaw": "`setTimeout(callback, delay[, ...args])`",
       "type": "global",
       "name": "setTimeout",
       "meta": {
@@ -136,8 +136,8 @@
       "desc": "<p><a href=\"timers.html#timers_settimeout_callback_delay_args\"><code>setTimeout</code></a> is described in the <a href=\"timers.html\">timers</a> section.</p>"
     },
     {
-      "textRaw": "TextDecoder",
-      "name": "TextDecoder",
+      "textRaw": "`TextDecoder`",
+      "name": "`TextDecoder`",
       "meta": {
         "added": [
           "v11.0.0"
@@ -148,8 +148,8 @@
       "desc": "<p>The WHATWG <code>TextDecoder</code> class. See the <a href=\"util.html#util_class_util_textdecoder\"><code>TextDecoder</code></a> section.</p>"
     },
     {
-      "textRaw": "TextEncoder",
-      "name": "TextEncoder",
+      "textRaw": "`TextEncoder`",
+      "name": "`TextEncoder`",
       "meta": {
         "added": [
           "v11.0.0"
@@ -160,8 +160,8 @@
       "desc": "<p>The WHATWG <code>TextEncoder</code> class. See the <a href=\"util.html#util_class_util_textencoder\"><code>TextEncoder</code></a> section.</p>"
     },
     {
-      "textRaw": "URL",
-      "name": "URL",
+      "textRaw": "`URL`",
+      "name": "`URL`",
       "meta": {
         "added": [
           "v10.0.0"
@@ -172,8 +172,8 @@
       "desc": "<p>The WHATWG <code>URL</code> class. See the <a href=\"url.html#url_class_url\"><code>URL</code></a> section.</p>"
     },
     {
-      "textRaw": "URLSearchParams",
-      "name": "URLSearchParams",
+      "textRaw": "`URLSearchParams`",
+      "name": "`URLSearchParams`",
       "meta": {
         "added": [
           "v10.0.0"
@@ -184,8 +184,8 @@
       "desc": "<p>The WHATWG <code>URLSearchParams</code> class. See the <a href=\"url.html#url_class_urlsearchparams\"><code>URLSearchParams</code></a> section.</p>"
     },
     {
-      "textRaw": "WebAssembly",
-      "name": "WebAssembly",
+      "textRaw": "`WebAssembly`",
+      "name": "`WebAssembly`",
       "meta": {
         "added": [
           "v8.0.0"
@@ -198,7 +198,7 @@
   ],
   "methods": [
     {
-      "textRaw": "require()",
+      "textRaw": "`require()`",
       "type": "method",
       "name": "require",
       "signatures": [
@@ -211,14 +211,14 @@
   ],
   "miscs": [
     {
-      "textRaw": "Global Objects",
-      "name": "Global Objects",
+      "textRaw": "Global objects",
+      "name": "Global objects",
       "introduced_in": "v0.10.0",
       "type": "misc",
-      "desc": "<p>These objects are available in all modules. The following variables may appear\nto be global but are not. They exist only in the scope of modules, see the\n<a href=\"modules.html\">module system documentation</a>:</p>\n<ul>\n<li><a href=\"modules.html#modules_dirname\"><code>__dirname</code></a></li>\n<li><a href=\"modules.html#modules_filename\"><code>__filename</code></a></li>\n<li><a href=\"modules.html#modules_exports\"><code>exports</code></a></li>\n<li><a href=\"modules.html#modules_module\"><code>module</code></a></li>\n<li><a href=\"modules.html#modules_require_id\"><code>require()</code></a></li>\n</ul>\n<p>The objects listed here are specific to Node.js. There are a number of\n<a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects\">built-in objects</a> that are part of the JavaScript language itself, which are\nalso globally accessible.</p>",
+      "desc": "<p>These objects are available in all modules. The following variables may appear\nto be global but are not. They exist only in the scope of modules, see the\n<a href=\"modules.html\">module system documentation</a>:</p>\n<ul>\n<li><a href=\"modules.html#modules_dirname\"><code>__dirname</code></a></li>\n<li><a href=\"modules.html#modules_filename\"><code>__filename</code></a></li>\n<li><a href=\"modules.html#modules_exports\"><code>exports</code></a></li>\n<li><a href=\"modules.html#modules_module\"><code>module</code></a></li>\n<li><a href=\"modules.html#modules_require_id\"><code>require()</code></a></li>\n</ul>\n<p>The objects listed here are specific to Node.js. There are <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects\">built-in objects</a>\nthat are part of the JavaScript language itself, which are also globally\naccessible.</p>",
       "globals": [
         {
-          "textRaw": "Class: Buffer",
+          "textRaw": "Class: `Buffer`",
           "type": "global",
           "name": "Buffer",
           "meta": {
@@ -230,7 +230,7 @@
           "desc": "<ul>\n<li><a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function\" class=\"type\">&lt;Function&gt;</a></li>\n</ul>\n<p>Used to handle binary data. See the <a href=\"buffer.html\">buffer section</a>.</p>"
         },
         {
-          "textRaw": "clearImmediate(immediateObject)",
+          "textRaw": "`clearImmediate(immediateObject)`",
           "type": "global",
           "name": "clearImmediate",
           "meta": {
@@ -242,7 +242,7 @@
           "desc": "<p><a href=\"timers.html#timers_clearimmediate_immediate\"><code>clearImmediate</code></a> is described in the <a href=\"timers.html\">timers</a> section.</p>"
         },
         {
-          "textRaw": "clearInterval(intervalObject)",
+          "textRaw": "`clearInterval(intervalObject)`",
           "type": "global",
           "name": "clearInterval",
           "meta": {
@@ -254,7 +254,7 @@
           "desc": "<p><a href=\"timers.html#timers_clearinterval_timeout\"><code>clearInterval</code></a> is described in the <a href=\"timers.html\">timers</a> section.</p>"
         },
         {
-          "textRaw": "clearTimeout(timeoutObject)",
+          "textRaw": "`clearTimeout(timeoutObject)`",
           "type": "global",
           "name": "clearTimeout",
           "meta": {
@@ -266,8 +266,8 @@
           "desc": "<p><a href=\"timers.html#timers_cleartimeout_timeout\"><code>clearTimeout</code></a> is described in the <a href=\"timers.html\">timers</a> section.</p>"
         },
         {
-          "textRaw": "console",
-          "name": "console",
+          "textRaw": "`console`",
+          "name": "`console`",
           "meta": {
             "added": [
               "v0.1.100"
@@ -278,8 +278,8 @@
           "desc": "<ul>\n<li><a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object\" class=\"type\">&lt;Object&gt;</a></li>\n</ul>\n<p>Used to print to stdout and stderr. See the <a href=\"console.html\"><code>console</code></a> section.</p>"
         },
         {
-          "textRaw": "global",
-          "name": "global",
+          "textRaw": "`global`",
+          "name": "`global`",
           "meta": {
             "added": [
               "v0.1.27"
@@ -290,8 +290,8 @@
           "desc": "<ul>\n<li><a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object\" class=\"type\">&lt;Object&gt;</a> The global namespace object.</li>\n</ul>\n<p>In browsers, the top-level scope is the global scope. This means that\nwithin the browser <code>var something</code> will define a new global variable. In\nNode.js this is different. The top-level scope is not the global scope;\n<code>var something</code> inside a Node.js module will be local to that module.</p>"
         },
         {
-          "textRaw": "process",
-          "name": "process",
+          "textRaw": "`process`",
+          "name": "`process`",
           "meta": {
             "added": [
               "v0.1.7"
@@ -302,7 +302,7 @@
           "desc": "<ul>\n<li><a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object\" class=\"type\">&lt;Object&gt;</a></li>\n</ul>\n<p>The process object. See the <a href=\"process.html#process_process\"><code>process</code> object</a> section.</p>"
         },
         {
-          "textRaw": "queueMicrotask(callback)",
+          "textRaw": "`queueMicrotask(callback)`",
           "type": "global",
           "name": "queueMicrotask",
           "meta": {
@@ -314,7 +314,7 @@
           "desc": "<ul>\n<li><code>callback</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function\" class=\"type\">&lt;Function&gt;</a> Function to be queued.</li>\n</ul>\n<p>The <code>queueMicrotask()</code> method queues a microtask to invoke <code>callback</code>. If\n<code>callback</code> throws an exception, the <a href=\"process.html#process_process\"><code>process</code> object</a> <code>'uncaughtException'</code>\nevent will be emitted.</p>\n<p>The microtask queue is managed by V8 and may be used in a similar manner to\nthe <a href=\"process.html#process_process_nexttick_callback_args\"><code>process.nextTick()</code></a> queue, which is managed by Node.js. The\n<code>process.nextTick()</code> queue is always processed before the microtask queue\nwithin each turn of the Node.js event loop.</p>\n<pre><code class=\"language-js\">// Here, `queueMicrotask()` is used to ensure the 'load' event is always\n// emitted asynchronously, and therefore consistently. Using\n// `process.nextTick()` here would result in the 'load' event always emitting\n// before any other promise jobs.\n\nDataHandler.prototype.load = async function load(key) {\n  const hit = this._cache.get(url);\n  if (hit !== undefined) {\n    queueMicrotask(() => {\n      this.emit('load', hit);\n    });\n    return;\n  }\n\n  const data = await fetchData(key);\n  this._cache.set(url, data);\n  this.emit('load', data);\n};\n</code></pre>"
         },
         {
-          "textRaw": "setImmediate(callback[, ...args])",
+          "textRaw": "`setImmediate(callback[, ...args])`",
           "type": "global",
           "name": "setImmediate",
           "meta": {
@@ -326,7 +326,7 @@
           "desc": "<p><a href=\"timers.html#timers_setimmediate_callback_args\"><code>setImmediate</code></a> is described in the <a href=\"timers.html\">timers</a> section.</p>"
         },
         {
-          "textRaw": "setInterval(callback, delay[, ...args])",
+          "textRaw": "`setInterval(callback, delay[, ...args])`",
           "type": "global",
           "name": "setInterval",
           "meta": {
@@ -338,7 +338,7 @@
           "desc": "<p><a href=\"timers.html#timers_setinterval_callback_delay_args\"><code>setInterval</code></a> is described in the <a href=\"timers.html\">timers</a> section.</p>"
         },
         {
-          "textRaw": "setTimeout(callback, delay[, ...args])",
+          "textRaw": "`setTimeout(callback, delay[, ...args])`",
           "type": "global",
           "name": "setTimeout",
           "meta": {
@@ -350,8 +350,8 @@
           "desc": "<p><a href=\"timers.html#timers_settimeout_callback_delay_args\"><code>setTimeout</code></a> is described in the <a href=\"timers.html\">timers</a> section.</p>"
         },
         {
-          "textRaw": "TextDecoder",
-          "name": "TextDecoder",
+          "textRaw": "`TextDecoder`",
+          "name": "`TextDecoder`",
           "meta": {
             "added": [
               "v11.0.0"
@@ -362,8 +362,8 @@
           "desc": "<p>The WHATWG <code>TextDecoder</code> class. See the <a href=\"util.html#util_class_util_textdecoder\"><code>TextDecoder</code></a> section.</p>"
         },
         {
-          "textRaw": "TextEncoder",
-          "name": "TextEncoder",
+          "textRaw": "`TextEncoder`",
+          "name": "`TextEncoder`",
           "meta": {
             "added": [
               "v11.0.0"
@@ -374,8 +374,8 @@
           "desc": "<p>The WHATWG <code>TextEncoder</code> class. See the <a href=\"util.html#util_class_util_textencoder\"><code>TextEncoder</code></a> section.</p>"
         },
         {
-          "textRaw": "URL",
-          "name": "URL",
+          "textRaw": "`URL`",
+          "name": "`URL`",
           "meta": {
             "added": [
               "v10.0.0"
@@ -386,8 +386,8 @@
           "desc": "<p>The WHATWG <code>URL</code> class. See the <a href=\"url.html#url_class_url\"><code>URL</code></a> section.</p>"
         },
         {
-          "textRaw": "URLSearchParams",
-          "name": "URLSearchParams",
+          "textRaw": "`URLSearchParams`",
+          "name": "`URLSearchParams`",
           "meta": {
             "added": [
               "v10.0.0"
@@ -398,8 +398,8 @@
           "desc": "<p>The WHATWG <code>URLSearchParams</code> class. See the <a href=\"url.html#url_class_urlsearchparams\"><code>URLSearchParams</code></a> section.</p>"
         },
         {
-          "textRaw": "WebAssembly",
-          "name": "WebAssembly",
+          "textRaw": "`WebAssembly`",
+          "name": "`WebAssembly`",
           "meta": {
             "added": [
               "v8.0.0"
@@ -412,37 +412,37 @@
       ],
       "miscs": [
         {
-          "textRaw": "__dirname",
-          "name": "__dirname",
+          "textRaw": "`__dirname`",
+          "name": "`__dirname`",
           "desc": "<p>This variable may appear to be global but is not. See <a href=\"modules.html#modules_dirname\"><code>__dirname</code></a>.</p>",
           "type": "misc",
-          "displayName": "__dirname"
+          "displayName": "`__dirname`"
         },
         {
-          "textRaw": "__filename",
-          "name": "__filename",
+          "textRaw": "`__filename`",
+          "name": "`__filename`",
           "desc": "<p>This variable may appear to be global but is not. See <a href=\"modules.html#modules_filename\"><code>__filename</code></a>.</p>",
           "type": "misc",
-          "displayName": "__filename"
+          "displayName": "`__filename`"
         },
         {
-          "textRaw": "exports",
-          "name": "exports",
+          "textRaw": "`exports`",
+          "name": "`exports`",
           "desc": "<p>This variable may appear to be global but is not. See <a href=\"modules.html#modules_exports\"><code>exports</code></a>.</p>",
           "type": "misc",
-          "displayName": "exports"
+          "displayName": "`exports`"
         },
         {
-          "textRaw": "module",
-          "name": "module",
+          "textRaw": "`module`",
+          "name": "`module`",
           "desc": "<p>This variable may appear to be global but is not. See <a href=\"modules.html#modules_module\"><code>module</code></a>.</p>",
           "type": "misc",
-          "displayName": "module"
+          "displayName": "`module`"
         }
       ],
       "methods": [
         {
-          "textRaw": "require()",
+          "textRaw": "`require()`",
           "type": "method",
           "name": "require",
           "signatures": [

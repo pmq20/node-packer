@@ -3,10 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>TLS (SSL) | Node.js v12.13.0 Documentation</title>
+  <meta name="nodejs.org:node-version" content="v14.8.0">
+  <title>TLS (SSL) | Node.js v14.8.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
-  <link rel="stylesheet" href="assets/sh.css">
+  <link rel="stylesheet" href="assets/hljs.css">
   <link rel="canonical" href="https://nodejs.org/api/tls.html">
 </head>
 <body class="alt apidoc" id="api-section-tls">
@@ -18,29 +19,30 @@
         </a>
       </div>
       <ul>
-<li><a href="documentation.html" class="nav-documentation">About these Docs</a></li>
-<li><a href="synopsis.html" class="nav-synopsis">Usage &#x26; Example</a></li>
+<li><a href="documentation.html" class="nav-documentation">About this documentation</a></li>
+<li><a href="synopsis.html" class="nav-synopsis">Usage and example</a></li>
 </ul>
 <div class="line"></div>
 <ul>
-<li><a href="assert.html" class="nav-assert">Assertion Testing</a></li>
-<li><a href="async_hooks.html" class="nav-async_hooks">Async Hooks</a></li>
+<li><a href="assert.html" class="nav-assert">Assertion testing</a></li>
+<li><a href="async_hooks.html" class="nav-async_hooks">Async hooks</a></li>
 <li><a href="buffer.html" class="nav-buffer">Buffer</a></li>
-<li><a href="addons.html" class="nav-addons">C++ Addons</a></li>
-<li><a href="n-api.html" class="nav-n-api">C/C++ Addons - N-API</a></li>
-<li><a href="child_process.html" class="nav-child_process">Child Processes</a></li>
+<li><a href="addons.html" class="nav-addons">C++ addons</a></li>
+<li><a href="n-api.html" class="nav-n-api">C/C++ addons with N-API</a></li>
+<li><a href="embedding.html" class="nav-embedding">C++ embedder API</a></li>
+<li><a href="child_process.html" class="nav-child_process">Child processes</a></li>
 <li><a href="cluster.html" class="nav-cluster">Cluster</a></li>
-<li><a href="cli.html" class="nav-cli">Command Line Options</a></li>
+<li><a href="cli.html" class="nav-cli">Command line options</a></li>
 <li><a href="console.html" class="nav-console">Console</a></li>
 <li><a href="crypto.html" class="nav-crypto">Crypto</a></li>
 <li><a href="debugger.html" class="nav-debugger">Debugger</a></li>
 <li><a href="deprecations.html" class="nav-deprecations">Deprecated APIs</a></li>
 <li><a href="dns.html" class="nav-dns">DNS</a></li>
 <li><a href="domain.html" class="nav-domain">Domain</a></li>
-<li><a href="esm.html" class="nav-esm">ECMAScript Modules</a></li>
+<li><a href="esm.html" class="nav-esm">ECMAScript modules</a></li>
 <li><a href="errors.html" class="nav-errors">Errors</a></li>
 <li><a href="events.html" class="nav-events">Events</a></li>
-<li><a href="fs.html" class="nav-fs">File System</a></li>
+<li><a href="fs.html" class="nav-fs">File system</a></li>
 <li><a href="globals.html" class="nav-globals">Globals</a></li>
 <li><a href="http.html" class="nav-http">HTTP</a></li>
 <li><a href="http2.html" class="nav-http2">HTTP/2</a></li>
@@ -51,37 +53,38 @@
 <li><a href="net.html" class="nav-net">Net</a></li>
 <li><a href="os.html" class="nav-os">OS</a></li>
 <li><a href="path.html" class="nav-path">Path</a></li>
-<li><a href="perf_hooks.html" class="nav-perf_hooks">Performance Hooks</a></li>
+<li><a href="perf_hooks.html" class="nav-perf_hooks">Performance hooks</a></li>
 <li><a href="policy.html" class="nav-policy">Policies</a></li>
 <li><a href="process.html" class="nav-process">Process</a></li>
 <li><a href="punycode.html" class="nav-punycode">Punycode</a></li>
-<li><a href="querystring.html" class="nav-querystring">Query Strings</a></li>
+<li><a href="querystring.html" class="nav-querystring">Query strings</a></li>
 <li><a href="readline.html" class="nav-readline">Readline</a></li>
 <li><a href="repl.html" class="nav-repl">REPL</a></li>
 <li><a href="report.html" class="nav-report">Report</a></li>
 <li><a href="stream.html" class="nav-stream">Stream</a></li>
-<li><a href="string_decoder.html" class="nav-string_decoder">String Decoder</a></li>
+<li><a href="string_decoder.html" class="nav-string_decoder">String decoder</a></li>
 <li><a href="timers.html" class="nav-timers">Timers</a></li>
 <li><a href="tls.html" class="nav-tls active">TLS/SSL</a></li>
-<li><a href="tracing.html" class="nav-tracing">Trace Events</a></li>
+<li><a href="tracing.html" class="nav-tracing">Trace events</a></li>
 <li><a href="tty.html" class="nav-tty">TTY</a></li>
-<li><a href="dgram.html" class="nav-dgram">UDP/Datagram</a></li>
+<li><a href="dgram.html" class="nav-dgram">UDP/datagram</a></li>
 <li><a href="url.html" class="nav-url">URL</a></li>
 <li><a href="util.html" class="nav-util">Utilities</a></li>
 <li><a href="v8.html" class="nav-v8">V8</a></li>
 <li><a href="vm.html" class="nav-vm">VM</a></li>
-<li><a href="worker_threads.html" class="nav-worker_threads">Worker Threads</a></li>
+<li><a href="wasi.html" class="nav-wasi">WASI</a></li>
+<li><a href="worker_threads.html" class="nav-worker_threads">Worker threads</a></li>
 <li><a href="zlib.html" class="nav-zlib">Zlib</a></li>
 </ul>
 <div class="line"></div>
 <ul>
-<li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">GitHub Repo &#x26; Issue Tracker</a></li>
+<li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">Code repository and issue tracker</a></li>
 </ul>
     </div>
 
     <div id="column1" data-id="tls" class="interior">
       <header>
-        <h1>Node.js v12.13.0 Documentation</h1>
+        <h1>Node.js v14.8.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -96,11 +99,13 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v12.x/api/tls.html">12.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v14.x/api/tls.html">14.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v13.x/api/tls.html">13.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v12.x/api/tls.html">12.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v11.x/api/tls.html">11.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v10.x/api/tls.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/tls.html">9.x</a></li>
-<li><a href="https://nodejs.org/docs/latest-v8.x/api/tls.html">8.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v8.x/api/tls.html">8.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/tls.html">7.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v6.x/api/tls.html">6.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v5.x/api/tls.html">5.x</a></li>
@@ -122,100 +127,109 @@
 <p><span class="stability_2"><a href="#tls_tls_ssl">TLS (SSL)</a></span></p>
 <ul>
 <li>
-<p><a href="#tls_tls_ssl_concepts">TLS/SSL Concepts</a></p>
+<p><a href="#tls_tls_ssl_concepts">TLS/SSL concepts</a></p>
 <ul>
-<li><a href="#tls_perfect_forward_secrecy">Perfect Forward Secrecy</a></li>
+<li><a href="#tls_perfect_forward_secrecy">Perfect forward secrecy</a></li>
 <li><a href="#tls_alpn_and_sni">ALPN and SNI</a></li>
+<li><a href="#tls_pre_shared_keys">Pre-shared keys</a></li>
 <li><a href="#tls_client_initiated_renegotiation_attack_mitigation">Client-initiated renegotiation attack mitigation</a></li>
-<li><a href="#tls_session_resumption">Session Resumption</a></li>
-</ul>
-</li>
-<li><a href="#tls_modifying_the_default_tls_cipher_suite">Modifying the Default TLS Cipher suite</a></li>
 <li>
-<p><a href="#tls_class_tls_server">Class: tls.Server</a></p>
+<p><a href="#tls_session_resumption">Session resumption</a></p>
 <ul>
-<li><a href="#tls_event_keylog">Event: 'keylog'</a></li>
-<li><a href="#tls_event_newsession">Event: 'newSession'</a></li>
-<li><a href="#tls_event_ocsprequest">Event: 'OCSPRequest'</a></li>
-<li><a href="#tls_event_resumesession">Event: 'resumeSession'</a></li>
-<li><a href="#tls_event_secureconnection">Event: 'secureConnection'</a></li>
-<li><a href="#tls_event_tlsclienterror">Event: 'tlsClientError'</a></li>
-<li><a href="#tls_server_addcontext_hostname_context">server.addContext(hostname, context)</a></li>
-<li><a href="#tls_server_address">server.address()</a></li>
-<li><a href="#tls_server_close_callback">server.close([callback])</a></li>
-<li><span class="stability_0"><a href="#tls_server_connections">server.connections</a></span></li>
-<li><a href="#tls_server_getticketkeys">server.getTicketKeys()</a></li>
-<li><a href="#tls_server_listen">server.listen()</a></li>
-<li><a href="#tls_server_setsecurecontext_options">server.setSecureContext(options)</a></li>
-<li><a href="#tls_server_setticketkeys_keys">server.setTicketKeys(keys)</a></li>
+<li><a href="#tls_session_identifiers">Session identifiers</a></li>
+<li><a href="#tls_session_tickets">Session tickets</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#tls_modifying_the_default_tls_cipher_suite">Modifying the default TLS cipher suite</a></li>
+<li>
+<p><a href="#tls_class_tls_server">Class: <code>tls.Server</code></a></p>
+<ul>
+<li><a href="#tls_event_connection">Event: <code>'connection'</code></a></li>
+<li><a href="#tls_event_keylog">Event: <code>'keylog'</code></a></li>
+<li><a href="#tls_event_newsession">Event: <code>'newSession'</code></a></li>
+<li><a href="#tls_event_ocsprequest">Event: <code>'OCSPRequest'</code></a></li>
+<li><a href="#tls_event_resumesession">Event: <code>'resumeSession'</code></a></li>
+<li><a href="#tls_event_secureconnection">Event: <code>'secureConnection'</code></a></li>
+<li><a href="#tls_event_tlsclienterror">Event: <code>'tlsClientError'</code></a></li>
+<li><a href="#tls_server_addcontext_hostname_context"><code>server.addContext(hostname, context)</code></a></li>
+<li><a href="#tls_server_address"><code>server.address()</code></a></li>
+<li><a href="#tls_server_close_callback"><code>server.close([callback])</code></a></li>
+<li><span class="stability_0"><a href="#tls_server_connections"><code>server.connections</code></a></span></li>
+<li><a href="#tls_server_getticketkeys"><code>server.getTicketKeys()</code></a></li>
+<li><a href="#tls_server_listen"><code>server.listen()</code></a></li>
+<li><a href="#tls_server_setsecurecontext_options"><code>server.setSecureContext(options)</code></a></li>
+<li><a href="#tls_server_setticketkeys_keys"><code>server.setTicketKeys(keys)</code></a></li>
 </ul>
 </li>
 <li>
-<p><a href="#tls_class_tls_tlssocket">Class: tls.TLSSocket</a></p>
+<p><a href="#tls_class_tls_tlssocket">Class: <code>tls.TLSSocket</code></a></p>
 <ul>
-<li><a href="#tls_new_tls_tlssocket_socket_options">new tls.TLSSocket(socket[, options])</a></li>
-<li><a href="#tls_event_keylog_1">Event: 'keylog'</a></li>
-<li><a href="#tls_event_ocspresponse">Event: 'OCSPResponse'</a></li>
-<li><a href="#tls_event_secureconnect">Event: 'secureConnect'</a></li>
-<li><a href="#tls_event_session">Event: 'session'</a></li>
-<li><a href="#tls_tlssocket_address">tlsSocket.address()</a></li>
-<li><a href="#tls_tlssocket_authorizationerror">tlsSocket.authorizationError</a></li>
-<li><a href="#tls_tlssocket_authorized">tlsSocket.authorized</a></li>
-<li><a href="#tls_tlssocket_disablerenegotiation">tlsSocket.disableRenegotiation()</a></li>
-<li><a href="#tls_tlssocket_enabletrace">tlsSocket.enableTrace()</a></li>
-<li><a href="#tls_tlssocket_encrypted">tlsSocket.encrypted</a></li>
-<li><a href="#tls_tlssocket_getcertificate">tlsSocket.getCertificate()</a></li>
-<li><a href="#tls_tlssocket_getcipher">tlsSocket.getCipher()</a></li>
-<li><a href="#tls_tlssocket_getephemeralkeyinfo">tlsSocket.getEphemeralKeyInfo()</a></li>
-<li><a href="#tls_tlssocket_getfinished">tlsSocket.getFinished()</a></li>
+<li><a href="#tls_new_tls_tlssocket_socket_options"><code>new tls.TLSSocket(socket[, options])</code></a></li>
+<li><a href="#tls_event_keylog_1">Event: <code>'keylog'</code></a></li>
+<li><a href="#tls_event_ocspresponse">Event: <code>'OCSPResponse'</code></a></li>
+<li><a href="#tls_event_secureconnect">Event: <code>'secureConnect'</code></a></li>
+<li><a href="#tls_event_session">Event: <code>'session'</code></a></li>
+<li><a href="#tls_tlssocket_address"><code>tlsSocket.address()</code></a></li>
+<li><a href="#tls_tlssocket_authorizationerror"><code>tlsSocket.authorizationError</code></a></li>
+<li><a href="#tls_tlssocket_authorized"><code>tlsSocket.authorized</code></a></li>
+<li><a href="#tls_tlssocket_disablerenegotiation"><code>tlsSocket.disableRenegotiation()</code></a></li>
+<li><a href="#tls_tlssocket_enabletrace"><code>tlsSocket.enableTrace()</code></a></li>
+<li><a href="#tls_tlssocket_encrypted"><code>tlsSocket.encrypted</code></a></li>
+<li><a href="#tls_tlssocket_getcertificate"><code>tlsSocket.getCertificate()</code></a></li>
+<li><a href="#tls_tlssocket_getcipher"><code>tlsSocket.getCipher()</code></a></li>
+<li><a href="#tls_tlssocket_getephemeralkeyinfo"><code>tlsSocket.getEphemeralKeyInfo()</code></a></li>
+<li><a href="#tls_tlssocket_getfinished"><code>tlsSocket.getFinished()</code></a></li>
 <li>
-<p><a href="#tls_tlssocket_getpeercertificate_detailed">tlsSocket.getPeerCertificate([detailed])</a></p>
+<p><a href="#tls_tlssocket_getpeercertificate_detailed"><code>tlsSocket.getPeerCertificate([detailed])</code></a></p>
 <ul>
-<li><a href="#tls_certificate_object">Certificate Object</a></li>
+<li><a href="#tls_certificate_object">Certificate object</a></li>
 </ul>
 </li>
-<li><a href="#tls_tlssocket_getpeerfinished">tlsSocket.getPeerFinished()</a></li>
-<li><a href="#tls_tlssocket_getprotocol">tlsSocket.getProtocol()</a></li>
-<li><a href="#tls_tlssocket_getsession">tlsSocket.getSession()</a></li>
-<li><a href="#tls_tlssocket_getsharedsigalgs">tlsSocket.getSharedSigalgs()</a></li>
-<li><a href="#tls_tlssocket_gettlsticket">tlsSocket.getTLSTicket()</a></li>
-<li><a href="#tls_tlssocket_issessionreused">tlsSocket.isSessionReused()</a></li>
-<li><a href="#tls_tlssocket_localaddress">tlsSocket.localAddress</a></li>
-<li><a href="#tls_tlssocket_localport">tlsSocket.localPort</a></li>
-<li><a href="#tls_tlssocket_remoteaddress">tlsSocket.remoteAddress</a></li>
-<li><a href="#tls_tlssocket_remotefamily">tlsSocket.remoteFamily</a></li>
-<li><a href="#tls_tlssocket_remoteport">tlsSocket.remotePort</a></li>
-<li><a href="#tls_tlssocket_renegotiate_options_callback">tlsSocket.renegotiate(options, callback)</a></li>
-<li><a href="#tls_tlssocket_setmaxsendfragment_size">tlsSocket.setMaxSendFragment(size)</a></li>
+<li><a href="#tls_tlssocket_getpeerfinished"><code>tlsSocket.getPeerFinished()</code></a></li>
+<li><a href="#tls_tlssocket_getprotocol"><code>tlsSocket.getProtocol()</code></a></li>
+<li><a href="#tls_tlssocket_getsession"><code>tlsSocket.getSession()</code></a></li>
+<li><a href="#tls_tlssocket_getsharedsigalgs"><code>tlsSocket.getSharedSigalgs()</code></a></li>
+<li><a href="#tls_tlssocket_exportkeyingmaterial_length_label_context"><code>tlsSocket.exportKeyingMaterial(length, label[, context])</code></a></li>
+<li><a href="#tls_tlssocket_gettlsticket"><code>tlsSocket.getTLSTicket()</code></a></li>
+<li><a href="#tls_tlssocket_issessionreused"><code>tlsSocket.isSessionReused()</code></a></li>
+<li><a href="#tls_tlssocket_localaddress"><code>tlsSocket.localAddress</code></a></li>
+<li><a href="#tls_tlssocket_localport"><code>tlsSocket.localPort</code></a></li>
+<li><a href="#tls_tlssocket_remoteaddress"><code>tlsSocket.remoteAddress</code></a></li>
+<li><a href="#tls_tlssocket_remotefamily"><code>tlsSocket.remoteFamily</code></a></li>
+<li><a href="#tls_tlssocket_remoteport"><code>tlsSocket.remotePort</code></a></li>
+<li><a href="#tls_tlssocket_renegotiate_options_callback"><code>tlsSocket.renegotiate(options, callback)</code></a></li>
+<li><a href="#tls_tlssocket_setmaxsendfragment_size"><code>tlsSocket.setMaxSendFragment(size)</code></a></li>
 </ul>
 </li>
-<li><a href="#tls_tls_checkserveridentity_hostname_cert">tls.checkServerIdentity(hostname, cert)</a></li>
-<li><a href="#tls_tls_connect_options_callback">tls.connect(options[, callback])</a></li>
-<li><a href="#tls_tls_connect_path_options_callback">tls.connect(path[, options][, callback])</a></li>
-<li><a href="#tls_tls_connect_port_host_options_callback">tls.connect(port[, host][, options][, callback])</a></li>
-<li><a href="#tls_tls_createsecurecontext_options">tls.createSecureContext([options])</a></li>
-<li><a href="#tls_tls_createserver_options_secureconnectionlistener">tls.createServer([options][, secureConnectionListener])</a></li>
-<li><a href="#tls_tls_getciphers">tls.getCiphers()</a></li>
-<li><a href="#tls_tls_rootcertificates">tls.rootCertificates</a></li>
-<li><a href="#tls_tls_default_ecdh_curve">tls.DEFAULT_ECDH_CURVE</a></li>
-<li><a href="#tls_tls_default_max_version">tls.DEFAULT_MAX_VERSION</a></li>
-<li><a href="#tls_tls_default_min_version">tls.DEFAULT_MIN_VERSION</a></li>
+<li><a href="#tls_tls_checkserveridentity_hostname_cert"><code>tls.checkServerIdentity(hostname, cert)</code></a></li>
+<li><a href="#tls_tls_connect_options_callback"><code>tls.connect(options[, callback])</code></a></li>
+<li><a href="#tls_tls_connect_path_options_callback"><code>tls.connect(path[, options][, callback])</code></a></li>
+<li><a href="#tls_tls_connect_port_host_options_callback"><code>tls.connect(port[, host][, options][, callback])</code></a></li>
+<li><a href="#tls_tls_createsecurecontext_options"><code>tls.createSecureContext([options])</code></a></li>
+<li><a href="#tls_tls_createserver_options_secureconnectionlistener"><code>tls.createServer([options][, secureConnectionListener])</code></a></li>
+<li><a href="#tls_tls_getciphers"><code>tls.getCiphers()</code></a></li>
+<li><a href="#tls_tls_rootcertificates"><code>tls.rootCertificates</code></a></li>
+<li><a href="#tls_tls_default_ecdh_curve"><code>tls.DEFAULT_ECDH_CURVE</code></a></li>
+<li><a href="#tls_tls_default_max_version"><code>tls.DEFAULT_MAX_VERSION</code></a></li>
+<li><a href="#tls_tls_default_min_version"><code>tls.DEFAULT_MIN_VERSION</code></a></li>
 <li>
 <p><a href="#tls_deprecated_apis">Deprecated APIs</a></p>
 <ul>
 <li>
-<p><span class="stability_0"><a href="#tls_class_cryptostream">Class: CryptoStream</a></span></p>
+<p><span class="stability_0"><a href="#tls_class_cryptostream">Class: <code>CryptoStream</code></a></span></p>
 <ul>
-<li><a href="#tls_cryptostream_byteswritten">cryptoStream.bytesWritten</a></li>
+<li><a href="#tls_cryptostream_byteswritten"><code>cryptoStream.bytesWritten</code></a></li>
 </ul>
 </li>
 <li>
-<p><span class="stability_0"><a href="#tls_class_securepair">Class: SecurePair</a></span></p>
+<p><span class="stability_0"><a href="#tls_class_securepair">Class: <code>SecurePair</code></a></span></p>
 <ul>
-<li><a href="#tls_event_secure">Event: 'secure'</a></li>
+<li><a href="#tls_event_secure">Event: <code>'secure'</code></a></li>
 </ul>
 </li>
-<li><span class="stability_0"><a href="#tls_tls_createsecurepair_context_isserver_requestcert_rejectunauthorized_options">tls.createSecurePair([context][, isServer][, requestCert][, rejectUnauthorized][, options])</a></span></li>
+<li><span class="stability_0"><a href="#tls_tls_createsecurepair_context_isserver_requestcert_rejectunauthorized_options"><code>tls.createSecurePair([context][, isServer][, requestCert][, rejectUnauthorized][, options])</code></a></span></li>
 </ul>
 </li>
 </ul>
@@ -227,19 +241,18 @@
         <h1>TLS (SSL)<span><a class="mark" href="#tls_tls_ssl" id="tls_tls_ssl">#</a></span></h1>
 
 <p></p><div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p></p>
+<p><strong>Source Code:</strong> <a href="https://github.com/nodejs/node/blob/v14.8.0/lib/tls.js">lib/tls.js</a></p>
 <p>The <code>tls</code> module provides an implementation of the Transport Layer Security
 (TLS) and Secure Socket Layer (SSL) protocols that is built on top of OpenSSL.
 The module can be accessed using:</p>
-<pre><code class="language-js">const tls = require('tls');
-</code></pre>
-<h2>TLS/SSL Concepts<span><a class="mark" href="#tls_tls_ssl_concepts" id="tls_tls_ssl_concepts">#</a></span></h2>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> tls = <span class="hljs-built_in">require</span>(<span class="hljs-string">'tls'</span>);</code></pre>
+<h2>TLS/SSL concepts<span><a class="mark" href="#tls_tls_ssl_concepts" id="tls_tls_ssl_concepts">#</a></span></h2>
 <p>The TLS/SSL is a public/private key infrastructure (PKI). For most common
 cases, each client and server must have a <em>private key</em>.</p>
 <p>Private keys can be generated in multiple ways. The example below illustrates
 use of the OpenSSL command-line interface to generate a 2048-bit RSA private
 key:</p>
-<pre><code class="language-sh">openssl genrsa -out ryans-key.pem 2048
-</code></pre>
+<pre><code class="language-bash">openssl genrsa -out ryans-key.pem 2048</code></pre>
 <p>With TLS/SSL, all servers (and some clients) must have a <em>certificate</em>.
 Certificates are <em>public keys</em> that correspond to a private key, and that are
 digitally signed either by a Certificate Authority or by the owner of the
@@ -248,19 +261,16 @@ step to obtaining a certificate is to create a <em>Certificate Signing Request</
 (CSR) file.</p>
 <p>The OpenSSL command-line interface can be used to generate a CSR for a private
 key:</p>
-<pre><code class="language-sh">openssl req -new -sha256 -key ryans-key.pem -out ryans-csr.pem
-</code></pre>
+<pre><code class="language-bash">openssl req -new -sha256 -key ryans-key.pem -out ryans-csr.pem</code></pre>
 <p>Once the CSR file is generated, it can either be sent to a Certificate
 Authority for signing or used to generate a self-signed certificate.</p>
 <p>Creating a self-signed certificate using the OpenSSL command-line interface
 is illustrated in the example below:</p>
-<pre><code class="language-sh">openssl x509 -req -in ryans-csr.pem -signkey ryans-key.pem -out ryans-cert.pem
-</code></pre>
+<pre><code class="language-bash">openssl x509 -req -<span class="hljs-keyword">in</span> ryans-csr.pem -signkey ryans-key.pem -out ryans-cert.pem</code></pre>
 <p>Once the certificate is generated, it can be used to generate a <code>.pfx</code> or
 <code>.p12</code> file:</p>
-<pre><code class="language-sh">openssl pkcs12 -export -in ryans-cert.pem -inkey ryans-key.pem \
-      -certfile ca-cert.pem -out ryans.pfx
-</code></pre>
+<pre><code class="language-bash">openssl pkcs12 -<span class="hljs-built_in">export</span> -<span class="hljs-keyword">in</span> ryans-cert.pem -inkey ryans-key.pem \
+      -certfile ca-cert.pem -out ryans.pfx</code></pre>
 <p>Where:</p>
 <ul>
 <li><code>in</code>: is the signed certificate</li>
@@ -268,48 +278,74 @@ is illustrated in the example below:</p>
 <li><code>certfile</code>: is a concatenation of all Certificate Authority (CA) certs into
 a single file, e.g. <code>cat ca1-cert.pem ca2-cert.pem > ca-cert.pem</code></li>
 </ul>
-<h3>Perfect Forward Secrecy<span><a class="mark" href="#tls_perfect_forward_secrecy" id="tls_perfect_forward_secrecy">#</a></span></h3>
+<h3>Perfect forward secrecy<span><a class="mark" href="#tls_perfect_forward_secrecy" id="tls_perfect_forward_secrecy">#</a></span></h3>
 
-<p>The term "<a href="https://en.wikipedia.org/wiki/Perfect_forward_secrecy">Forward Secrecy</a>" or "Perfect Forward Secrecy" describes a feature
+<p>The term <em><a href="https://en.wikipedia.org/wiki/Perfect_forward_secrecy">forward secrecy</a></em> or <em>perfect forward secrecy</em> describes a feature
 of key-agreement (i.e., key-exchange) methods. That is, the server and client
 keys are used to negotiate new temporary keys that are used specifically and
 only for the current communication session. Practically, this means that even
 if the server's private key is compromised, communication can only be decrypted
 by eavesdroppers if the attacker manages to obtain the key-pair specifically
 generated for the session.</p>
-<p>Perfect Forward Secrecy is achieved by randomly generating a key pair for
+<p>Perfect forward secrecy is achieved by randomly generating a key pair for
 key-agreement on every TLS/SSL handshake (in contrast to using the same key for
 all sessions). Methods implementing this technique are called "ephemeral".</p>
-<p>Currently two methods are commonly used to achieve Perfect Forward Secrecy (note
+<p>Currently two methods are commonly used to achieve perfect forward secrecy (note
 the character "E" appended to the traditional abbreviations):</p>
 <ul>
-<li><a href="https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman_key_exchange">DHE</a> - An ephemeral version of the Diffie Hellman key-agreement protocol.</li>
-<li><a href="https://en.wikipedia.org/wiki/Elliptic_curve_Diffie%E2%80%93Hellman">ECDHE</a> - An ephemeral version of the Elliptic Curve Diffie Hellman
+<li><a href="https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman_key_exchange">DHE</a>: An ephemeral version of the Diffie-Hellman key-agreement protocol.</li>
+<li><a href="https://en.wikipedia.org/wiki/Elliptic_curve_Diffie%E2%80%93Hellman">ECDHE</a>: An ephemeral version of the Elliptic Curve Diffie-Hellman
 key-agreement protocol.</li>
 </ul>
 <p>Ephemeral methods may have some performance drawbacks, because key generation
 is expensive.</p>
-<p>To use Perfect Forward Secrecy using <code>DHE</code> with the <code>tls</code> module, it is required
+<p>To use perfect forward secrecy using <code>DHE</code> with the <code>tls</code> module, it is required
 to generate Diffie-Hellman parameters and specify them with the <code>dhparam</code>
 option to <a href="#tls_tls_createsecurecontext_options"><code>tls.createSecureContext()</code></a>. The following illustrates the use of
 the OpenSSL command-line interface to generate such parameters:</p>
-<pre><code class="language-sh">openssl dhparam -outform PEM -out dhparam.pem 2048
-</code></pre>
-<p>If using Perfect Forward Secrecy using <code>ECDHE</code>, Diffie-Hellman parameters are
+<pre><code class="language-bash">openssl dhparam -outform PEM -out dhparam.pem 2048</code></pre>
+<p>If using perfect forward secrecy using <code>ECDHE</code>, Diffie-Hellman parameters are
 not required and a default ECDHE curve will be used. The <code>ecdhCurve</code> property
 can be used when creating a TLS Server to specify the list of names of supported
 curves to use, see <a href="#tls_tls_createserver_options_secureconnectionlistener"><code>tls.createServer()</code></a> for more info.</p>
-<p>Perfect Forward Secrecy was optional up to TLSv1.2, but it is not optional for
+<p>Perfect forward secrecy was optional up to TLSv1.2, but it is not optional for
 TLSv1.3, because all TLSv1.3 cipher suites use ECDHE.</p>
 <h3>ALPN and SNI<span><a class="mark" href="#tls_alpn_and_sni" id="tls_alpn_and_sni">#</a></span></h3>
 
 <p>ALPN (Application-Layer Protocol Negotiation Extension) and
 SNI (Server Name Indication) are TLS handshake extensions:</p>
 <ul>
-<li>ALPN - Allows the use of one TLS server for multiple protocols (HTTP, HTTP/2)</li>
-<li>SNI - Allows the use of one TLS server for multiple hostnames with different
+<li>ALPN: Allows the use of one TLS server for multiple protocols (HTTP, HTTP/2)</li>
+<li>SNI: Allows the use of one TLS server for multiple hostnames with different
 SSL certificates.</li>
 </ul>
+<h3>Pre-shared keys<span><a class="mark" href="#tls_pre_shared_keys" id="tls_pre_shared_keys">#</a></span></h3>
+
+<p>TLS-PSK support is available as an alternative to normal certificate-based
+authentication. It uses a pre-shared key instead of certificates to
+authenticate a TLS connection, providing mutual authentication.
+TLS-PSK and public key infrastructure are not mutually exclusive. Clients and
+servers can accommodate both, choosing either of them during the normal cipher
+negotiation step.</p>
+<p>TLS-PSK is only a good choice where means exist to securely share a
+key with every connecting machine, so it does not replace PKI
+(Public Key Infrastructure) for the majority of TLS uses.
+The TLS-PSK implementation in OpenSSL has seen many security flaws in
+recent years, mostly because it is used only by a minority of applications.
+Please consider all alternative solutions before switching to PSK ciphers.
+Upon generating PSK it is of critical importance to use sufficient entropy as
+discussed in <a href="https://tools.ietf.org/html/rfc4086">RFC 4086</a>. Deriving a shared secret from a password or other
+low-entropy sources is not secure.</p>
+<p>PSK ciphers are disabled by default, and using TLS-PSK thus requires explicitly
+specifying a cipher suite with the <code>ciphers</code> option. The list of available
+ciphers can be retrieved via <code>openssl ciphers -v 'PSK'</code>. All TLS 1.3
+ciphers are eligible for PSK but currently only those that use SHA256 digest are
+supported they can be retrieved via <code>openssl ciphers -v -s -tls1_3 -psk</code>.</p>
+<p>According to the <a href="https://tools.ietf.org/html/rfc4279">RFC 4279</a>, PSK identities up to 128 bytes in length and
+PSKs up to 64 bytes in length must be supported. As of OpenSSL 1.1.0
+maximum identity size is 128 bytes, and maximum PSK length is 256 bytes.</p>
+<p>The current implementation doesn't support asynchronous PSK callbacks due to the
+limitations of the underlying OpenSSL API.</p>
 <h3>Client-initiated renegotiation attack mitigation<span><a class="mark" href="#tls_client_initiated_renegotiation_attack_mitigation" id="tls_client_initiated_renegotiation_attack_mitigation">#</a></span></h3>
 
 <p>The TLS protocol allows clients to renegotiate certain aspects of the TLS
@@ -328,11 +364,12 @@ in seconds. <strong>Default:</strong> <code>600</code> (10 minutes).</li>
 <p>The default renegotiation limits should not be modified without a full
 understanding of the implications and risks.</p>
 <p>TLSv1.3 does not support renegotiation.</p>
-<h3>Session Resumption<span><a class="mark" href="#tls_session_resumption" id="tls_session_resumption">#</a></span></h3>
+<h3>Session resumption<span><a class="mark" href="#tls_session_resumption" id="tls_session_resumption">#</a></span></h3>
 <p>Establishing a TLS session can be relatively slow. The process can be sped
 up by saving and later reusing the session state. There are several mechanisms
 to do so, discussed here from oldest to newest (and preferred).</p>
-<p><strong><em>Session Identifiers</em></strong> Servers generate a unique ID for new connections and
+<h4>Session identifiers<span><a class="mark" href="#tls_session_identifiers" id="tls_session_identifiers">#</a></span></h4>
+<p>Servers generate a unique ID for new connections and
 send it to the client. Clients and servers save the session state. When
 reconnecting, clients send the ID of their saved session state and if the server
 also has the state for that ID, it can agree to use it. Otherwise, the server
@@ -348,7 +385,8 @@ to save and restore the session data using the session ID as the lookup key to
 reuse sessions. To reuse sessions across load balancers or cluster workers,
 servers must use a shared session cache (such as Redis) in their session
 handlers.</p>
-<p><strong><em>Session Tickets</em></strong> The servers encrypt the entire session state and send it
+<h4>Session tickets<span><a class="mark" href="#tls_session_tickets" id="tls_session_tickets">#</a></span></h4>
+<p>The servers encrypt the entire session state and send it
 to the client as a "ticket". When reconnecting, the state is sent to the server
 in the initial connection. This mechanism avoids the need for server-side
 session cache. If the server doesn't use the ticket, for any reason (failure
@@ -388,61 +426,59 @@ Since failing to resume the session does not cause TLS/HTTPS connection
 failures, it is easy to not notice unnecessarily poor TLS performance. The
 OpenSSL CLI can be used to verify that servers are resuming sessions. Use the
 <code>-reconnect</code> option to <code>openssl s_client</code>, for example:</p>
-<pre><code class="language-sh">$ openssl s_client -connect localhost:443 -reconnect
-</code></pre>
+<pre><code class="language-console"><span class="hljs-meta">$</span><span class="bash"> openssl s_client -connect localhost:443 -reconnect</span></code></pre>
 <p>Read through the debug output. The first connection should say "New", for
 example:</p>
-<pre><code class="language-text">New, TLSv1.2, Cipher is ECDHE-RSA-AES128-GCM-SHA256
-</code></pre>
+<pre><code class="language-text">New, TLSv1.2, Cipher is ECDHE-RSA-AES128-GCM-SHA256</code></pre>
 <p>Subsequent connections should say "Reused", for example:</p>
-<pre><code class="language-text">Reused, TLSv1.2, Cipher is ECDHE-RSA-AES128-GCM-SHA256
-</code></pre>
-<h2>Modifying the Default TLS Cipher suite<span><a class="mark" href="#tls_modifying_the_default_tls_cipher_suite" id="tls_modifying_the_default_tls_cipher_suite">#</a></span></h2>
-<p>Node.js is built with a default suite of enabled and disabled TLS ciphers.
-Currently, the default cipher suite is:</p>
-<pre><code class="language-txt">TLS_AES_256_GCM_SHA384:
-TLS_CHACHA20_POLY1305_SHA256:
-TLS_AES_128_GCM_SHA256:
-ECDHE-RSA-AES128-GCM-SHA256:
-ECDHE-ECDSA-AES128-GCM-SHA256:
-ECDHE-RSA-AES256-GCM-SHA384:
-ECDHE-ECDSA-AES256-GCM-SHA384:
-DHE-RSA-AES128-GCM-SHA256:
-ECDHE-RSA-AES128-SHA256:
-DHE-RSA-AES128-SHA256:
-ECDHE-RSA-AES256-SHA384:
-DHE-RSA-AES256-SHA384:
-ECDHE-RSA-AES256-SHA256:
-DHE-RSA-AES256-SHA256:
-HIGH:
-!aNULL:
-!eNULL:
-!EXPORT:
-!DES:
-!RC4:
-!MD5:
-!PSK:
-!SRP:
-!CAMELLIA
-</code></pre>
+<pre><code class="language-text">Reused, TLSv1.2, Cipher is ECDHE-RSA-AES128-GCM-SHA256</code></pre>
+<h2>Modifying the default TLS cipher suite<span><a class="mark" href="#tls_modifying_the_default_tls_cipher_suite" id="tls_modifying_the_default_tls_cipher_suite">#</a></span></h2>
+<p>Node.js is built with a default suite of enabled and disabled TLS ciphers. This
+default cipher list can be configured when building Node.js to allow
+distributions to provide their own default list.</p>
+<p>The following command can be used to show the default cipher suite:</p>
+<pre><code class="language-console">node -p crypto.constants.defaultCoreCipherList | tr ':' '\n'
+TLS_AES_256_GCM_SHA384
+TLS_CHACHA20_POLY1305_SHA256
+TLS_AES_128_GCM_SHA256
+ECDHE-RSA-AES128-GCM-SHA256
+ECDHE-ECDSA-AES128-GCM-SHA256
+ECDHE-RSA-AES256-GCM-SHA384
+ECDHE-ECDSA-AES256-GCM-SHA384
+DHE-RSA-AES128-GCM-SHA256
+ECDHE-RSA-AES128-SHA256
+DHE-RSA-AES128-SHA256
+ECDHE-RSA-AES256-SHA384
+DHE-RSA-AES256-SHA384
+ECDHE-RSA-AES256-SHA256
+DHE-RSA-AES256-SHA256
+HIGH
+!aNULL
+!eNULL
+!EXPORT
+!DES
+!RC4
+!MD5
+!PSK
+!SRP
+!CAMELLIA</code></pre>
 <p>This default can be replaced entirely using the <a href="cli.html#cli_tls_cipher_list_list"><code>--tls-cipher-list</code></a> command
 line switch (directly, or via the <a href="cli.html#cli_node_options_options"><code>NODE_OPTIONS</code></a> environment variable). For
 instance, the following makes <code>ECDHE-RSA-AES128-GCM-SHA256:!RC4</code> the default TLS
 cipher suite:</p>
-<pre><code class="language-sh">node --tls-cipher-list="ECDHE-RSA-AES128-GCM-SHA256:!RC4" server.js
+<pre><code class="language-bash">node --tls-cipher-list=<span class="hljs-string">'ECDHE-RSA-AES128-GCM-SHA256:!RC4'</span> server.js
 
-export NODE_OPTIONS=--tls-cipher-list="ECDHE-RSA-AES128-GCM-SHA256:!RC4"
-node server.js
-</code></pre>
+<span class="hljs-built_in">export</span> NODE_OPTIONS=--tls-cipher-list=<span class="hljs-string">'ECDHE-RSA-AES128-GCM-SHA256:!RC4'</span>
+node server.js</code></pre>
 <p>The default can also be replaced on a per client or server basis using the
 <code>ciphers</code> option from <a href="#tls_tls_createsecurecontext_options"><code>tls.createSecureContext()</code></a>, which is also available
 in <a href="#tls_tls_createserver_options_secureconnectionlistener"><code>tls.createServer()</code></a>, <a href="#tls_tls_connect_options_callback"><code>tls.connect()</code></a>, and when creating new
 <a href="#tls_class_tls_tlssocket"><code>tls.TLSSocket</code></a>s.</p>
 <p>The ciphers list can contain a mixture of TLSv1.3 cipher suite names, the ones
 that start with <code>'TLS_'</code>, and specifications for TLSv1.2 and below cipher
-suites.  The TLSv1.2 ciphers support a legacy specification format, consult
+suites. The TLSv1.2 ciphers support a legacy specification format, consult
 the OpenSSL <a href="https://www.openssl.org/docs/man1.1.1/man1/ciphers.html#CIPHER-LIST-FORMAT">cipher list format</a> documentation for details, but those
-specifications do <em>not</em> apply to TLSv1.3 ciphers.  The TLSv1.3 suites can only
+specifications do <em>not</em> apply to TLSv1.3 ciphers. The TLSv1.3 suites can only
 be enabled by including their full name in the cipher list. They cannot, for
 example, be enabled or disabled by using the legacy TLSv1.2 <code>'EECDH'</code> or
 <code>'!EECDH'</code> specification.</p>
@@ -456,8 +492,8 @@ Changing the default cipher suite can have a significant impact on the security
 of an application. The <code>--tls-cipher-list</code> switch and <code>ciphers</code> option should by
 used only if absolutely necessary.</p>
 <p>The default cipher suite prefers GCM ciphers for <a href="https://www.chromium.org/Home/chromium-security/education/tls#TOC-Cipher-Suites">Chrome's 'modern
-cryptography' setting</a> and also prefers ECDHE and DHE ciphers for Perfect
-Forward Secrecy, while offering <em>some</em> backward compatibility.</p>
+cryptography' setting</a> and also prefers ECDHE and DHE ciphers for perfect
+forward secrecy, while offering <em>some</em> backward compatibility.</p>
 <p>128 bit AES is preferred over 192 and 256 bit AES in light of <a href="https://www.schneier.com/blog/archives/2009/07/another_new_aes.html">specific
 attacks affecting larger AES key sizes</a>.</p>
 <p>Old clients that rely on insecure and deprecated RC4 or DES-based ciphers
@@ -476,7 +512,7 @@ on the format, see the OpenSSL <a href="https://www.openssl.org/docs/man1.1.1/ma
 <p>The first 3 are enabled by default. The last 2 <code>CCM</code>-based suites are supported
 by TLSv1.3 because they may be more performant on constrained systems, but they
 are not enabled by default since they offer less security.</p>
-<h2>Class: tls.Server<span><a class="mark" href="#tls_class_tls_server" id="tls_class_tls_server">#</a></span></h2>
+<h2>Class: <code>tls.Server</code><span><a class="mark" href="#tls_class_tls_server" id="tls_class_tls_server">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.3.2</span>
 </div>
@@ -484,9 +520,21 @@ are not enabled by default since they offer less security.</p>
 <li>Extends: <a href="net.html#net_class_net_server" class="type">&#x3C;net.Server></a></li>
 </ul>
 <p>Accepts encrypted connections using TLS or SSL.</p>
-<h3>Event: 'keylog'<span><a class="mark" href="#tls_event_keylog" id="tls_event_keylog">#</a></span></h3>
+<h3>Event: <code>'connection'</code><span><a class="mark" href="#tls_event_connection" id="tls_event_connection">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v12.3.0</span>
+<span>Added in: v0.3.2</span>
+</div>
+<ul>
+<li><code>socket</code> <a href="stream.html#stream_class_stream_duplex" class="type">&#x3C;stream.Duplex></a></li>
+</ul>
+<p>This event is emitted when a new TCP stream is established, before the TLS
+handshake begins. <code>socket</code> is typically an object of type <a href="net.html#net_class_net_socket"><code>net.Socket</code></a>.
+Usually users will not want to access this event.</p>
+<p>This event can also be explicitly emitted by users to inject connections
+into the TLS server. In that case, any <a href="stream.html#stream_class_stream_duplex"><code>Duplex</code></a> stream can be passed.</p>
+<h3>Event: <code>'keylog'</code><span><a class="mark" href="#tls_event_keylog" id="tls_event_keylog">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v12.3.0, v10.20.0</span>
 </div>
 <ul>
 <li><code>line</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> Line of ASCII text, in NSS <code>SSLKEYLOGFILE</code> format.</li>
@@ -500,17 +548,24 @@ captured TLS traffic to be decrypted. It may be emitted multiple times for
 each socket.</p>
 <p>A typical use case is to append received lines to a common text file, which
 is later used by software (such as Wireshark) to decrypt the traffic:</p>
-<pre><code class="language-js">const logFile = fs.createWriteStream('/tmp/ssl-keys.log', { flags: 'a' });
-// ...
-server.on('keylog', (line, tlsSocket) => {
-  if (tlsSocket.remoteAddress !== '...')
-    return; // Only log keys for a particular IP
+<pre><code class="language-js"><span class="hljs-keyword">const</span> logFile = fs.createWriteStream(<span class="hljs-string">'/tmp/ssl-keys.log'</span>, { <span class="hljs-attr">flags</span>: <span class="hljs-string">'a'</span> });
+<span class="hljs-comment">// ...</span>
+server.on(<span class="hljs-string">'keylog'</span>, (line, tlsSocket) => {
+  <span class="hljs-keyword">if</span> (tlsSocket.remoteAddress !== <span class="hljs-string">'...'</span>)
+    <span class="hljs-keyword">return</span>; <span class="hljs-comment">// Only log keys for a particular IP</span>
   logFile.write(line);
-});
-</code></pre>
-<h3>Event: 'newSession'<span><a class="mark" href="#tls_event_newsession" id="tls_event_newsession">#</a></span></h3>
+});</code></pre>
+<h3>Event: <code>'newSession'</code><span><a class="mark" href="#tls_event_newsession" id="tls_event_newsession">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.9.2</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v0.11.12</td>
+<td><p>The <code>callback</code> argument is now supported.</p></td></tr>
+<tr><td>v0.9.2</td>
+<td><p><span>Added in: v0.9.2</span></p></td></tr>
+</tbody></table>
+</details>
 </div>
 <p>The <code>'newSession'</code> event is emitted upon creation of a new TLS session. This may
 be used to store sessions in external storage. The data should be provided to
@@ -524,7 +579,7 @@ invoked in order for data to be sent or received over the secure connection.</li
 </ul>
 <p>Listening for this event will have an effect only on connections established
 after the addition of the event listener.</p>
-<h3>Event: 'OCSPRequest'<span><a class="mark" href="#tls_event_ocsprequest" id="tls_event_ocsprequest">#</a></span></h3>
+<h3>Event: <code>'OCSPRequest'</code><span><a class="mark" href="#tls_event_ocsprequest" id="tls_event_ocsprequest">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.13</span>
 </div>
@@ -564,7 +619,7 @@ via the <code>ca</code> option when establishing the TLS connection.)</p>
 <p>Listening for this event will have an effect only on connections established
 after the addition of the event listener.</p>
 <p>An npm module like <a href="https://www.npmjs.com/package/asn1.js">asn1.js</a> may be used to parse the certificates.</p>
-<h3>Event: 'resumeSession'<span><a class="mark" href="#tls_event_resumesession" id="tls_event_resumesession">#</a></span></h3>
+<h3>Event: <code>'resumeSession'</code><span><a class="mark" href="#tls_event_resumesession" id="tls_event_resumesession">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.9.2</span>
 </div>
@@ -592,16 +647,15 @@ connection and destroy the socket.</p>
 <p>Listening for this event will have an effect only on connections established
 after the addition of the event listener.</p>
 <p>The following illustrates resuming a TLS session:</p>
-<pre><code class="language-js">const tlsSessionStore = {};
-server.on('newSession', (id, data, cb) => {
-  tlsSessionStore[id.toString('hex')] = data;
+<pre><code class="language-js"><span class="hljs-keyword">const</span> tlsSessionStore = {};
+server.on(<span class="hljs-string">'newSession'</span>, (id, data, cb) => {
+  tlsSessionStore[id.toString(<span class="hljs-string">'hex'</span>)] = data;
   cb();
 });
-server.on('resumeSession', (id, cb) => {
-  cb(null, tlsSessionStore[id.toString('hex')] || null);
-});
-</code></pre>
-<h3>Event: 'secureConnection'<span><a class="mark" href="#tls_event_secureconnection" id="tls_event_secureconnection">#</a></span></h3>
+server.on(<span class="hljs-string">'resumeSession'</span>, (id, cb) => {
+  cb(<span class="hljs-literal">null</span>, tlsSessionStore[id.toString(<span class="hljs-string">'hex'</span>)] || <span class="hljs-literal">null</span>);
+});</code></pre>
+<h3>Event: <code>'secureConnection'</code><span><a class="mark" href="#tls_event_secureconnection" id="tls_event_secureconnection">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.3.2</span>
 </div>
@@ -621,7 +675,7 @@ ALPN protocol. When ALPN has no selected protocol, <code>tlsSocket.alpnProtocol<
 equals <code>false</code>.</p>
 <p>The <code>tlsSocket.servername</code> property is a string containing the server name
 requested via SNI.</p>
-<h3>Event: 'tlsClientError'<span><a class="mark" href="#tls_event_tlsclienterror" id="tls_event_tlsclienterror">#</a></span></h3>
+<h3>Event: <code>'tlsClientError'</code><span><a class="mark" href="#tls_event_tlsclienterror" id="tls_event_tlsclienterror">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v6.0.0</span>
 </div>
@@ -633,19 +687,19 @@ called:</p>
 <li><code>tlsSocket</code> <a href="tls.html#tls_class_tls_tlssocket" class="type">&#x3C;tls.TLSSocket></a> The <code>tls.TLSSocket</code> instance from which the
 error originated.</li>
 </ul>
-<h3>server.addContext(hostname, context)<span><a class="mark" href="#tls_server_addcontext_hostname_context" id="tls_server_addcontext_hostname_context">#</a></span></h3>
+<h3><code>server.addContext(hostname, context)</code><span><a class="mark" href="#tls_server_addcontext_hostname_context" id="tls_server_addcontext_hostname_context">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.5.3</span>
 </div>
 <ul>
-<li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> A SNI hostname or wildcard (e.g. <code>'*'</code>)</li>
+<li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> A SNI host name or wildcard (e.g. <code>'*'</code>)</li>
 <li><code>context</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> An object containing any of the possible properties
 from the <a href="#tls_tls_createsecurecontext_options"><code>tls.createSecureContext()</code></a> <code>options</code> arguments (e.g. <code>key</code>,
 <code>cert</code>, <code>ca</code>, etc).</li>
 </ul>
 <p>The <code>server.addContext()</code> method adds a secure context that will be used if
 the client request's SNI name matches the supplied <code>hostname</code> (or wildcard).</p>
-<h3>server.address()<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/net.js#L1501">[src]</a><span><a class="mark" href="#tls_server_address" id="tls_server_address">#</a></span></h3>
+<h3><code>server.address()</code><span><a class="mark" href="#tls_server_address" id="tls_server_address">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.6.0</span>
 </div>
@@ -655,7 +709,7 @@ the client request's SNI name matches the supplied <code>hostname</code> (or wil
 <p>Returns the bound address, the address family name, and port of the
 server as reported by the operating system. See <a href="net.html#net_server_address"><code>net.Server.address()</code></a> for
 more information.</p>
-<h3>server.close([callback])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/net.js#L1587">[src]</a><span><a class="mark" href="#tls_server_close_callback" id="tls_server_close_callback">#</a></span></h3>
+<h3><code>server.close([callback])</code><span><a class="mark" href="#tls_server_close_callback" id="tls_server_close_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.3.2</span>
 </div>
@@ -667,7 +721,7 @@ for the server instance's <code>'close'</code> event.</li>
 <p>The <code>server.close()</code> method stops the server from accepting new connections.</p>
 <p>This function operates asynchronously. The <code>'close'</code> event will be emitted
 when the server has no more open connections.</p>
-<h3>server.connections<span><a class="mark" href="#tls_server_connections" id="tls_server_connections">#</a></span></h3>
+<h3><code>server.connections</code><span><a class="mark" href="#tls_server_connections" id="tls_server_connections">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.3.2</span><span>Deprecated since: v0.9.7</span>
 </div>
@@ -676,7 +730,7 @@ when the server has no more open connections.</p>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
 </ul>
 <p>Returns the current number of concurrent connections on the server.</p>
-<h3>server.getTicketKeys()<span><a class="mark" href="#tls_server_getticketkeys" id="tls_server_getticketkeys">#</a></span></h3>
+<h3><code>server.getTicketKeys()</code><span><a class="mark" href="#tls_server_getticketkeys" id="tls_server_getticketkeys">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v3.0.0</span>
 </div>
@@ -685,10 +739,10 @@ when the server has no more open connections.</p>
 </ul>
 <p>Returns the session ticket keys.</p>
 <p>See <a href="#tls_session_resumption">Session Resumption</a> for more information.</p>
-<h3>server.listen()<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/net.js#L1380">[src]</a><span><a class="mark" href="#tls_server_listen" id="tls_server_listen">#</a></span></h3>
+<h3><code>server.listen()</code><span><a class="mark" href="#tls_server_listen" id="tls_server_listen">#</a></span></h3>
 <p>Starts the server listening for encrypted connections.
 This method is identical to <a href="net.html#net_server_listen"><code>server.listen()</code></a> from <a href="net.html#net_class_net_server"><code>net.Server</code></a>.</p>
-<h3>server.setSecureContext(options)<span><a class="mark" href="#tls_server_setsecurecontext_options" id="tls_server_setsecurecontext_options">#</a></span></h3>
+<h3><code>server.setSecureContext(options)</code><span><a class="mark" href="#tls_server_setsecurecontext_options" id="tls_server_setsecurecontext_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v11.0.0</span>
 </div>
@@ -699,7 +753,7 @@ the <a href="#tls_tls_createsecurecontext_options"><code>tls.createSecureContext
 </ul>
 <p>The <code>server.setSecureContext()</code> method replaces the secure context of an
 existing server. Existing connections to the server are not interrupted.</p>
-<h3>server.setTicketKeys(keys)<span><a class="mark" href="#tls_server_setticketkeys_keys" id="tls_server_setticketkeys_keys">#</a></span></h3>
+<h3><code>server.setTicketKeys(keys)</code><span><a class="mark" href="#tls_server_setticketkeys_keys" id="tls_server_setticketkeys_keys">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v3.0.0</span>
 </div>
@@ -710,7 +764,7 @@ existing server. Existing connections to the server are not interrupted.</p>
 <p>Changes to the ticket keys are effective only for future server connections.
 Existing or currently pending server connections will use the previous keys.</p>
 <p>See <a href="#tls_session_resumption">Session Resumption</a> for more information.</p>
-<h2>Class: tls.TLSSocket<span><a class="mark" href="#tls_class_tls_tlssocket" id="tls_class_tls_tlssocket">#</a></span></h2>
+<h2>Class: <code>tls.TLSSocket</code><span><a class="mark" href="#tls_class_tls_tlssocket" id="tls_class_tls_tlssocket">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.11.4</span>
 </div>
@@ -723,7 +777,7 @@ negotiation.</p>
 <p>Methods that return TLS connection metadata (e.g.
 <a href="#tls_tlssocket_getpeercertificate_detailed"><code>tls.TLSSocket.getPeerCertificate()</code></a> will only return data while the
 connection is open.</p>
-<h3>new tls.TLSSocket(socket[, options])<span><a class="mark" href="#tls_new_tls_tlssocket_socket_options" id="tls_new_tls_tlssocket_socket_options">#</a></span></h3>
+<h3><code>new tls.TLSSocket(socket[, options])</code><span><a class="mark" href="#tls_new_tls_tlssocket_socket_options" id="tls_new_tls_tlssocket_socket_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -771,24 +825,23 @@ will be created by passing the entire <code>options</code> object to
 </li>
 </ul>
 <p>Construct a new <code>tls.TLSSocket</code> object from an existing TCP socket.</p>
-<h3>Event: 'keylog'<span><a class="mark" href="#tls_event_keylog_1" id="tls_event_keylog_1">#</a></span></h3>
+<h3>Event: <code>'keylog'</code><span><a class="mark" href="#tls_event_keylog_1" id="tls_event_keylog_1">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v12.3.0</span>
+<span>Added in: v12.3.0, v10.20.0</span>
 </div>
 <ul>
 <li><code>line</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> Line of ASCII text, in NSS <code>SSLKEYLOGFILE</code> format.</li>
 </ul>
-<p>The <code>keylog</code> event is emitted on a client <code>tls.TLSSocket</code> when key material
+<p>The <code>keylog</code> event is emitted on a <code>tls.TLSSocket</code> when key material
 is generated or received by the socket. This keying material can be stored
 for debugging, as it allows captured TLS traffic to be decrypted. It may
 be emitted multiple times, before or after the handshake completes.</p>
 <p>A typical use case is to append received lines to a common text file, which
 is later used by software (such as Wireshark) to decrypt the traffic:</p>
-<pre><code class="language-js">const logFile = fs.createWriteStream('/tmp/ssl-keys.log', { flags: 'a' });
-// ...
-tlsSocket.on('keylog', (line) => logFile.write(line));
-</code></pre>
-<h3>Event: 'OCSPResponse'<span><a class="mark" href="#tls_event_ocspresponse" id="tls_event_ocspresponse">#</a></span></h3>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> logFile = fs.createWriteStream(<span class="hljs-string">'/tmp/ssl-keys.log'</span>, { <span class="hljs-attr">flags</span>: <span class="hljs-string">'a'</span> });
+<span class="hljs-comment">// ...</span>
+tlsSocket.on(<span class="hljs-string">'keylog'</span>, (line) => logFile.write(line));</code></pre>
+<h3>Event: <code>'OCSPResponse'</code><span><a class="mark" href="#tls_event_ocspresponse" id="tls_event_ocspresponse">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.13</span>
 </div>
@@ -800,7 +853,7 @@ The listener callback is passed a single argument when called:</p>
 </ul>
 <p>Typically, the <code>response</code> is a digitally signed object from the server's CA that
 contains information about server's certificate revocation status.</p>
-<h3>Event: 'secureConnect'<span><a class="mark" href="#tls_event_secureconnect" id="tls_event_secureconnect">#</a></span></h3>
+<h3>Event: <code>'secureConnect'</code><span><a class="mark" href="#tls_event_secureconnect" id="tls_event_secureconnect">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.4</span>
 </div>
@@ -813,7 +866,7 @@ determine if the server certificate was signed by one of the specified CAs. If
 <code>tlsSocket.authorizationError</code> property. If ALPN was used, the
 <code>tlsSocket.alpnProtocol</code> property can be checked to determine the negotiated
 protocol.</p>
-<h3>Event: 'session'<span><a class="mark" href="#tls_event_session" id="tls_event_session">#</a></span></h3>
+<h3>Event: <code>'session'</code><span><a class="mark" href="#tls_event_session" id="tls_event_session">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v11.10.0</span>
 </div>
@@ -830,23 +883,22 @@ resumption.</p>
 <p>On the client, the <code>session</code> can be provided to the <code>session</code> option of
 <a href="#tls_tls_connect_options_callback"><code>tls.connect()</code></a> to resume the connection.</p>
 <p>See <a href="#tls_session_resumption">Session Resumption</a> for more information.</p>
-<p>Note: For TLSv1.2 and below, <a href="#tls_tlssocket_getsession"><code>tls.TLSSocket.getSession()</code></a> can be called once
-the handshake is complete.  For TLSv1.3, only ticket based resumption is allowed
+<p>For TLSv1.2 and below, <a href="#tls_tlssocket_getsession"><code>tls.TLSSocket.getSession()</code></a> can be called once
+the handshake is complete. For TLSv1.3, only ticket-based resumption is allowed
 by the protocol, multiple tickets are sent, and the tickets aren't sent until
-later, after the handshake completes, so it is necessary to wait for the
-<code>'session'</code> event to get a resumable session.  Applications are
-recommended to use the <code>'session'</code> event instead of <code>getSession()</code> to ensure
-they will work for all TLS protocol versions.  Applications that only expect to
-get or use 1 session should listen for this event only once:</p>
-<pre><code class="language-js">tlsSocket.once('session', (session) => {
-  // The session can be used immediately or later.
+after the handshake completes. So it is necessary to wait for the
+<code>'session'</code> event to get a resumable session. Applications
+should use the <code>'session'</code> event instead of <code>getSession()</code> to ensure
+they will work for all TLS versions. Applications that only expect to
+get or use one session should listen for this event only once:</p>
+<pre><code class="language-js">tlsSocket.once(<span class="hljs-string">'session'</span>, (session) => {
+  <span class="hljs-comment">// The session can be used immediately or later.</span>
   tls.connect({
-    session: session,
-    // Other connect options...
+    <span class="hljs-attr">session</span>: session,
+    <span class="hljs-comment">// Other connect options...</span>
   });
-});
-</code></pre>
-<h3>tlsSocket.address()<span><a class="mark" href="#tls_tlssocket_address" id="tls_tlssocket_address">#</a></span></h3>
+});</code></pre>
+<h3><code>tlsSocket.address()</code><span><a class="mark" href="#tls_tlssocket_address" id="tls_tlssocket_address">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.4</span>
 </div>
@@ -856,13 +908,13 @@ get or use 1 session should listen for this event only once:</p>
 <p>Returns the bound <code>address</code>, the address <code>family</code> name, and <code>port</code> of the
 underlying socket as reported by the operating system:
 <code>{ port: 12346, family: 'IPv4', address: '127.0.0.1' }</code>.</p>
-<h3>tlsSocket.authorizationError<span><a class="mark" href="#tls_tlssocket_authorizationerror" id="tls_tlssocket_authorizationerror">#</a></span></h3>
+<h3><code>tlsSocket.authorizationError</code><span><a class="mark" href="#tls_tlssocket_authorizationerror" id="tls_tlssocket_authorizationerror">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.4</span>
 </div>
 <p>Returns the reason why the peer's certificate was not been verified. This
 property is set only when <code>tlsSocket.authorized === false</code>.</p>
-<h3>tlsSocket.authorized<span><a class="mark" href="#tls_tlssocket_authorized" id="tls_tlssocket_authorized">#</a></span></h3>
+<h3><code>tlsSocket.authorized</code><span><a class="mark" href="#tls_tlssocket_authorized" id="tls_tlssocket_authorized">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.4</span>
 </div>
@@ -871,13 +923,13 @@ property is set only when <code>tlsSocket.authorized === false</code>.</p>
 </ul>
 <p>Returns <code>true</code> if the peer certificate was signed by one of the CAs specified
 when creating the <code>tls.TLSSocket</code> instance, otherwise <code>false</code>.</p>
-<h3>tlsSocket.disableRenegotiation()<span><a class="mark" href="#tls_tlssocket_disablerenegotiation" id="tls_tlssocket_disablerenegotiation">#</a></span></h3>
+<h3><code>tlsSocket.disableRenegotiation()</code><span><a class="mark" href="#tls_tlssocket_disablerenegotiation" id="tls_tlssocket_disablerenegotiation">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
 </div>
 <p>Disables TLS renegotiation for this <code>TLSSocket</code> instance. Once called, attempts
 to renegotiate will trigger an <code>'error'</code> event on the <code>TLSSocket</code>.</p>
-<h3>tlsSocket.enableTrace()<span><a class="mark" href="#tls_tlssocket_enabletrace" id="tls_tlssocket_enabletrace">#</a></span></h3>
+<h3><code>tlsSocket.enableTrace()</code><span><a class="mark" href="#tls_tlssocket_enabletrace" id="tls_tlssocket_enabletrace">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v12.2.0</span>
 </div>
@@ -886,13 +938,13 @@ used to debug TLS connection problems.</p>
 <p>Note: The format of the output is identical to the output of <code>openssl s_client -trace</code> or <code>openssl s_server -trace</code>. While it is produced by OpenSSL's
 <code>SSL_trace()</code> function, the format is undocumented, can change without notice,
 and should not be relied on.</p>
-<h3>tlsSocket.encrypted<span><a class="mark" href="#tls_tlssocket_encrypted" id="tls_tlssocket_encrypted">#</a></span></h3>
+<h3><code>tlsSocket.encrypted</code><span><a class="mark" href="#tls_tlssocket_encrypted" id="tls_tlssocket_encrypted">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.4</span>
 </div>
 <p>Always returns <code>true</code>. This may be used to distinguish TLS sockets from regular
 <code>net.Socket</code> instances.</p>
-<h3>tlsSocket.getCertificate()<span><a class="mark" href="#tls_tlssocket_getcertificate" id="tls_tlssocket_getcertificate">#</a></span></h3>
+<h3><code>tlsSocket.getCertificate()</code><span><a class="mark" href="#tls_tlssocket_getcertificate" id="tls_tlssocket_getcertificate">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v11.2.0</span>
 </div>
@@ -905,11 +957,13 @@ some properties corresponding to the fields of the certificate.</p>
 structure.</p>
 <p>If there is no local certificate, an empty object will be returned. If the
 socket has been destroyed, <code>null</code> will be returned.</p>
-<h3>tlsSocket.getCipher()<span><a class="mark" href="#tls_tlssocket_getcipher" id="tls_tlssocket_getcipher">#</a></span></h3>
+<h3><code>tlsSocket.getCipher()</code><span><a class="mark" href="#tls_tlssocket_getcipher" id="tls_tlssocket_getcipher">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v13.4.0, v12.16.0</td>
+<td><p>Return the IETF cipher name as <code>standardName</code>.</p></td></tr>
 <tr><td>v12.0.0</td>
 <td><p>Return the minimum cipher version, instead of a fixed string (<code>'TLSv1/SSLv3'</code>).</p></td></tr>
 <tr><td>v0.11.4</td>
@@ -921,18 +975,24 @@ socket has been destroyed, <code>null</code> will be returned.</p>
 <li>
 <p>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
 <ul>
-<li><code>name</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The name of the cipher suite.</li>
+<li><code>name</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> OpenSSL name for the cipher suite.</li>
+<li><code>standardName</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> IETF name for the cipher suite.</li>
 <li><code>version</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The minimum TLS protocol version supported by this cipher
 suite.</li>
 </ul>
 </li>
 </ul>
 <p>Returns an object containing information on the negotiated cipher suite.</p>
-<p>For example: <code>{ name: 'AES256-SHA', version: 'TLSv1.2' }</code>.</p>
+<p>For example:</p>
+<pre><code class="language-json">{
+    <span class="hljs-attr">"name"</span>: <span class="hljs-string">"AES128-SHA256"</span>,
+    <span class="hljs-attr">"standardName"</span>: <span class="hljs-string">"TLS_RSA_WITH_AES_128_CBC_SHA256"</span>,
+    <span class="hljs-attr">"version"</span>: <span class="hljs-string">"TLSv1.2"</span>
+}</code></pre>
 <p>See
 <a href="https://www.openssl.org/docs/man1.1.1/man3/SSL_CIPHER_get_name.html">SSL_CIPHER_get_name</a>
 for more information.</p>
-<h3>tlsSocket.getEphemeralKeyInfo()<span><a class="mark" href="#tls_tlssocket_getephemeralkeyinfo" id="tls_tlssocket_getephemeralkeyinfo">#</a></span></h3>
+<h3><code>tlsSocket.getEphemeralKeyInfo()</code><span><a class="mark" href="#tls_tlssocket_getephemeralkeyinfo" id="tls_tlssocket_getephemeralkeyinfo">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v5.0.0</span>
 </div>
@@ -940,13 +1000,13 @@ for more information.</p>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></li>
 </ul>
 <p>Returns an object representing the type, name, and size of parameter of
-an ephemeral key exchange in <a href="#tls_perfect_forward_secrecy">Perfect Forward Secrecy</a> on a client
+an ephemeral key exchange in <a href="#tls_perfect_forward_secrecy">perfect forward secrecy</a> on a client
 connection. It returns an empty object when the key exchange is not
 ephemeral. As this is only supported on a client socket; <code>null</code> is returned
 if called on a server socket. The supported types are <code>'DH'</code> and <code>'ECDH'</code>. The
 <code>name</code> property is available only when type is <code>'ECDH'</code>.</p>
 <p>For example: <code>{ type: 'ECDH', name: 'prime256v1', size: 256 }</code>.</p>
-<h3>tlsSocket.getFinished()<span><a class="mark" href="#tls_tlssocket_getfinished" id="tls_tlssocket_getfinished">#</a></span></h3>
+<h3><code>tlsSocket.getFinished()</code><span><a class="mark" href="#tls_tlssocket_getfinished" id="tls_tlssocket_getfinished">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v9.9.0</span>
 </div>
@@ -961,7 +1021,7 @@ be used for external authentication procedures when the authentication
 provided by SSL/TLS is not desired or is not enough.</p>
 <p>Corresponds to the <code>SSL_get_finished</code> routine in OpenSSL and may be used
 to implement the <code>tls-unique</code> channel binding from <a href="https://tools.ietf.org/html/rfc5929">RFC 5929</a>.</p>
-<h3>tlsSocket.getPeerCertificate([detailed])<span><a class="mark" href="#tls_tlssocket_getpeercertificate_detailed" id="tls_tlssocket_getpeercertificate_detailed">#</a></span></h3>
+<h3><code>tlsSocket.getPeerCertificate([detailed])</code><span><a class="mark" href="#tls_tlssocket_getpeercertificate_detailed" id="tls_tlssocket_getpeercertificate_detailed">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.4</span>
 </div>
@@ -976,7 +1036,7 @@ destroyed, <code>null</code> will be returned.</p>
 <p>If the full certificate chain was requested, each certificate will include an
 <code>issuerCertificate</code> property containing an object representing its issuer's
 certificate.</p>
-<h4>Certificate Object<span><a class="mark" href="#tls_certificate_object" id="tls_certificate_object">#</a></span></h4>
+<h4>Certificate object<span><a class="mark" href="#tls_certificate_object" id="tls_certificate_object">#</a></span></h4>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1054,16 +1114,15 @@ has one (not all well-known curves have been assigned names by NIST). Example:
      'OCSP - URI': [ 'http://ocsp.comodoca.com' ] },
   modulus: 'B56CE45CB740B09A13F64AC543B712FF9EE8E4C284B542A1708A27E82A8D151CA178153E12E6DDA15BF70FFD96CB8A88618641BDFCCA03527E665B70D779C8A349A6F88FD4EF6557180BD4C98192872BCFE3AF56E863C09DDD8BC1EC58DF9D94F914F0369102B2870BECFA1348A0838C9C49BD1C20124B442477572347047506B1FCD658A80D0C44BCC16BC5C5496CFE6E4A8428EF654CD3D8972BF6E5BFAD59C93006830B5EB1056BBB38B53D1464FA6E02BFDF2FF66CD949486F0775EC43034EC2602AEFBF1703AD221DAA2A88353C3B6A688EFE8387811F645CEED7B3FE46E1F8B9F59FAD028F349B9BC14211D5830994D055EEA3D547911E07A0ADDEB8A82B9188E58720D95CD478EEC9AF1F17BE8141BE80906F1A339445A7EB5B285F68039B0F294598A7D1C0005FC22B5271B0752F58CCDEF8C8FD856FB7AE21C80B8A2CE983AE94046E53EDE4CB89F42502D31B5360771C01C80155918637490550E3F555E2EE75CC8C636DDE3633CFEDD62E91BF0F7688273694EEEBA20C2FC9F14A2A435517BC1D7373922463409AB603295CEB0BB53787A334C9CA3CA8B30005C5A62FC0715083462E00719A8FA3ED0A9828C3871360A73F8B04A4FC1E71302844E9BB9940B77E745C9D91F226D71AFCAD4B113AAF68D92B24DDB4A2136B55A1CD1ADF39605B63CB639038ED0F4C987689866743A68769CC55847E4A06D6E2E3F1',
   exponent: '0x10001',
-  pubkey: &#x3C;Buffer ... >,
+  pubkey: <buffer ="">,
   valid_from: 'Aug 14 00:00:00 2017 GMT',
   valid_to: 'Nov 20 23:59:59 2019 GMT',
   fingerprint: '01:02:59:D9:C3:D2:0D:08:F7:82:4E:44:A4:B4:53:C5:E2:3A:87:4D',
   fingerprint256: '69:AE:1A:6A:D4:3D:C6:C1:1B:EA:C6:23:DE:BA:2A:14:62:62:93:5C:7A:EA:06:41:9B:0B:BC:87:CE:48:4E:02',
   ext_key_usage: [ '1.3.6.1.5.5.7.3.1', '1.3.6.1.5.5.7.3.2' ],
   serialNumber: '66593D57F20CBC573E433381B5FEC280',
-  raw: &#x3C;Buffer ... > }
-</code></pre>
-<h3>tlsSocket.getPeerFinished()<span><a class="mark" href="#tls_tlssocket_getpeerfinished" id="tls_tlssocket_getpeerfinished">#</a></span></h3>
+  raw: <buffer =""> }</buffer></buffer></code></pre>
+<h3><code>tlsSocket.getPeerFinished()</code><span><a class="mark" href="#tls_tlssocket_getpeerfinished" id="tls_tlssocket_getpeerfinished">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v9.9.0</span>
 </div>
@@ -1078,7 +1137,7 @@ be used for external authentication procedures when the authentication
 provided by SSL/TLS is not desired or is not enough.</p>
 <p>Corresponds to the <code>SSL_get_peer_finished</code> routine in OpenSSL and may be used
 to implement the <code>tls-unique</code> channel binding from <a href="https://tools.ietf.org/html/rfc5929">RFC 5929</a>.</p>
-<h3>tlsSocket.getProtocol()<span><a class="mark" href="#tls_tlssocket_getprotocol" id="tls_tlssocket_getprotocol">#</a></span></h3>
+<h3><code>tlsSocket.getProtocol()</code><span><a class="mark" href="#tls_tlssocket_getprotocol" id="tls_tlssocket_getprotocol">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v5.7.0</span>
 </div>
@@ -1098,7 +1157,7 @@ be returned for server sockets or disconnected client sockets.</p>
 <li><code>'TLSv1.3'</code></li>
 </ul>
 <p>See the OpenSSL <a href="https://www.openssl.org/docs/man1.1.1/man3/SSL_get_version.html"><code>SSL_get_version</code></a> documentation for more information.</p>
-<h3>tlsSocket.getSession()<span><a class="mark" href="#tls_tlssocket_getsession" id="tls_tlssocket_getsession">#</a></span></h3>
+<h3><code>tlsSocket.getSession()</code><span><a class="mark" href="#tls_tlssocket_getsession" id="tls_tlssocket_getsession">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.4</span>
 </div>
@@ -1112,7 +1171,7 @@ for debugging.</p>
 <p>See <a href="#tls_session_resumption">Session Resumption</a> for more information.</p>
 <p>Note: <code>getSession()</code> works only for TLSv1.2 and below. For TLSv1.3, applications
 must use the <a href="#tls_event_session"><code>'session'</code></a> event (it also works for TLSv1.2 and below).</p>
-<h3>tlsSocket.getSharedSigalgs()<span><a class="mark" href="#tls_tlssocket_getsharedsigalgs" id="tls_tlssocket_getsharedsigalgs">#</a></span></h3>
+<h3><code>tlsSocket.getSharedSigalgs()</code><span><a class="mark" href="#tls_tlssocket_getsharedsigalgs" id="tls_tlssocket_getsharedsigalgs">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v12.11.0</span>
 </div>
@@ -1123,7 +1182,42 @@ the client in the order of decreasing preference.</li>
 <p>See
 <a href="https://www.openssl.org/docs/man1.1.1/man3/SSL_get_shared_sigalgs.html">SSL_get_shared_sigalgs</a>
 for more information.</p>
-<h3>tlsSocket.getTLSTicket()<span><a class="mark" href="#tls_tlssocket_gettlsticket" id="tls_tlssocket_gettlsticket">#</a></span></h3>
+<h3><code>tlsSocket.exportKeyingMaterial(length, label[, context])</code><span><a class="mark" href="#tls_tlssocket_exportkeyingmaterial_length_label_context" id="tls_tlssocket_exportkeyingmaterial_length_label_context">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v13.10.0</span>
+</div>
+<ul>
+<li>
+<p><code>length</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> number of bytes to retrieve from keying material</p>
+</li>
+<li>
+<p><code>label</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> an application specific label, typically this will be a
+value from the
+<a href="https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#exporter-labels">IANA Exporter Label Registry</a>.</p>
+</li>
+<li>
+<p><code>context</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> Optionally provide a context.</p>
+</li>
+<li>
+<p>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> requested bytes of the keying material</p>
+</li>
+</ul>
+<p>Keying material is used for validations to prevent different kind of attacks in
+network protocols, for example in the specifications of IEEE 802.1X.</p>
+<p>Example</p>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> keyingMaterial = tlsSocket.exportKeyingMaterial(
+  <span class="hljs-number">128</span>,
+  <span class="hljs-string">'client finished'</span>);
+
+<span class="hljs-comment">/**
+ Example return value of keyingMaterial:
+ &#x3C;Buffer 76 26 af 99 c5 56 8e 42 09 91 ef 9f 93 cb ad 6c 7b 65 f8 53 f1 d8 d9
+    12 5a 33 b8 b5 25 df 7b 37 9f e0 e2 4f b8 67 83 a3 2f cd 5d 41 42 4c 91
+    74 ef 2c ... 78 more bytes>
+*/</span></code></pre>
+<p>See the OpenSSL <a href="https://www.openssl.org/docs/man1.1.1/man3/SSL_export_keying_material.html"><code>SSL_export_keying_material</code></a> documentation for more
+information.</p>
+<h3><code>tlsSocket.getTLSTicket()</code><span><a class="mark" href="#tls_tlssocket_gettlsticket" id="tls_tlssocket_gettlsticket">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.4</span>
 </div>
@@ -1134,7 +1228,7 @@ for more information.</p>
 <code>undefined</code>. For a server, always returns <code>undefined</code>.</p>
 <p>It may be useful for debugging.</p>
 <p>See <a href="#tls_session_resumption">Session Resumption</a> for more information.</p>
-<h3>tlsSocket.isSessionReused()<span><a class="mark" href="#tls_tlssocket_issessionreused" id="tls_tlssocket_issessionreused">#</a></span></h3>
+<h3><code>tlsSocket.isSessionReused()</code><span><a class="mark" href="#tls_tlssocket_issessionreused" id="tls_tlssocket_issessionreused">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.5.6</span>
 </div>
@@ -1142,7 +1236,7 @@ for more information.</p>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> <code>true</code> if the session was reused, <code>false</code> otherwise.</li>
 </ul>
 <p>See <a href="#tls_session_resumption">Session Resumption</a> for more information.</p>
-<h3>tlsSocket.localAddress<span><a class="mark" href="#tls_tlssocket_localaddress" id="tls_tlssocket_localaddress">#</a></span></h3>
+<h3><code>tlsSocket.localAddress</code><span><a class="mark" href="#tls_tlssocket_localaddress" id="tls_tlssocket_localaddress">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.4</span>
 </div>
@@ -1150,7 +1244,7 @@ for more information.</p>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
 <p>Returns the string representation of the local IP address.</p>
-<h3>tlsSocket.localPort<span><a class="mark" href="#tls_tlssocket_localport" id="tls_tlssocket_localport">#</a></span></h3>
+<h3><code>tlsSocket.localPort</code><span><a class="mark" href="#tls_tlssocket_localport" id="tls_tlssocket_localport">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.4</span>
 </div>
@@ -1158,7 +1252,7 @@ for more information.</p>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
 </ul>
 <p>Returns the numeric representation of the local port.</p>
-<h3>tlsSocket.remoteAddress<span><a class="mark" href="#tls_tlssocket_remoteaddress" id="tls_tlssocket_remoteaddress">#</a></span></h3>
+<h3><code>tlsSocket.remoteAddress</code><span><a class="mark" href="#tls_tlssocket_remoteaddress" id="tls_tlssocket_remoteaddress">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.4</span>
 </div>
@@ -1167,7 +1261,7 @@ for more information.</p>
 </ul>
 <p>Returns the string representation of the remote IP address. For example,
 <code>'74.125.127.100'</code> or <code>'2001:4860:a005::68'</code>.</p>
-<h3>tlsSocket.remoteFamily<span><a class="mark" href="#tls_tlssocket_remotefamily" id="tls_tlssocket_remotefamily">#</a></span></h3>
+<h3><code>tlsSocket.remoteFamily</code><span><a class="mark" href="#tls_tlssocket_remotefamily" id="tls_tlssocket_remotefamily">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.4</span>
 </div>
@@ -1175,7 +1269,7 @@ for more information.</p>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
 <p>Returns the string representation of the remote IP family. <code>'IPv4'</code> or <code>'IPv6'</code>.</p>
-<h3>tlsSocket.remotePort<span><a class="mark" href="#tls_tlssocket_remoteport" id="tls_tlssocket_remoteport">#</a></span></h3>
+<h3><code>tlsSocket.remotePort</code><span><a class="mark" href="#tls_tlssocket_remoteport" id="tls_tlssocket_remoteport">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.4</span>
 </div>
@@ -1183,7 +1277,7 @@ for more information.</p>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
 </ul>
 <p>Returns the numeric representation of the remote port. For example, <code>443</code>.</p>
-<h3>tlsSocket.renegotiate(options, callback)<span><a class="mark" href="#tls_tlssocket_renegotiate_options_callback" id="tls_tlssocket_renegotiate_options_callback">#</a></span></h3>
+<h3><code>tlsSocket.renegotiate(options, callback)</code><span><a class="mark" href="#tls_tlssocket_renegotiate_options_callback" id="tls_tlssocket_renegotiate_options_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.8</span>
 </div>
@@ -1218,7 +1312,7 @@ connection has been established.</p>
 <code>handshakeTimeout</code> timeout.</p>
 <p>For TLSv1.3, renegotiation cannot be initiated, it is not supported by the
 protocol.</p>
-<h3>tlsSocket.setMaxSendFragment(size)<span><a class="mark" href="#tls_tlssocket_setmaxsendfragment_size" id="tls_tlssocket_setmaxsendfragment_size">#</a></span></h3>
+<h3><code>tlsSocket.setMaxSendFragment(size)</code><span><a class="mark" href="#tls_tlssocket_setmaxsendfragment_size" id="tls_tlssocket_setmaxsendfragment_size">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.11</span>
 </div>
@@ -1235,7 +1329,7 @@ and its integrity is verified; large fragments can span multiple roundtrips
 and their processing can be delayed due to packet loss or reordering. However,
 smaller fragments add extra TLS framing bytes and CPU overhead, which may
 decrease overall server throughput.</p>
-<h2>tls.checkServerIdentity(hostname, cert)<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/tls.js#L207">[src]</a><span><a class="mark" href="#tls_tls_checkserveridentity_hostname_cert" id="tls_tls_checkserveridentity_hostname_cert">#</a></span></h2>
+<h2><code>tls.checkServerIdentity(hostname, cert)</code><span><a class="mark" href="#tls_tls_checkserveridentity_hostname_cert" id="tls_tls_checkserveridentity_hostname_cert">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.8.4</span>
 </div>
@@ -1254,18 +1348,22 @@ overwriting function can call <code>tls.checkServerIdentity()</code> of course, 
 the checks done with additional verification.</p>
 <p>This function is only called if the certificate passed all other checks, such as
 being issued by trusted CA (<code>options.ca</code>).</p>
-<h2>tls.connect(options[, callback])<span><a class="mark" href="#tls_tls_connect_options_callback" id="tls_tls_connect_options_callback">#</a></span></h2>
+<h2><code>tls.connect(options[, callback])</code><span><a class="mark" href="#tls_tls_connect_options_callback" id="tls_tls_connect_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v14.1.0</td>
+<td><p>The <code>highWaterMark</code> option is accepted now.</p></td></tr>
+<tr><td>v13.6.0, v12.16.0</td>
+<td><p>The <code>pskCallback</code> option is now supported.</p></td></tr>
 <tr><td>v12.9.0</td>
 <td><p>Support the <code>allowHalfOpen</code> option.</p></td></tr>
 <tr><td>v12.4.0</td>
 <td><p>The <code>hints</code> option is now supported.</p></td></tr>
 <tr><td>v12.2.0</td>
 <td><p>The <code>enableTrace</code> option is now supported.</p></td></tr>
-<tr><td>v11.8.0</td>
+<tr><td>v11.8.0, v10.16.0</td>
 <td><p>The <code>timeout</code> option is supported now.</p></td></tr>
 <tr><td>v8.0.0</td>
 <td><p>The <code>lookup</code> option is supported now.</p></td></tr>
@@ -1307,6 +1405,27 @@ otherwise the option is ignored. See the <code>allowHalfOpen</code> option of
 verified against the list of supplied CAs. An <code>'error'</code> event is emitted if
 verification fails; <code>err.code</code> contains the OpenSSL error code. <strong>Default:</strong>
 <code>true</code>.</li>
+<li>
+<p><code>pskCallback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></p>
+<ul>
+<li>hint: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> optional message sent from the server to help client
+decide which identity to use during negotiation.
+Always <code>null</code> if TLS 1.3 is used.</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> in the form
+  <code>{ psk: &#x3C;Buffer|TypedArray|DataView>, identity: &#x3C;string> }</code>
+or <code>null</code> to stop the negotiation process. <code>psk</code> must be
+compatible with the selected cipher's digest.
+<code>identity</code> must use UTF-8 encoding.
+When negotiating TLS-PSK (pre-shared keys), this function is called
+with optional identity <code>hint</code> provided by the server or <code>null</code>
+in case of TLS 1.3 where <code>hint</code> was removed.
+It will be necessary to provide a custom <code>tls.checkServerIdentity()</code>
+for the connection as the default one will try to check host name/IP
+of the server against the certificate but that's not applicable for PSK
+because there won't be a certificate present.
+More information can be found in the <a href="https://tools.ietf.org/html/rfc4279">RFC 4279</a>.</li>
+</ul>
+</li>
 <li><code>ALPNProtocols</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string[]></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer[]></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray[]></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView[]></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a>
 An array of strings, <code>Buffer</code>s or <code>TypedArray</code>s or <code>DataView</code>s, or a
 single <code>Buffer</code> or <code>TypedArray</code> or <code>DataView</code> containing the supported ALPN
@@ -1322,7 +1441,7 @@ choose the correct certificate to present to the client, see the
 <code>SNICallback</code> option to <a href="#tls_tls_createserver_options_secureconnectionlistener"><code>tls.createServer()</code></a>.</li>
 <li><code>checkServerIdentity(servername, cert)</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> A callback function
 to be used (instead of the builtin <code>tls.checkServerIdentity()</code> function)
-when checking the server's hostname (or the provided <code>servername</code> when
+when checking the server's host name (or the provided <code>servername</code> when
 explicitly set) against the certificate. This should return an <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&#x3C;Error></a> if
 verification fails. The method should return <code>undefined</code> if the <code>servername</code>
 and <code>cert</code> are verified.</li>
@@ -1331,6 +1450,8 @@ and <code>cert</code> are verified.</li>
 TLS connection. When a server offers a DH parameter with a size less
 than <code>minDHSize</code>, the TLS connection is destroyed and an error is thrown.
 <strong>Default:</strong> <code>1024</code>.</li>
+<li><code>highWaterMark</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Consistent with the readable stream <code>highWaterMark</code> parameter.
+<strong>Default:</strong> <code>16 * 1024</code>.</li>
 <li><code>secureContext</code>: TLS context object created with
 <a href="#tls_tls_createsecurecontext_options"><code>tls.createSecureContext()</code></a>. If a <code>secureContext</code> is <em>not</em> provided, one
 will be created by passing the entire <code>options</code> object to
@@ -1346,39 +1467,43 @@ will be created by passing the entire <code>options</code> object to
 <p>The <code>callback</code> function, if specified, will be added as a listener for the
 <a href="#tls_event_secureconnect"><code>'secureConnect'</code></a> event.</p>
 <p><code>tls.connect()</code> returns a <a href="#tls_class_tls_tlssocket"><code>tls.TLSSocket</code></a> object.</p>
+<p>Unlike the <code>https</code> API, <code>tls.connect()</code> does not enable the
+SNI (Server Name Indication) extension by default, which may cause some
+servers to return an incorrect certificate or reject the connection
+altogether. To enable SNI, set the <code>servername</code> option in addition
+to <code>host</code>.</p>
 <p>The following illustrates a client for the echo server example from
 <a href="#tls_tls_createserver_options_secureconnectionlistener"><code>tls.createServer()</code></a>:</p>
-<pre><code class="language-js">// Assumes an echo server that is listening on port 8000.
-const tls = require('tls');
-const fs = require('fs');
+<pre><code class="language-js"><span class="hljs-comment">// Assumes an echo server that is listening on port 8000.</span>
+<span class="hljs-keyword">const</span> tls = <span class="hljs-built_in">require</span>(<span class="hljs-string">'tls'</span>);
+<span class="hljs-keyword">const</span> fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'fs'</span>);
 
-const options = {
-  // Necessary only if the server requires client certificate authentication.
-  key: fs.readFileSync('client-key.pem'),
-  cert: fs.readFileSync('client-cert.pem'),
+<span class="hljs-keyword">const</span> options = {
+  <span class="hljs-comment">// Necessary only if the server requires client certificate authentication.</span>
+  <span class="hljs-attr">key</span>: fs.readFileSync(<span class="hljs-string">'client-key.pem'</span>),
+  <span class="hljs-attr">cert</span>: fs.readFileSync(<span class="hljs-string">'client-cert.pem'</span>),
 
-  // Necessary only if the server uses a self-signed certificate.
-  ca: [ fs.readFileSync('server-cert.pem') ],
+  <span class="hljs-comment">// Necessary only if the server uses a self-signed certificate.</span>
+  <span class="hljs-attr">ca</span>: [ fs.readFileSync(<span class="hljs-string">'server-cert.pem'</span>) ],
 
-  // Necessary only if the server's cert isn't for "localhost".
-  checkServerIdentity: () => { return null; },
+  <span class="hljs-comment">// Necessary only if the server's cert isn't for "localhost".</span>
+  <span class="hljs-attr">checkServerIdentity</span>: <span class="hljs-function"><span class="hljs-params">()</span> =></span> { <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>; },
 };
 
-const socket = tls.connect(8000, options, () => {
-  console.log('client connected',
-              socket.authorized ? 'authorized' : 'unauthorized');
+<span class="hljs-keyword">const</span> socket = tls.connect(<span class="hljs-number">8000</span>, options, () => {
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'client connected'</span>,
+              socket.authorized ? <span class="hljs-string">'authorized'</span> : <span class="hljs-string">'unauthorized'</span>);
   process.stdin.pipe(socket);
   process.stdin.resume();
 });
-socket.setEncoding('utf8');
-socket.on('data', (data) => {
-  console.log(data);
+socket.setEncoding(<span class="hljs-string">'utf8'</span>);
+socket.on(<span class="hljs-string">'data'</span>, (data) => {
+  <span class="hljs-built_in">console</span>.log(data);
 });
-socket.on('end', () => {
-  console.log('server ends connection');
-});
-</code></pre>
-<h2>tls.connect(path[, options][, callback])<span><a class="mark" href="#tls_tls_connect_path_options_callback" id="tls_tls_connect_path_options_callback">#</a></span></h2>
+socket.on(<span class="hljs-string">'end'</span>, () => {
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'server ends connection'</span>);
+});</code></pre>
+<h2><code>tls.connect(path[, options][, callback])</code><span><a class="mark" href="#tls_tls_connect_path_options_callback" id="tls_tls_connect_path_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.11.3</span>
 </div>
@@ -1391,7 +1516,7 @@ socket.on('end', () => {
 <p>Same as <a href="#tls_tls_connect_options_callback"><code>tls.connect()</code></a> except that <code>path</code> can be provided
 as an argument instead of an option.</p>
 <p>A path option, if specified, will take precedence over the path argument.</p>
-<h2>tls.connect(port[, host][, options][, callback])<span><a class="mark" href="#tls_tls_connect_port_host_options_callback" id="tls_tls_connect_port_host_options_callback">#</a></span></h2>
+<h2><code>tls.connect(port[, host][, options][, callback])</code><span><a class="mark" href="#tls_tls_connect_port_host_options_callback" id="tls_tls_connect_port_host_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.11.3</span>
 </div>
@@ -1406,7 +1531,7 @@ as an argument instead of an option.</p>
 as arguments instead of options.</p>
 <p>A port or host option, if specified, will take precedence over any port or host
 argument.</p>
-<h2>tls.createSecureContext([options])<span><a class="mark" href="#tls_tls_createsecurecontext_options" id="tls_tls_createsecurecontext_options">#</a></span></h2>
+<h2><code>tls.createSecureContext([options])</code><span><a class="mark" href="#tls_tls_createsecurecontext_options" id="tls_tls_createsecurecontext_options">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1419,7 +1544,7 @@ argument.</p>
 <td><p>TLSv1.3 support added.</p></td></tr>
 <tr><td>v11.5.0</td>
 <td><p>The <code>ca:</code> option now supports <code>BEGIN TRUSTED CERTIFICATE</code>.</p></td></tr>
-<tr><td>v11.4.0</td>
+<tr><td>v11.4.0, v10.16.0</td>
 <td><p>The <code>minVersion</code> and <code>maxVersion</code> can be used to restrict the allowed TLS protocol versions.</p></td></tr>
 <tr><td>v10.0.0</td>
 <td><p>The <code>ecdhCurve</code> cannot be set to <code>false</code> anymore due to a change in OpenSSL.</p></td></tr>
@@ -1481,8 +1606,8 @@ uppercased in order for OpenSSL to accept them.</li>
 client certificate.</li>
 <li><code>crl</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string[]></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer[]></a> PEM formatted CRLs (Certificate
 Revocation Lists).</li>
-<li><code>dhparam</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> Diffie Hellman parameters, required for
-<a href="#tls_perfect_forward_secrecy">Perfect Forward Secrecy</a>. Use <code>openssl dhparam</code> to create the parameters.
+<li><code>dhparam</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> Diffie-Hellman parameters, required for
+<a href="#tls_perfect_forward_secrecy">perfect forward secrecy</a>. Use <code>openssl dhparam</code> to create the parameters.
 The key length must be greater than or equal to 1024 bits or else an error
 will be thrown. Although 1024 bits is permissible, use 2048 bits or larger
 for stronger security. If omitted or invalid, the parameters are silently
@@ -1540,15 +1665,20 @@ Value is a numeric bitmask of the <code>SSL_OP_*</code> options from
 <a href="crypto.html#crypto_openssl_options">OpenSSL Options</a>.</li>
 <li><code>secureProtocol</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Legacy mechanism to select the TLS protocol
 version to use, it does not support independent control of the minimum and
-maximum version, and does not support limiting the protocol to TLSv1.3.  Use
-<code>minVersion</code> and <code>maxVersion</code> instead.  The possible values are listed as
-<a href="https://www.openssl.org/docs/man1.1.1/man7/ssl.html#Dealing-with-Protocol-Methods">SSL_METHODS</a>, use the function names as strings.  For example, use
+maximum version, and does not support limiting the protocol to TLSv1.3. Use
+<code>minVersion</code> and <code>maxVersion</code> instead. The possible values are listed as
+<a href="https://www.openssl.org/docs/man1.1.1/man7/ssl.html#Dealing-with-Protocol-Methods">SSL_METHODS</a>, use the function names as strings. For example, use
 <code>'TLSv1_1_method'</code> to force TLS version 1.1, or <code>'TLS_method'</code> to allow any
-TLS protocol version up to TLSv1.3.  It is not recommended to use TLS
+TLS protocol version up to TLSv1.3. It is not recommended to use TLS
 versions less than 1.2, but it may be required for interoperability.
 <strong>Default:</strong> none, see <code>minVersion</code>.</li>
 <li><code>sessionIdContext</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Opaque identifier used by servers to ensure
 session state is not shared between applications. Unused by clients.</li>
+<li><code>ticketKeys</code>: <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> 48-bytes of cryptographically strong pseudo-random
+data. See <a href="#tls_session_resumption">Session Resumption</a> for more information.</li>
+<li><code>sessionTimeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> The number of seconds after which a TLS session
+created by the server will no longer be resumable. See
+<a href="#tls_session_resumption">Session Resumption</a> for more information. <strong>Default:</strong> <code>300</code>.</li>
 </ul>
 </li>
 </ul>
@@ -1564,7 +1694,7 @@ and <a href="#tls_server_addcontext_hostname_context"><code>server.addContext()<
 <code>pfx</code> can be used to provide it.</p>
 <p>If the <code>ca</code> option is not given, then Node.js will default to using
 <a href="https://hg.mozilla.org/mozilla-central/raw-file/tip/security/nss/lib/ckfw/builtins/certdata.txt">Mozilla's publicly trusted list of CAs</a>.</p>
-<h2>tls.createServer([options][, secureConnectionListener])<span><a class="mark" href="#tls_tls_createserver_options_secureconnectionlistener" id="tls_tls_createserver_options_secureconnectionlistener">#</a></span></h2>
+<h2><code>tls.createServer([options][, secureConnectionListener])</code><span><a class="mark" href="#tls_tls_createserver_options_secureconnectionlistener" id="tls_tls_createserver_options_secureconnectionlistener">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1612,16 +1742,45 @@ clients that connect and attempt to verify that certificate. <strong>Default:</s
 <li><code>sessionTimeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> The number of seconds after which a TLS session
 created by the server will no longer be resumable. See
 <a href="#tls_session_resumption">Session Resumption</a> for more information. <strong>Default:</strong> <code>300</code>.</li>
-<li><code>SNICallback(servername, cb)</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> A function that will be called if
-the client supports SNI TLS extension. Two arguments will be passed when
-called: <code>servername</code> and <code>cb</code>. <code>SNICallback</code> should invoke <code>cb(null, ctx)</code>,
-where <code>ctx</code> is a <code>SecureContext</code> instance. (<code>tls.createSecureContext(...)</code>
-can be used to get a proper <code>SecureContext</code>.) If <code>SNICallback</code> wasn't
-provided the default callback with high-level API will be used (see below).</li>
+<li><code>SNICallback(servername, callback)</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> A function that will be
+called if the client supports SNI TLS extension. Two arguments will be
+passed when called: <code>servername</code> and <code>callback</code>. <code>callback</code> is an
+error-first callback that takes two optional arguments: <code>error</code> and <code>ctx</code>.
+<code>ctx</code>, if provided, is a <code>SecureContext</code> instance.
+<a href="#tls_tls_createsecurecontext_options"><code>tls.createSecureContext()</code></a> can be used to get a proper <code>SecureContext</code>.
+If <code>callback</code> is called with a falsy <code>ctx</code> argument, the default secure
+context of the server will be used. If <code>SNICallback</code> wasn't provided the
+default callback with high-level API will be used (see below).</li>
 <li><code>ticketKeys</code>: <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> 48-bytes of cryptographically strong pseudo-random
 data. See <a href="#tls_session_resumption">Session Resumption</a> for more information.</li>
+<li>
+<p><code>pskCallback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></p>
+<ul>
+<li>socket: <a href="tls.html#tls_class_tls_tlssocket" class="type">&#x3C;tls.TLSSocket></a> the server <a href="#tls_class_tls_tlssocket"><code>tls.TLSSocket</code></a> instance for
+this connection.</li>
+<li>identity: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> identity parameter sent from the client.</li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a> pre-shared key that must either be
+  a buffer or <code>null</code> to stop the negotiation process. Returned PSK must be
+compatible with the selected cipher's digest.
+When negotiating TLS-PSK (pre-shared keys), this function is called
+with the identity provided by the client.
+If the return value is <code>null</code> the negotiation process will stop and an
+"unknown_psk_identity" alert message will be sent to the other party.
+If the server wishes to hide the fact that the PSK identity was not known,
+the callback must provide some random data as <code>psk</code> to make the connection
+fail with "decrypt_error" before negotiation is finished.
+PSK ciphers are disabled by default, and using TLS-PSK thus
+requires explicitly specifying a cipher suite with the <code>ciphers</code> option.
+More information can be found in the <a href="https://tools.ietf.org/html/rfc4279">RFC 4279</a>.</li>
+</ul>
+</li>
+<li><code>pskIdentityHint</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> optional hint to send to a client to help
+with selecting the identity during TLS-PSK negotiation. Will be ignored
+in TLS 1.3. Upon failing to set pskIdentityHint <code>'tlsClientError'</code> will be
+emitted with <code>'ERR_TLS_PSK_SET_IDENTIY_HINT_FAILED'</code> code.</li>
 <li>...: Any <a href="#tls_tls_createsecurecontext_options"><code>tls.createSecureContext()</code></a> option can be provided. For
-servers, the identity options (<code>pfx</code> or <code>key</code>/<code>cert</code>) are usually required.</li>
+servers, the identity options (<code>pfx</code>, <code>key</code>/<code>cert</code> or <code>pskCallback</code>)
+are usually required.</li>
 <li>...: Any <a href="net.html#net_net_createserver_options_connectionlistener"><code>net.createServer()</code></a> option can be provided.</li>
 </ul>
 </li>
@@ -1633,34 +1792,33 @@ automatically set as a listener for the <a href="#tls_event_secureconnection"><c
 <p>The <code>ticketKeys</code> options is automatically shared between <code>cluster</code> module
 workers.</p>
 <p>The following illustrates a simple echo server:</p>
-<pre><code class="language-js">const tls = require('tls');
-const fs = require('fs');
+<pre><code class="language-js"><span class="hljs-keyword">const</span> tls = <span class="hljs-built_in">require</span>(<span class="hljs-string">'tls'</span>);
+<span class="hljs-keyword">const</span> fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'fs'</span>);
 
-const options = {
-  key: fs.readFileSync('server-key.pem'),
-  cert: fs.readFileSync('server-cert.pem'),
+<span class="hljs-keyword">const</span> options = {
+  <span class="hljs-attr">key</span>: fs.readFileSync(<span class="hljs-string">'server-key.pem'</span>),
+  <span class="hljs-attr">cert</span>: fs.readFileSync(<span class="hljs-string">'server-cert.pem'</span>),
 
-  // This is necessary only if using client certificate authentication.
-  requestCert: true,
+  <span class="hljs-comment">// This is necessary only if using client certificate authentication.</span>
+  <span class="hljs-attr">requestCert</span>: <span class="hljs-literal">true</span>,
 
-  // This is necessary only if the client uses a self-signed certificate.
-  ca: [ fs.readFileSync('client-cert.pem') ]
+  <span class="hljs-comment">// This is necessary only if the client uses a self-signed certificate.</span>
+  <span class="hljs-attr">ca</span>: [ fs.readFileSync(<span class="hljs-string">'client-cert.pem'</span>) ]
 };
 
-const server = tls.createServer(options, (socket) => {
-  console.log('server connected',
-              socket.authorized ? 'authorized' : 'unauthorized');
-  socket.write('welcome!\n');
-  socket.setEncoding('utf8');
+<span class="hljs-keyword">const</span> server = tls.createServer(options, (socket) => {
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'server connected'</span>,
+              socket.authorized ? <span class="hljs-string">'authorized'</span> : <span class="hljs-string">'unauthorized'</span>);
+  socket.write(<span class="hljs-string">'welcome!\n'</span>);
+  socket.setEncoding(<span class="hljs-string">'utf8'</span>);
   socket.pipe(socket);
 });
-server.listen(8000, () => {
-  console.log('server bound');
-});
-</code></pre>
+server.listen(<span class="hljs-number">8000</span>, () => {
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'server bound'</span>);
+});</code></pre>
 <p>The server can be tested by connecting to it using the example client from
 <a href="#tls_tls_connect_options_callback"><code>tls.connect()</code></a>.</p>
-<h2>tls.getCiphers()<span><a class="mark" href="#tls_tls_getciphers" id="tls_tls_getciphers">#</a></span></h2>
+<h2><code>tls.getCiphers()</code><span><a class="mark" href="#tls_tls_getciphers" id="tls_tls_getciphers">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.10.2</span>
 </div>
@@ -1672,9 +1830,8 @@ lower-case for historical reasons, but must be uppercased to be used in
 the <code>ciphers</code> option of <a href="#tls_tls_createsecurecontext_options"><code>tls.createSecureContext()</code></a>.</p>
 <p>Cipher names that start with <code>'tls_'</code> are for TLSv1.3, all the others are for
 TLSv1.2 and below.</p>
-<pre><code class="language-js">console.log(tls.getCiphers()); // ['aes128-gcm-sha256', 'aes128-sha', ...]
-</code></pre>
-<h2>tls.rootCertificates<span><a class="mark" href="#tls_tls_rootcertificates" id="tls_tls_rootcertificates">#</a></span></h2>
+<pre><code class="language-js"><span class="hljs-built_in">console</span>.log(tls.getCiphers()); <span class="hljs-comment">// ['aes128-gcm-sha256', 'aes128-sha', ...]</span></code></pre>
+<h2><code>tls.rootCertificates</code><span><a class="mark" href="#tls_tls_rootcertificates" id="tls_tls_rootcertificates">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v12.3.0</span>
 </div>
@@ -1682,9 +1839,10 @@ TLSv1.2 and below.</p>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string[]></a></li>
 </ul>
 <p>An immutable array of strings representing the root certificates (in PEM format)
-used for verifying peer certificates. This is the default value of the <code>ca</code>
-option to <a href="#tls_tls_createsecurecontext_options"><code>tls.createSecureContext()</code></a>.</p>
-<h2>tls.DEFAULT_ECDH_CURVE<span><a class="mark" href="#tls_tls_default_ecdh_curve" id="tls_tls_default_ecdh_curve">#</a></span></h2>
+from the bundled Mozilla CA store as supplied by current Node.js version.</p>
+<p>The bundled CA store, as supplied by Node.js, is a snapshot of Mozilla CA store
+that is fixed at release time. It is identical on all supported platforms.</p>
+<h2><code>tls.DEFAULT_ECDH_CURVE</code><span><a class="mark" href="#tls_tls_default_ecdh_curve" id="tls_tls_default_ecdh_curve">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1699,7 +1857,7 @@ option to <a href="#tls_tls_createsecurecontext_options"><code>tls.createSecureC
 <p>The default curve name to use for ECDH key agreement in a tls server. The
 default value is <code>'auto'</code>. See <a href="#tls_tls_createsecurecontext_options"><code>tls.createSecureContext()</code></a> for further
 information.</p>
-<h2>tls.DEFAULT_MAX_VERSION<span><a class="mark" href="#tls_tls_default_max_version" id="tls_tls_default_max_version">#</a></span></h2>
+<h2><code>tls.DEFAULT_MAX_VERSION</code><span><a class="mark" href="#tls_tls_default_max_version" id="tls_tls_default_max_version">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v11.4.0</span>
 </div>
@@ -1708,18 +1866,18 @@ information.</p>
 <a href="#tls_tls_createsecurecontext_options"><code>tls.createSecureContext()</code></a>. It can be assigned any of the supported TLS
 protocol versions, <code>'TLSv1.3'</code>, <code>'TLSv1.2'</code>, <code>'TLSv1.1'</code>, or <code>'TLSv1'</code>.
 <strong>Default:</strong> <code>'TLSv1.3'</code>, unless changed using CLI options. Using
-<code>--tls-max-v1.2</code> sets the default to <code>'TLSv1.2</code>'.  Using <code>--tls-max-v1.3</code> sets
+<code>--tls-max-v1.2</code> sets the default to <code>'TLSv1.2'</code>. Using <code>--tls-max-v1.3</code> sets
 the default to <code>'TLSv1.3'</code>. If multiple of the options are provided, the
 highest maximum is used.</li>
 </ul>
-<h2>tls.DEFAULT_MIN_VERSION<span><a class="mark" href="#tls_tls_default_min_version" id="tls_tls_default_min_version">#</a></span></h2>
+<h2><code>tls.DEFAULT_MIN_VERSION</code><span><a class="mark" href="#tls_tls_default_min_version" id="tls_tls_default_min_version">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v11.4.0</span>
 </div>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The default value of the <code>minVersion</code> option of
 <a href="#tls_tls_createsecurecontext_options"><code>tls.createSecureContext()</code></a>. It can be assigned any of the supported TLS
-protocol versions, <code>'TLSv1.3'</code>, <code>TLSv1.2'</code>, <code>'TLSv1.1'</code>, or <code>'TLSv1'</code>.
+protocol versions, <code>'TLSv1.3'</code>, <code>'TLSv1.2'</code>, <code>'TLSv1.1'</code>, or <code>'TLSv1'</code>.
 <strong>Default:</strong> <code>'TLSv1.2'</code>, unless changed using CLI options. Using
 <code>--tls-min-v1.0</code> sets the default to <code>'TLSv1'</code>. Using <code>--tls-min-v1.1</code> sets
 the default to <code>'TLSv1.1'</code>. Using <code>--tls-min-v1.3</code> sets the default to
@@ -1727,27 +1885,27 @@ the default to <code>'TLSv1.1'</code>. Using <code>--tls-min-v1.3</code> sets th
 used.</li>
 </ul>
 <h2>Deprecated APIs<span><a class="mark" href="#tls_deprecated_apis" id="tls_deprecated_apis">#</a></span></h2>
-<h3>Class: CryptoStream<span><a class="mark" href="#tls_class_cryptostream" id="tls_class_cryptostream">#</a></span></h3>
+<h3>Class: <code>CryptoStream</code><span><a class="mark" href="#tls_class_cryptostream" id="tls_class_cryptostream">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.3.4</span><span>Deprecated since: v0.11.3</span>
 </div>
 <p></p><div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="#tls_class_tls_tlssocket"><code>tls.TLSSocket</code></a> instead.</div><p></p>
 <p>The <code>tls.CryptoStream</code> class represents a stream of encrypted data. This class
 is deprecated and should no longer be used.</p>
-<h4>cryptoStream.bytesWritten<span><a class="mark" href="#tls_cryptostream_byteswritten" id="tls_cryptostream_byteswritten">#</a></span></h4>
+<h4><code>cryptoStream.bytesWritten</code><span><a class="mark" href="#tls_cryptostream_byteswritten" id="tls_cryptostream_byteswritten">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v0.3.4</span><span>Deprecated since: v0.11.3</span>
 </div>
 <p>The <code>cryptoStream.bytesWritten</code> property returns the total number of bytes
 written to the underlying socket <em>including</em> the bytes required for the
 implementation of the TLS protocol.</p>
-<h3>Class: SecurePair<span><a class="mark" href="#tls_class_securepair" id="tls_class_securepair">#</a></span></h3>
+<h3>Class: <code>SecurePair</code><span><a class="mark" href="#tls_class_securepair" id="tls_class_securepair">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.3.2</span><span>Deprecated since: v0.11.3</span>
 </div>
 <p></p><div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="#tls_class_tls_tlssocket"><code>tls.TLSSocket</code></a> instead.</div><p></p>
 <p>Returned by <a href="#tls_tls_createsecurepair_context_isserver_requestcert_rejectunauthorized_options"><code>tls.createSecurePair()</code></a>.</p>
-<h4>Event: 'secure'<span><a class="mark" href="#tls_event_secure" id="tls_event_secure">#</a></span></h4>
+<h4>Event: <code>'secure'</code><span><a class="mark" href="#tls_event_secure" id="tls_event_secure">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v0.3.2</span><span>Deprecated since: v0.11.3</span>
 </div>
@@ -1757,7 +1915,7 @@ connection has been established.</p>
 <a href="#tls_event_secureconnection"><code>'secureConnection'</code></a>
 event, <code>pair.cleartext.authorized</code> should be inspected to confirm whether the
 certificate used is properly authorized.</p>
-<h3>tls.createSecurePair([context][, isServer][, requestCert][, rejectUnauthorized][, options])<span><a class="mark" href="#tls_tls_createsecurepair_context_isserver_requestcert_rejectunauthorized_options" id="tls_tls_createsecurepair_context_isserver_requestcert_rejectunauthorized_options">#</a></span></h3>
+<h3><code>tls.createSecurePair([context][, isServer][, requestCert][, rejectUnauthorized][, options])</code><span><a class="mark" href="#tls_tls_createsecurepair_context_isserver_requestcert_rejectunauthorized_options" id="tls_tls_createsecurepair_context_isserver_requestcert_rejectunauthorized_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1810,19 +1968,15 @@ stream.</p>
 <p>Using <code>cleartext</code> has the same API as <a href="#tls_class_tls_tlssocket"><code>tls.TLSSocket</code></a>.</p>
 <p>The <code>tls.createSecurePair()</code> method is now deprecated in favor of
 <code>tls.TLSSocket()</code>. For example, the code:</p>
-<pre><code class="language-js">pair = tls.createSecurePair(/* ... */);
+<pre><code class="language-js">pair = tls.createSecurePair(<span class="hljs-comment">/* ... */</span>);
 pair.encrypted.pipe(socket);
-socket.pipe(pair.encrypted);
-</code></pre>
+socket.pipe(pair.encrypted);</code></pre>
 <p>can be replaced by:</p>
-<pre><code class="language-js">secureSocket = tls.TLSSocket(socket, options);
-</code></pre>
+<pre><code class="language-js">secureSocket = tls.TLSSocket(socket, options);</code></pre>
 <p>where <code>secureSocket</code> has the same API as <code>pair.cleartext</code>.</p>
+        <!-- API END -->
       </div>
     </div>
   </div>
-  <script src="assets/sh_main.js"></script>
-  <script src="assets/sh_javascript.min.js"></script>
-  <script>highlight(undefined, undefined, 'pre');</script>
 </body>
 </html>

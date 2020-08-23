@@ -3,10 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Async Hooks | Node.js v12.13.0 Documentation</title>
+  <meta name="nodejs.org:node-version" content="v14.8.0">
+  <title>Async hooks | Node.js v14.8.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
-  <link rel="stylesheet" href="assets/sh.css">
+  <link rel="stylesheet" href="assets/hljs.css">
   <link rel="canonical" href="https://nodejs.org/api/async_hooks.html">
 </head>
 <body class="alt apidoc" id="api-section-async_hooks">
@@ -18,29 +19,30 @@
         </a>
       </div>
       <ul>
-<li><a href="documentation.html" class="nav-documentation">About these Docs</a></li>
-<li><a href="synopsis.html" class="nav-synopsis">Usage &#x26; Example</a></li>
+<li><a href="documentation.html" class="nav-documentation">About this documentation</a></li>
+<li><a href="synopsis.html" class="nav-synopsis">Usage and example</a></li>
 </ul>
 <div class="line"></div>
 <ul>
-<li><a href="assert.html" class="nav-assert">Assertion Testing</a></li>
-<li><a href="async_hooks.html" class="nav-async_hooks active">Async Hooks</a></li>
+<li><a href="assert.html" class="nav-assert">Assertion testing</a></li>
+<li><a href="async_hooks.html" class="nav-async_hooks active">Async hooks</a></li>
 <li><a href="buffer.html" class="nav-buffer">Buffer</a></li>
-<li><a href="addons.html" class="nav-addons">C++ Addons</a></li>
-<li><a href="n-api.html" class="nav-n-api">C/C++ Addons - N-API</a></li>
-<li><a href="child_process.html" class="nav-child_process">Child Processes</a></li>
+<li><a href="addons.html" class="nav-addons">C++ addons</a></li>
+<li><a href="n-api.html" class="nav-n-api">C/C++ addons with N-API</a></li>
+<li><a href="embedding.html" class="nav-embedding">C++ embedder API</a></li>
+<li><a href="child_process.html" class="nav-child_process">Child processes</a></li>
 <li><a href="cluster.html" class="nav-cluster">Cluster</a></li>
-<li><a href="cli.html" class="nav-cli">Command Line Options</a></li>
+<li><a href="cli.html" class="nav-cli">Command line options</a></li>
 <li><a href="console.html" class="nav-console">Console</a></li>
 <li><a href="crypto.html" class="nav-crypto">Crypto</a></li>
 <li><a href="debugger.html" class="nav-debugger">Debugger</a></li>
 <li><a href="deprecations.html" class="nav-deprecations">Deprecated APIs</a></li>
 <li><a href="dns.html" class="nav-dns">DNS</a></li>
 <li><a href="domain.html" class="nav-domain">Domain</a></li>
-<li><a href="esm.html" class="nav-esm">ECMAScript Modules</a></li>
+<li><a href="esm.html" class="nav-esm">ECMAScript modules</a></li>
 <li><a href="errors.html" class="nav-errors">Errors</a></li>
 <li><a href="events.html" class="nav-events">Events</a></li>
-<li><a href="fs.html" class="nav-fs">File System</a></li>
+<li><a href="fs.html" class="nav-fs">File system</a></li>
 <li><a href="globals.html" class="nav-globals">Globals</a></li>
 <li><a href="http.html" class="nav-http">HTTP</a></li>
 <li><a href="http2.html" class="nav-http2">HTTP/2</a></li>
@@ -51,37 +53,38 @@
 <li><a href="net.html" class="nav-net">Net</a></li>
 <li><a href="os.html" class="nav-os">OS</a></li>
 <li><a href="path.html" class="nav-path">Path</a></li>
-<li><a href="perf_hooks.html" class="nav-perf_hooks">Performance Hooks</a></li>
+<li><a href="perf_hooks.html" class="nav-perf_hooks">Performance hooks</a></li>
 <li><a href="policy.html" class="nav-policy">Policies</a></li>
 <li><a href="process.html" class="nav-process">Process</a></li>
 <li><a href="punycode.html" class="nav-punycode">Punycode</a></li>
-<li><a href="querystring.html" class="nav-querystring">Query Strings</a></li>
+<li><a href="querystring.html" class="nav-querystring">Query strings</a></li>
 <li><a href="readline.html" class="nav-readline">Readline</a></li>
 <li><a href="repl.html" class="nav-repl">REPL</a></li>
 <li><a href="report.html" class="nav-report">Report</a></li>
 <li><a href="stream.html" class="nav-stream">Stream</a></li>
-<li><a href="string_decoder.html" class="nav-string_decoder">String Decoder</a></li>
+<li><a href="string_decoder.html" class="nav-string_decoder">String decoder</a></li>
 <li><a href="timers.html" class="nav-timers">Timers</a></li>
 <li><a href="tls.html" class="nav-tls">TLS/SSL</a></li>
-<li><a href="tracing.html" class="nav-tracing">Trace Events</a></li>
+<li><a href="tracing.html" class="nav-tracing">Trace events</a></li>
 <li><a href="tty.html" class="nav-tty">TTY</a></li>
-<li><a href="dgram.html" class="nav-dgram">UDP/Datagram</a></li>
+<li><a href="dgram.html" class="nav-dgram">UDP/datagram</a></li>
 <li><a href="url.html" class="nav-url">URL</a></li>
 <li><a href="util.html" class="nav-util">Utilities</a></li>
 <li><a href="v8.html" class="nav-v8">V8</a></li>
 <li><a href="vm.html" class="nav-vm">VM</a></li>
-<li><a href="worker_threads.html" class="nav-worker_threads">Worker Threads</a></li>
+<li><a href="wasi.html" class="nav-wasi">WASI</a></li>
+<li><a href="worker_threads.html" class="nav-worker_threads">Worker threads</a></li>
 <li><a href="zlib.html" class="nav-zlib">Zlib</a></li>
 </ul>
 <div class="line"></div>
 <ul>
-<li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">GitHub Repo &#x26; Issue Tracker</a></li>
+<li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">Code repository and issue tracker</a></li>
 </ul>
     </div>
 
     <div id="column1" data-id="async_hooks" class="interior">
       <header>
-        <h1>Node.js v12.13.0 Documentation</h1>
+        <h1>Node.js v14.8.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -96,11 +99,13 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v12.x/api/async_hooks.html">12.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v14.x/api/async_hooks.html">14.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v13.x/api/async_hooks.html">13.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v12.x/api/async_hooks.html">12.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v11.x/api/async_hooks.html">11.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v10.x/api/async_hooks.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/async_hooks.html">9.x</a></li>
-<li><a href="https://nodejs.org/docs/latest-v8.x/api/async_hooks.html">8.x <b>LTS</b></a></li></ol>
+<li><a href="https://nodejs.org/docs/latest-v8.x/api/async_hooks.html">8.x</a></li></ol>
     </li>
   
             <li class="edit_on_github"><a href="https://github.com/nodejs/node/edit/master/doc/api/async_hooks.md"><span class="github_icon"><svg height="16" width="16" viewBox="0 0 16.1 16.1" fill="currentColor"><path d="M8 0a8 8 0 0 0-2.5 15.6c.4 0 .5-.2.5-.4v-1.5c-2 .4-2.5-.5-2.7-1 0-.1-.5-.9-.8-1-.3-.2-.7-.6 0-.6.6 0 1 .6 1.2.8.7 1.2 1.9 1 2.4.7 0-.5.2-.9.5-1-1.8-.3-3.7-1-3.7-4 0-.9.3-1.6.8-2.2 0-.2-.3-1 .1-2 0 0 .7-.3 2.2.7a7.4 7.4 0 0 1 4 0c1.5-1 2.2-.8 2.2-.8.5 1.1.2 2 .1 2.1.5.6.8 1.3.8 2.2 0 3-1.9 3.7-3.6 4 .3.2.5.7.5 1.4v2.2c0 .2.1.5.5.4A8 8 0 0 0 16 8a8 8 0 0 0-8-8z"/></svg></span>Edit on GitHub</a></li>
@@ -113,7 +118,7 @@
         <h2>Table of Contents</h2>
         <ul>
 <li>
-<p><span class="stability_1"><a href="#async_hooks_async_hooks">Async Hooks</a></span></p>
+<p><span class="stability_1"><a href="#async_hooks_async_hooks">Async hooks</a></span></p>
 <ul>
 <li><a href="#async_hooks_terminology">Terminology</a></li>
 <li>
@@ -123,19 +128,24 @@
 <p><a href="#async_hooks_overview">Overview</a></p>
 <ul>
 <li>
-<p><a href="#async_hooks_async_hooks_createhook_callbacks">async_hooks.createHook(callbacks)</a></p>
+<p><a href="#async_hooks_async_hooks_createhook_callbacks"><code>async_hooks.createHook(callbacks)</code></a></p>
 <ul>
-<li><a href="#async_hooks_error_handling">Error Handling</a></li>
+<li><a href="#async_hooks_error_handling">Error handling</a></li>
 <li><a href="#async_hooks_printing_in_asynchooks_callbacks">Printing in AsyncHooks callbacks</a></li>
 </ul>
 </li>
-<li><a href="#async_hooks_asynchook_enable">asyncHook.enable()</a></li>
-<li><a href="#async_hooks_asynchook_disable">asyncHook.disable()</a></li>
+</ul>
+</li>
 <li>
-<p><a href="#async_hooks_hook_callbacks">Hook Callbacks</a></p>
+<p><a href="#async_hooks_class_asynchook">Class: <code>AsyncHook</code></a></p>
+<ul>
+<li><a href="#async_hooks_asynchook_enable"><code>asyncHook.enable()</code></a></li>
+<li><a href="#async_hooks_asynchook_disable"><code>asyncHook.disable()</code></a></li>
+<li>
+<p><a href="#async_hooks_hook_callbacks">Hook callbacks</a></p>
 <ul>
 <li>
-<p><a href="#async_hooks_init_asyncid_type_triggerasyncid_resource">init(asyncId, type, triggerAsyncId, resource)</a></p>
+<p><a href="#async_hooks_init_asyncid_type_triggerasyncid_resource"><code>init(asyncId, type, triggerAsyncId, resource)</code></a></p>
 <ul>
 <li><a href="#async_hooks_type"><code>type</code></a></li>
 <li><a href="#async_hooks_triggerasyncid"><code>triggerAsyncId</code></a></li>
@@ -143,32 +153,50 @@
 <li><a href="#async_hooks_asynchronous_context_example">Asynchronous context example</a></li>
 </ul>
 </li>
-<li><a href="#async_hooks_before_asyncid">before(asyncId)</a></li>
-<li><a href="#async_hooks_after_asyncid">after(asyncId)</a></li>
-<li><a href="#async_hooks_destroy_asyncid">destroy(asyncId)</a></li>
-<li><a href="#async_hooks_promiseresolve_asyncid">promiseResolve(asyncId)</a></li>
+<li><a href="#async_hooks_before_asyncid"><code>before(asyncId)</code></a></li>
+<li><a href="#async_hooks_after_asyncid"><code>after(asyncId)</code></a></li>
+<li><a href="#async_hooks_destroy_asyncid"><code>destroy(asyncId)</code></a></li>
+<li><a href="#async_hooks_promiseresolve_asyncid"><code>promiseResolve(asyncId)</code></a></li>
 </ul>
 </li>
-<li><a href="#async_hooks_async_hooks_executionasyncid">async_hooks.executionAsyncId()</a></li>
-<li><a href="#async_hooks_async_hooks_triggerasyncid">async_hooks.triggerAsyncId()</a></li>
+<li><a href="#async_hooks_async_hooks_executionasyncresource"><code>async_hooks.executionAsyncResource()</code></a></li>
+<li><a href="#async_hooks_async_hooks_executionasyncid"><code>async_hooks.executionAsyncId()</code></a></li>
+<li><a href="#async_hooks_async_hooks_triggerasyncid"><code>async_hooks.triggerAsyncId()</code></a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li><a href="#async_hooks_promise_execution_tracking">Promise execution tracking</a></li>
 <li>
-<p><a href="#async_hooks_javascript_embedder_api">JavaScript Embedder API</a></p>
+<p><a href="#async_hooks_javascript_embedder_api">JavaScript embedder API</a></p>
 <ul>
 <li>
-<p><a href="#async_hooks_class_asyncresource">Class: AsyncResource</a></p>
+<p><a href="#async_hooks_class_asyncresource">Class: <code>AsyncResource</code></a></p>
 <ul>
-<li><a href="#async_hooks_new_asyncresource_type_options">new AsyncResource(type[, options])</a></li>
-<li><a href="#async_hooks_asyncresource_runinasyncscope_fn_thisarg_args">asyncResource.runInAsyncScope(fn[, thisArg, ...args])</a></li>
-<li><a href="#async_hooks_asyncresource_emitdestroy">asyncResource.emitDestroy()</a></li>
-<li><a href="#async_hooks_asyncresource_asyncid">asyncResource.asyncId()</a></li>
-<li><a href="#async_hooks_asyncresource_triggerasyncid">asyncResource.triggerAsyncId()</a></li>
+<li><a href="#async_hooks_new_asyncresource_type_options"><code>new AsyncResource(type[, options])</code></a></li>
+<li><a href="#async_hooks_static_method_asyncresource_bind_fn_type">Static method: <code>AsyncResource.bind(fn[, type])</code></a></li>
+<li><a href="#async_hooks_asyncresource_bind_fn"><code>asyncResource.bind(fn)</code></a></li>
+<li><a href="#async_hooks_asyncresource_runinasyncscope_fn_thisarg_args"><code>asyncResource.runInAsyncScope(fn[, thisArg, ...args])</code></a></li>
+<li><a href="#async_hooks_asyncresource_emitdestroy"><code>asyncResource.emitDestroy()</code></a></li>
+<li><a href="#async_hooks_asyncresource_asyncid"><code>asyncResource.asyncId()</code></a></li>
+<li><a href="#async_hooks_asyncresource_triggerasyncid"><code>asyncResource.triggerAsyncId()</code></a></li>
 </ul>
 </li>
+<li><a href="#async_hooks_using_asyncresource_for_a_worker_thread_pool">Using <code>AsyncResource</code> for a <code>Worker</code> thread pool</a></li>
+<li><a href="#async_hooks_integrating_asyncresource_with_eventemitter">Integrating <code>AsyncResource</code> with <code>EventEmitter</code></a></li>
+</ul>
+</li>
+<li>
+<p><a href="#async_hooks_class_asynclocalstorage">Class: <code>AsyncLocalStorage</code></a></p>
+<ul>
+<li><a href="#async_hooks_new_asynclocalstorage"><code>new AsyncLocalStorage()</code></a></li>
+<li><a href="#async_hooks_asynclocalstorage_disable"><code>asyncLocalStorage.disable()</code></a></li>
+<li><a href="#async_hooks_asynclocalstorage_getstore"><code>asyncLocalStorage.getStore()</code></a></li>
+<li><a href="#async_hooks_asynclocalstorage_enterwith_store"><code>asyncLocalStorage.enterWith(store)</code></a></li>
+<li><a href="#async_hooks_asynclocalstorage_run_store_callback_args"><code>asyncLocalStorage.run(store, callback[, ...args])</code></a></li>
+<li><a href="#async_hooks_asynclocalstorage_exit_callback_args"><code>asyncLocalStorage.exit(callback[, ...args])</code></a></li>
+<li><a href="#async_hooks_usage_with_async_await">Usage with <code>async/await</code></a></li>
+<li><a href="#async_hooks_troubleshooting">Troubleshooting</a></li>
 </ul>
 </li>
 </ul>
@@ -177,14 +205,13 @@
       </div>
 
       <div id="apicontent">
-        <h1>Async Hooks<span><a class="mark" href="#async_hooks_async_hooks" id="async_hooks_async_hooks">#</a></span></h1>
+        <h1>Async hooks<span><a class="mark" href="#async_hooks_async_hooks" id="async_hooks_async_hooks">#</a></span></h1>
 
 <p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
-<p>The <code>async_hooks</code> module provides an API to register callbacks tracking the
-lifetime of asynchronous resources created inside a Node.js application.
-It can be accessed using:</p>
-<pre><code class="language-js">const async_hooks = require('async_hooks');
-</code></pre>
+<p><strong>Source Code:</strong> <a href="https://github.com/nodejs/node/blob/v14.8.0/lib/async_hooks.js">lib/async_hooks.js</a></p>
+<p>The <code>async_hooks</code> module provides an API to track asynchronous resources. It
+can be accessed using:</p>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> async_hooks = <span class="hljs-built_in">require</span>(<span class="hljs-string">'async_hooks'</span>);</code></pre>
 <h2>Terminology<span><a class="mark" href="#async_hooks_terminology" id="async_hooks_terminology">#</a></span></h2>
 <p>An asynchronous resource represents an object with an associated callback.
 This callback may be called multiple times, for example, the <code>'connection'</code>
@@ -197,53 +224,52 @@ interface, and each thread will use a new set of async IDs.</p>
 <h2>Public API<span><a class="mark" href="#async_hooks_public_api" id="async_hooks_public_api">#</a></span></h2>
 <h3>Overview<span><a class="mark" href="#async_hooks_overview" id="async_hooks_overview">#</a></span></h3>
 <p>Following is a simple overview of the public API.</p>
-<pre><code class="language-js">const async_hooks = require('async_hooks');
+<pre><code class="language-js"><span class="hljs-keyword">const</span> async_hooks = <span class="hljs-built_in">require</span>(<span class="hljs-string">'async_hooks'</span>);
 
-// Return the ID of the current execution context.
-const eid = async_hooks.executionAsyncId();
+<span class="hljs-comment">// Return the ID of the current execution context.</span>
+<span class="hljs-keyword">const</span> eid = async_hooks.executionAsyncId();
 
-// Return the ID of the handle responsible for triggering the callback of the
-// current execution scope to call.
-const tid = async_hooks.triggerAsyncId();
+<span class="hljs-comment">// Return the ID of the handle responsible for triggering the callback of the</span>
+<span class="hljs-comment">// current execution scope to call.</span>
+<span class="hljs-keyword">const</span> tid = async_hooks.triggerAsyncId();
 
-// Create a new AsyncHook instance. All of these callbacks are optional.
-const asyncHook =
+<span class="hljs-comment">// Create a new AsyncHook instance. All of these callbacks are optional.</span>
+<span class="hljs-keyword">const</span> asyncHook =
     async_hooks.createHook({ init, before, after, destroy, promiseResolve });
 
-// Allow callbacks of this AsyncHook instance to call. This is not an implicit
-// action after running the constructor, and must be explicitly run to begin
-// executing callbacks.
+<span class="hljs-comment">// Allow callbacks of this AsyncHook instance to call. This is not an implicit</span>
+<span class="hljs-comment">// action after running the constructor, and must be explicitly run to begin</span>
+<span class="hljs-comment">// executing callbacks.</span>
 asyncHook.enable();
 
-// Disable listening for new asynchronous events.
+<span class="hljs-comment">// Disable listening for new asynchronous events.</span>
 asyncHook.disable();
 
-//
-// The following are the callbacks that can be passed to createHook().
-//
+<span class="hljs-comment">//</span>
+<span class="hljs-comment">// The following are the callbacks that can be passed to createHook().</span>
+<span class="hljs-comment">//</span>
 
-// init is called during object construction. The resource may not have
-// completed construction when this callback runs, therefore all fields of the
-// resource referenced by "asyncId" may not have been populated.
-function init(asyncId, type, triggerAsyncId, resource) { }
+<span class="hljs-comment">// init is called during object construction. The resource may not have</span>
+<span class="hljs-comment">// completed construction when this callback runs, therefore all fields of the</span>
+<span class="hljs-comment">// resource referenced by "asyncId" may not have been populated.</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">init</span>(<span class="hljs-params">asyncId, type, triggerAsyncId, resource</span>) </span>{ }
 
-// Before is called just before the resource's callback is called. It can be
-// called 0-N times for handles (e.g. TCPWrap), and will be called exactly 1
-// time for requests (e.g. FSReqCallback).
-function before(asyncId) { }
+<span class="hljs-comment">// Before is called just before the resource's callback is called. It can be</span>
+<span class="hljs-comment">// called 0-N times for handles (e.g. TCPWrap), and will be called exactly 1</span>
+<span class="hljs-comment">// time for requests (e.g. FSReqCallback).</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">before</span>(<span class="hljs-params">asyncId</span>) </span>{ }
 
-// After is called just after the resource's callback has finished.
-function after(asyncId) { }
+<span class="hljs-comment">// After is called just after the resource's callback has finished.</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">after</span>(<span class="hljs-params">asyncId</span>) </span>{ }
 
-// Destroy is called when an AsyncWrap instance is destroyed.
-function destroy(asyncId) { }
+<span class="hljs-comment">// Destroy is called when the resource is destroyed.</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">destroy</span>(<span class="hljs-params">asyncId</span>) </span>{ }
 
-// promiseResolve is called only for promise resources, when the
-// `resolve` function passed to the `Promise` constructor is invoked
-// (either directly or through other means of resolving a promise).
-function promiseResolve(asyncId) { }
-</code></pre>
-<h4>async_hooks.createHook(callbacks)<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/async_hooks.js#L124">[src]</a><span><a class="mark" href="#async_hooks_async_hooks_createhook_callbacks" id="async_hooks_async_hooks_createhook_callbacks">#</a></span></h4>
+<span class="hljs-comment">// promiseResolve is called only for promise resources, when the</span>
+<span class="hljs-comment">// `resolve` function passed to the `Promise` constructor is invoked</span>
+<span class="hljs-comment">// (either directly or through other means of resolving a promise).</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">promiseResolve</span>(<span class="hljs-params">asyncId</span>) </span>{ }</code></pre>
+<h4><code>async_hooks.createHook(callbacks)</code><span><a class="mark" href="#async_hooks_async_hooks_createhook_callbacks" id="async_hooks_async_hooks_createhook_callbacks">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.1.0</span>
 </div>
@@ -268,27 +294,25 @@ respective asynchronous event during a resource's lifetime.</p>
 be tracked, then only the <code>destroy</code> callback needs to be passed. The
 specifics of all functions that can be passed to <code>callbacks</code> is in the
 <a href="#async_hooks_hook_callbacks">Hook Callbacks</a> section.</p>
-<pre><code class="language-js">const async_hooks = require('async_hooks');
+<pre><code class="language-js"><span class="hljs-keyword">const</span> async_hooks = <span class="hljs-built_in">require</span>(<span class="hljs-string">'async_hooks'</span>);
 
-const asyncHook = async_hooks.createHook({
+<span class="hljs-keyword">const</span> asyncHook = async_hooks.createHook({
   init(asyncId, type, triggerAsyncId, resource) { },
   destroy(asyncId) { }
-});
-</code></pre>
+});</code></pre>
 <p>The callbacks will be inherited via the prototype chain:</p>
-<pre><code class="language-js">class MyAsyncCallbacks {
+<pre><code class="language-js"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MyAsyncCallbacks</span> </span>{
   init(asyncId, type, triggerAsyncId, resource) { }
   destroy(asyncId) {}
 }
 
-class MyAddedCallbacks extends MyAsyncCallbacks {
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MyAddedCallbacks</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">MyAsyncCallbacks</span> </span>{
   before(asyncId) { }
   after(asyncId) { }
 }
 
-const asyncHook = async_hooks.createHook(new MyAddedCallbacks());
-</code></pre>
-<h5>Error Handling<span><a class="mark" href="#async_hooks_error_handling" id="async_hooks_error_handling">#</a></span></h5>
+<span class="hljs-keyword">const</span> asyncHook = async_hooks.createHook(<span class="hljs-keyword">new</span> MyAddedCallbacks());</code></pre>
+<h5>Error handling<span><a class="mark" href="#async_hooks_error_handling" id="async_hooks_error_handling">#</a></span></h5>
 <p>If any <code>AsyncHook</code> callbacks throw, the application will print the stack trace
 and exit. The exit path does follow that of an uncaught exception, but
 all <code>'uncaughtException'</code> listeners are removed, thus forcing the process to
@@ -310,20 +334,22 @@ cause an infinite recursion. An easy solution to this when debugging is to use a
 synchronous logging operation such as <code>fs.writeFileSync(file, msg, flag)</code>.
 This will print to the file and will not invoke AsyncHooks recursively because
 it is synchronous.</p>
-<pre><code class="language-js">const fs = require('fs');
-const util = require('util');
+<pre><code class="language-js"><span class="hljs-keyword">const</span> fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'fs'</span>);
+<span class="hljs-keyword">const</span> util = <span class="hljs-built_in">require</span>(<span class="hljs-string">'util'</span>);
 
-function debug(...args) {
-  // Use a function like this one when debugging inside an AsyncHooks callback
-  fs.writeFileSync('log.out', `${util.format(...args)}\n`, { flag: 'a' });
-}
-</code></pre>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">debug</span>(<span class="hljs-params">...args</span>) </span>{
+  <span class="hljs-comment">// Use a function like this one when debugging inside an AsyncHooks callback</span>
+  fs.writeFileSync(<span class="hljs-string">'log.out'</span>, <span class="hljs-string">`<span class="hljs-subst">${util.format(...args)}</span>\n`</span>, { <span class="hljs-attr">flag</span>: <span class="hljs-string">'a'</span> });
+}</code></pre>
 <p>If an asynchronous operation is needed for logging, it is possible to keep
 track of what caused the asynchronous operation using the information
 provided by AsyncHooks itself. The logging should then be skipped when
 it was the logging itself that caused AsyncHooks callback to call. By
 doing this the otherwise infinite recursion is broken.</p>
-<h4>asyncHook.enable()<span><a class="mark" href="#async_hooks_asynchook_enable" id="async_hooks_asynchook_enable">#</a></span></h4>
+<h3>Class: <code>AsyncHook</code><span><a class="mark" href="#async_hooks_class_asynchook" id="async_hooks_class_asynchook">#</a></span></h3>
+<p>The class <code>AsyncHook</code> exposes an interface for tracking lifetime events
+of asynchronous operations.</p>
+<h4><code>asyncHook.enable()</code><span><a class="mark" href="#async_hooks_asynchook_enable" id="async_hooks_asynchook_enable">#</a></span></h4>
 <ul>
 <li>Returns: <a href="async_hooks.html#async_hooks_async_hooks_createhook_callbacks" class="type">&#x3C;AsyncHook></a> A reference to <code>asyncHook</code>.</li>
 </ul>
@@ -331,11 +357,10 @@ doing this the otherwise infinite recursion is broken.</p>
 provided enabling is a noop.</p>
 <p>The <code>AsyncHook</code> instance is disabled by default. If the <code>AsyncHook</code> instance
 should be enabled immediately after creation, the following pattern can be used.</p>
-<pre><code class="language-js">const async_hooks = require('async_hooks');
+<pre><code class="language-js"><span class="hljs-keyword">const</span> async_hooks = <span class="hljs-built_in">require</span>(<span class="hljs-string">'async_hooks'</span>);
 
-const hook = async_hooks.createHook(callbacks).enable();
-</code></pre>
-<h4>asyncHook.disable()<span><a class="mark" href="#async_hooks_asynchook_disable" id="async_hooks_asynchook_disable">#</a></span></h4>
+<span class="hljs-keyword">const</span> hook = async_hooks.createHook(callbacks).enable();</code></pre>
+<h4><code>asyncHook.disable()</code><span><a class="mark" href="#async_hooks_asynchook_disable" id="async_hooks_asynchook_disable">#</a></span></h4>
 <ul>
 <li>Returns: <a href="async_hooks.html#async_hooks_async_hooks_createhook_callbacks" class="type">&#x3C;AsyncHook></a> A reference to <code>asyncHook</code>.</li>
 </ul>
@@ -343,11 +368,11 @@ const hook = async_hooks.createHook(callbacks).enable();
 <code>AsyncHook</code> callbacks to be executed. Once a hook has been disabled it will not
 be called again until enabled.</p>
 <p>For API consistency <code>disable()</code> also returns the <code>AsyncHook</code> instance.</p>
-<h4>Hook Callbacks<span><a class="mark" href="#async_hooks_hook_callbacks" id="async_hooks_hook_callbacks">#</a></span></h4>
+<h4>Hook callbacks<span><a class="mark" href="#async_hooks_hook_callbacks" id="async_hooks_hook_callbacks">#</a></span></h4>
 <p>Key events in the lifetime of asynchronous events have been categorized into
 four areas: instantiation, before/after the callback is called, and when the
 instance is destroyed.</p>
-<h5>init(asyncId, type, triggerAsyncId, resource)<span><a class="mark" href="#async_hooks_init_asyncid_type_triggerasyncid_resource" id="async_hooks_init_asyncid_type_triggerasyncid_resource">#</a></span></h5>
+<h5><code>init(asyncId, type, triggerAsyncId, resource)</code><span><a class="mark" href="#async_hooks_init_asyncid_type_triggerasyncid_resource" id="async_hooks_init_asyncid_type_triggerasyncid_resource">#</a></span></h5>
 <ul>
 <li><code>asyncId</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> A unique ID for the async resource.</li>
 <li><code>type</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The type of the async resource.</li>
@@ -363,10 +388,9 @@ exists.</p>
 <p>This behavior can be observed by doing something like opening a resource then
 closing it before the resource can be used. The following snippet demonstrates
 this.</p>
-<pre><code class="language-js">require('net').createServer().listen(function() { this.close(); });
-// OR
-clearTimeout(setTimeout(() => {}, 10));
-</code></pre>
+<pre><code class="language-js"><span class="hljs-built_in">require</span>(<span class="hljs-string">'net'</span>).createServer().listen(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{ <span class="hljs-keyword">this</span>.close(); });
+<span class="hljs-comment">// OR</span>
+clearTimeout(setTimeout(<span class="hljs-function"><span class="hljs-params">()</span> =></span> {}, <span class="hljs-number">10</span>));</code></pre>
 <p>Every new resource is assigned an ID that is unique within the scope of the
 current Node.js instance.</p>
 <h6><code>type</code><span><a class="mark" href="#async_hooks_type" id="async_hooks_type">#</a></span></h6>
@@ -377,8 +401,7 @@ resource's constructor.</p>
 HTTPCLIENTREQUEST, JSSTREAM, PIPECONNECTWRAP, PIPEWRAP, PROCESSWRAP, QUERYWRAP,
 SHUTDOWNWRAP, SIGNALWRAP, STATWATCHER, TCPCONNECTWRAP, TCPSERVERWRAP, TCPWRAP,
 TTYWRAP, UDPSENDWRAP, UDPWRAP, WRITEWRAP, ZLIB, SSLCONNECTION, PBKDF2REQUEST,
-RANDOMBYTESREQUEST, TLSWRAP, Microtask, Timeout, Immediate, TickObject
-</code></pre>
+RANDOMBYTESREQUEST, TLSWRAP, Microtask, Timeout, Immediate, TickObject</code></pre>
 <p>There is also the <code>PROMISE</code> resource type, which is used to track <code>Promise</code>
 instances and asynchronous work scheduled by them.</p>
 <p>Users are able to define their own <code>type</code> when using the public embedder API.</p>
@@ -393,18 +416,16 @@ created, while <code>triggerAsyncId</code> shows <em>why</em> a resource was cre
 <p>The following is a simple demonstration of <code>triggerAsyncId</code>:</p>
 <pre><code class="language-js">async_hooks.createHook({
   init(asyncId, type, triggerAsyncId) {
-    const eid = async_hooks.executionAsyncId();
+    <span class="hljs-keyword">const</span> eid = async_hooks.executionAsyncId();
     fs.writeSync(
-      1, `${type}(${asyncId}): trigger: ${triggerAsyncId} execution: ${eid}\n`);
+      <span class="hljs-number">1</span>, <span class="hljs-string">`<span class="hljs-subst">${type}</span>(<span class="hljs-subst">${asyncId}</span>): trigger: <span class="hljs-subst">${triggerAsyncId}</span> execution: <span class="hljs-subst">${eid}</span>\n`</span>);
   }
 }).enable();
 
-require('net').createServer((conn) => {}).listen(8080);
-</code></pre>
+<span class="hljs-built_in">require</span>(<span class="hljs-string">'net'</span>).createServer(<span class="hljs-function">(<span class="hljs-params">conn</span>) =></span> {}).listen(<span class="hljs-number">8080</span>);</code></pre>
 <p>Output when hitting the server with <code>nc localhost 8080</code>:</p>
 <pre><code class="language-console">TCPSERVERWRAP(5): trigger: 1 execution: 1
-TCPWRAP(7): trigger: 5 execution: 0
-</code></pre>
+TCPWRAP(7): trigger: 5 execution: 0</code></pre>
 <p>The <code>TCPSERVERWRAP</code> is the server which receives the connections.</p>
 <p>The <code>TCPWRAP</code> is the new connection from the client. When a new
 connection is made, the <code>TCPWrap</code> instance is immediately constructed. This
@@ -417,15 +438,11 @@ of propagating what resource is responsible for the new resource's existence.</p
 <p><code>resource</code> is an object that represents the actual async resource that has
 been initialized. This can contain useful information that can vary based on
 the value of <code>type</code>. For instance, for the <code>GETADDRINFOREQWRAP</code> resource type,
-<code>resource</code> provides the hostname used when looking up the IP address for the
+<code>resource</code> provides the host name used when looking up the IP address for the
 host in <code>net.Server.listen()</code>. The API for accessing this information is
-currently not considered public, but using the Embedder API, users can provide
+not supported, but using the Embedder API, users can provide
 and document their own resource objects. For example, such a resource object
 could contain the SQL query being executed.</p>
-<p>In the case of Promises, the <code>resource</code> object will have an
-<code>isChainedPromise</code> property, set to <code>true</code> if the promise has a parent promise,
-and <code>false</code> otherwise. For example, in the case of <code>b = a.then(handler)</code>, <code>a</code> is
-considered a parent <code>Promise</code> of <code>b</code>. Here, <code>b</code> is considered a chained promise.</p>
 <p>In some cases the resource object is reused for performance reasons, it is
 thus not safe to use it as a key in a <code>WeakMap</code> or add properties to it.</p>
 <h6>Asynchronous context example<span><a class="mark" href="#async_hooks_asynchronous_context_example" id="async_hooks_asynchronous_context_example">#</a></span></h6>
@@ -433,42 +450,38 @@ thus not safe to use it as a key in a <code>WeakMap</code> or add properties to 
 <code>init</code> between the <code>before</code> and <code>after</code> calls, specifically what the
 callback to <code>listen()</code> will look like. The output formatting is slightly more
 elaborate to make calling context easier to see.</p>
-<pre><code class="language-js">let indent = 0;
+<pre><code class="language-js"><span class="hljs-keyword">let</span> indent = <span class="hljs-number">0</span>;
 async_hooks.createHook({
   init(asyncId, type, triggerAsyncId) {
-    const eid = async_hooks.executionAsyncId();
-    const indentStr = ' '.repeat(indent);
+    <span class="hljs-keyword">const</span> eid = async_hooks.executionAsyncId();
+    <span class="hljs-keyword">const</span> indentStr = <span class="hljs-string">' '</span>.repeat(indent);
     fs.writeSync(
-      1,
-      `${indentStr}${type}(${asyncId}):` +
-      ` trigger: ${triggerAsyncId} execution: ${eid}\n`);
+      <span class="hljs-number">1</span>,
+      <span class="hljs-string">`<span class="hljs-subst">${indentStr}</span><span class="hljs-subst">${type}</span>(<span class="hljs-subst">${asyncId}</span>):`</span> +
+      <span class="hljs-string">` trigger: <span class="hljs-subst">${triggerAsyncId}</span> execution: <span class="hljs-subst">${eid}</span>\n`</span>);
   },
   before(asyncId) {
-    const indentStr = ' '.repeat(indent);
-    fs.writeFileSync('log.out',
-                     `${indentStr}before:  ${asyncId}\n`, { flag: 'a' });
-    indent += 2;
+    <span class="hljs-keyword">const</span> indentStr = <span class="hljs-string">' '</span>.repeat(indent);
+    fs.writeSync(process.stdout.fd, <span class="hljs-string">`<span class="hljs-subst">${indentStr}</span>before:  <span class="hljs-subst">${asyncId}</span>\n`</span>);
+    indent += <span class="hljs-number">2</span>;
   },
   after(asyncId) {
-    indent -= 2;
-    const indentStr = ' '.repeat(indent);
-    fs.writeFileSync('log.out',
-                     `${indentStr}after:  ${asyncId}\n`, { flag: 'a' });
+    indent -= <span class="hljs-number">2</span>;
+    <span class="hljs-keyword">const</span> indentStr = <span class="hljs-string">' '</span>.repeat(indent);
+    fs.writeSync(process.stdout.fd, <span class="hljs-string">`<span class="hljs-subst">${indentStr}</span>after:  <span class="hljs-subst">${asyncId}</span>\n`</span>);
   },
   destroy(asyncId) {
-    const indentStr = ' '.repeat(indent);
-    fs.writeFileSync('log.out',
-                     `${indentStr}destroy:  ${asyncId}\n`, { flag: 'a' });
+    <span class="hljs-keyword">const</span> indentStr = <span class="hljs-string">' '</span>.repeat(indent);
+    fs.writeSync(process.stdout.fd, <span class="hljs-string">`<span class="hljs-subst">${indentStr}</span>destroy:  <span class="hljs-subst">${asyncId}</span>\n`</span>);
   },
 }).enable();
 
-require('net').createServer(() => {}).listen(8080, () => {
-  // Let's wait 10ms before logging the server started.
-  setTimeout(() => {
-    console.log('>>>', async_hooks.executionAsyncId());
-  }, 10);
-});
-</code></pre>
+<span class="hljs-built_in">require</span>(<span class="hljs-string">'net'</span>).createServer(<span class="hljs-function"><span class="hljs-params">()</span> =></span> {}).listen(<span class="hljs-number">8080</span>, () => {
+  <span class="hljs-comment">// Let's wait 10ms before logging the server started.</span>
+  setTimeout(<span class="hljs-function"><span class="hljs-params">()</span> =></span> {
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'>>>'</span>, async_hooks.executionAsyncId());
+  }, <span class="hljs-number">10</span>);
+});</code></pre>
 <p>Output from only starting the server:</p>
 <pre><code class="language-console">TCPSERVERWRAP(5): trigger: 1 execution: 1
 TickObject(6): trigger: 5 execution: 1
@@ -477,25 +490,42 @@ before:  6
 after:   6
 destroy: 6
 before:  7
->>> 7
+<span class="hljs-meta">></span><span class="bash">>> 7</span>
   TickObject(8): trigger: 7 execution: 7
 after:   7
 before:  8
-after:   8
-</code></pre>
+after:   8</code></pre>
 <p>As illustrated in the example, <code>executionAsyncId()</code> and <code>execution</code> each specify
 the value of the current execution context; which is delineated by calls to
 <code>before</code> and <code>after</code>.</p>
 <p>Only using <code>execution</code> to graph resource allocation results in the following:</p>
-<pre><code class="language-console">Timeout(7) -> TickObject(6) -> root(1)
-</code></pre>
+<pre><code class="language-console">  root(1)
+     ^
+     |
+TickObject(6)
+     ^
+     |
+ Timeout(7)</code></pre>
 <p>The <code>TCPSERVERWRAP</code> is not part of this graph, even though it was the reason for
-<code>console.log()</code> being called. This is because binding to a port without a
-hostname is a <em>synchronous</em> operation, but to maintain a completely asynchronous
-API the user's callback is placed in a <code>process.nextTick()</code>.</p>
+<code>console.log()</code> being called. This is because binding to a port without a host
+name is a <em>synchronous</em> operation, but to maintain a completely asynchronous
+API the user's callback is placed in a <code>process.nextTick()</code>. Which is why
+<code>TickObject</code> is present in the output and is a 'parent' for <code>.listen()</code>
+callback.</p>
 <p>The graph only shows <em>when</em> a resource was created, not <em>why</em>, so to track
-the <em>why</em> use <code>triggerAsyncId</code>.</p>
-<h5>before(asyncId)<span><a class="mark" href="#async_hooks_before_asyncid" id="async_hooks_before_asyncid">#</a></span></h5>
+the <em>why</em> use <code>triggerAsyncId</code>. Which can be represented with the following
+graph:</p>
+<pre><code class="language-console"> bootstrap(1)
+     |
+     ˅
+TCPSERVERWRAP(5)
+     |
+     ˅
+ TickObject(6)
+     |
+     ˅
+  Timeout(7)</code></pre>
+<h5><code>before(asyncId)</code><span><a class="mark" href="#async_hooks_before_asyncid" id="async_hooks_before_asyncid">#</a></span></h5>
 <ul>
 <li><code>asyncId</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
 </ul>
@@ -510,7 +540,7 @@ or, for example, if no connections are received by a TCP server. Persistent
 asynchronous resources like a TCP server will typically call the <code>before</code>
 callback multiple times, while other operations like <code>fs.open()</code> will call
 it only once.</p>
-<h5>after(asyncId)<span><a class="mark" href="#async_hooks_after_asyncid" id="async_hooks_after_asyncid">#</a></span></h5>
+<h5><code>after(asyncId)</code><span><a class="mark" href="#async_hooks_after_asyncid" id="async_hooks_after_asyncid">#</a></span></h5>
 <ul>
 <li><code>asyncId</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
 </ul>
@@ -518,7 +548,7 @@ it only once.</p>
 <p>If an uncaught exception occurs during execution of the callback, then <code>after</code>
 will run <em>after</em> the <code>'uncaughtException'</code> event is emitted or a <code>domain</code>'s
 handler runs.</p>
-<h5>destroy(asyncId)<span><a class="mark" href="#async_hooks_destroy_asyncid" id="async_hooks_destroy_asyncid">#</a></span></h5>
+<h5><code>destroy(asyncId)</code><span><a class="mark" href="#async_hooks_destroy_asyncid" id="async_hooks_destroy_asyncid">#</a></span></h5>
 <ul>
 <li><code>asyncId</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
 </ul>
@@ -528,7 +558,7 @@ called asynchronously from the embedder API <code>emitDestroy()</code>.</p>
 made to the <code>resource</code> object passed to <code>init</code> it is possible that <code>destroy</code>
 will never be called, causing a memory leak in the application. If the resource
 does not depend on garbage collection, then this will not be an issue.</p>
-<h5>promiseResolve(asyncId)<span><a class="mark" href="#async_hooks_promiseresolve_asyncid" id="async_hooks_promiseresolve_asyncid">#</a></span></h5>
+<h5><code>promiseResolve(asyncId)</code><span><a class="mark" href="#async_hooks_promiseresolve_asyncid" id="async_hooks_promiseresolve_asyncid">#</a></span></h5>
 <div class="api_metadata">
 <span>Added in: v8.6.0</span>
 </div>
@@ -540,17 +570,61 @@ invoked (either directly or through other means of resolving a promise).</p>
 <p><code>resolve()</code> does not do any observable synchronous work.</p>
 <p>The <code>Promise</code> is not necessarily fulfilled or rejected at this point if the
 <code>Promise</code> was resolved by assuming the state of another <code>Promise</code>.</p>
-<pre><code class="language-js">new Promise((resolve) => resolve(true)).then((a) => {});
-</code></pre>
+<pre><code class="language-js"><span class="hljs-keyword">new</span> <span class="hljs-built_in">Promise</span>(<span class="hljs-function">(<span class="hljs-params">resolve</span>) =></span> resolve(<span class="hljs-literal">true</span>)).then(<span class="hljs-function">(<span class="hljs-params">a</span>) =></span> {});</code></pre>
 <p>calls the following callbacks:</p>
 <pre><code class="language-text">init for PROMISE with id 5, trigger id: 1
   promise resolve 5      # corresponds to resolve(true)
 init for PROMISE with id 6, trigger id: 5  # the Promise returned by then()
   before 6               # the then() callback is entered
   promise resolve 6      # the then() callback resolves the promise by returning
-  after 6
-</code></pre>
-<h4>async_hooks.executionAsyncId()<span><a class="mark" href="#async_hooks_async_hooks_executionasyncid" id="async_hooks_async_hooks_executionasyncid">#</a></span></h4>
+  after 6</code></pre>
+<h4><code>async_hooks.executionAsyncResource()</code><span><a class="mark" href="#async_hooks_async_hooks_executionasyncresource" id="async_hooks_async_hooks_executionasyncresource">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v13.9.0</span>
+</div>
+<ul>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> The resource representing the current execution.
+Useful to store data within the resource.</li>
+</ul>
+<p>Resource objects returned by <code>executionAsyncResource()</code> are most often internal
+Node.js handle objects with undocumented APIs. Using any functions or properties
+on the object is likely to crash your application and should be avoided.</p>
+<p>Using <code>executionAsyncResource()</code> in the top-level execution context will
+return an empty object as there is no handle or request object to use,
+but having an object representing the top-level can be helpful.</p>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> { open } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'fs'</span>);
+<span class="hljs-keyword">const</span> { executionAsyncId, executionAsyncResource } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'async_hooks'</span>);
+
+<span class="hljs-built_in">console</span>.log(executionAsyncId(), executionAsyncResource());  <span class="hljs-comment">// 1 {}</span>
+open(__filename, <span class="hljs-string">'r'</span>, (err, fd) => {
+  <span class="hljs-built_in">console</span>.log(executionAsyncId(), executionAsyncResource());  <span class="hljs-comment">// 7 FSReqWrap</span>
+});</code></pre>
+<p>This can be used to implement continuation local storage without the
+use of a tracking <code>Map</code> to store the metadata:</p>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> { createServer } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'http'</span>);
+<span class="hljs-keyword">const</span> {
+  executionAsyncId,
+  executionAsyncResource,
+  createHook
+} = <span class="hljs-built_in">require</span>(<span class="hljs-string">'async_hooks'</span>);
+<span class="hljs-keyword">const</span> sym = <span class="hljs-built_in">Symbol</span>(<span class="hljs-string">'state'</span>); <span class="hljs-comment">// Private symbol to avoid pollution</span>
+
+createHook({
+  init(asyncId, type, triggerAsyncId, resource) {
+    <span class="hljs-keyword">const</span> cr = executionAsyncResource();
+    <span class="hljs-keyword">if</span> (cr) {
+      resource[sym] = cr[sym];
+    }
+  }
+}).enable();
+
+<span class="hljs-keyword">const</span> server = createServer(<span class="hljs-function">(<span class="hljs-params">req, res</span>) =></span> {
+  executionAsyncResource()[sym] = { <span class="hljs-attr">state</span>: req.url };
+  setTimeout(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
+    res.end(<span class="hljs-built_in">JSON</span>.stringify(executionAsyncResource()[sym]));
+  }, <span class="hljs-number">100</span>);
+}).listen(<span class="hljs-number">3000</span>);</code></pre>
+<h4><code>async_hooks.executionAsyncId()</code><span><a class="mark" href="#async_hooks_async_hooks_executionasyncid" id="async_hooks_async_hooks_executionasyncid">#</a></span></h4>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -566,46 +640,43 @@ init for PROMISE with id 6, trigger id: 5  # the Promise returned by then()
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> The <code>asyncId</code> of the current execution context. Useful to
 track when something calls.</li>
 </ul>
-<pre><code class="language-js">const async_hooks = require('async_hooks');
+<pre><code class="language-js"><span class="hljs-keyword">const</span> async_hooks = <span class="hljs-built_in">require</span>(<span class="hljs-string">'async_hooks'</span>);
 
-console.log(async_hooks.executionAsyncId());  // 1 - bootstrap
-fs.open(path, 'r', (err, fd) => {
-  console.log(async_hooks.executionAsyncId());  // 6 - open()
-});
-</code></pre>
+<span class="hljs-built_in">console</span>.log(async_hooks.executionAsyncId());  <span class="hljs-comment">// 1 - bootstrap</span>
+fs.open(path, <span class="hljs-string">'r'</span>, (err, fd) => {
+  <span class="hljs-built_in">console</span>.log(async_hooks.executionAsyncId());  <span class="hljs-comment">// 6 - open()</span>
+});</code></pre>
 <p>The ID returned from <code>executionAsyncId()</code> is related to execution timing, not
 causality (which is covered by <code>triggerAsyncId()</code>):</p>
-<pre><code class="language-js">const server = net.createServer((conn) => {
-  // Returns the ID of the server, not of the new connection, because the
-  // callback runs in the execution scope of the server's MakeCallback().
+<pre><code class="language-js"><span class="hljs-keyword">const</span> server = net.createServer(<span class="hljs-function">(<span class="hljs-params">conn</span>) =></span> {
+  <span class="hljs-comment">// Returns the ID of the server, not of the new connection, because the</span>
+  <span class="hljs-comment">// callback runs in the execution scope of the server's MakeCallback().</span>
   async_hooks.executionAsyncId();
 
 }).listen(port, () => {
-  // Returns the ID of a TickObject (i.e. process.nextTick()) because all
-  // callbacks passed to .listen() are wrapped in a nextTick().
+  <span class="hljs-comment">// Returns the ID of a TickObject (i.e. process.nextTick()) because all</span>
+  <span class="hljs-comment">// callbacks passed to .listen() are wrapped in a nextTick().</span>
   async_hooks.executionAsyncId();
-});
-</code></pre>
+});</code></pre>
 <p>Promise contexts may not get precise <code>executionAsyncIds</code> by default.
 See the section on <a href="#async_hooks_promise_execution_tracking">promise execution tracking</a>.</p>
-<h4>async_hooks.triggerAsyncId()<span><a class="mark" href="#async_hooks_async_hooks_triggerasyncid" id="async_hooks_async_hooks_triggerasyncid">#</a></span></h4>
+<h4><code>async_hooks.triggerAsyncId()</code><span><a class="mark" href="#async_hooks_async_hooks_triggerasyncid" id="async_hooks_async_hooks_triggerasyncid">#</a></span></h4>
 <ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> The ID of the resource responsible for calling the callback
 that is currently being executed.</li>
 </ul>
-<pre><code class="language-js">const server = net.createServer((conn) => {
-  // The resource that caused (or triggered) this callback to be called
-  // was that of the new connection. Thus the return value of triggerAsyncId()
-  // is the asyncId of "conn".
+<pre><code class="language-js"><span class="hljs-keyword">const</span> server = net.createServer(<span class="hljs-function">(<span class="hljs-params">conn</span>) =></span> {
+  <span class="hljs-comment">// The resource that caused (or triggered) this callback to be called</span>
+  <span class="hljs-comment">// was that of the new connection. Thus the return value of triggerAsyncId()</span>
+  <span class="hljs-comment">// is the asyncId of "conn".</span>
   async_hooks.triggerAsyncId();
 
 }).listen(port, () => {
-  // Even though all callbacks passed to .listen() are wrapped in a nextTick()
-  // the callback itself exists because the call to the server's .listen()
-  // was made. So the return value would be the ID of the server.
+  <span class="hljs-comment">// Even though all callbacks passed to .listen() are wrapped in a nextTick()</span>
+  <span class="hljs-comment">// the callback itself exists because the call to the server's .listen()</span>
+  <span class="hljs-comment">// was made. So the return value would be the ID of the server.</span>
   async_hooks.triggerAsyncId();
-});
-</code></pre>
+});</code></pre>
 <p>Promise contexts may not get valid <code>triggerAsyncId</code>s by default. See
 the section on <a href="#async_hooks_promise_execution_tracking">promise execution tracking</a>.</p>
 <h2>Promise execution tracking<span><a class="mark" href="#async_hooks_promise_execution_tracking" id="async_hooks_promise_execution_tracking">#</a></span></h2>
@@ -613,27 +684,25 @@ the section on <a href="#async_hooks_promise_execution_tracking">promise executi
 expensive nature of the <a href="https://docs.google.com/document/d/1rda3yKGHimKIhg5YeoAmCOtyURgsbTH_qaYR79FELlk/edit">promise introspection API</a> provided by
 V8. This means that programs using promises or <code>async</code>/<code>await</code> will not get
 correct execution and trigger ids for promise callback contexts by default.</p>
-<pre><code class="language-js">const ah = require('async_hooks');
-Promise.resolve(1729).then(() => {
-  console.log(`eid ${ah.executionAsyncId()} tid ${ah.triggerAsyncId()}`);
+<pre><code class="language-js"><span class="hljs-keyword">const</span> ah = <span class="hljs-built_in">require</span>(<span class="hljs-string">'async_hooks'</span>);
+<span class="hljs-built_in">Promise</span>.resolve(<span class="hljs-number">1729</span>).then(<span class="hljs-function"><span class="hljs-params">()</span> =></span> {
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`eid <span class="hljs-subst">${ah.executionAsyncId()}</span> tid <span class="hljs-subst">${ah.triggerAsyncId()}</span>`</span>);
 });
-// produces:
-// eid 1 tid 0
-</code></pre>
+<span class="hljs-comment">// produces:</span>
+<span class="hljs-comment">// eid 1 tid 0</span></code></pre>
 <p>Observe that the <code>then()</code> callback claims to have executed in the context of the
 outer scope even though there was an asynchronous hop involved. Also,
 the <code>triggerAsyncId</code> value is <code>0</code>, which means that we are missing context about
 the resource that caused (triggered) the <code>then()</code> callback to be executed.</p>
 <p>Installing async hooks via <code>async_hooks.createHook</code> enables promise execution
 tracking:</p>
-<pre><code class="language-js">const ah = require('async_hooks');
-ah.createHook({ init() {} }).enable(); // forces PromiseHooks to be enabled.
-Promise.resolve(1729).then(() => {
-  console.log(`eid ${ah.executionAsyncId()} tid ${ah.triggerAsyncId()}`);
+<pre><code class="language-js"><span class="hljs-keyword">const</span> ah = <span class="hljs-built_in">require</span>(<span class="hljs-string">'async_hooks'</span>);
+ah.createHook({ init() {} }).enable(); <span class="hljs-comment">// forces PromiseHooks to be enabled.</span>
+<span class="hljs-built_in">Promise</span>.resolve(<span class="hljs-number">1729</span>).then(<span class="hljs-function"><span class="hljs-params">()</span> =></span> {
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`eid <span class="hljs-subst">${ah.executionAsyncId()}</span> tid <span class="hljs-subst">${ah.triggerAsyncId()}</span>`</span>);
 });
-// produces:
-// eid 7 tid 6
-</code></pre>
+<span class="hljs-comment">// produces:</span>
+<span class="hljs-comment">// eid 7 tid 6</span></code></pre>
 <p>In this example, adding any actual hook function enabled the tracking of
 promises. There are two promises in the example above; the promise created by
 <code>Promise.resolve()</code> and the promise returned by the call to <code>then()</code>. In the
@@ -645,43 +714,42 @@ async resource <code>6</code>.</p>
 only on chained promises. That means promises not created by <code>then()</code>/<code>catch()</code>
 will not have the <code>before</code> and <code>after</code> callbacks fired on them. For more details
 see the details of the V8 <a href="https://docs.google.com/document/d/1rda3yKGHimKIhg5YeoAmCOtyURgsbTH_qaYR79FELlk/edit">PromiseHooks</a> API.</p>
-<h2>JavaScript Embedder API<span><a class="mark" href="#async_hooks_javascript_embedder_api" id="async_hooks_javascript_embedder_api">#</a></span></h2>
+<h2>JavaScript embedder API<span><a class="mark" href="#async_hooks_javascript_embedder_api" id="async_hooks_javascript_embedder_api">#</a></span></h2>
 <p>Library developers that handle their own asynchronous resources performing tasks
 like I/O, connection pooling, or managing callback queues may use the
-<code>AsyncWrap</code> JavaScript API so that all the appropriate callbacks are called.</p>
-<h3>Class: AsyncResource<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/async_hooks.js#L133">[src]</a><span><a class="mark" href="#async_hooks_class_asyncresource" id="async_hooks_class_asyncresource">#</a></span></h3>
+<code>AsyncResource</code> JavaScript API so that all the appropriate callbacks are called.</p>
+<h3>Class: <code>AsyncResource</code><span><a class="mark" href="#async_hooks_class_asyncresource" id="async_hooks_class_asyncresource">#</a></span></h3>
 <p>The class <code>AsyncResource</code> is designed to be extended by the embedder's async
 resources. Using this, users can easily trigger the lifetime events of their
 own resources.</p>
 <p>The <code>init</code> hook will trigger when an <code>AsyncResource</code> is instantiated.</p>
 <p>The following is an overview of the <code>AsyncResource</code> API.</p>
-<pre><code class="language-js">const { AsyncResource, executionAsyncId } = require('async_hooks');
+<pre><code class="language-js"><span class="hljs-keyword">const</span> { AsyncResource, executionAsyncId } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'async_hooks'</span>);
 
-// AsyncResource() is meant to be extended. Instantiating a
-// new AsyncResource() also triggers init. If triggerAsyncId is omitted then
-// async_hook.executionAsyncId() is used.
-const asyncResource = new AsyncResource(
-  type, { triggerAsyncId: executionAsyncId(), requireManualDestroy: false }
+<span class="hljs-comment">// AsyncResource() is meant to be extended. Instantiating a</span>
+<span class="hljs-comment">// new AsyncResource() also triggers init. If triggerAsyncId is omitted then</span>
+<span class="hljs-comment">// async_hook.executionAsyncId() is used.</span>
+<span class="hljs-keyword">const</span> asyncResource = <span class="hljs-keyword">new</span> AsyncResource(
+  type, { <span class="hljs-attr">triggerAsyncId</span>: executionAsyncId(), <span class="hljs-attr">requireManualDestroy</span>: <span class="hljs-literal">false</span> }
 );
 
-// Run a function in the execution context of the resource. This will
-// * establish the context of the resource
-// * trigger the AsyncHooks before callbacks
-// * call the provided function `fn` with the supplied arguments
-// * trigger the AsyncHooks after callbacks
-// * restore the original execution context
+<span class="hljs-comment">// Run a function in the execution context of the resource. This will</span>
+<span class="hljs-comment">// * establish the context of the resource</span>
+<span class="hljs-comment">// * trigger the AsyncHooks before callbacks</span>
+<span class="hljs-comment">// * call the provided function `fn` with the supplied arguments</span>
+<span class="hljs-comment">// * trigger the AsyncHooks after callbacks</span>
+<span class="hljs-comment">// * restore the original execution context</span>
 asyncResource.runInAsyncScope(fn, thisArg, ...args);
 
-// Call AsyncHooks destroy callbacks.
+<span class="hljs-comment">// Call AsyncHooks destroy callbacks.</span>
 asyncResource.emitDestroy();
 
-// Return the unique ID assigned to the AsyncResource instance.
+<span class="hljs-comment">// Return the unique ID assigned to the AsyncResource instance.</span>
 asyncResource.asyncId();
 
-// Return the trigger ID for the AsyncResource instance.
-asyncResource.triggerAsyncId();
-</code></pre>
-<h4>new AsyncResource(type[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/async_hooks.js#L134">[src]</a><span><a class="mark" href="#async_hooks_new_asyncresource_type_options" id="async_hooks_new_asyncresource_type_options">#</a></span></h4>
+<span class="hljs-comment">// Return the trigger ID for the AsyncResource instance.</span>
+asyncResource.triggerAsyncId();</code></pre>
+<h4><code>new AsyncResource(type[, options])</code><span><a class="mark" href="#async_hooks_new_asyncresource_type_options" id="async_hooks_new_asyncresource_type_options">#</a></span></h4>
 <ul>
 <li><code>type</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The type of async event.</li>
 <li>
@@ -689,34 +757,57 @@ asyncResource.triggerAsyncId();
 <ul>
 <li><code>triggerAsyncId</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> The ID of the execution context that created this
 async event. <strong>Default:</strong> <code>executionAsyncId()</code>.</li>
-<li><code>requireManualDestroy</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> Disables automatic <code>emitDestroy</code> when the
-object is garbage collected. This usually does not need to be set (even if
-<code>emitDestroy</code> is called manually), unless the resource's <code>asyncId</code> is
-retrieved and the sensitive API's <code>emitDestroy</code> is called with it.
+<li><code>requireManualDestroy</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> If set to <code>true</code>, disables <code>emitDestroy</code>
+when the object is garbage collected. This usually does not need to be set
+(even if <code>emitDestroy</code> is called manually), unless the resource's <code>asyncId</code>
+is retrieved and the sensitive API's <code>emitDestroy</code> is called with it.
+When set to <code>false</code>, the <code>emitDestroy</code> call on garbage collection
+will only take place if there is at least one active <code>destroy</code> hook.
 <strong>Default:</strong> <code>false</code>.</li>
 </ul>
 </li>
 </ul>
 <p>Example usage:</p>
-<pre><code class="language-js">class DBQuery extends AsyncResource {
-  constructor(db) {
-    super('DBQuery');
-    this.db = db;
+<pre><code class="language-js"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">DBQuery</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AsyncResource</span> </span>{
+  <span class="hljs-keyword">constructor</span>(db) {
+    <span class="hljs-keyword">super</span>(<span class="hljs-string">'DBQuery'</span>);
+    <span class="hljs-keyword">this</span>.db = db;
   }
 
   getInfo(query, callback) {
-    this.db.get(query, (err, data) => {
-      this.runInAsyncScope(callback, null, err, data);
+    <span class="hljs-keyword">this</span>.db.get(query, (err, data) => {
+      <span class="hljs-keyword">this</span>.runInAsyncScope(callback, <span class="hljs-literal">null</span>, err, data);
     });
   }
 
   close() {
-    this.db = null;
-    this.emitDestroy();
+    <span class="hljs-keyword">this</span>.db = <span class="hljs-literal">null</span>;
+    <span class="hljs-keyword">this</span>.emitDestroy();
   }
-}
-</code></pre>
-<h4>asyncResource.runInAsyncScope(fn[, thisArg, ...args])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/async_hooks.js#L167">[src]</a><span><a class="mark" href="#async_hooks_asyncresource_runinasyncscope_fn_thisarg_args" id="async_hooks_asyncresource_runinasyncscope_fn_thisarg_args">#</a></span></h4>
+}</code></pre>
+<h4>Static method: <code>AsyncResource.bind(fn[, type])</code><span><a class="mark" href="#async_hooks_static_method_asyncresource_bind_fn_type" id="async_hooks_static_method_asyncresource_bind_fn_type">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v14.8.0</span>
+</div>
+<ul>
+<li><code>fn</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> The function to bind to the current execution context.</li>
+<li><code>type</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> An optional name to associate with the underlying
+<code>AsyncResource</code>.</li>
+</ul>
+<p>Binds the given function to the current execution context.</p>
+<p>The returned function will have an <code>asyncResource</code> property referencing
+the <code>AsyncResource</code> to which the function is bound.</p>
+<h4><code>asyncResource.bind(fn)</code><span><a class="mark" href="#async_hooks_asyncresource_bind_fn" id="async_hooks_asyncresource_bind_fn">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v14.8.0</span>
+</div>
+<ul>
+<li><code>fn</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> The function to bind to the current <code>AsyncResource</code>.</li>
+</ul>
+<p>Binds the given function to execute to this <code>AsyncResource</code>'s scope.</p>
+<p>The returned function will have an <code>asyncResource</code> property referencing
+the <code>AsyncResource</code> to which the function is bound.</p>
+<h4><code>asyncResource.runInAsyncScope(fn[, thisArg, ...args])</code><span><a class="mark" href="#async_hooks_asyncresource_runinasyncscope_fn_thisarg_args" id="async_hooks_asyncresource_runinasyncscope_fn_thisarg_args">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v9.6.0</span>
 </div>
@@ -730,7 +821,7 @@ resource.</li>
 of the async resource. This will establish the context, trigger the AsyncHooks
 before callbacks, call the function, trigger the AsyncHooks after callbacks, and
 then restore the original execution context.</p>
-<h4>asyncResource.emitDestroy()<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/async_hooks.js#L179">[src]</a><span><a class="mark" href="#async_hooks_asyncresource_emitdestroy" id="async_hooks_asyncresource_emitdestroy">#</a></span></h4>
+<h4><code>asyncResource.emitDestroy()</code><span><a class="mark" href="#async_hooks_asyncresource_emitdestroy" id="async_hooks_asyncresource_emitdestroy">#</a></span></h4>
 <ul>
 <li>Returns: <a href="async_hooks.html#async_hooks_class_asyncresource" class="type">&#x3C;AsyncResource></a> A reference to <code>asyncResource</code>.</li>
 </ul>
@@ -738,20 +829,329 @@ then restore the original execution context.</p>
 be thrown if it is called more than once. This <strong>must</strong> be manually called. If
 the resource is left to be collected by the GC then the <code>destroy</code> hooks will
 never be called.</p>
-<h4>asyncResource.asyncId()<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/async_hooks.js#L187">[src]</a><span><a class="mark" href="#async_hooks_asyncresource_asyncid" id="async_hooks_asyncresource_asyncid">#</a></span></h4>
+<h4><code>asyncResource.asyncId()</code><span><a class="mark" href="#async_hooks_asyncresource_asyncid" id="async_hooks_asyncresource_asyncid">#</a></span></h4>
 <ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> The unique <code>asyncId</code> assigned to the resource.</li>
 </ul>
-<h4>asyncResource.triggerAsyncId()<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/async_hooks.js#L191">[src]</a><span><a class="mark" href="#async_hooks_asyncresource_triggerasyncid" id="async_hooks_asyncresource_triggerasyncid">#</a></span></h4>
+<h4><code>asyncResource.triggerAsyncId()</code><span><a class="mark" href="#async_hooks_asyncresource_triggerasyncid" id="async_hooks_asyncresource_triggerasyncid">#</a></span></h4>
 <ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> The same <code>triggerAsyncId</code> that is passed to the
 <code>AsyncResource</code> constructor.</li>
 </ul>
+<p><a id="async-resource-worker-pool"></a></p>
+<h3>Using <code>AsyncResource</code> for a <code>Worker</code> thread pool<span><a class="mark" href="#async_hooks_using_asyncresource_for_a_worker_thread_pool" id="async_hooks_using_asyncresource_for_a_worker_thread_pool">#</a></span></h3>
+<p>The following example shows how to use the <code>AsyncResource</code> class to properly
+provide async tracking for a <a href="worker_threads.html#worker_threads_class_worker"><code>Worker</code></a> pool. Other resource pools, such as
+database connection pools, can follow a similar model.</p>
+<p>Assuming that the task is adding two numbers, using a file named
+<code>task_processor.js</code> with the following content:</p>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> { parentPort } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'worker_threads'</span>);
+parentPort.on(<span class="hljs-string">'message'</span>, (task) => {
+  parentPort.postMessage(task.a + task.b);
+});</code></pre>
+<p>a Worker pool around it could use the following structure:</p>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> { AsyncResource } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'async_hooks'</span>);
+<span class="hljs-keyword">const</span> { EventEmitter } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'events'</span>);
+<span class="hljs-keyword">const</span> path = <span class="hljs-built_in">require</span>(<span class="hljs-string">'path'</span>);
+<span class="hljs-keyword">const</span> { Worker } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'worker_threads'</span>);
+
+<span class="hljs-keyword">const</span> kTaskInfo = <span class="hljs-built_in">Symbol</span>(<span class="hljs-string">'kTaskInfo'</span>);
+<span class="hljs-keyword">const</span> kWorkerFreedEvent = <span class="hljs-built_in">Symbol</span>(<span class="hljs-string">'kWorkerFreedEvent'</span>);
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">WorkerPoolTaskInfo</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AsyncResource</span> </span>{
+  <span class="hljs-keyword">constructor</span>(callback) {
+    <span class="hljs-keyword">super</span>(<span class="hljs-string">'WorkerPoolTaskInfo'</span>);
+    <span class="hljs-keyword">this</span>.callback = callback;
+  }
+
+  done(err, result) {
+    <span class="hljs-keyword">this</span>.runInAsyncScope(<span class="hljs-keyword">this</span>.callback, <span class="hljs-literal">null</span>, err, result);
+    <span class="hljs-keyword">this</span>.emitDestroy();  <span class="hljs-comment">// `TaskInfo`s are used only once.</span>
+  }
+}
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">WorkerPool</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">EventEmitter</span> </span>{
+  <span class="hljs-keyword">constructor</span>(numThreads) {
+    <span class="hljs-keyword">super</span>();
+    <span class="hljs-keyword">this</span>.numThreads = numThreads;
+    <span class="hljs-keyword">this</span>.workers = [];
+    <span class="hljs-keyword">this</span>.freeWorkers = [];
+
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &#x3C; numThreads; i++)
+      <span class="hljs-keyword">this</span>.addNewWorker();
+  }
+
+  addNewWorker() {
+    <span class="hljs-keyword">const</span> worker = <span class="hljs-keyword">new</span> Worker(path.resolve(__dirname, <span class="hljs-string">'task_processor.js'</span>));
+    worker.on(<span class="hljs-string">'message'</span>, (result) => {
+      <span class="hljs-comment">// In case of success: Call the callback that was passed to `runTask`,</span>
+      <span class="hljs-comment">// remove the `TaskInfo` associated with the Worker, and mark it as free</span>
+      <span class="hljs-comment">// again.</span>
+      worker[kTaskInfo].done(<span class="hljs-literal">null</span>, result);
+      worker[kTaskInfo] = <span class="hljs-literal">null</span>;
+      <span class="hljs-keyword">this</span>.freeWorkers.push(worker);
+      <span class="hljs-keyword">this</span>.emit(kWorkerFreedEvent);
+    });
+    worker.on(<span class="hljs-string">'error'</span>, (err) => {
+      <span class="hljs-comment">// In case of an uncaught exception: Call the callback that was passed to</span>
+      <span class="hljs-comment">// `runTask` with the error.</span>
+      <span class="hljs-keyword">if</span> (worker[kTaskInfo])
+        worker[kTaskInfo].done(err, <span class="hljs-literal">null</span>);
+      <span class="hljs-keyword">else</span>
+        <span class="hljs-keyword">this</span>.emit(<span class="hljs-string">'error'</span>, err);
+      <span class="hljs-comment">// Remove the worker from the list and start a new Worker to replace the</span>
+      <span class="hljs-comment">// current one.</span>
+      <span class="hljs-keyword">this</span>.workers.splice(<span class="hljs-keyword">this</span>.workers.indexOf(worker), <span class="hljs-number">1</span>);
+      <span class="hljs-keyword">this</span>.addNewWorker();
+    });
+    <span class="hljs-keyword">this</span>.workers.push(worker);
+    <span class="hljs-keyword">this</span>.freeWorkers.push(worker);
+    <span class="hljs-keyword">this</span>.emit(kWorkerFreedEvent);
+  }
+
+  runTask(task, callback) {
+    <span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.freeWorkers.length === <span class="hljs-number">0</span>) {
+      <span class="hljs-comment">// No free threads, wait until a worker thread becomes free.</span>
+      <span class="hljs-keyword">this</span>.once(kWorkerFreedEvent, () => <span class="hljs-keyword">this</span>.runTask(task, callback));
+      <span class="hljs-keyword">return</span>;
+    }
+
+    <span class="hljs-keyword">const</span> worker = <span class="hljs-keyword">this</span>.freeWorkers.pop();
+    worker[kTaskInfo] = <span class="hljs-keyword">new</span> WorkerPoolTaskInfo(callback);
+    worker.postMessage(task);
+  }
+
+  close() {
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> worker <span class="hljs-keyword">of</span> <span class="hljs-keyword">this</span>.workers) worker.terminate();
+  }
+}
+
+<span class="hljs-built_in">module</span>.exports = WorkerPool;</code></pre>
+<p>Without the explicit tracking added by the <code>WorkerPoolTaskInfo</code> objects,
+it would appear that the callbacks are associated with the individual <code>Worker</code>
+objects. However, the creation of the <code>Worker</code>s is not associated with the
+creation of the tasks and does not provide information about when tasks
+were scheduled.</p>
+<p>This pool could be used as follows:</p>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> WorkerPool = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./worker_pool.js'</span>);
+<span class="hljs-keyword">const</span> os = <span class="hljs-built_in">require</span>(<span class="hljs-string">'os'</span>);
+
+<span class="hljs-keyword">const</span> pool = <span class="hljs-keyword">new</span> WorkerPool(os.cpus().length);
+
+<span class="hljs-keyword">let</span> finished = <span class="hljs-number">0</span>;
+<span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &#x3C; <span class="hljs-number">10</span>; i++) {
+  pool.runTask({ <span class="hljs-attr">a</span>: <span class="hljs-number">42</span>, <span class="hljs-attr">b</span>: <span class="hljs-number">100</span> }, (err, result) => {
+    <span class="hljs-built_in">console</span>.log(i, err, result);
+    <span class="hljs-keyword">if</span> (++finished === <span class="hljs-number">10</span>)
+      pool.close();
+  });
+}</code></pre>
+<h3>Integrating <code>AsyncResource</code> with <code>EventEmitter</code><span><a class="mark" href="#async_hooks_integrating_asyncresource_with_eventemitter" id="async_hooks_integrating_asyncresource_with_eventemitter">#</a></span></h3>
+<p>Event listeners triggered by an <a href="events.html#events_class_eventemitter"><code>EventEmitter</code></a> may be run in a different
+execution context than the one that was active when <code>eventEmitter.on()</code> was
+called.</p>
+<p>The following example shows how to use the <code>AsyncResource</code> class to properly
+associate an event listener with the correct execution context. The same
+approach can be applied to a <a href="stream.html#stream_stream"><code>Stream</code></a> or a similar event-driven class.</p>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> { createServer } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'http'</span>);
+<span class="hljs-keyword">const</span> { AsyncResource, executionAsyncId } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'async_hooks'</span>);
+
+<span class="hljs-keyword">const</span> server = createServer(<span class="hljs-function">(<span class="hljs-params">req, res</span>) =></span> {
+  req.on(<span class="hljs-string">'close'</span>, AsyncResource.bind(<span class="hljs-function"><span class="hljs-params">()</span> =></span> {
+    <span class="hljs-comment">// Execution context is bound to the current outer scope.</span>
+  }));
+  req.on(<span class="hljs-string">'close'</span>, () => {
+    <span class="hljs-comment">// Execution context is bound to the scope that caused 'close' to emit.</span>
+  });
+  res.end();
+}).listen(<span class="hljs-number">3000</span>);</code></pre>
+<h2>Class: <code>AsyncLocalStorage</code><span><a class="mark" href="#async_hooks_class_asynclocalstorage" id="async_hooks_class_asynclocalstorage">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v13.10.0</span>
+</div>
+<p>This class is used to create asynchronous state within callbacks and promise
+chains. It allows storing data throughout the lifetime of a web request
+or any other asynchronous duration. It is similar to thread-local storage
+in other languages.</p>
+<p>The following example uses <code>AsyncLocalStorage</code> to build a simple logger
+that assigns IDs to incoming HTTP requests and includes them in messages
+logged within each request.</p>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> http = <span class="hljs-built_in">require</span>(<span class="hljs-string">'http'</span>);
+<span class="hljs-keyword">const</span> { AsyncLocalStorage } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'async_hooks'</span>);
+
+<span class="hljs-keyword">const</span> asyncLocalStorage = <span class="hljs-keyword">new</span> AsyncLocalStorage();
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">logWithId</span>(<span class="hljs-params">msg</span>) </span>{
+  <span class="hljs-keyword">const</span> id = asyncLocalStorage.getStore();
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`<span class="hljs-subst">${id !== <span class="hljs-literal">undefined</span> ? id : <span class="hljs-string">'-'</span>}</span>:`</span>, msg);
+}
+
+<span class="hljs-keyword">let</span> idSeq = <span class="hljs-number">0</span>;
+http.createServer(<span class="hljs-function">(<span class="hljs-params">req, res</span>) =></span> {
+  asyncLocalStorage.run(idSeq++, () => {
+    logWithId(<span class="hljs-string">'start'</span>);
+    <span class="hljs-comment">// Imagine any chain of async operations here</span>
+    setImmediate(<span class="hljs-function"><span class="hljs-params">()</span> =></span> {
+      logWithId(<span class="hljs-string">'finish'</span>);
+      res.end();
+    });
+  });
+}).listen(<span class="hljs-number">8080</span>);
+
+http.get(<span class="hljs-string">'http://localhost:8080'</span>);
+http.get(<span class="hljs-string">'http://localhost:8080'</span>);
+<span class="hljs-comment">// Prints:</span>
+<span class="hljs-comment">//   0: start</span>
+<span class="hljs-comment">//   1: start</span>
+<span class="hljs-comment">//   0: finish</span>
+<span class="hljs-comment">//   1: finish</span></code></pre>
+<p>When having multiple instances of <code>AsyncLocalStorage</code>, they are independent
+from each other. It is safe to instantiate this class multiple times.</p>
+<h3><code>new AsyncLocalStorage()</code><span><a class="mark" href="#async_hooks_new_asynclocalstorage" id="async_hooks_new_asynclocalstorage">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v13.10.0</span>
+</div>
+<p>Creates a new instance of <code>AsyncLocalStorage</code>. Store is only provided within a
+<code>run</code> method call.</p>
+<h3><code>asyncLocalStorage.disable()</code><span><a class="mark" href="#async_hooks_asynclocalstorage_disable" id="async_hooks_asynclocalstorage_disable">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v13.10.0</span>
+</div>
+<p>This method disables the instance of <code>AsyncLocalStorage</code>. All subsequent calls
+to <code>asyncLocalStorage.getStore()</code> will return <code>undefined</code> until
+<code>asyncLocalStorage.run()</code> is called again.</p>
+<p>When calling <code>asyncLocalStorage.disable()</code>, all current contexts linked to the
+instance will be exited.</p>
+<p>Calling <code>asyncLocalStorage.disable()</code> is required before the
+<code>asyncLocalStorage</code> can be garbage collected. This does not apply to stores
+provided by the <code>asyncLocalStorage</code>, as those objects are garbage collected
+along with the corresponding async resources.</p>
+<p>This method is to be used when the <code>asyncLocalStorage</code> is not in use anymore
+in the current process.</p>
+<h3><code>asyncLocalStorage.getStore()</code><span><a class="mark" href="#async_hooks_asynclocalstorage_getstore" id="async_hooks_asynclocalstorage_getstore">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v13.10.0</span>
+</div>
+<ul>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types" class="type">&#x3C;any></a></li>
+</ul>
+<p>This method returns the current store.
+If this method is called outside of an asynchronous context initialized by
+calling <code>asyncLocalStorage.run</code>, it will return <code>undefined</code>.</p>
+<h3><code>asyncLocalStorage.enterWith(store)</code><span><a class="mark" href="#async_hooks_asynclocalstorage_enterwith_store" id="async_hooks_asynclocalstorage_enterwith_store">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v13.11.0</span>
+</div>
+<ul>
+<li><code>store</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types" class="type">&#x3C;any></a></li>
+</ul>
+<p>Calling <code>asyncLocalStorage.enterWith(store)</code> will transition into the context
+for the remainder of the current synchronous execution and will persist
+through any following asynchronous calls.</p>
+<p>Example:</p>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> store = { <span class="hljs-attr">id</span>: <span class="hljs-number">1</span> };
+asyncLocalStorage.enterWith(store);
+asyncLocalStorage.getStore(); <span class="hljs-comment">// Returns the store object</span>
+someAsyncOperation(<span class="hljs-function"><span class="hljs-params">()</span> =></span> {
+  asyncLocalStorage.getStore(); <span class="hljs-comment">// Returns the same object</span>
+});</code></pre>
+<p>This transition will continue for the <em>entire</em> synchronous execution.
+This means that if, for example, the context is entered within an event
+handler subsequent event handlers will also run within that context unless
+specifically bound to another context with an <code>AsyncResource</code>.</p>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> store = { <span class="hljs-attr">id</span>: <span class="hljs-number">1</span> };
+
+emitter.on(<span class="hljs-string">'my-event'</span>, () => {
+  asyncLocalStorage.enterWith(store);
+});
+emitter.on(<span class="hljs-string">'my-event'</span>, () => {
+  asyncLocalStorage.getStore(); <span class="hljs-comment">// Returns the same object</span>
+});
+
+asyncLocalStorage.getStore(); <span class="hljs-comment">// Returns undefined</span>
+emitter.emit(<span class="hljs-string">'my-event'</span>);
+asyncLocalStorage.getStore(); <span class="hljs-comment">// Returns the same object</span></code></pre>
+<h3><code>asyncLocalStorage.run(store, callback[, ...args])</code><span><a class="mark" href="#async_hooks_asynclocalstorage_run_store_callback_args" id="async_hooks_asynclocalstorage_run_store_callback_args">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v13.10.0</span>
+</div>
+<ul>
+<li><code>store</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types" class="type">&#x3C;any></a></li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
+<li><code>...args</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types" class="type">&#x3C;any></a></li>
+</ul>
+<p>This methods runs a function synchronously within a context and return its
+return value. The store is not accessible outside of the callback function or
+the asynchronous operations created within the callback.</p>
+<p>Optionally, arguments can be passed to the function. They will be passed to
+the callback function.</p>
+<p>If the callback function throws an error, it will be thrown by <code>run</code> too.
+The stacktrace will not be impacted by this call and the context will
+be exited.</p>
+<p>Example:</p>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> store = { <span class="hljs-attr">id</span>: <span class="hljs-number">2</span> };
+<span class="hljs-keyword">try</span> {
+  asyncLocalStorage.run(store, () => {
+    asyncLocalStorage.getStore(); <span class="hljs-comment">// Returns the store object</span>
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>();
+  });
+} <span class="hljs-keyword">catch</span> (e) {
+  asyncLocalStorage.getStore(); <span class="hljs-comment">// Returns undefined</span>
+  <span class="hljs-comment">// The error will be caught here</span>
+}</code></pre>
+<h3><code>asyncLocalStorage.exit(callback[, ...args])</code><span><a class="mark" href="#async_hooks_asynclocalstorage_exit_callback_args" id="async_hooks_asynclocalstorage_exit_callback_args">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v13.10.0</span>
+</div>
+<ul>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
+<li><code>...args</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types" class="type">&#x3C;any></a></li>
+</ul>
+<p>This methods runs a function synchronously outside of a context and return its
+return value. The store is not accessible within the callback function or
+the asynchronous operations created within the callback.</p>
+<p>Optionally, arguments can be passed to the function. They will be passed to
+the callback function.</p>
+<p>If the callback function throws an error, it will be thrown by <code>exit</code> too.
+The stacktrace will not be impacted by this call and
+the context will be re-entered.</p>
+<p>Example:</p>
+<pre><code class="language-js"><span class="hljs-comment">// Within a call to run</span>
+<span class="hljs-keyword">try</span> {
+  asyncLocalStorage.getStore(); <span class="hljs-comment">// Returns the store object or value</span>
+  asyncLocalStorage.exit(<span class="hljs-function"><span class="hljs-params">()</span> =></span> {
+    asyncLocalStorage.getStore(); <span class="hljs-comment">// Returns undefined</span>
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>();
+  });
+} <span class="hljs-keyword">catch</span> (e) {
+  asyncLocalStorage.getStore(); <span class="hljs-comment">// Returns the same object or value</span>
+  <span class="hljs-comment">// The error will be caught here</span>
+}</code></pre>
+<h3>Usage with <code>async/await</code><span><a class="mark" href="#async_hooks_usage_with_async_await" id="async_hooks_usage_with_async_await">#</a></span></h3>
+<p>If, within an async function, only one <code>await</code> call is to run within a context,
+the following pattern should be used:</p>
+<pre><code class="language-js"><span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">fn</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">await</span> asyncLocalStorage.run(<span class="hljs-keyword">new</span> <span class="hljs-built_in">Map</span>(), () => {
+    asyncLocalStorage.getStore().set(<span class="hljs-string">'key'</span>, value);
+    <span class="hljs-keyword">return</span> foo(); <span class="hljs-comment">// The return value of foo will be awaited</span>
+  });
+}</code></pre>
+<p>In this example, the store is only available in the callback function and the
+functions called by <code>foo</code>. Outside of <code>run</code>, calling <code>getStore</code> will return
+<code>undefined</code>.</p>
+<h3>Troubleshooting<span><a class="mark" href="#async_hooks_troubleshooting" id="async_hooks_troubleshooting">#</a></span></h3>
+<p>In most cases your application or library code should have no issues with
+<code>AsyncLocalStorage</code>. But in rare cases you may face situations when the
+current store is lost in one of asynchronous operations. Then you should
+consider the following options.</p>
+<p>If your code is callback-based, it is enough to promisify it with
+<a href="util.html#util_util_promisify_original"><code>util.promisify()</code></a>, so it starts working with native promises.</p>
+<p>If you need to keep using callback-based API, or your code assumes
+a custom thenable implementation, you should use <a href="#async_hooks_class_asyncresource"><code>AsyncResource</code></a> class
+to associate the asynchronous operation with the correct execution context.</p>
+        <!-- API END -->
       </div>
     </div>
   </div>
-  <script src="assets/sh_main.js"></script>
-  <script src="assets/sh_javascript.min.js"></script>
-  <script>highlight(undefined, undefined, 'pre');</script>
 </body>
 </html>

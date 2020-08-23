@@ -3,10 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Diagnostic Report | Node.js v12.13.0 Documentation</title>
+  <meta name="nodejs.org:node-version" content="v14.8.0">
+  <title>Diagnostic report | Node.js v14.8.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
-  <link rel="stylesheet" href="assets/sh.css">
+  <link rel="stylesheet" href="assets/hljs.css">
   <link rel="canonical" href="https://nodejs.org/api/report.html">
 </head>
 <body class="alt apidoc" id="api-section-report">
@@ -18,29 +19,30 @@
         </a>
       </div>
       <ul>
-<li><a href="documentation.html" class="nav-documentation">About these Docs</a></li>
-<li><a href="synopsis.html" class="nav-synopsis">Usage &#x26; Example</a></li>
+<li><a href="documentation.html" class="nav-documentation">About this documentation</a></li>
+<li><a href="synopsis.html" class="nav-synopsis">Usage and example</a></li>
 </ul>
 <div class="line"></div>
 <ul>
-<li><a href="assert.html" class="nav-assert">Assertion Testing</a></li>
-<li><a href="async_hooks.html" class="nav-async_hooks">Async Hooks</a></li>
+<li><a href="assert.html" class="nav-assert">Assertion testing</a></li>
+<li><a href="async_hooks.html" class="nav-async_hooks">Async hooks</a></li>
 <li><a href="buffer.html" class="nav-buffer">Buffer</a></li>
-<li><a href="addons.html" class="nav-addons">C++ Addons</a></li>
-<li><a href="n-api.html" class="nav-n-api">C/C++ Addons - N-API</a></li>
-<li><a href="child_process.html" class="nav-child_process">Child Processes</a></li>
+<li><a href="addons.html" class="nav-addons">C++ addons</a></li>
+<li><a href="n-api.html" class="nav-n-api">C/C++ addons with N-API</a></li>
+<li><a href="embedding.html" class="nav-embedding">C++ embedder API</a></li>
+<li><a href="child_process.html" class="nav-child_process">Child processes</a></li>
 <li><a href="cluster.html" class="nav-cluster">Cluster</a></li>
-<li><a href="cli.html" class="nav-cli">Command Line Options</a></li>
+<li><a href="cli.html" class="nav-cli">Command line options</a></li>
 <li><a href="console.html" class="nav-console">Console</a></li>
 <li><a href="crypto.html" class="nav-crypto">Crypto</a></li>
 <li><a href="debugger.html" class="nav-debugger">Debugger</a></li>
 <li><a href="deprecations.html" class="nav-deprecations">Deprecated APIs</a></li>
 <li><a href="dns.html" class="nav-dns">DNS</a></li>
 <li><a href="domain.html" class="nav-domain">Domain</a></li>
-<li><a href="esm.html" class="nav-esm">ECMAScript Modules</a></li>
+<li><a href="esm.html" class="nav-esm">ECMAScript modules</a></li>
 <li><a href="errors.html" class="nav-errors">Errors</a></li>
 <li><a href="events.html" class="nav-events">Events</a></li>
-<li><a href="fs.html" class="nav-fs">File System</a></li>
+<li><a href="fs.html" class="nav-fs">File system</a></li>
 <li><a href="globals.html" class="nav-globals">Globals</a></li>
 <li><a href="http.html" class="nav-http">HTTP</a></li>
 <li><a href="http2.html" class="nav-http2">HTTP/2</a></li>
@@ -51,37 +53,38 @@
 <li><a href="net.html" class="nav-net">Net</a></li>
 <li><a href="os.html" class="nav-os">OS</a></li>
 <li><a href="path.html" class="nav-path">Path</a></li>
-<li><a href="perf_hooks.html" class="nav-perf_hooks">Performance Hooks</a></li>
+<li><a href="perf_hooks.html" class="nav-perf_hooks">Performance hooks</a></li>
 <li><a href="policy.html" class="nav-policy">Policies</a></li>
 <li><a href="process.html" class="nav-process">Process</a></li>
 <li><a href="punycode.html" class="nav-punycode">Punycode</a></li>
-<li><a href="querystring.html" class="nav-querystring">Query Strings</a></li>
+<li><a href="querystring.html" class="nav-querystring">Query strings</a></li>
 <li><a href="readline.html" class="nav-readline">Readline</a></li>
 <li><a href="repl.html" class="nav-repl">REPL</a></li>
 <li><a href="report.html" class="nav-report active">Report</a></li>
 <li><a href="stream.html" class="nav-stream">Stream</a></li>
-<li><a href="string_decoder.html" class="nav-string_decoder">String Decoder</a></li>
+<li><a href="string_decoder.html" class="nav-string_decoder">String decoder</a></li>
 <li><a href="timers.html" class="nav-timers">Timers</a></li>
 <li><a href="tls.html" class="nav-tls">TLS/SSL</a></li>
-<li><a href="tracing.html" class="nav-tracing">Trace Events</a></li>
+<li><a href="tracing.html" class="nav-tracing">Trace events</a></li>
 <li><a href="tty.html" class="nav-tty">TTY</a></li>
-<li><a href="dgram.html" class="nav-dgram">UDP/Datagram</a></li>
+<li><a href="dgram.html" class="nav-dgram">UDP/datagram</a></li>
 <li><a href="url.html" class="nav-url">URL</a></li>
 <li><a href="util.html" class="nav-util">Utilities</a></li>
 <li><a href="v8.html" class="nav-v8">V8</a></li>
 <li><a href="vm.html" class="nav-vm">VM</a></li>
-<li><a href="worker_threads.html" class="nav-worker_threads">Worker Threads</a></li>
+<li><a href="wasi.html" class="nav-wasi">WASI</a></li>
+<li><a href="worker_threads.html" class="nav-worker_threads">Worker threads</a></li>
 <li><a href="zlib.html" class="nav-zlib">Zlib</a></li>
 </ul>
 <div class="line"></div>
 <ul>
-<li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">GitHub Repo &#x26; Issue Tracker</a></li>
+<li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">Code repository and issue tracker</a></li>
 </ul>
     </div>
 
     <div id="column1" data-id="report" class="interior">
       <header>
-        <h1>Node.js v12.13.0 Documentation</h1>
+        <h1>Node.js v14.8.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -96,7 +99,9 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v12.x/api/report.html">12.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v14.x/api/report.html">14.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v13.x/api/report.html">13.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v12.x/api/report.html">12.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v11.x/api/report.html">11.x</a></li></ol>
     </li>
   
@@ -110,20 +115,21 @@
         <h2>Table of Contents</h2>
         <ul>
 <li>
-<p><span class="stability_1"><a href="#report_diagnostic_report">Diagnostic Report</a></span></p>
+<p><span class="stability_2"><a href="#report_diagnostic_report">Diagnostic report</a></span></p>
 <ul>
 <li><a href="#report_usage">Usage</a></li>
 <li><a href="#report_configuration">Configuration</a></li>
+<li><a href="#report_interaction_with_workers">Interaction with workers</a></li>
 </ul>
 </li>
 </ul>
       </div>
 
       <div id="apicontent">
-        <h1>Diagnostic Report<span><a class="mark" href="#report_diagnostic_report" id="report_diagnostic_report">#</a></span></h1>
+        <h1>Diagnostic report<span><a class="mark" href="#report_diagnostic_report" id="report_diagnostic_report">#</a></span></h1>
 
 
-<p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
+<p></p><div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p></p>
 
 <p>Delivers a JSON-formatted diagnostic summary, written to a file.</p>
 <p>The report is intended for development, test and production use, to capture
@@ -135,383 +141,375 @@ triggering programmatically through API calls.</p>
 <p>A complete example report that was generated on an uncaught exception
 is provided below for reference.</p>
 <pre><code class="language-json">{
-  "header": {
-    "reportVersion": 1,
-    "event": "exception",
-    "trigger": "Exception",
-    "filename": "report.20181221.005011.8974.0.001.json",
-    "dumpEventTime": "2018-12-21T00:50:11Z",
-    "dumpEventTimeStamp": "1545371411331",
-    "processId": 8974,
-    "cwd": "/home/nodeuser/project/node",
-    "commandLine": [
-      "/home/nodeuser/project/node/out/Release/node",
-      "--experimental-report",
-      "--report-uncaught-exception",
-      "/home/nodeuser/project/node/test/report/test-exception.js",
-      "child"
+  <span class="hljs-attr">"header"</span>: {
+    <span class="hljs-attr">"reportVersion"</span>: <span class="hljs-number">1</span>,
+    <span class="hljs-attr">"event"</span>: <span class="hljs-string">"exception"</span>,
+    <span class="hljs-attr">"trigger"</span>: <span class="hljs-string">"Exception"</span>,
+    <span class="hljs-attr">"filename"</span>: <span class="hljs-string">"report.20181221.005011.8974.0.001.json"</span>,
+    <span class="hljs-attr">"dumpEventTime"</span>: <span class="hljs-string">"2018-12-21T00:50:11Z"</span>,
+    <span class="hljs-attr">"dumpEventTimeStamp"</span>: <span class="hljs-string">"1545371411331"</span>,
+    <span class="hljs-attr">"processId"</span>: <span class="hljs-number">8974</span>,
+    <span class="hljs-attr">"cwd"</span>: <span class="hljs-string">"/home/nodeuser/project/node"</span>,
+    <span class="hljs-attr">"commandLine"</span>: [
+      <span class="hljs-string">"/home/nodeuser/project/node/out/Release/node"</span>,
+      <span class="hljs-string">"--report-uncaught-exception"</span>,
+      <span class="hljs-string">"/home/nodeuser/project/node/test/report/test-exception.js"</span>,
+      <span class="hljs-string">"child"</span>
     ],
-    "nodejsVersion": "v12.0.0-pre",
-    "glibcVersionRuntime": "2.17",
-    "glibcVersionCompiler": "2.17",
-    "wordSize": "64 bit",
-    "arch": "x64",
-    "platform": "linux",
-    "componentVersions": {
-      "node": "12.0.0-pre",
-      "v8": "7.1.302.28-node.5",
-      "uv": "1.24.1",
-      "zlib": "1.2.11",
-      "ares": "1.15.0",
-      "modules": "68",
-      "nghttp2": "1.34.0",
-      "napi": "3",
-      "llhttp": "1.0.1",
-      "http_parser": "2.8.0",
-      "openssl": "1.1.0j"
+    <span class="hljs-attr">"nodejsVersion"</span>: <span class="hljs-string">"v12.0.0-pre"</span>,
+    <span class="hljs-attr">"glibcVersionRuntime"</span>: <span class="hljs-string">"2.17"</span>,
+    <span class="hljs-attr">"glibcVersionCompiler"</span>: <span class="hljs-string">"2.17"</span>,
+    <span class="hljs-attr">"wordSize"</span>: <span class="hljs-string">"64 bit"</span>,
+    <span class="hljs-attr">"arch"</span>: <span class="hljs-string">"x64"</span>,
+    <span class="hljs-attr">"platform"</span>: <span class="hljs-string">"linux"</span>,
+    <span class="hljs-attr">"componentVersions"</span>: {
+      <span class="hljs-attr">"node"</span>: <span class="hljs-string">"12.0.0-pre"</span>,
+      <span class="hljs-attr">"v8"</span>: <span class="hljs-string">"7.1.302.28-node.5"</span>,
+      <span class="hljs-attr">"uv"</span>: <span class="hljs-string">"1.24.1"</span>,
+      <span class="hljs-attr">"zlib"</span>: <span class="hljs-string">"1.2.11"</span>,
+      <span class="hljs-attr">"ares"</span>: <span class="hljs-string">"1.15.0"</span>,
+      <span class="hljs-attr">"modules"</span>: <span class="hljs-string">"68"</span>,
+      <span class="hljs-attr">"nghttp2"</span>: <span class="hljs-string">"1.34.0"</span>,
+      <span class="hljs-attr">"napi"</span>: <span class="hljs-string">"3"</span>,
+      <span class="hljs-attr">"llhttp"</span>: <span class="hljs-string">"1.0.1"</span>,
+      <span class="hljs-attr">"openssl"</span>: <span class="hljs-string">"1.1.0j"</span>
     },
-    "release": {
-      "name": "node"
+    <span class="hljs-attr">"release"</span>: {
+      <span class="hljs-attr">"name"</span>: <span class="hljs-string">"node"</span>
     },
-    "osName": "Linux",
-    "osRelease": "3.10.0-862.el7.x86_64",
-    "osVersion": "#1 SMP Wed Mar 21 18:14:51 EDT 2018",
-    "osMachine": "x86_64",
-    "cpus": [
+    <span class="hljs-attr">"osName"</span>: <span class="hljs-string">"Linux"</span>,
+    <span class="hljs-attr">"osRelease"</span>: <span class="hljs-string">"3.10.0-862.el7.x86_64"</span>,
+    <span class="hljs-attr">"osVersion"</span>: <span class="hljs-string">"#1 SMP Wed Mar 21 18:14:51 EDT 2018"</span>,
+    <span class="hljs-attr">"osMachine"</span>: <span class="hljs-string">"x86_64"</span>,
+    <span class="hljs-attr">"cpus"</span>: [
       {
-        "model": "Intel(R) Core(TM) i7-6820HQ CPU @ 2.70GHz",
-        "speed": 2700,
-        "user": 88902660,
-        "nice": 0,
-        "sys": 50902570,
-        "idle": 241732220,
-        "irq": 0
+        <span class="hljs-attr">"model"</span>: <span class="hljs-string">"Intel(R) Core(TM) i7-6820HQ CPU @ 2.70GHz"</span>,
+        <span class="hljs-attr">"speed"</span>: <span class="hljs-number">2700</span>,
+        <span class="hljs-attr">"user"</span>: <span class="hljs-number">88902660</span>,
+        <span class="hljs-attr">"nice"</span>: <span class="hljs-number">0</span>,
+        <span class="hljs-attr">"sys"</span>: <span class="hljs-number">50902570</span>,
+        <span class="hljs-attr">"idle"</span>: <span class="hljs-number">241732220</span>,
+        <span class="hljs-attr">"irq"</span>: <span class="hljs-number">0</span>
       },
       {
-        "model": "Intel(R) Core(TM) i7-6820HQ CPU @ 2.70GHz",
-        "speed": 2700,
-        "user": 88902660,
-        "nice": 0,
-        "sys": 50902570,
-        "idle": 241732220,
-        "irq": 0
+        <span class="hljs-attr">"model"</span>: <span class="hljs-string">"Intel(R) Core(TM) i7-6820HQ CPU @ 2.70GHz"</span>,
+        <span class="hljs-attr">"speed"</span>: <span class="hljs-number">2700</span>,
+        <span class="hljs-attr">"user"</span>: <span class="hljs-number">88902660</span>,
+        <span class="hljs-attr">"nice"</span>: <span class="hljs-number">0</span>,
+        <span class="hljs-attr">"sys"</span>: <span class="hljs-number">50902570</span>,
+        <span class="hljs-attr">"idle"</span>: <span class="hljs-number">241732220</span>,
+        <span class="hljs-attr">"irq"</span>: <span class="hljs-number">0</span>
       }
     ],
-    "networkInterfaces": [
+    <span class="hljs-attr">"networkInterfaces"</span>: [
       {
-        "name": "en0",
-        "internal": false,
-        "mac": "13:10:de:ad:be:ef",
-        "address": "10.0.0.37",
-        "netmask": "255.255.255.0",
-        "family": "IPv4"
+        <span class="hljs-attr">"name"</span>: <span class="hljs-string">"en0"</span>,
+        <span class="hljs-attr">"internal"</span>: <span class="hljs-literal">false</span>,
+        <span class="hljs-attr">"mac"</span>: <span class="hljs-string">"13:10:de:ad:be:ef"</span>,
+        <span class="hljs-attr">"address"</span>: <span class="hljs-string">"10.0.0.37"</span>,
+        <span class="hljs-attr">"netmask"</span>: <span class="hljs-string">"255.255.255.0"</span>,
+        <span class="hljs-attr">"family"</span>: <span class="hljs-string">"IPv4"</span>
       }
     ],
-    "host": "test_machine"
+    <span class="hljs-attr">"host"</span>: <span class="hljs-string">"test_machine"</span>
   },
-  "javascriptStack": {
-    "message": "Error: *** test-exception.js: throwing uncaught Error",
-    "stack": [
-      "at myException (/home/nodeuser/project/node/test/report/test-exception.js:9:11)",
-      "at Object.&#x3C;anonymous> (/home/nodeuser/project/node/test/report/test-exception.js:12:3)",
-      "at Module._compile (internal/modules/cjs/loader.js:718:30)",
-      "at Object.Module._extensions..js (internal/modules/cjs/loader.js:729:10)",
-      "at Module.load (internal/modules/cjs/loader.js:617:32)",
-      "at tryModuleLoad (internal/modules/cjs/loader.js:560:12)",
-      "at Function.Module._load (internal/modules/cjs/loader.js:552:3)",
-      "at Function.Module.runMain (internal/modules/cjs/loader.js:771:12)",
-      "at executeUserCode (internal/bootstrap/node.js:332:15)"
+  <span class="hljs-attr">"javascriptStack"</span>: {
+    <span class="hljs-attr">"message"</span>: <span class="hljs-string">"Error: *** test-exception.js: throwing uncaught Error"</span>,
+    <span class="hljs-attr">"stack"</span>: [
+      <span class="hljs-string">"at myException (/home/nodeuser/project/node/test/report/test-exception.js:9:11)"</span>,
+      <span class="hljs-string">"at Object.&#x3C;anonymous> (/home/nodeuser/project/node/test/report/test-exception.js:12:3)"</span>,
+      <span class="hljs-string">"at Module._compile (internal/modules/cjs/loader.js:718:30)"</span>,
+      <span class="hljs-string">"at Object.Module._extensions..js (internal/modules/cjs/loader.js:729:10)"</span>,
+      <span class="hljs-string">"at Module.load (internal/modules/cjs/loader.js:617:32)"</span>,
+      <span class="hljs-string">"at tryModuleLoad (internal/modules/cjs/loader.js:560:12)"</span>,
+      <span class="hljs-string">"at Function.Module._load (internal/modules/cjs/loader.js:552:3)"</span>,
+      <span class="hljs-string">"at Function.Module.runMain (internal/modules/cjs/loader.js:771:12)"</span>,
+      <span class="hljs-string">"at executeUserCode (internal/bootstrap/node.js:332:15)"</span>
     ]
   },
-  "nativeStack": [
+  <span class="hljs-attr">"nativeStack"</span>: [
     {
-      "pc": "0x000055b57f07a9ef",
-      "symbol": "report::GetNodeReport(v8::Isolate*, node::Environment*, char const*, char const*, v8::Local&#x3C;v8::String>, std::ostream&#x26;) [./node]"
+      <span class="hljs-attr">"pc"</span>: <span class="hljs-string">"0x000055b57f07a9ef"</span>,
+      <span class="hljs-attr">"symbol"</span>: <span class="hljs-string">"report::GetNodeReport(v8::Isolate*, node::Environment*, char const*, char const*, v8::Local&#x3C;v8::String>, std::ostream&#x26;) [./node]"</span>
     },
     {
-      "pc": "0x000055b57f07cf03",
-      "symbol": "report::GetReport(v8::FunctionCallbackInfo&#x3C;v8::Value> const&#x26;) [./node]"
+      <span class="hljs-attr">"pc"</span>: <span class="hljs-string">"0x000055b57f07cf03"</span>,
+      <span class="hljs-attr">"symbol"</span>: <span class="hljs-string">"report::GetReport(v8::FunctionCallbackInfo&#x3C;v8::Value> const&#x26;) [./node]"</span>
     },
     {
-      "pc": "0x000055b57f1bccfd",
-      "symbol": " [./node]"
+      <span class="hljs-attr">"pc"</span>: <span class="hljs-string">"0x000055b57f1bccfd"</span>,
+      <span class="hljs-attr">"symbol"</span>: <span class="hljs-string">" [./node]"</span>
     },
     {
-      "pc": "0x000055b57f1be048",
-      "symbol": "v8::internal::Builtin_HandleApiCall(int, v8::internal::Object**, v8::internal::Isolate*) [./node]"
+      <span class="hljs-attr">"pc"</span>: <span class="hljs-string">"0x000055b57f1be048"</span>,
+      <span class="hljs-attr">"symbol"</span>: <span class="hljs-string">"v8::internal::Builtin_HandleApiCall(int, v8::internal::Object**, v8::internal::Isolate*) [./node]"</span>
     },
     {
-      "pc": "0x000055b57feeda0e",
-      "symbol": " [./node]"
+      <span class="hljs-attr">"pc"</span>: <span class="hljs-string">"0x000055b57feeda0e"</span>,
+      <span class="hljs-attr">"symbol"</span>: <span class="hljs-string">" [./node]"</span>
     }
   ],
-  "javascriptHeap": {
-    "totalMemory": 6127616,
-    "totalCommittedMemory": 4357352,
-    "usedMemory": 3221136,
-    "availableMemory": 1521370240,
-    "memoryLimit": 1526909922,
-    "heapSpaces": {
-      "read_only_space": {
-        "memorySize": 524288,
-        "committedMemory": 39208,
-        "capacity": 515584,
-        "used": 30504,
-        "available": 485080
+  <span class="hljs-attr">"javascriptHeap"</span>: {
+    <span class="hljs-attr">"totalMemory"</span>: <span class="hljs-number">6127616</span>,
+    <span class="hljs-attr">"totalCommittedMemory"</span>: <span class="hljs-number">4357352</span>,
+    <span class="hljs-attr">"usedMemory"</span>: <span class="hljs-number">3221136</span>,
+    <span class="hljs-attr">"availableMemory"</span>: <span class="hljs-number">1521370240</span>,
+    <span class="hljs-attr">"memoryLimit"</span>: <span class="hljs-number">1526909922</span>,
+    <span class="hljs-attr">"heapSpaces"</span>: {
+      <span class="hljs-attr">"read_only_space"</span>: {
+        <span class="hljs-attr">"memorySize"</span>: <span class="hljs-number">524288</span>,
+        <span class="hljs-attr">"committedMemory"</span>: <span class="hljs-number">39208</span>,
+        <span class="hljs-attr">"capacity"</span>: <span class="hljs-number">515584</span>,
+        <span class="hljs-attr">"used"</span>: <span class="hljs-number">30504</span>,
+        <span class="hljs-attr">"available"</span>: <span class="hljs-number">485080</span>
       },
-      "new_space": {
-        "memorySize": 2097152,
-        "committedMemory": 2019312,
-        "capacity": 1031168,
-        "used": 985496,
-        "available": 45672
+      <span class="hljs-attr">"new_space"</span>: {
+        <span class="hljs-attr">"memorySize"</span>: <span class="hljs-number">2097152</span>,
+        <span class="hljs-attr">"committedMemory"</span>: <span class="hljs-number">2019312</span>,
+        <span class="hljs-attr">"capacity"</span>: <span class="hljs-number">1031168</span>,
+        <span class="hljs-attr">"used"</span>: <span class="hljs-number">985496</span>,
+        <span class="hljs-attr">"available"</span>: <span class="hljs-number">45672</span>
       },
-      "old_space": {
-        "memorySize": 2273280,
-        "committedMemory": 1769008,
-        "capacity": 1974640,
-        "used": 1725488,
-        "available": 249152
+      <span class="hljs-attr">"old_space"</span>: {
+        <span class="hljs-attr">"memorySize"</span>: <span class="hljs-number">2273280</span>,
+        <span class="hljs-attr">"committedMemory"</span>: <span class="hljs-number">1769008</span>,
+        <span class="hljs-attr">"capacity"</span>: <span class="hljs-number">1974640</span>,
+        <span class="hljs-attr">"used"</span>: <span class="hljs-number">1725488</span>,
+        <span class="hljs-attr">"available"</span>: <span class="hljs-number">249152</span>
       },
-      "code_space": {
-        "memorySize": 696320,
-        "committedMemory": 184896,
-        "capacity": 152128,
-        "used": 152128,
-        "available": 0
+      <span class="hljs-attr">"code_space"</span>: {
+        <span class="hljs-attr">"memorySize"</span>: <span class="hljs-number">696320</span>,
+        <span class="hljs-attr">"committedMemory"</span>: <span class="hljs-number">184896</span>,
+        <span class="hljs-attr">"capacity"</span>: <span class="hljs-number">152128</span>,
+        <span class="hljs-attr">"used"</span>: <span class="hljs-number">152128</span>,
+        <span class="hljs-attr">"available"</span>: <span class="hljs-number">0</span>
       },
-      "map_space": {
-        "memorySize": 536576,
-        "committedMemory": 344928,
-        "capacity": 327520,
-        "used": 327520,
-        "available": 0
+      <span class="hljs-attr">"map_space"</span>: {
+        <span class="hljs-attr">"memorySize"</span>: <span class="hljs-number">536576</span>,
+        <span class="hljs-attr">"committedMemory"</span>: <span class="hljs-number">344928</span>,
+        <span class="hljs-attr">"capacity"</span>: <span class="hljs-number">327520</span>,
+        <span class="hljs-attr">"used"</span>: <span class="hljs-number">327520</span>,
+        <span class="hljs-attr">"available"</span>: <span class="hljs-number">0</span>
       },
-      "large_object_space": {
-        "memorySize": 0,
-        "committedMemory": 0,
-        "capacity": 1520590336,
-        "used": 0,
-        "available": 1520590336
+      <span class="hljs-attr">"large_object_space"</span>: {
+        <span class="hljs-attr">"memorySize"</span>: <span class="hljs-number">0</span>,
+        <span class="hljs-attr">"committedMemory"</span>: <span class="hljs-number">0</span>,
+        <span class="hljs-attr">"capacity"</span>: <span class="hljs-number">1520590336</span>,
+        <span class="hljs-attr">"used"</span>: <span class="hljs-number">0</span>,
+        <span class="hljs-attr">"available"</span>: <span class="hljs-number">1520590336</span>
       },
-      "new_large_object_space": {
-        "memorySize": 0,
-        "committedMemory": 0,
-        "capacity": 0,
-        "used": 0,
-        "available": 0
+      <span class="hljs-attr">"new_large_object_space"</span>: {
+        <span class="hljs-attr">"memorySize"</span>: <span class="hljs-number">0</span>,
+        <span class="hljs-attr">"committedMemory"</span>: <span class="hljs-number">0</span>,
+        <span class="hljs-attr">"capacity"</span>: <span class="hljs-number">0</span>,
+        <span class="hljs-attr">"used"</span>: <span class="hljs-number">0</span>,
+        <span class="hljs-attr">"available"</span>: <span class="hljs-number">0</span>
       }
     }
   },
-  "resourceUsage": {
-    "userCpuSeconds": 0.069595,
-    "kernelCpuSeconds": 0.019163,
-    "cpuConsumptionPercent": 0.000000,
-    "maxRss": 18079744,
-    "pageFaults": {
-      "IORequired": 0,
-      "IONotRequired": 4610
+  <span class="hljs-attr">"resourceUsage"</span>: {
+    <span class="hljs-attr">"userCpuSeconds"</span>: <span class="hljs-number">0.069595</span>,
+    <span class="hljs-attr">"kernelCpuSeconds"</span>: <span class="hljs-number">0.019163</span>,
+    <span class="hljs-attr">"cpuConsumptionPercent"</span>: <span class="hljs-number">0.000000</span>,
+    <span class="hljs-attr">"maxRss"</span>: <span class="hljs-number">18079744</span>,
+    <span class="hljs-attr">"pageFaults"</span>: {
+      <span class="hljs-attr">"IORequired"</span>: <span class="hljs-number">0</span>,
+      <span class="hljs-attr">"IONotRequired"</span>: <span class="hljs-number">4610</span>
     },
-    "fsActivity": {
-      "reads": 0,
-      "writes": 0
+    <span class="hljs-attr">"fsActivity"</span>: {
+      <span class="hljs-attr">"reads"</span>: <span class="hljs-number">0</span>,
+      <span class="hljs-attr">"writes"</span>: <span class="hljs-number">0</span>
     }
   },
-  "uvthreadResourceUsage": {
-    "userCpuSeconds": 0.068457,
-    "kernelCpuSeconds": 0.019127,
-    "cpuConsumptionPercent": 0.000000,
-    "fsActivity": {
-      "reads": 0,
-      "writes": 0
+  <span class="hljs-attr">"uvthreadResourceUsage"</span>: {
+    <span class="hljs-attr">"userCpuSeconds"</span>: <span class="hljs-number">0.068457</span>,
+    <span class="hljs-attr">"kernelCpuSeconds"</span>: <span class="hljs-number">0.019127</span>,
+    <span class="hljs-attr">"cpuConsumptionPercent"</span>: <span class="hljs-number">0.000000</span>,
+    <span class="hljs-attr">"fsActivity"</span>: {
+      <span class="hljs-attr">"reads"</span>: <span class="hljs-number">0</span>,
+      <span class="hljs-attr">"writes"</span>: <span class="hljs-number">0</span>
     }
   },
-  "libuv": [
+  <span class="hljs-attr">"libuv"</span>: [
     {
-      "type": "async",
-      "is_active": true,
-      "is_referenced": false,
-      "address": "0x0000000102910900",
-      "details": ""
+      <span class="hljs-attr">"type"</span>: <span class="hljs-string">"async"</span>,
+      <span class="hljs-attr">"is_active"</span>: <span class="hljs-literal">true</span>,
+      <span class="hljs-attr">"is_referenced"</span>: <span class="hljs-literal">false</span>,
+      <span class="hljs-attr">"address"</span>: <span class="hljs-string">"0x0000000102910900"</span>,
+      <span class="hljs-attr">"details"</span>: <span class="hljs-string">""</span>
     },
     {
-      "type": "timer",
-      "is_active": false,
-      "is_referenced": false,
-      "address": "0x00007fff5fbfeab0",
-      "repeat": 0,
-      "firesInMsFromNow": 94403548320796,
-      "expired": true
+      <span class="hljs-attr">"type"</span>: <span class="hljs-string">"timer"</span>,
+      <span class="hljs-attr">"is_active"</span>: <span class="hljs-literal">false</span>,
+      <span class="hljs-attr">"is_referenced"</span>: <span class="hljs-literal">false</span>,
+      <span class="hljs-attr">"address"</span>: <span class="hljs-string">"0x00007fff5fbfeab0"</span>,
+      <span class="hljs-attr">"repeat"</span>: <span class="hljs-number">0</span>,
+      <span class="hljs-attr">"firesInMsFromNow"</span>: <span class="hljs-number">94403548320796</span>,
+      <span class="hljs-attr">"expired"</span>: <span class="hljs-literal">true</span>
     },
     {
-      "type": "check",
-      "is_active": true,
-      "is_referenced": false,
-      "address": "0x00007fff5fbfeb48"
+      <span class="hljs-attr">"type"</span>: <span class="hljs-string">"check"</span>,
+      <span class="hljs-attr">"is_active"</span>: <span class="hljs-literal">true</span>,
+      <span class="hljs-attr">"is_referenced"</span>: <span class="hljs-literal">false</span>,
+      <span class="hljs-attr">"address"</span>: <span class="hljs-string">"0x00007fff5fbfeb48"</span>
     },
     {
-      "type": "idle",
-      "is_active": false,
-      "is_referenced": true,
-      "address": "0x00007fff5fbfebc0"
+      <span class="hljs-attr">"type"</span>: <span class="hljs-string">"idle"</span>,
+      <span class="hljs-attr">"is_active"</span>: <span class="hljs-literal">false</span>,
+      <span class="hljs-attr">"is_referenced"</span>: <span class="hljs-literal">true</span>,
+      <span class="hljs-attr">"address"</span>: <span class="hljs-string">"0x00007fff5fbfebc0"</span>
     },
     {
-      "type": "prepare",
-      "is_active": false,
-      "is_referenced": false,
-      "address": "0x00007fff5fbfec38"
+      <span class="hljs-attr">"type"</span>: <span class="hljs-string">"prepare"</span>,
+      <span class="hljs-attr">"is_active"</span>: <span class="hljs-literal">false</span>,
+      <span class="hljs-attr">"is_referenced"</span>: <span class="hljs-literal">false</span>,
+      <span class="hljs-attr">"address"</span>: <span class="hljs-string">"0x00007fff5fbfec38"</span>
     },
     {
-      "type": "check",
-      "is_active": false,
-      "is_referenced": false,
-      "address": "0x00007fff5fbfecb0"
+      <span class="hljs-attr">"type"</span>: <span class="hljs-string">"check"</span>,
+      <span class="hljs-attr">"is_active"</span>: <span class="hljs-literal">false</span>,
+      <span class="hljs-attr">"is_referenced"</span>: <span class="hljs-literal">false</span>,
+      <span class="hljs-attr">"address"</span>: <span class="hljs-string">"0x00007fff5fbfecb0"</span>
     },
     {
-      "type": "async",
-      "is_active": true,
-      "is_referenced": false,
-      "address": "0x000000010188f2e0"
+      <span class="hljs-attr">"type"</span>: <span class="hljs-string">"async"</span>,
+      <span class="hljs-attr">"is_active"</span>: <span class="hljs-literal">true</span>,
+      <span class="hljs-attr">"is_referenced"</span>: <span class="hljs-literal">false</span>,
+      <span class="hljs-attr">"address"</span>: <span class="hljs-string">"0x000000010188f2e0"</span>
     },
     {
-      "type": "tty",
-      "is_active": false,
-      "is_referenced": true,
-      "address": "0x000055b581db0e18",
-      "width": 204,
-      "height": 55,
-      "fd": 17,
-      "writeQueueSize": 0,
-      "readable": true,
-      "writable": true
+      <span class="hljs-attr">"type"</span>: <span class="hljs-string">"tty"</span>,
+      <span class="hljs-attr">"is_active"</span>: <span class="hljs-literal">false</span>,
+      <span class="hljs-attr">"is_referenced"</span>: <span class="hljs-literal">true</span>,
+      <span class="hljs-attr">"address"</span>: <span class="hljs-string">"0x000055b581db0e18"</span>,
+      <span class="hljs-attr">"width"</span>: <span class="hljs-number">204</span>,
+      <span class="hljs-attr">"height"</span>: <span class="hljs-number">55</span>,
+      <span class="hljs-attr">"fd"</span>: <span class="hljs-number">17</span>,
+      <span class="hljs-attr">"writeQueueSize"</span>: <span class="hljs-number">0</span>,
+      <span class="hljs-attr">"readable"</span>: <span class="hljs-literal">true</span>,
+      <span class="hljs-attr">"writable"</span>: <span class="hljs-literal">true</span>
     },
     {
-      "type": "signal",
-      "is_active": true,
-      "is_referenced": false,
-      "address": "0x000055b581d80010",
-      "signum": 28,
-      "signal": "SIGWINCH"
+      <span class="hljs-attr">"type"</span>: <span class="hljs-string">"signal"</span>,
+      <span class="hljs-attr">"is_active"</span>: <span class="hljs-literal">true</span>,
+      <span class="hljs-attr">"is_referenced"</span>: <span class="hljs-literal">false</span>,
+      <span class="hljs-attr">"address"</span>: <span class="hljs-string">"0x000055b581d80010"</span>,
+      <span class="hljs-attr">"signum"</span>: <span class="hljs-number">28</span>,
+      <span class="hljs-attr">"signal"</span>: <span class="hljs-string">"SIGWINCH"</span>
     },
     {
-      "type": "tty",
-      "is_active": true,
-      "is_referenced": true,
-      "address": "0x000055b581df59f8",
-      "width": 204,
-      "height": 55,
-      "fd": 19,
-      "writeQueueSize": 0,
-      "readable": true,
-      "writable": true
+      <span class="hljs-attr">"type"</span>: <span class="hljs-string">"tty"</span>,
+      <span class="hljs-attr">"is_active"</span>: <span class="hljs-literal">true</span>,
+      <span class="hljs-attr">"is_referenced"</span>: <span class="hljs-literal">true</span>,
+      <span class="hljs-attr">"address"</span>: <span class="hljs-string">"0x000055b581df59f8"</span>,
+      <span class="hljs-attr">"width"</span>: <span class="hljs-number">204</span>,
+      <span class="hljs-attr">"height"</span>: <span class="hljs-number">55</span>,
+      <span class="hljs-attr">"fd"</span>: <span class="hljs-number">19</span>,
+      <span class="hljs-attr">"writeQueueSize"</span>: <span class="hljs-number">0</span>,
+      <span class="hljs-attr">"readable"</span>: <span class="hljs-literal">true</span>,
+      <span class="hljs-attr">"writable"</span>: <span class="hljs-literal">true</span>
     },
     {
-      "type": "loop",
-      "is_active": true,
-      "address": "0x000055fc7b2cb180"
+      <span class="hljs-attr">"type"</span>: <span class="hljs-string">"loop"</span>,
+      <span class="hljs-attr">"is_active"</span>: <span class="hljs-literal">true</span>,
+      <span class="hljs-attr">"address"</span>: <span class="hljs-string">"0x000055fc7b2cb180"</span>
     }
   ],
-  "environmentVariables": {
-    "REMOTEHOST": "REMOVED",
-    "MANPATH": "/opt/rh/devtoolset-3/root/usr/share/man:",
-    "XDG_SESSION_ID": "66126",
-    "HOSTNAME": "test_machine",
-    "HOST": "test_machine",
-    "TERM": "xterm-256color",
-    "SHELL": "/bin/csh",
-    "SSH_CLIENT": "REMOVED",
-    "PERL5LIB": "/opt/rh/devtoolset-3/root//usr/lib64/perl5/vendor_perl:/opt/rh/devtoolset-3/root/usr/lib/perl5:/opt/rh/devtoolset-3/root//usr/share/perl5/vendor_perl",
-    "OLDPWD": "/home/nodeuser/project/node/src",
-    "JAVACONFDIRS": "/opt/rh/devtoolset-3/root/etc/java:/etc/java",
-    "SSH_TTY": "/dev/pts/0",
-    "PCP_DIR": "/opt/rh/devtoolset-3/root",
-    "GROUP": "normaluser",
-    "USER": "nodeuser",
-    "LD_LIBRARY_PATH": "/opt/rh/devtoolset-3/root/usr/lib64:/opt/rh/devtoolset-3/root/usr/lib",
-    "HOSTTYPE": "x86_64-linux",
-    "XDG_CONFIG_DIRS": "/opt/rh/devtoolset-3/root/etc/xdg:/etc/xdg",
-    "MAIL": "/var/spool/mail/nodeuser",
-    "PATH": "/home/nodeuser/project/node:/opt/rh/devtoolset-3/root/usr/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin",
-    "PWD": "/home/nodeuser/project/node",
-    "LANG": "en_US.UTF-8",
-    "PS1": "\\u@\\h : \\[\\e[31m\\]\\w\\[\\e[m\\] >  ",
-    "SHLVL": "2",
-    "HOME": "/home/nodeuser",
-    "OSTYPE": "linux",
-    "VENDOR": "unknown",
-    "PYTHONPATH": "/opt/rh/devtoolset-3/root/usr/lib64/python2.7/site-packages:/opt/rh/devtoolset-3/root/usr/lib/python2.7/site-packages",
-    "MACHTYPE": "x86_64",
-    "LOGNAME": "nodeuser",
-    "XDG_DATA_DIRS": "/opt/rh/devtoolset-3/root/usr/share:/usr/local/share:/usr/share",
-    "LESSOPEN": "||/usr/bin/lesspipe.sh %s",
-    "INFOPATH": "/opt/rh/devtoolset-3/root/usr/share/info",
-    "XDG_RUNTIME_DIR": "/run/user/50141",
-    "_": "./node"
+  <span class="hljs-attr">"workers"</span>: [],
+  <span class="hljs-attr">"environmentVariables"</span>: {
+    <span class="hljs-attr">"REMOTEHOST"</span>: <span class="hljs-string">"REMOVED"</span>,
+    <span class="hljs-attr">"MANPATH"</span>: <span class="hljs-string">"/opt/rh/devtoolset-3/root/usr/share/man:"</span>,
+    <span class="hljs-attr">"XDG_SESSION_ID"</span>: <span class="hljs-string">"66126"</span>,
+    <span class="hljs-attr">"HOSTNAME"</span>: <span class="hljs-string">"test_machine"</span>,
+    <span class="hljs-attr">"HOST"</span>: <span class="hljs-string">"test_machine"</span>,
+    <span class="hljs-attr">"TERM"</span>: <span class="hljs-string">"xterm-256color"</span>,
+    <span class="hljs-attr">"SHELL"</span>: <span class="hljs-string">"/bin/csh"</span>,
+    <span class="hljs-attr">"SSH_CLIENT"</span>: <span class="hljs-string">"REMOVED"</span>,
+    <span class="hljs-attr">"PERL5LIB"</span>: <span class="hljs-string">"/opt/rh/devtoolset-3/root//usr/lib64/perl5/vendor_perl:/opt/rh/devtoolset-3/root/usr/lib/perl5:/opt/rh/devtoolset-3/root//usr/share/perl5/vendor_perl"</span>,
+    <span class="hljs-attr">"OLDPWD"</span>: <span class="hljs-string">"/home/nodeuser/project/node/src"</span>,
+    <span class="hljs-attr">"JAVACONFDIRS"</span>: <span class="hljs-string">"/opt/rh/devtoolset-3/root/etc/java:/etc/java"</span>,
+    <span class="hljs-attr">"SSH_TTY"</span>: <span class="hljs-string">"/dev/pts/0"</span>,
+    <span class="hljs-attr">"PCP_DIR"</span>: <span class="hljs-string">"/opt/rh/devtoolset-3/root"</span>,
+    <span class="hljs-attr">"GROUP"</span>: <span class="hljs-string">"normaluser"</span>,
+    <span class="hljs-attr">"USER"</span>: <span class="hljs-string">"nodeuser"</span>,
+    <span class="hljs-attr">"LD_LIBRARY_PATH"</span>: <span class="hljs-string">"/opt/rh/devtoolset-3/root/usr/lib64:/opt/rh/devtoolset-3/root/usr/lib"</span>,
+    <span class="hljs-attr">"HOSTTYPE"</span>: <span class="hljs-string">"x86_64-linux"</span>,
+    <span class="hljs-attr">"XDG_CONFIG_DIRS"</span>: <span class="hljs-string">"/opt/rh/devtoolset-3/root/etc/xdg:/etc/xdg"</span>,
+    <span class="hljs-attr">"MAIL"</span>: <span class="hljs-string">"/var/spool/mail/nodeuser"</span>,
+    <span class="hljs-attr">"PATH"</span>: <span class="hljs-string">"/home/nodeuser/project/node:/opt/rh/devtoolset-3/root/usr/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin"</span>,
+    <span class="hljs-attr">"PWD"</span>: <span class="hljs-string">"/home/nodeuser/project/node"</span>,
+    <span class="hljs-attr">"LANG"</span>: <span class="hljs-string">"en_US.UTF-8"</span>,
+    <span class="hljs-attr">"PS1"</span>: <span class="hljs-string">"\\u@\\h : \\[\\e[31m\\]\\w\\[\\e[m\\] >  "</span>,
+    <span class="hljs-attr">"SHLVL"</span>: <span class="hljs-string">"2"</span>,
+    <span class="hljs-attr">"HOME"</span>: <span class="hljs-string">"/home/nodeuser"</span>,
+    <span class="hljs-attr">"OSTYPE"</span>: <span class="hljs-string">"linux"</span>,
+    <span class="hljs-attr">"VENDOR"</span>: <span class="hljs-string">"unknown"</span>,
+    <span class="hljs-attr">"PYTHONPATH"</span>: <span class="hljs-string">"/opt/rh/devtoolset-3/root/usr/lib64/python2.7/site-packages:/opt/rh/devtoolset-3/root/usr/lib/python2.7/site-packages"</span>,
+    <span class="hljs-attr">"MACHTYPE"</span>: <span class="hljs-string">"x86_64"</span>,
+    <span class="hljs-attr">"LOGNAME"</span>: <span class="hljs-string">"nodeuser"</span>,
+    <span class="hljs-attr">"XDG_DATA_DIRS"</span>: <span class="hljs-string">"/opt/rh/devtoolset-3/root/usr/share:/usr/local/share:/usr/share"</span>,
+    <span class="hljs-attr">"LESSOPEN"</span>: <span class="hljs-string">"||/usr/bin/lesspipe.sh %s"</span>,
+    <span class="hljs-attr">"INFOPATH"</span>: <span class="hljs-string">"/opt/rh/devtoolset-3/root/usr/share/info"</span>,
+    <span class="hljs-attr">"XDG_RUNTIME_DIR"</span>: <span class="hljs-string">"/run/user/50141"</span>,
+    <span class="hljs-attr">"_"</span>: <span class="hljs-string">"./node"</span>
   },
-  "userLimits": {
-    "core_file_size_blocks": {
-      "soft": "",
-      "hard": "unlimited"
+  <span class="hljs-attr">"userLimits"</span>: {
+    <span class="hljs-attr">"core_file_size_blocks"</span>: {
+      <span class="hljs-attr">"soft"</span>: <span class="hljs-string">""</span>,
+      <span class="hljs-attr">"hard"</span>: <span class="hljs-string">"unlimited"</span>
     },
-    "data_seg_size_kbytes": {
-      "soft": "unlimited",
-      "hard": "unlimited"
+    <span class="hljs-attr">"data_seg_size_kbytes"</span>: {
+      <span class="hljs-attr">"soft"</span>: <span class="hljs-string">"unlimited"</span>,
+      <span class="hljs-attr">"hard"</span>: <span class="hljs-string">"unlimited"</span>
     },
-    "file_size_blocks": {
-      "soft": "unlimited",
-      "hard": "unlimited"
+    <span class="hljs-attr">"file_size_blocks"</span>: {
+      <span class="hljs-attr">"soft"</span>: <span class="hljs-string">"unlimited"</span>,
+      <span class="hljs-attr">"hard"</span>: <span class="hljs-string">"unlimited"</span>
     },
-    "max_locked_memory_bytes": {
-      "soft": "unlimited",
-      "hard": 65536
+    <span class="hljs-attr">"max_locked_memory_bytes"</span>: {
+      <span class="hljs-attr">"soft"</span>: <span class="hljs-string">"unlimited"</span>,
+      <span class="hljs-attr">"hard"</span>: <span class="hljs-number">65536</span>
     },
-    "max_memory_size_kbytes": {
-      "soft": "unlimited",
-      "hard": "unlimited"
+    <span class="hljs-attr">"max_memory_size_kbytes"</span>: {
+      <span class="hljs-attr">"soft"</span>: <span class="hljs-string">"unlimited"</span>,
+      <span class="hljs-attr">"hard"</span>: <span class="hljs-string">"unlimited"</span>
     },
-    "open_files": {
-      "soft": "unlimited",
-      "hard": 4096
+    <span class="hljs-attr">"open_files"</span>: {
+      <span class="hljs-attr">"soft"</span>: <span class="hljs-string">"unlimited"</span>,
+      <span class="hljs-attr">"hard"</span>: <span class="hljs-number">4096</span>
     },
-    "stack_size_bytes": {
-      "soft": "unlimited",
-      "hard": "unlimited"
+    <span class="hljs-attr">"stack_size_bytes"</span>: {
+      <span class="hljs-attr">"soft"</span>: <span class="hljs-string">"unlimited"</span>,
+      <span class="hljs-attr">"hard"</span>: <span class="hljs-string">"unlimited"</span>
     },
-    "cpu_time_seconds": {
-      "soft": "unlimited",
-      "hard": "unlimited"
+    <span class="hljs-attr">"cpu_time_seconds"</span>: {
+      <span class="hljs-attr">"soft"</span>: <span class="hljs-string">"unlimited"</span>,
+      <span class="hljs-attr">"hard"</span>: <span class="hljs-string">"unlimited"</span>
     },
-    "max_user_processes": {
-      "soft": "unlimited",
-      "hard": 4127290
+    <span class="hljs-attr">"max_user_processes"</span>: {
+      <span class="hljs-attr">"soft"</span>: <span class="hljs-string">"unlimited"</span>,
+      <span class="hljs-attr">"hard"</span>: <span class="hljs-number">4127290</span>
     },
-    "virtual_memory_kbytes": {
-      "soft": "unlimited",
-      "hard": "unlimited"
+    <span class="hljs-attr">"virtual_memory_kbytes"</span>: {
+      <span class="hljs-attr">"soft"</span>: <span class="hljs-string">"unlimited"</span>,
+      <span class="hljs-attr">"hard"</span>: <span class="hljs-string">"unlimited"</span>
     }
   },
-  "sharedObjects": [
-    "/lib64/libdl.so.2",
-    "/lib64/librt.so.1",
-    "/lib64/libstdc++.so.6",
-    "/lib64/libm.so.6",
-    "/lib64/libgcc_s.so.1",
-    "/lib64/libpthread.so.0",
-    "/lib64/libc.so.6",
-    "/lib64/ld-linux-x86-64.so.2"
+  <span class="hljs-attr">"sharedObjects"</span>: [
+    <span class="hljs-string">"/lib64/libdl.so.2"</span>,
+    <span class="hljs-string">"/lib64/librt.so.1"</span>,
+    <span class="hljs-string">"/lib64/libstdc++.so.6"</span>,
+    <span class="hljs-string">"/lib64/libm.so.6"</span>,
+    <span class="hljs-string">"/lib64/libgcc_s.so.1"</span>,
+    <span class="hljs-string">"/lib64/libpthread.so.0"</span>,
+    <span class="hljs-string">"/lib64/libc.so.6"</span>,
+    <span class="hljs-string">"/lib64/ld-linux-x86-64.so.2"</span>
   ]
-}
-</code></pre>
+}</code></pre>
 <h2>Usage<span><a class="mark" href="#report_usage" id="report_usage">#</a></span></h2>
-<pre><code class="language-bash">node --experimental-report --report-uncaught-exception \
-  --report-on-signal --report-on-fatalerror app.js
-</code></pre>
+<pre><code class="language-bash">node --report-uncaught-exception --report-on-signal \
+--report-on-fatalerror app.js</code></pre>
 <ul>
-<li>
-<p><code>--experimental-report</code> Enables the diagnostic report feature.
-In the absence of this flag, use of all other related options will result in
-an error.</p>
-</li>
 <li>
 <p><code>--report-uncaught-exception</code> Enables report to be generated on
 un-caught exceptions. Useful when inspecting JavaScript stack in conjunction
@@ -540,6 +538,11 @@ diagnostic data elements such as heap, stack, event loop state, resource
 consumption etc. to reason about the fatal error.</p>
 </li>
 <li>
+<p><code>--report-compact</code> Write reports in a compact format, single-line JSON, more
+easily consumable by log processing systems than the default multi-line format
+designed for human consumption.</p>
+</li>
+<li>
 <p><code>--report-directory</code> Location at which the report will be
 generated.</p>
 </li>
@@ -553,46 +556,41 @@ written.</p>
 </li>
 </ul>
 <p>A report can also be triggered via an API call from a JavaScript application:</p>
-<pre><code class="language-js">process.report.writeReport();
-</code></pre>
+<pre><code class="language-js">process.report.writeReport();</code></pre>
 <p>This function takes an optional additional argument <code>filename</code>, which is
 the name of a file into which the report is written.</p>
-<pre><code class="language-js">process.report.writeReport('./foo.json');
-</code></pre>
-<p>This function takes an optional additional argument <code>err</code> - an <code>Error</code> object
-that will be used as the context for the JavaScript stack printed in the report.
-When using report to handle errors in a callback or an exception handler, this
-allows the report to include the location of the original error as well
-as where it was handled.</p>
-<pre><code class="language-js">try {
-  process.chdir('/non-existent-path');
-} catch (err) {
+<pre><code class="language-js">process.report.writeReport(<span class="hljs-string">'./foo.json'</span>);</code></pre>
+<p>This function takes an optional additional argument <code>err</code> which is an <code>Error</code>
+object that will be used as the context for the JavaScript stack printed in the
+report. When using report to handle errors in a callback or an exception
+handler, this allows the report to include the location of the original error as
+well as where it was handled.</p>
+<pre><code class="language-js"><span class="hljs-keyword">try</span> {
+  process.chdir(<span class="hljs-string">'/non-existent-path'</span>);
+} <span class="hljs-keyword">catch</span> (err) {
   process.report.writeReport(err);
 }
-// Any other code
-</code></pre>
+<span class="hljs-comment">// Any other code</span></code></pre>
 <p>If both filename and error object are passed to <code>writeReport()</code> the
 error object must be the second parameter.</p>
-<pre><code class="language-js">try {
-  process.chdir('/non-existent-path');
-} catch (err) {
+<pre><code class="language-js"><span class="hljs-keyword">try</span> {
+  process.chdir(<span class="hljs-string">'/non-existent-path'</span>);
+} <span class="hljs-keyword">catch</span> (err) {
   process.report.writeReport(filename, err);
 }
-// Any other code
-</code></pre>
+<span class="hljs-comment">// Any other code</span></code></pre>
 <p>The content of the diagnostic report can be returned as a JavaScript Object
 via an API call from a JavaScript application:</p>
-<pre><code class="language-js">const report = process.report.getReport();
-console.log(typeof report === 'object'); // true
+<pre><code class="language-js"><span class="hljs-keyword">const</span> report = process.report.getReport();
+<span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">typeof</span> report === <span class="hljs-string">'object'</span>); <span class="hljs-comment">// true</span>
 
-// Similar to process.report.writeReport() output
-console.log(JSON.stringify(report, null, 2));
-</code></pre>
-<p>This function takes an optional additional argument <code>err</code> - an <code>Error</code> object
-that will be used as the context for the JavaScript stack printed in the report.</p>
-<pre><code class="language-js">const report = process.report.getReport(new Error('custom error'));
-console.log(typeof report === 'object'); // true
-</code></pre>
+<span class="hljs-comment">// Similar to process.report.writeReport() output</span>
+<span class="hljs-built_in">console</span>.log(<span class="hljs-built_in">JSON</span>.stringify(report, <span class="hljs-literal">null</span>, <span class="hljs-number">2</span>));</code></pre>
+<p>This function takes an optional additional argument <code>err</code>, which is an <code>Error</code>
+object that will be used as the context for the JavaScript stack printed in the
+report.</p>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> report = process.report.getReport(<span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">'custom error'</span>));
+<span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">typeof</span> report === <span class="hljs-string">'object'</span>); <span class="hljs-comment">// true</span></code></pre>
 <p>The API versions are useful when inspecting the runtime state from within
 the application, in expectation of self-adjusting the resource consumption,
 load balancing, monitoring etc.</p>
@@ -602,12 +600,11 @@ native stack traces, a section containing V8 heap information, a section
 containing <code>libuv</code> handle information and an OS platform information section
 showing CPU and memory usage and system limits. An example report can be
 triggered using the Node.js REPL:</p>
-<pre><code class="language-raw">$ node
-> process.report.writeReport();
+<pre><code class="language-console"><span class="hljs-meta">$</span><span class="bash"> node</span>
+<span class="hljs-meta">></span><span class="bash"> process.report.writeReport();</span>
 Writing Node.js report to file: report.20181126.091102.8480.0.001.json
 Node.js report completed
->
-</code></pre>
+<span class="hljs-meta">></span></code></pre>
 <p>When a report is written, start and end messages are issued to stderr
 and the filename of the report is returned to the caller. The default filename
 includes the date, time, PID and a sequence number. The sequence number helps
@@ -634,36 +631,50 @@ timestamp, PID and sequence number.</p>
 <p><code>directory</code> specifies the filesystem directory where the report will be written.
 URLs are not supported. Defaults to the current working directory of the
 Node.js process.</p>
-<pre><code class="language-js">// Trigger report only on uncaught exceptions.
-process.report.reportOnFatalError = false;
-process.report.reportOnSignal = false;
-process.report.reportOnUncaughtException = true;
+<pre><code class="language-js"><span class="hljs-comment">// Trigger report only on uncaught exceptions.</span>
+process.report.reportOnFatalError = <span class="hljs-literal">false</span>;
+process.report.reportOnSignal = <span class="hljs-literal">false</span>;
+process.report.reportOnUncaughtException = <span class="hljs-literal">true</span>;
 
-// Trigger report for both internal errors as well as external signal.
-process.report.reportOnFatalError = true;
-process.report.reportOnSignal = true;
-process.report.reportOnUncaughtException = false;
+<span class="hljs-comment">// Trigger report for both internal errors as well as external signal.</span>
+process.report.reportOnFatalError = <span class="hljs-literal">true</span>;
+process.report.reportOnSignal = <span class="hljs-literal">true</span>;
+process.report.reportOnUncaughtException = <span class="hljs-literal">false</span>;
 
-// Change the default signal to 'SIGQUIT' and enable it.
-process.report.reportOnFatalError = false;
-process.report.reportOnUncaughtException = false;
-process.report.reportOnSignal = true;
-process.report.signal = 'SIGQUIT';
-</code></pre>
+<span class="hljs-comment">// Change the default signal to 'SIGQUIT' and enable it.</span>
+process.report.reportOnFatalError = <span class="hljs-literal">false</span>;
+process.report.reportOnUncaughtException = <span class="hljs-literal">false</span>;
+process.report.reportOnSignal = <span class="hljs-literal">true</span>;
+process.report.signal = <span class="hljs-string">'SIGQUIT'</span>;</code></pre>
 <p>Configuration on module initialization is also available via
 environment variables:</p>
-<pre><code class="language-bash">NODE_OPTIONS="--experimental-report --report-uncaught-exception \
+<pre><code class="language-bash">NODE_OPTIONS=<span class="hljs-string">"--report-uncaught-exception \
   --report-on-fatalerror --report-on-signal \
   --report-signal=SIGUSR2  --report-filename=./report.json \
-  --report-directory=/home/nodeuser"
-</code></pre>
+  --report-directory=/home/nodeuser"</span></code></pre>
 <p>Specific API documentation can be found under
 <a href="process.html"><code>process API documentation</code></a> section.</p>
+<h2>Interaction with workers<span><a class="mark" href="#report_interaction_with_workers" id="report_interaction_with_workers">#</a></span></h2>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v13.9.0, v12.16.2</td>
+<td><p>Workers are now included in the report.</p></td></tr>
+</tbody></table>
+</details>
+</div>
+<p><a href="worker_threads.html"><code>Worker</code></a> threads can create reports in the same way that the main thread
+does.</p>
+<p>Reports will include information on any Workers that are children of the current
+thread as part of the <code>workers</code> section, with each Worker generating a report
+in the standard report format.</p>
+<p>The thread which is generating the report will wait for the reports from Worker
+threads to finish. However, the latency for this will usually be low, as both
+running JavaScript and the event loop are interrupted to generate the report.</p>
+        <!-- API END -->
       </div>
     </div>
   </div>
-  <script src="assets/sh_main.js"></script>
-  <script src="assets/sh_javascript.min.js"></script>
-  <script>highlight(undefined, undefined, 'pre');</script>
 </body>
 </html>

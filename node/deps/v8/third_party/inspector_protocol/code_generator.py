@@ -112,16 +112,9 @@ def read_config():
       ".lib": False,
       ".lib.export_macro": "",
       ".lib.export_header": False,
-      # The encoding lib consists of encoding/encoding.h and
-      # encoding/encoding.cc in its subdirectory, which binaries
-      # must link / depend on.
-      ".encoding_lib.header": os.path.join(inspector_protocol_dir,
-                                           "encoding/encoding.h"),
-      ".encoding_lib.namespace": "",
-      # Ditto for bindings, see bindings/bindings.h.
-      ".bindings_lib.header": os.path.join(inspector_protocol_dir,
-                                           "bindings/bindings.h"),
-      ".bindings_lib.namespace": ""
+      ".crdtp": False,
+      ".crdtp.dir": os.path.join(inspector_protocol_dir, "crdtp"),
+      ".crdtp.namespace": "crdtp",
     }
     for key_value in config_values:
       parts = key_value.split("=")
@@ -662,26 +655,19 @@ def main():
     # Note these should be sorted in the right order.
     # TODO(dgozman): sort them programmatically based on commented includes.
     protocol_h_templates = [
-      "ErrorSupport_h.template",
       "Values_h.template",
       "Object_h.template",
       "ValueConversions_h.template",
-      "DispatcherBase_h.template",
-      "Parser_h.template",
     ]
 
     protocol_cpp_templates = [
       "Protocol_cpp.template",
-      "ErrorSupport_cpp.template",
       "Values_cpp.template",
       "Object_cpp.template",
-      "DispatcherBase_cpp.template",
-      "Parser_cpp.template",
     ]
 
     forward_h_templates = [
       "Forward_h.template",
-      "FrontendChannel_h.template",
     ]
 
     base_string_adapter_h_templates = [

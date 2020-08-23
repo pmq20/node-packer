@@ -3,8 +3,8 @@
   "source": "doc/api/synopsis.md",
   "modules": [
     {
-      "textRaw": "Usage & Example",
-      "name": "usage_&_example",
+      "textRaw": "Usage and example",
+      "name": "usage_and_example",
       "introduced_in": "v0.10.0",
       "miscs": [
         {
@@ -16,7 +16,7 @@
         }
       ],
       "type": "module",
-      "displayName": "Usage & Example"
+      "displayName": "Usage and example"
     }
   ]
 }

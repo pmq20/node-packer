@@ -134,5 +134,4 @@ void uv_winapi_init(void) {
     pSetWinEventHook = (sSetWinEventHook)
       GetProcAddress(user32_module, "SetWinEventHook");
   }
-
 }

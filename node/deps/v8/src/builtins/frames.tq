@@ -24,8 +24,8 @@ Cast<FrameType>(o: Object): FrameType
     labels CastError {
   if (TaggedIsNotSmi(o)) goto CastError;
   assert(
-      (Convert<uintptr>(BitcastTaggedToWord(o)) >>> kSmiTagSize) <
-      kFrameTypeCount);
+      Convert<int32>(BitcastTaggedToWordForTagAndSmiBits(o)) <
+      Convert<int32>(kFrameTypeCount << kSmiTagSize));
   return %RawDownCast<FrameType>(o);
 }
 
@@ -33,8 +33,8 @@ type FrameBase extends RawPtr constexpr 'void*';
 type StandardFrame extends FrameBase constexpr 'void*';
 type ArgumentsAdaptorFrame extends FrameBase constexpr 'void*';
 type StubFrame extends FrameBase constexpr 'void*';
-type FrameWithArguments = StandardFrame | ArgumentsAdaptorFrame;
-type Frame = FrameWithArguments | StubFrame;
+type FrameWithArguments = StandardFrame|ArgumentsAdaptorFrame;
+type Frame = FrameWithArguments|StubFrame;
 
 extern macro LoadFramePointer(): Frame;
 extern macro LoadParentFramePointer(): Frame;
@@ -67,7 +67,7 @@ operator '.caller' macro LoadCallerFromFrame(f: Frame): Frame {
   return %RawDownCast<Frame>(result);
 }
 
-type ContextOrFrameType = Context | FrameType;
+type ContextOrFrameType = Context|FrameType;
 Cast<ContextOrFrameType>(implicit context: Context)(o: Object):
     ContextOrFrameType
     labels CastError {
@@ -102,10 +102,11 @@ macro LoadLengthFromAdapterFrame(implicit context: Context)(
 }
 
 operator '==' macro FrameTypeEquals(f1: FrameType, f2: FrameType): bool {
-  return WordEqual(f1, f2);
+  return TaggedEqual(f1, f2);
 }
 
-macro Cast<A: type>(implicit context: Context)(o: Frame): A labels CastError;
+macro Cast<A : type extends Frame>(implicit context: Context)(o: Frame):
+    A labels CastError;
 Cast<StandardFrame>(implicit context: Context)(f: Frame):
     StandardFrame labels CastError {
   const o: HeapObject =

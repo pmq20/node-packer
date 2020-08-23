@@ -23,7 +23,7 @@ class V8_EXPORT_PRIVATE RegExpMacroAssemblerPPC
   virtual void AdvanceRegister(int reg, int by);
   virtual void Backtrack();
   virtual void Bind(Label* label);
-  virtual void CheckAtStart(Label* on_at_start);
+  virtual void CheckAtStart(int cp_offset, Label* on_at_start);
   virtual void CheckCharacter(unsigned c, Label* on_equal);
   virtual void CheckCharacterAfterAnd(unsigned c, unsigned mask,
                                       Label* on_equal);
@@ -36,7 +36,7 @@ class V8_EXPORT_PRIVATE RegExpMacroAssemblerPPC
   virtual void CheckNotBackReference(int start_reg, bool read_backward,
                                      Label* on_no_match);
   virtual void CheckNotBackReferenceIgnoreCase(int start_reg,
-                                               bool read_backward, bool unicode,
+                                               bool read_backward,
                                                Label* on_no_match);
   virtual void CheckNotCharacter(unsigned c, Label* on_not_equal);
   virtual void CheckNotCharacterAfterAnd(unsigned c, unsigned mask,
@@ -59,9 +59,8 @@ class V8_EXPORT_PRIVATE RegExpMacroAssemblerPPC
   virtual void IfRegisterLT(int reg, int comparand, Label* if_lt);
   virtual void IfRegisterEqPos(int reg, Label* if_eq);
   virtual IrregexpImplementation Implementation();
-  virtual void LoadCurrentCharacter(int cp_offset, Label* on_end_of_input,
-                                    bool check_bounds = true,
-                                    int characters = 1);
+  virtual void LoadCurrentCharacterUnchecked(int cp_offset,
+                                             int character_count);
   virtual void PopCurrentPosition();
   virtual void PopRegister(int register_index);
   virtual void PushBacktrack(Label* label);
@@ -92,35 +91,33 @@ class V8_EXPORT_PRIVATE RegExpMacroAssemblerPPC
   // Register 25..31.
   static const int kStoredRegisters = kFramePointer;
   // Return address (stored from link register, read into pc on return).
-  static const int kReturnAddress = kStoredRegisters + 7 * kPointerSize;
-  static const int kCallerFrame = kReturnAddress + kPointerSize;
+  static const int kReturnAddress = kStoredRegisters + 7 * kSystemPointerSize;
+  static const int kCallerFrame = kReturnAddress + kSystemPointerSize;
   // Stack parameters placed by caller.
   static const int kIsolate =
-      kCallerFrame + kStackFrameExtraParamSlot * kPointerSize;
+      kCallerFrame + kStackFrameExtraParamSlot * kSystemPointerSize;
 
   // Below the frame pointer.
   // Register parameters stored by setup code.
-  static const int kDirectCall = kFramePointer - kPointerSize;
-  static const int kStackHighEnd = kDirectCall - kPointerSize;
-  static const int kNumOutputRegisters = kStackHighEnd - kPointerSize;
-  static const int kRegisterOutput = kNumOutputRegisters - kPointerSize;
-  static const int kInputEnd = kRegisterOutput - kPointerSize;
-  static const int kInputStart = kInputEnd - kPointerSize;
-  static const int kStartIndex = kInputStart - kPointerSize;
-  static const int kInputString = kStartIndex - kPointerSize;
+  static const int kDirectCall = kFramePointer - kSystemPointerSize;
+  static const int kStackHighEnd = kDirectCall - kSystemPointerSize;
+  static const int kNumOutputRegisters = kStackHighEnd - kSystemPointerSize;
+  static const int kRegisterOutput = kNumOutputRegisters - kSystemPointerSize;
+  static const int kInputEnd = kRegisterOutput - kSystemPointerSize;
+  static const int kInputStart = kInputEnd - kSystemPointerSize;
+  static const int kStartIndex = kInputStart - kSystemPointerSize;
+  static const int kInputString = kStartIndex - kSystemPointerSize;
   // When adding local variables remember to push space for them in
   // the frame in GetCode.
-  static const int kSuccessfulCaptures = kInputString - kPointerSize;
-  static const int kStringStartMinusOne = kSuccessfulCaptures - kPointerSize;
+  static const int kSuccessfulCaptures = kInputString - kSystemPointerSize;
+  static const int kStringStartMinusOne =
+      kSuccessfulCaptures - kSystemPointerSize;
+  static const int kBacktrackCount = kStringStartMinusOne - kSystemPointerSize;
   // First register address. Following registers are below it on the stack.
-  static const int kRegisterZero = kStringStartMinusOne - kPointerSize;
+  static const int kRegisterZero = kBacktrackCount - kSystemPointerSize;
 
   // Initial size of code buffer.
   static const int kRegExpCodeSize = 1024;
-
-  // Load a number of characters at the given offset from the
-  // current position, into the current-character register.
-  void LoadCurrentCharacterUnchecked(int cp_offset, int character_count);
 
   // Check whether preemption has been requested.
   void CheckPreemption();

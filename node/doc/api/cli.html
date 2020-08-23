@@ -3,10 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Command Line Options | Node.js v12.13.0 Documentation</title>
+  <meta name="nodejs.org:node-version" content="v14.8.0">
+  <title>Command line options | Node.js v14.8.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
-  <link rel="stylesheet" href="assets/sh.css">
+  <link rel="stylesheet" href="assets/hljs.css">
   <link rel="canonical" href="https://nodejs.org/api/cli.html">
 </head>
 <body class="alt apidoc" id="api-section-cli">
@@ -18,29 +19,30 @@
         </a>
       </div>
       <ul>
-<li><a href="documentation.html" class="nav-documentation">About these Docs</a></li>
-<li><a href="synopsis.html" class="nav-synopsis">Usage &#x26; Example</a></li>
+<li><a href="documentation.html" class="nav-documentation">About this documentation</a></li>
+<li><a href="synopsis.html" class="nav-synopsis">Usage and example</a></li>
 </ul>
 <div class="line"></div>
 <ul>
-<li><a href="assert.html" class="nav-assert">Assertion Testing</a></li>
-<li><a href="async_hooks.html" class="nav-async_hooks">Async Hooks</a></li>
+<li><a href="assert.html" class="nav-assert">Assertion testing</a></li>
+<li><a href="async_hooks.html" class="nav-async_hooks">Async hooks</a></li>
 <li><a href="buffer.html" class="nav-buffer">Buffer</a></li>
-<li><a href="addons.html" class="nav-addons">C++ Addons</a></li>
-<li><a href="n-api.html" class="nav-n-api">C/C++ Addons - N-API</a></li>
-<li><a href="child_process.html" class="nav-child_process">Child Processes</a></li>
+<li><a href="addons.html" class="nav-addons">C++ addons</a></li>
+<li><a href="n-api.html" class="nav-n-api">C/C++ addons with N-API</a></li>
+<li><a href="embedding.html" class="nav-embedding">C++ embedder API</a></li>
+<li><a href="child_process.html" class="nav-child_process">Child processes</a></li>
 <li><a href="cluster.html" class="nav-cluster">Cluster</a></li>
-<li><a href="cli.html" class="nav-cli active">Command Line Options</a></li>
+<li><a href="cli.html" class="nav-cli active">Command line options</a></li>
 <li><a href="console.html" class="nav-console">Console</a></li>
 <li><a href="crypto.html" class="nav-crypto">Crypto</a></li>
 <li><a href="debugger.html" class="nav-debugger">Debugger</a></li>
 <li><a href="deprecations.html" class="nav-deprecations">Deprecated APIs</a></li>
 <li><a href="dns.html" class="nav-dns">DNS</a></li>
 <li><a href="domain.html" class="nav-domain">Domain</a></li>
-<li><a href="esm.html" class="nav-esm">ECMAScript Modules</a></li>
+<li><a href="esm.html" class="nav-esm">ECMAScript modules</a></li>
 <li><a href="errors.html" class="nav-errors">Errors</a></li>
 <li><a href="events.html" class="nav-events">Events</a></li>
-<li><a href="fs.html" class="nav-fs">File System</a></li>
+<li><a href="fs.html" class="nav-fs">File system</a></li>
 <li><a href="globals.html" class="nav-globals">Globals</a></li>
 <li><a href="http.html" class="nav-http">HTTP</a></li>
 <li><a href="http2.html" class="nav-http2">HTTP/2</a></li>
@@ -51,37 +53,38 @@
 <li><a href="net.html" class="nav-net">Net</a></li>
 <li><a href="os.html" class="nav-os">OS</a></li>
 <li><a href="path.html" class="nav-path">Path</a></li>
-<li><a href="perf_hooks.html" class="nav-perf_hooks">Performance Hooks</a></li>
+<li><a href="perf_hooks.html" class="nav-perf_hooks">Performance hooks</a></li>
 <li><a href="policy.html" class="nav-policy">Policies</a></li>
 <li><a href="process.html" class="nav-process">Process</a></li>
 <li><a href="punycode.html" class="nav-punycode">Punycode</a></li>
-<li><a href="querystring.html" class="nav-querystring">Query Strings</a></li>
+<li><a href="querystring.html" class="nav-querystring">Query strings</a></li>
 <li><a href="readline.html" class="nav-readline">Readline</a></li>
 <li><a href="repl.html" class="nav-repl">REPL</a></li>
 <li><a href="report.html" class="nav-report">Report</a></li>
 <li><a href="stream.html" class="nav-stream">Stream</a></li>
-<li><a href="string_decoder.html" class="nav-string_decoder">String Decoder</a></li>
+<li><a href="string_decoder.html" class="nav-string_decoder">String decoder</a></li>
 <li><a href="timers.html" class="nav-timers">Timers</a></li>
 <li><a href="tls.html" class="nav-tls">TLS/SSL</a></li>
-<li><a href="tracing.html" class="nav-tracing">Trace Events</a></li>
+<li><a href="tracing.html" class="nav-tracing">Trace events</a></li>
 <li><a href="tty.html" class="nav-tty">TTY</a></li>
-<li><a href="dgram.html" class="nav-dgram">UDP/Datagram</a></li>
+<li><a href="dgram.html" class="nav-dgram">UDP/datagram</a></li>
 <li><a href="url.html" class="nav-url">URL</a></li>
 <li><a href="util.html" class="nav-util">Utilities</a></li>
 <li><a href="v8.html" class="nav-v8">V8</a></li>
 <li><a href="vm.html" class="nav-vm">VM</a></li>
-<li><a href="worker_threads.html" class="nav-worker_threads">Worker Threads</a></li>
+<li><a href="wasi.html" class="nav-wasi">WASI</a></li>
+<li><a href="worker_threads.html" class="nav-worker_threads">Worker threads</a></li>
 <li><a href="zlib.html" class="nav-zlib">Zlib</a></li>
 </ul>
 <div class="line"></div>
 <ul>
-<li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">GitHub Repo &#x26; Issue Tracker</a></li>
+<li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">Code repository and issue tracker</a></li>
 </ul>
     </div>
 
     <div id="column1" data-id="cli" class="interior">
       <header>
-        <h1>Node.js v12.13.0 Documentation</h1>
+        <h1>Node.js v14.8.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -96,11 +99,13 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v12.x/api/cli.html">12.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v14.x/api/cli.html">14.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v13.x/api/cli.html">13.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v12.x/api/cli.html">12.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v11.x/api/cli.html">11.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v10.x/api/cli.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/cli.html">9.x</a></li>
-<li><a href="https://nodejs.org/docs/latest-v8.x/api/cli.html">8.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v8.x/api/cli.html">8.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/cli.html">7.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v6.x/api/cli.html">6.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v5.x/api/cli.html">5.x</a></li></ol>
@@ -116,7 +121,7 @@
         <h2>Table of Contents</h2>
         <ul>
 <li>
-<p><a href="#cli_command_line_options">Command Line Options</a></p>
+<p><a href="#cli_command_line_options">Command line options</a></p>
 <ul>
 <li><a href="#cli_synopsis">Synopsis</a></li>
 <li>
@@ -130,17 +135,22 @@
 <li><span class="stability_1"><a href="#cli_cpu_prof_dir"><code>--cpu-prof-dir</code></a></span></li>
 <li><span class="stability_1"><a href="#cli_cpu_prof_interval"><code>--cpu-prof-interval</code></a></span></li>
 <li><span class="stability_1"><a href="#cli_cpu_prof_name"><code>--cpu-prof-name</code></a></span></li>
+<li><a href="#cli_diagnostic_dir_directory"><code>--diagnostic-dir=directory</code></a></li>
+<li><a href="#cli_disable_proto_mode"><code>--disable-proto=mode</code></a></li>
+<li><a href="#cli_disallow_code_generation_from_strings"><code>--disallow-code-generation-from-strings</code></a></li>
 <li><a href="#cli_enable_fips"><code>--enable-fips</code></a></li>
 <li><span class="stability_1"><a href="#cli_enable_source_maps"><code>--enable-source-maps</code></a></span></li>
-<li><a href="#cli_es_module_specifier_resolution_mode"><code>--es-module-specifier-resolution=mode</code></a></li>
-<li><a href="#cli_experimental_exports"><code>--experimental-exports</code></a></li>
+<li><a href="#cli_experimental_import_meta_resolve"><code>--experimental-import-meta-resolve</code></a></li>
 <li><a href="#cli_experimental_json_modules"><code>--experimental-json-modules</code></a></li>
+<li><a href="#cli_experimental_loader_module"><code>--experimental-loader=module</code></a></li>
 <li><a href="#cli_experimental_modules"><code>--experimental-modules</code></a></li>
 <li><a href="#cli_experimental_policy"><code>--experimental-policy</code></a></li>
 <li><a href="#cli_experimental_repl_await"><code>--experimental-repl-await</code></a></li>
-<li><a href="#cli_experimental_report"><code>--experimental-report</code></a></li>
+<li><a href="#cli_experimental_specifier_resolution_mode"><code>--experimental-specifier-resolution=mode</code></a></li>
 <li><a href="#cli_experimental_vm_modules"><code>--experimental-vm-modules</code></a></li>
+<li><a href="#cli_experimental_wasi_unstable_preview1"><code>--experimental-wasi-unstable-preview1</code></a></li>
 <li><a href="#cli_experimental_wasm_modules"><code>--experimental-wasm-modules</code></a></li>
+<li><a href="#cli_force_context_aware"><code>--force-context-aware</code></a></li>
 <li><a href="#cli_force_fips"><code>--force-fips</code></a></li>
 <li><span class="stability_1"><a href="#cli_frozen_intrinsics"><code>--frozen-intrinsics</code></a></span></li>
 <li><a href="#cli_heapsnapshot_signal_signal"><code>--heapsnapshot-signal=signal</code></a></li>
@@ -148,8 +158,6 @@
 <li><span class="stability_1"><a href="#cli_heap_prof_dir"><code>--heap-prof-dir</code></a></span></li>
 <li><span class="stability_1"><a href="#cli_heap_prof_interval"><code>--heap-prof-interval</code></a></span></li>
 <li><span class="stability_1"><a href="#cli_heap_prof_name"><code>--heap-prof-name</code></a></span></li>
-<li><a href="#cli_http_parser_library"><code>--http-parser=library</code></a></li>
-<li><a href="#cli_http_server_default_timeout_milliseconds"><code>--http-server-default-timeout=milliseconds</code></a></li>
 <li><a href="#cli_icu_data_dir_file"><code>--icu-data-dir=file</code></a></li>
 <li><a href="#cli_input_type_type"><code>--input-type=type</code></a></li>
 <li><a href="#cli_inspect_brk_host_port"><code>--inspect-brk[=[host:]port]</code></a></li>
@@ -161,13 +169,13 @@
 </ul>
 </li>
 <li><a href="#cli_inspect_publish_uid_stderr_http"><code>--inspect-publish-uid=stderr,http</code></a></li>
-<li><a href="#cli_experimental_loader_module"><code>--experimental-loader=module</code></a></li>
+<li><a href="#cli_insecure_http_parser"><code>--insecure-http-parser</code></a></li>
+<li><a href="#cli_jitless"><code>--jitless</code></a></li>
 <li><a href="#cli_max_http_header_size_size"><code>--max-http-header-size=size</code></a></li>
 <li><a href="#cli_napi_modules"><code>--napi-modules</code></a></li>
 <li><a href="#cli_no_deprecation"><code>--no-deprecation</code></a></li>
 <li><a href="#cli_no_force_async_hooks_checks"><code>--no-force-async-hooks-checks</code></a></li>
 <li><a href="#cli_no_warnings"><code>--no-warnings</code></a></li>
-<li><a href="#cli_force_context_aware"><code>--force-context-aware</code></a></li>
 <li><a href="#cli_openssl_config_file"><code>--openssl-config=file</code></a></li>
 <li><a href="#cli_pending_deprecation"><code>--pending-deprecation</code></a></li>
 <li><span class="stability_1"><a href="#cli_policy_integrity_sri"><code>--policy-integrity=sri</code></a></span></li>
@@ -176,7 +184,8 @@
 <li><a href="#cli_prof"><code>--prof</code></a></li>
 <li><a href="#cli_prof_process"><code>--prof-process</code></a></li>
 <li><a href="#cli_redirect_warnings_file"><code>--redirect-warnings=file</code></a></li>
-<li><a href="#cli_report_directory_directory"><code>--report-directory=directory</code></a></li>
+<li><a href="#cli_report_compact"><code>--report-compact</code></a></li>
+<li><a href="#cli_report_dir_directory_report_directory_directory"><code>--report-dir=directory</code>, <code>report-directory=directory</code></a></li>
 <li><a href="#cli_report_filename_filename"><code>--report-filename=filename</code></a></li>
 <li><a href="#cli_report_on_fatalerror"><code>--report-on-fatalerror</code></a></li>
 <li><a href="#cli_report_on_signal"><code>--report-on-signal</code></a></li>
@@ -185,22 +194,28 @@
 <li><a href="#cli_throw_deprecation"><code>--throw-deprecation</code></a></li>
 <li><a href="#cli_title_title"><code>--title=title</code></a></li>
 <li><a href="#cli_tls_cipher_list_list"><code>--tls-cipher-list=list</code></a></li>
+<li><a href="#cli_tls_keylog_file"><code>--tls-keylog=file</code></a></li>
 <li><a href="#cli_tls_max_v1_2"><code>--tls-max-v1.2</code></a></li>
 <li><a href="#cli_tls_max_v1_3"><code>--tls-max-v1.3</code></a></li>
 <li><a href="#cli_tls_min_v1_0"><code>--tls-min-v1.0</code></a></li>
 <li><a href="#cli_tls_min_v1_1"><code>--tls-min-v1.1</code></a></li>
 <li><a href="#cli_tls_min_v1_2"><code>--tls-min-v1.2</code></a></li>
 <li><a href="#cli_tls_min_v1_3"><code>--tls-min-v1.3</code></a></li>
+<li><a href="#cli_trace_atomics_wait"><code>--trace-atomics-wait</code></a></li>
 <li><a href="#cli_trace_deprecation"><code>--trace-deprecation</code></a></li>
 <li><a href="#cli_trace_event_categories"><code>--trace-event-categories</code></a></li>
 <li><a href="#cli_trace_event_file_pattern"><code>--trace-event-file-pattern</code></a></li>
 <li><a href="#cli_trace_events_enabled"><code>--trace-events-enabled</code></a></li>
+<li><a href="#cli_trace_exit"><code>--trace-exit</code></a></li>
+<li><a href="#cli_trace_sigint"><code>--trace-sigint</code></a></li>
 <li><a href="#cli_trace_sync_io"><code>--trace-sync-io</code></a></li>
 <li><a href="#cli_trace_tls"><code>--trace-tls</code></a></li>
+<li><a href="#cli_trace_uncaught"><code>--trace-uncaught</code></a></li>
 <li><a href="#cli_trace_warnings"><code>--trace-warnings</code></a></li>
 <li><a href="#cli_track_heap_objects"><code>--track-heap-objects</code></a></li>
 <li><a href="#cli_unhandled_rejections_mode"><code>--unhandled-rejections=mode</code></a></li>
 <li><a href="#cli_use_bundled_ca_use_openssl_ca"><code>--use-bundled-ca</code>, <code>--use-openssl-ca</code></a></li>
+<li><a href="#cli_use_largepages_mode"><code>--use-largepages=mode</code></a></li>
 <li><a href="#cli_v8_options"><code>--v8-options</code></a></li>
 <li><a href="#cli_v8_pool_size_num"><code>--v8-pool-size=num</code></a></li>
 <li><a href="#cli_zero_fill_buffers"><code>--zero-fill-buffers</code></a></li>
@@ -214,7 +229,7 @@
 </ul>
 </li>
 <li>
-<p><a href="#cli_environment_variables">Environment Variables</a></p>
+<p><a href="#cli_environment_variables">Environment variables</a></p>
 <ul>
 <li><a href="#cli_node_debug_module"><code>NODE_DEBUG=module[,…]</code></a></li>
 <li><a href="#cli_node_debug_native_module"><code>NODE_DEBUG_NATIVE=module[,…]</code></a></li>
@@ -229,12 +244,14 @@
 <li><a href="#cli_node_preserve_symlinks_1"><code>NODE_PRESERVE_SYMLINKS=1</code></a></li>
 <li><a href="#cli_node_redirect_warnings_file"><code>NODE_REDIRECT_WARNINGS=file</code></a></li>
 <li><a href="#cli_node_repl_history_file"><code>NODE_REPL_HISTORY=file</code></a></li>
+<li><a href="#cli_node_repl_external_module_file"><code>NODE_REPL_EXTERNAL_MODULE=file</code></a></li>
+<li><a href="#cli_node_skip_platform_check_value"><code>NODE_SKIP_PLATFORM_CHECK=value</code></a></li>
 <li><a href="#cli_node_tls_reject_unauthorized_value"><code>NODE_TLS_REJECT_UNAUTHORIZED=value</code></a></li>
 <li>
 <p><a href="#cli_node_v8_coverage_dir"><code>NODE_V8_COVERAGE=dir</code></a></p>
 <ul>
-<li><a href="#cli_coverage_output">Coverage Output</a></li>
-<li><a href="#cli_source_map_cache">Source Map Cache</a></li>
+<li><a href="#cli_coverage_output">Coverage output</a></li>
+<li><a href="#cli_source_map_cache">Source map cache</a></li>
 </ul>
 </li>
 <li><a href="#cli_openssl_conf_file"><code>OPENSSL_CONF=file</code></a></li>
@@ -243,13 +260,19 @@
 <li><a href="#cli_uv_threadpool_size_size"><code>UV_THREADPOOL_SIZE=size</code></a></li>
 </ul>
 </li>
+<li>
+<p><a href="#cli_useful_v8_options">Useful V8 options</a></p>
+<ul>
+<li><a href="#cli_max_old_space_size_size_in_megabytes"><code>--max-old-space-size=SIZE</code> (in megabytes)</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
       </div>
 
       <div id="apicontent">
-        <h1>Command Line Options<span><a class="mark" href="#cli_command_line_options" id="cli_command_line_options">#</a></span></h1>
+        <h1>Command line options<span><a class="mark" href="#cli_command_line_options" id="cli_command_line_options">#</a></span></h1>
 
 
 <p>Node.js comes with a variety of CLI options. These options expose built-in
@@ -278,7 +301,7 @@ dashes (<code>-</code>) or underscores (<code>_</code>).</p>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
 </div>
-<p>Alias for stdin, analogous to the use of - in other command line utilities,
+<p>Alias for stdin. Analogous to the use of <code>-</code> in other command line utilities,
 meaning that the script will be read from stdin, and the rest of the options
 are passed to that script.</p>
 <h3><code>--</code><span><a class="mark" href="#cli_1" id="cli_1">#</a></span></h3>
@@ -290,7 +313,7 @@ If no script filename or eval/print script is supplied prior to this, then
 the next argument will be used as a script filename.</p>
 <h3><code>--abort-on-uncaught-exception</code><span><a class="mark" href="#cli_abort_on_uncaught_exception" id="cli_abort_on_uncaught_exception">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.10</span>
+<span>Added in: v0.10.8</span>
 </div>
 <p>Aborting instead of exiting causes a core file to be generated for post-mortem
 analysis using a debugger (such as <code>lldb</code>, <code>gdb</code>, and <code>mdb</code>).</p>
@@ -302,9 +325,8 @@ analysis using a debugger (such as <code>lldb</code>, <code>gdb</code>, and <cod
 <span>Added in: v10.12.0</span>
 </div>
 <p>Print source-able bash completion script for Node.js.</p>
-<pre><code class="language-console">$ node --completion-bash > node_bash_completion
-$ source node_bash_completion
-</code></pre>
+<pre><code class="language-console"><span class="hljs-meta">$</span><span class="bash"> node --completion-bash > node_bash_completion</span>
+<span class="hljs-meta">$</span><span class="bash"> <span class="hljs-built_in">source</span> node_bash_completion</span></code></pre>
 <h3><code>--cpu-prof</code><span><a class="mark" href="#cli_cpu_prof" id="cli_cpu_prof">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v12.0.0</span>
@@ -316,10 +338,9 @@ before exit.</p>
 in the current working directory.</p>
 <p>If <code>--cpu-prof-name</code> is not specified, the generated profile will be
 named <code>CPU.${yyyymmdd}.${hhmmss}.${pid}.${tid}.${seq}.cpuprofile</code>.</p>
-<pre><code class="language-console">$ node --cpu-prof index.js
-$ ls *.cpuprofile
-CPU.20190409.202950.15293.0.0.cpuprofile
-</code></pre>
+<pre><code class="language-console"><span class="hljs-meta">$</span><span class="bash"> node --cpu-prof index.js</span>
+<span class="hljs-meta">$</span><span class="bash"> ls *.cpuprofile</span>
+CPU.20190409.202950.15293.0.0.cpuprofile</code></pre>
 <h3><code>--cpu-prof-dir</code><span><a class="mark" href="#cli_cpu_prof_dir" id="cli_cpu_prof_dir">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v12.0.0</span>
@@ -327,6 +348,8 @@ CPU.20190409.202950.15293.0.0.cpuprofile
 <p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
 <p>Specify the directory where the CPU profiles generated by <code>--cpu-prof</code> will
 be placed.</p>
+<p>The default value is controlled by the
+<a href="#cli_diagnostic_dir_directory">--diagnostic-dir</a> command line option.</p>
 <h3><code>--cpu-prof-interval</code><span><a class="mark" href="#cli_cpu_prof_interval" id="cli_cpu_prof_interval">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v12.2.0</span>
@@ -340,6 +363,29 @@ by <code>--cpu-prof</code>. The default is 1000 microseconds.</p>
 </div>
 <p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
 <p>Specify the file name of the CPU profile generated by <code>--cpu-prof</code>.</p>
+<h3><code>--diagnostic-dir=directory</code><span><a class="mark" href="#cli_diagnostic_dir_directory" id="cli_diagnostic_dir_directory">#</a></span></h3>
+<p>Set the directory to which all diagnostic output files will be written to.
+Defaults to current working directory.</p>
+<p>Affects the default output directory of:</p>
+<ul>
+<li><a href="#cli_cpu_prof_dir">--cpu-prof-dir</a></li>
+<li><a href="#cli_heap_prof_dir">--heap-prof-dir</a></li>
+<li><a href="#cli_redirect_warnings_file">--redirect-warnings</a></li>
+</ul>
+<h3><code>--disable-proto=mode</code><span><a class="mark" href="#cli_disable_proto_mode" id="cli_disable_proto_mode">#</a></span></h3>
+<!--YAML
+added: v13.12.0
+-->
+<p>Disable the <code>Object.prototype.__proto__</code> property. If <code>mode</code> is <code>delete</code>, the
+property will be removed entirely. If <code>mode</code> is <code>throw</code>, accesses to the
+property will throw an exception with the code <code>ERR_PROTO_ACCESS</code>.</p>
+<h3><code>--disallow-code-generation-from-strings</code><span><a class="mark" href="#cli_disallow_code_generation_from_strings" id="cli_disallow_code_generation_from_strings">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v9.8.0</span>
+</div>
+<p>Make built-in language features like <code>eval</code> and <code>new Function</code> that generate
+code from strings throw an exception instead. This does not affect the Node.js
+<code>vm</code> module.</p>
 <h3><code>--enable-fips</code><span><a class="mark" href="#cli_enable_fips" id="cli_enable_fips">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v6.0.0</span>
@@ -351,32 +397,30 @@ by <code>--cpu-prof</code>. The default is 1000 microseconds.</p>
 <span>Added in: v12.12.0</span>
 </div>
 <p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
-<p>Enable experimental Source Map V3 support for stack traces.</p>
-<h3><code>--es-module-specifier-resolution=mode</code><span><a class="mark" href="#cli_es_module_specifier_resolution_mode" id="cli_es_module_specifier_resolution_mode">#</a></span></h3>
+<p>Enable experimental Source Map v3 support for stack traces.</p>
+<p>Currently, overriding <code>Error.prepareStackTrace</code> is ignored when the
+<code>--enable-source-maps</code> flag is set.</p>
+<h3><code>--experimental-import-meta-resolve</code><span><a class="mark" href="#cli_experimental_import_meta_resolve" id="cli_experimental_import_meta_resolve">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v12.0.0</span>
+<span>Added in: v13.9.0, v12.16.2</span>
 </div>
-<p>To be used in conjunction with <code>--experimental-modules</code>. Sets the resolution
-algorithm for resolving specifiers. Valid options are <code>explicit</code> and <code>node</code>.</p>
-<p>The default is <code>explicit</code>, which requires providing the full path to a
-module. The <code>node</code> mode will enable support for optional file extensions and
-the ability to import a directory that has an index file.</p>
-<p>Please see <a href="esm.html#esm_customizing_esm_specifier_resolution_algorithm">customizing esm specifier resolution</a> for example usage.</p>
-<h3><code>--experimental-exports</code><span><a class="mark" href="#cli_experimental_exports" id="cli_experimental_exports">#</a></span></h3>
-<div class="api_metadata">
-<span>Added in: v12.7.0</span>
-</div>
-<p>Enable experimental resolution using the <code>exports</code> field in <code>package.json</code>.</p>
+<p>Enable experimental <code>import.meta.resolve()</code> support.</p>
 <h3><code>--experimental-json-modules</code><span><a class="mark" href="#cli_experimental_json_modules" id="cli_experimental_json_modules">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v12.9.0</span>
 </div>
 <p>Enable experimental JSON support for the ES Module loader.</p>
+<h3><code>--experimental-loader=module</code><span><a class="mark" href="#cli_experimental_loader_module" id="cli_experimental_loader_module">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v9.0.0</span>
+</div>
+<p>Specify the <code>module</code> of a custom <a href="esm.html#esm_experimental_loaders">experimental ECMAScript Module loader</a>.
+<code>module</code> may be either a path to a file, or an ECMAScript Module name.</p>
 <h3><code>--experimental-modules</code><span><a class="mark" href="#cli_experimental_modules" id="cli_experimental_modules">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.5.0</span>
 </div>
-<p>Enable experimental ES module support and caching modules.</p>
+<p>Enable latest experimental modules features (deprecated).</p>
 <h3><code>--experimental-policy</code><span><a class="mark" href="#cli_experimental_policy" id="cli_experimental_policy">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v11.8.0</span>
@@ -387,20 +431,43 @@ the ability to import a directory that has an index file.</p>
 <span>Added in: v10.0.0</span>
 </div>
 <p>Enable experimental top-level <code>await</code> keyword support in REPL.</p>
-<h3><code>--experimental-report</code><span><a class="mark" href="#cli_experimental_report" id="cli_experimental_report">#</a></span></h3>
+<h3><code>--experimental-specifier-resolution=mode</code><span><a class="mark" href="#cli_experimental_specifier_resolution_mode" id="cli_experimental_specifier_resolution_mode">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v11.8.0</span>
+<span>Added in: v13.4.0, v12.16.0</span>
 </div>
-<p>Enable experimental diagnostic report feature.</p>
+<p>Sets the resolution algorithm for resolving ES module specifiers. Valid options
+are <code>explicit</code> and <code>node</code>.</p>
+<p>The default is <code>explicit</code>, which requires providing the full path to a
+module. The <code>node</code> mode will enable support for optional file extensions and
+the ability to import a directory that has an index file.</p>
+<p>Please see <a href="esm.html#esm_customizing_esm_specifier_resolution_algorithm">customizing ESM specifier resolution</a> for example usage.</p>
 <h3><code>--experimental-vm-modules</code><span><a class="mark" href="#cli_experimental_vm_modules" id="cli_experimental_vm_modules">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v9.6.0</span>
 </div>
 <p>Enable experimental ES Module support in the <code>vm</code> module.</p>
+<h3><code>--experimental-wasi-unstable-preview1</code><span><a class="mark" href="#cli_experimental_wasi_unstable_preview1" id="cli_experimental_wasi_unstable_preview1">#</a></span></h3>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v13.6.0</td>
+<td><p>changed from <code>--experimental-wasi-unstable-preview0</code> to <code>--experimental-wasi-unstable-preview1</code></p></td></tr>
+<tr><td>v13.3.0, v12.16.0</td>
+<td><p><span>Added in: v13.3.0, v12.16.0</span></p></td></tr>
+</tbody></table>
+</details>
+</div>
+<p>Enable experimental WebAssembly System Interface (WASI) support.</p>
 <h3><code>--experimental-wasm-modules</code><span><a class="mark" href="#cli_experimental_wasm_modules" id="cli_experimental_wasm_modules">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v12.3.0</span>
 </div>
+<h3><code>--force-context-aware</code><span><a class="mark" href="#cli_force_context_aware" id="cli_force_context_aware">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v12.12.0</span>
+</div>
+<p>Disable loading native addons that are not <a href="addons.html#addons_context_aware_addons">context-aware</a>.</p>
 <p>Enable experimental WebAssembly module support.</p>
 <h3><code>--force-fips</code><span><a class="mark" href="#cli_force_fips" id="cli_force_fips">#</a></span></h3>
 <div class="api_metadata">
@@ -424,15 +491,15 @@ be added.</p>
 <span>Added in: v12.0.0</span>
 </div>
 <p>Enables a signal handler that causes the Node.js process to write a heap dump
-when the specified signal is received.</p>
-<pre><code class="language-console">$ node --heapsnapshot-signal=SIGUSR2 index.js &#x26;
-$ ps aux
+when the specified signal is received. <code>signal</code> must be a valid signal name.
+Disabled by default.</p>
+<pre><code class="language-console"><span class="hljs-meta">$</span><span class="bash"> node --heapsnapshot-signal=SIGUSR2 index.js &#x26;</span>
+<span class="hljs-meta">$</span><span class="bash"> ps aux</span>
 USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
 node         1  5.5  6.1 787252 247004 ?       Ssl  16:43   0:02 node --heapsnapshot-signal=SIGUSR2 index.js
-$ kill -USR2 1
-$ ls
-Heap.20190718.133405.15554.0.001.heapsnapshot
-</code></pre>
+<span class="hljs-meta">$</span><span class="bash"> <span class="hljs-built_in">kill</span> -USR2 1</span>
+<span class="hljs-meta">$</span><span class="bash"> ls</span>
+Heap.20190718.133405.15554.0.001.heapsnapshot</code></pre>
 <h3><code>--heap-prof</code><span><a class="mark" href="#cli_heap_prof" id="cli_heap_prof">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v12.4.0</span>
@@ -444,10 +511,9 @@ before exit.</p>
 in the current working directory.</p>
 <p>If <code>--heap-prof-name</code> is not specified, the generated profile will be
 named <code>Heap.${yyyymmdd}.${hhmmss}.${pid}.${tid}.${seq}.heapprofile</code>.</p>
-<pre><code class="language-console">$ node --heap-prof index.js
-$ ls *.heapprofile
-Heap.20190409.202950.15293.0.001.heapprofile
-</code></pre>
+<pre><code class="language-console"><span class="hljs-meta">$</span><span class="bash"> node --heap-prof index.js</span>
+<span class="hljs-meta">$</span><span class="bash"> ls *.heapprofile</span>
+Heap.20190409.202950.15293.0.001.heapprofile</code></pre>
 <h3><code>--heap-prof-dir</code><span><a class="mark" href="#cli_heap_prof_dir" id="cli_heap_prof_dir">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v12.4.0</span>
@@ -455,6 +521,8 @@ Heap.20190409.202950.15293.0.001.heapprofile
 <p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
 <p>Specify the directory where the heap profiles generated by <code>--heap-prof</code> will
 be placed.</p>
+<p>The default value is controlled by the
+<a href="#cli_diagnostic_dir_directory">--diagnostic-dir</a> command line option.</p>
 <h3><code>--heap-prof-interval</code><span><a class="mark" href="#cli_heap_prof_interval" id="cli_heap_prof_interval">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v12.4.0</span>
@@ -468,30 +536,6 @@ by <code>--heap-prof</code>. The default is 512 * 1024 bytes.</p>
 </div>
 <p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
 <p>Specify the file name of the heap profile generated by <code>--heap-prof</code>.</p>
-<p>Generates a heap snapshot each time the process receives the specified signal.
-<code>signal</code> must be a valid signal name. Disabled by default.</p>
-<h3><code>--http-parser=library</code><span><a class="mark" href="#cli_http_parser_library" id="cli_http_parser_library">#</a></span></h3>
-<div class="api_metadata">
-<span>Added in: v11.4.0</span>
-</div>
-<p>Chooses an HTTP parser library. Available values are:</p>
-<ul>
-<li><code>llhttp</code> for <a href="https://llhttp.org/">https://llhttp.org/</a></li>
-<li><code>legacy</code> for <a href="https://github.com/nodejs/http-parser">https://github.com/nodejs/http-parser</a></li>
-</ul>
-<p>The default is <code>llhttp</code>, unless otherwise specified when building Node.js.</p>
-<p>This flag exists to aid in experimentation with the internal implementation of
-the Node.js http parser.
-This flag is likely to become a no-op and removed at some point in the future.</p>
-<h3><code>--http-server-default-timeout=milliseconds</code><span><a class="mark" href="#cli_http_server_default_timeout_milliseconds" id="cli_http_server_default_timeout_milliseconds">#</a></span></h3>
-<div class="api_metadata">
-<span>Added in: v12.4.0</span>
-</div>
-<p>Overrides the default value of <code>http</code>, <code>https</code> and <code>http2</code> server socket
-timeout. Setting the value to 0 disables server socket timeout. Unless
-provided, http server sockets timeout after 120s (2 minutes). Programmatic
-setting of the timeout takes precedence over the value set through this
-flag.</p>
 <h3><code>--icu-data-dir=file</code><span><a class="mark" href="#cli_icu_data_dir_file" id="cli_icu_data_dir_file">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.15</span>
@@ -501,9 +545,8 @@ flag.</p>
 <div class="api_metadata">
 <span>Added in: v12.0.0</span>
 </div>
-<p>Used with <code>--experimental-modules</code>, this configures Node.js to interpret string
-input as CommonJS or as an ES module. String input is input via <code>--eval</code>,
-<code>--print</code>, or <code>STDIN</code>.</p>
+<p>This configures Node.js to interpret string input as CommonJS or as an ES
+module. String input is input via <code>--eval</code>, <code>--print</code>, or <code>STDIN</code>.</p>
 <p>Valid values are <code>"commonjs"</code> and <code>"module"</code>. The default is <code>"commonjs"</code>.</p>
 <h3><code>--inspect-brk[=[host:]port]</code><span><a class="mark" href="#cli_inspect_brk_host_port" id="cli_inspect_brk_host_port">#</a></span></h3>
 <div class="api_metadata">
@@ -545,17 +588,36 @@ default) is not firewall-protected.</strong></p>
 <p>Specify ways of the inspector web socket url exposure.</p>
 <p>By default inspector websocket url is available in stderr and under <code>/json/list</code>
 endpoint on <code>http://host:port/json/list</code>.</p>
-<h3><code>--experimental-loader=module</code><span><a class="mark" href="#cli_experimental_loader_module" id="cli_experimental_loader_module">#</a></span></h3>
+<h3><code>--insecure-http-parser</code><span><a class="mark" href="#cli_insecure_http_parser" id="cli_insecure_http_parser">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v9.0.0</span>
+<span>Added in: v13.4.0, v12.15.0, v10.19.0</span>
 </div>
-<p>Specify the <code>module</code> of a custom <a href="esm.html#esm_resolve_hook">experimental ECMAScript Module</a> loader.
-<code>module</code> may be either a path to a file, or an ECMAScript Module name.</p>
+<p>Use an insecure HTTP parser that accepts invalid HTTP headers. This may allow
+interoperability with non-conformant HTTP implementations. It may also allow
+request smuggling and other HTTP attacks that rely on invalid headers being
+accepted. Avoid using this option.</p>
+<h3><code>--jitless</code><span><a class="mark" href="#cli_jitless" id="cli_jitless">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v12.0.0</span>
+</div>
+<p>Disable <a href="https://v8.dev/blog/jitless">runtime allocation of executable memory</a>. This may be
+required on some platforms for security reasons. It can also reduce attack
+surface on other platforms, but the performance impact may be severe.</p>
+<p>This flag is inherited from V8 and is subject to change upstream. It may
+disappear in a non-semver-major release.</p>
 <h3><code>--max-http-header-size=size</code><span><a class="mark" href="#cli_max_http_header_size_size" id="cli_max_http_header_size_size">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v11.6.0</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v14.0.0</td>
+<td><p>Change maximum default size of HTTP headers from 8KB to 16KB.</p></td></tr>
+<tr><td>v11.6.0, v10.15.0</td>
+<td><p><span>Added in: v11.6.0, v10.15.0</span></p></td></tr>
+</tbody></table>
+</details>
 </div>
-<p>Specify the maximum size, in bytes, of HTTP headers. Defaults to 8KB.</p>
+<p>Specify the maximum size, in bytes, of HTTP headers. Defaults to 16KB.</p>
 <h3><code>--napi-modules</code><span><a class="mark" href="#cli_napi_modules" id="cli_napi_modules">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v7.10.0</span>
@@ -577,11 +639,6 @@ dynamically when <code>async_hooks</code> is enabled.</p>
 <span>Added in: v6.0.0</span>
 </div>
 <p>Silence all process warnings (including deprecations).</p>
-<h3><code>--force-context-aware</code><span><a class="mark" href="#cli_force_context_aware" id="cli_force_context_aware">#</a></span></h3>
-<div class="api_metadata">
-<span>Added in: v12.12.0</span>
-</div>
-<p>Disable loading native addons that are not <a href="addons.html#addons_context_aware_addons">context-aware</a>.</p>
 <h3><code>--openssl-config=file</code><span><a class="mark" href="#cli_openssl_config_file" id="cli_openssl_config_file">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v6.9.0</span>
@@ -631,8 +688,7 @@ be thrown if <code>moduleA</code> attempts to require <code>moduleB</code> as a 
  │           └── package.json
  └── moduleA
      ├── index.js
-     └── package.json
-</code></pre>
+     └── package.json</code></pre>
 <p>The <code>--preserve-symlinks</code> command line flag instructs Node.js to use the
 symlink path for modules as opposed to the real path, allowing symbolically
 linked peer dependencies to be found.</p>
@@ -676,11 +732,23 @@ resolving relative paths.</p>
 file will be created if it does not exist, and will be appended to if it does.
 If an error occurs while attempting to write the warning to the file, the
 warning will be written to stderr instead.</p>
-<h3><code>--report-directory=directory</code><span><a class="mark" href="#cli_report_directory_directory" id="cli_report_directory_directory">#</a></span></h3>
+<p>The <code>file</code> name may be an absolute path. If it is not, the default directory it
+will be written to is controlled by the
+<a href="#cli_diagnostic_dir_directory">--diagnostic-dir</a> command line option.</p>
+<h3><code>--report-compact</code><span><a class="mark" href="#cli_report_compact" id="cli_report_compact">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v13.12.0</span>
+</div>
+<p>Write reports in a compact format, single-line JSON, more easily consumable
+by log processing systems than the default multi-line format designed for
+human consumption.</p>
+<h3><code>--report-dir=directory</code>, <code>report-directory=directory</code><span><a class="mark" href="#cli_report_dir_directory_report_directory_directory" id="cli_report_dir_directory_report_directory_directory">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v13.12.0</td>
+<td><p>This option is no longer experimental.</p></td></tr>
 <tr><td>v12.0.0</td>
 <td><p>Changed from <code>--diagnostic-report-directory</code> to <code>--report-directory</code></p></td></tr>
 <tr><td>v11.8.0</td>
@@ -694,6 +762,8 @@ warning will be written to stderr instead.</p>
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v13.12.0</td>
+<td><p>This option is no longer experimental.</p></td></tr>
 <tr><td>v12.0.0</td>
 <td><p>changed from <code>--diagnostic-report-filename</code> to <code>--report-filename</code></p></td></tr>
 <tr><td>v11.8.0</td>
@@ -707,6 +777,8 @@ warning will be written to stderr instead.</p>
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v14.0.0</td>
+<td><p>This option is no longer experimental.</p></td></tr>
 <tr><td>v12.0.0</td>
 <td><p>changed from <code>--diagnostic-report-on-fatalerror</code> to <code>--report-on-fatalerror</code></p></td></tr>
 <tr><td>v11.8.0</td>
@@ -716,14 +788,16 @@ warning will be written to stderr instead.</p>
 </div>
 <p>Enables the report to be triggered on fatal errors (internal errors within
 the Node.js runtime such as out of memory) that lead to termination of the
-application, if <code>--experimental-report</code> is enabled. Useful to inspect various
-diagnostic data elements such as heap, stack, event loop state, resource
-consumption etc. to reason about the fatal error.</p>
+application. Useful to inspect various diagnostic data elements such as heap,
+stack, event loop state, resource consumption etc. to reason about the fatal
+error.</p>
 <h3><code>--report-on-signal</code><span><a class="mark" href="#cli_report_on_signal" id="cli_report_on_signal">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v13.12.0</td>
+<td><p>This option is no longer experimental.</p></td></tr>
 <tr><td>v12.0.0</td>
 <td><p>changed from <code>--diagnostic-report-on-signal</code> to <code>--report-on-signal</code></p></td></tr>
 <tr><td>v11.8.0</td>
@@ -732,13 +806,15 @@ consumption etc. to reason about the fatal error.</p>
 </details>
 </div>
 <p>Enables report to be generated upon receiving the specified (or predefined)
-signal to the running Node.js process, if <code>--experimental-report</code> is enabled.
-The signal to trigger the report is specified through <code>--report-signal</code>.</p>
+signal to the running Node.js process. The signal to trigger the report is
+specified through <code>--report-signal</code>.</p>
 <h3><code>--report-signal=signal</code><span><a class="mark" href="#cli_report_signal_signal" id="cli_report_signal_signal">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v13.12.0</td>
+<td><p>This option is no longer experimental.</p></td></tr>
 <tr><td>v12.0.0</td>
 <td><p>changed from <code>--diagnostic-report-signal</code> to <code>--report-signal</code></p></td></tr>
 <tr><td>v11.8.0</td>
@@ -753,6 +829,8 @@ Default signal is <code>SIGUSR2</code>.</p>
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v13.12.0</td>
+<td><p>This option is no longer experimental.</p></td></tr>
 <tr><td>v12.0.0</td>
 <td><p>changed from <code>--diagnostic-report-uncaught-exception</code> to <code>--report-uncaught-exception</code></p></td></tr>
 <tr><td>v11.8.0</td>
@@ -760,9 +838,9 @@ Default signal is <code>SIGUSR2</code>.</p>
 </tbody></table>
 </details>
 </div>
-<p>Enables report to be generated on un-caught exceptions, if
-<code>--experimental-report</code> is enabled. Useful when inspecting JavaScript stack in
-conjunction with native stack and other runtime environment data.</p>
+<p>Enables report to be generated on uncaught exceptions. Useful when inspecting
+the JavaScript stack in conjunction with native stack and other runtime
+environment data.</p>
 <h3><code>--throw-deprecation</code><span><a class="mark" href="#cli_throw_deprecation" id="cli_throw_deprecation">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.14</span>
@@ -779,9 +857,16 @@ conjunction with native stack and other runtime environment data.</p>
 </div>
 <p>Specify an alternative default TLS cipher list. Requires Node.js to be built
 with crypto support (default).</p>
+<h3><code>--tls-keylog=file</code><span><a class="mark" href="#cli_tls_keylog_file" id="cli_tls_keylog_file">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v13.2.0, v12.16.0</span>
+</div>
+<p>Log TLS key material to a file. The key material is in NSS <code>SSLKEYLOGFILE</code>
+format and can be used by software (such as Wireshark) to decrypt the TLS
+traffic.</p>
 <h3><code>--tls-max-v1.2</code><span><a class="mark" href="#cli_tls_max_v1_2" id="cli_tls_max_v1_2">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v12.0.0</span>
+<span>Added in: v12.0.0, v10.20.0</span>
 </div>
 <p>Set <a href="tls.html#tls_tls_default_max_version"><code>tls.DEFAULT_MAX_VERSION</code></a> to 'TLSv1.2'. Use to disable support for
 TLSv1.3.</p>
@@ -793,19 +878,19 @@ TLSv1.3.</p>
 for TLSv1.3.</p>
 <h3><code>--tls-min-v1.0</code><span><a class="mark" href="#cli_tls_min_v1_0" id="cli_tls_min_v1_0">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v12.0.0</span>
+<span>Added in: v12.0.0, v10.20.0</span>
 </div>
 <p>Set default <a href="tls.html#tls_tls_default_min_version"><code>tls.DEFAULT_MIN_VERSION</code></a> to 'TLSv1'. Use for compatibility with
 old TLS clients or servers.</p>
 <h3><code>--tls-min-v1.1</code><span><a class="mark" href="#cli_tls_min_v1_1" id="cli_tls_min_v1_1">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v12.0.0</span>
+<span>Added in: v12.0.0, v10.20.0</span>
 </div>
 <p>Set default <a href="tls.html#tls_tls_default_min_version"><code>tls.DEFAULT_MIN_VERSION</code></a> to 'TLSv1.1'. Use for compatibility
 with old TLS clients or servers.</p>
 <h3><code>--tls-min-v1.2</code><span><a class="mark" href="#cli_tls_min_v1_2" id="cli_tls_min_v1_2">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v12.2.0</span>
+<span>Added in: v12.2.0, v10.20.0</span>
 </div>
 <p>Set default <a href="tls.html#tls_tls_default_min_version"><code>tls.DEFAULT_MIN_VERSION</code></a> to 'TLSv1.2'. This is the default for
 12.x and later, but the option is supported for compatibility with older Node.js
@@ -816,6 +901,28 @@ versions.</p>
 </div>
 <p>Set default <a href="tls.html#tls_tls_default_min_version"><code>tls.DEFAULT_MIN_VERSION</code></a> to 'TLSv1.3'. Use to disable support
 for TLSv1.2, which is not as secure as TLSv1.3.</p>
+<h3><code>--trace-atomics-wait</code><span><a class="mark" href="#cli_trace_atomics_wait" id="cli_trace_atomics_wait">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v14.3.0</span>
+</div>
+<p>Print short summaries of calls to <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Atomics/wait"><code>Atomics.wait()</code></a> to stderr.
+The output could look like this:</p>
+<pre><code class="language-text">(node:15701) [Thread 0] Atomics.wait(</code><address><code class="language-text"> + 0, 1, inf) started
+(node:15701) [Thread 0] Atomics.wait(</code><address><code class="language-text"> + 0, 1, inf) did not wait because the values mismatched
+(node:15701) [Thread 0] Atomics.wait(</code><address><code class="language-text"> + 0, 0, 10) started
+(node:15701) [Thread 0] Atomics.wait(</code><address><code class="language-text"> + 0, 0, 10) timed out
+(node:15701) [Thread 0] Atomics.wait(</code><address><code class="language-text"> + 4, 0, inf) started
+(node:15701) [Thread 1] Atomics.wait(</code><address><code class="language-text"> + 4, -1, inf) started
+(node:15701) [Thread 0] Atomics.wait(</code><address><code class="language-text"> + 4, 0, inf) was woken up by another thread
+(node:15701) [Thread 1] Atomics.wait(</code><address><code class="language-text"> + 4, -1, inf) was woken up by another thread
+<p>The fields here correspond to:</p>
+<ul>
+<li>The thread id as given by <a href="worker_threads.html##worker_threads_worker_threadid"><code>worker_threads.threadId</code></a></li>
+<li>The base address of the <code>SharedArrayBuffer</code> in question, as well as the
+byte offset corresponding to the index passed to <code>Atomics.wait()</code></li>
+<li>The expected value that was passed to <code>Atomics.wait()</code></li>
+<li>The timeout passed to <code>Atomics.wait</code></li>
+</ul>
 <h3><code>--trace-deprecation</code><span><a class="mark" href="#cli_trace_deprecation" id="cli_trace_deprecation">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.8.0</span>
@@ -838,6 +945,17 @@ supports <code>${rotation}</code> and <code>${pid}</code>.</p>
 <span>Added in: v7.7.0</span>
 </div>
 <p>Enables the collection of trace event tracing information.</p>
+<h3><code>--trace-exit</code><span><a class="mark" href="#cli_trace_exit" id="cli_trace_exit">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v13.5.0, v12.16.0</span>
+</div>
+<p>Prints a stack trace whenever an environment is exited proactively,
+i.e. invoking <code>process.exit()</code>.</p>
+<h3><code>--trace-sigint</code><span><a class="mark" href="#cli_trace_sigint" id="cli_trace_sigint">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v13.9.0</span>
+</div>
+<p>Prints a stack trace on SIGINT.</p>
 <h3><code>--trace-sync-io</code><span><a class="mark" href="#cli_trace_sync_io" id="cli_trace_sync_io">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v2.1.0</span>
@@ -850,6 +968,15 @@ of the event loop.</p>
 </div>
 <p>Prints TLS packet trace information to <code>stderr</code>. This can be used to debug TLS
 connection problems.</p>
+<h3><code>--trace-uncaught</code><span><a class="mark" href="#cli_trace_uncaught" id="cli_trace_uncaught">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v13.1.0</span>
+</div>
+<p>Print stack traces for uncaught exceptions; usually, the stack trace associated
+with the creation of an <code>Error</code> is printed, whereas this makes Node.js also
+print the stack trace associated with throwing the value (which does not need
+to be an <code>Error</code> instance).</p>
+<p>Enabling this option may affect garbage collection behavior negatively.</p>
 <h3><code>--trace-warnings</code><span><a class="mark" href="#cli_trace_warnings" id="cli_trace_warnings">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v6.0.0</span>
@@ -862,17 +989,21 @@ connection problems.</p>
 <p>Track heap object allocations for heap snapshots.</p>
 <h3><code>--unhandled-rejections=mode</code><span><a class="mark" href="#cli_unhandled_rejections_mode" id="cli_unhandled_rejections_mode">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v12.0.0</span>
+<span>Added in: v12.0.0, v10.17.0</span>
 </div>
 <p>By default all unhandled rejections trigger a warning plus a deprecation warning
 for the very first unhandled rejection in case no <a href="process.html#process_event_unhandledrejection"><code>unhandledRejection</code></a> hook
 is used.</p>
 <p>Using this flag allows to change what should happen when an unhandled rejection
-occurs. One of three modes can be chosen:</p>
+occurs. One of the following modes can be chosen:</p>
 <ul>
+<li><code>throw</code>: Emit <a href="process.html#process_event_unhandledrejection"><code>unhandledRejection</code></a>. If this hook is not set, raise the
+unhandled rejection as an uncaught exception.</li>
 <li><code>strict</code>: Raise the unhandled rejection as an uncaught exception.</li>
 <li><code>warn</code>: Always trigger a warning, no matter if the <a href="process.html#process_event_unhandledrejection"><code>unhandledRejection</code></a>
 hook is set or not but do not print the deprecation warning.</li>
+<li><code>warn-with-error-code</code>: Emit <a href="process.html#process_event_unhandledrejection"><code>unhandledRejection</code></a>. If this hook is not
+set, trigger a warning, and set the process exit code to 1.</li>
 <li><code>none</code>: Silence all warnings.</li>
 </ul>
 <h3><code>--use-bundled-ca</code>, <code>--use-openssl-ca</code><span><a class="mark" href="#cli_use_bundled_ca_use_openssl_ca" id="cli_use_bundled_ca_use_openssl_ca">#</a></span></h3>
@@ -890,6 +1021,21 @@ maintainers and system administrators. OpenSSL CA store location is dependent on
 configuration of the OpenSSL library but this can be altered at runtime using
 environment variables.</p>
 <p>See <code>SSL_CERT_DIR</code> and <code>SSL_CERT_FILE</code>.</p>
+<h3><code>--use-largepages=mode</code><span><a class="mark" href="#cli_use_largepages_mode" id="cli_use_largepages_mode">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v13.6.0</span>
+</div>
+<p>Re-map the Node.js static code to large memory pages at startup. If supported on
+the target system, this will cause the Node.js static code to be moved onto 2
+MiB pages instead of 4 KiB pages.</p>
+<p>The following values are valid for <code>mode</code>:</p>
+<ul>
+<li><code>off</code>: No mapping will be attempted. This is the default.</li>
+<li><code>on</code>: If supported by the OS, mapping will be attempted. Failure to map will
+be ignored and a message will be printed to standard error.</li>
+<li><code>silent</code>: If supported by the OS, mapping will be attempted. Failure to map
+will be ignored and will not be reported.</li>
+</ul>
 <h3><code>--v8-options</code><span><a class="mark" href="#cli_v8_options" id="cli_v8_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.3</span>
@@ -976,7 +1122,7 @@ rules. <code>module</code> may be either a path to a file, or a node module name
 <span>Added in: v0.1.3</span>
 </div>
 <p>Print node's version.</p>
-<h2>Environment Variables<span><a class="mark" href="#cli_environment_variables" id="cli_environment_variables">#</a></span></h2>
+<h2>Environment variables<span><a class="mark" href="#cli_environment_variables" id="cli_environment_variables">#</a></span></h2>
 <h3><code>NODE_DEBUG=module[,…]</code><span><a class="mark" href="#cli_node_debug_module" id="cli_node_debug_module">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.32</span>
@@ -1024,43 +1170,43 @@ an option that is not allowed in the environment is used, such as <code>-p</code
 script file.</p>
 <p>In case an option value happens to contain a space (for example a path listed
 in <code>--require</code>), it must be escaped using double quotes. For example:</p>
-<pre><code class="language-bash">NODE_OPTIONS='--require "./my path/file.js"'
-</code></pre>
+<pre><code class="language-bash">NODE_OPTIONS=<span class="hljs-string">'--require "./my path/file.js"'</span></code></pre>
 <p>A singleton flag passed as a command line option will override the same flag
 passed into <code>NODE_OPTIONS</code>:</p>
-<pre><code class="language-bash"># The inspector will be available on port 5555
-NODE_OPTIONS='--inspect=localhost:4444' node --inspect=localhost:5555
-</code></pre>
+<pre><code class="language-bash"><span class="hljs-comment"># The inspector will be available on port 5555</span>
+NODE_OPTIONS=<span class="hljs-string">'--inspect=localhost:4444'</span> node --inspect=localhost:5555</code></pre>
 <p>A flag that can be passed multiple times will be treated as if its
 <code>NODE_OPTIONS</code> instances were passed first, and then its command line
 instances afterwards:</p>
-<pre><code class="language-bash">NODE_OPTIONS='--require "./a.js"' node --require "./b.js"
-# is equivalent to:
-node --require "./a.js" --require "./b.js"
-</code></pre>
+<pre><code class="language-bash">NODE_OPTIONS=<span class="hljs-string">'--require "./a.js"'</span> node --require <span class="hljs-string">"./b.js"</span>
+<span class="hljs-comment"># is equivalent to:</span>
+node --require <span class="hljs-string">"./a.js"</span> --require <span class="hljs-string">"./b.js"</span></code></pre>
 <p>Node.js options that are allowed are:</p>
 <!-- node-options-node start -->
 <ul>
+<li><code>--diagnostic-dir</code></li>
+<li><code>--disable-proto</code></li>
 <li><code>--enable-fips</code></li>
 <li><code>--enable-source-maps</code></li>
-<li><code>--es-module-specifier-resolution</code></li>
-<li><code>--experimental-exports</code></li>
+<li><code>--experimental-import-meta-resolve</code></li>
 <li><code>--experimental-json-modules</code></li>
 <li><code>--experimental-loader</code></li>
 <li><code>--experimental-modules</code></li>
 <li><code>--experimental-policy</code></li>
 <li><code>--experimental-repl-await</code></li>
-<li><code>--experimental-report</code></li>
+<li><code>--experimental-specifier-resolution</code></li>
+<li><code>--experimental-top-level-await</code></li>
 <li><code>--experimental-vm-modules</code></li>
+<li><code>--experimental-wasi-unstable-preview1</code></li>
 <li><code>--experimental-wasm-modules</code></li>
 <li><code>--force-context-aware</code></li>
 <li><code>--force-fips</code></li>
 <li><code>--frozen-intrinsics</code></li>
 <li><code>--heapsnapshot-signal</code></li>
 <li><code>--http-parser</code></li>
-<li><code>--http-server-default-timeout</code></li>
 <li><code>--icu-data-dir</code></li>
 <li><code>--input-type</code></li>
+<li><code>--insecure-http-parser</code></li>
 <li><code>--inspect-brk</code></li>
 <li><code>--inspect-port</code>, <code>--debug-port</code></li>
 <li><code>--inspect-publish-uid</code></li>
@@ -1077,7 +1223,8 @@ node --require "./a.js" --require "./b.js"
 <li><code>--preserve-symlinks</code></li>
 <li><code>--prof-process</code></li>
 <li><code>--redirect-warnings</code></li>
-<li><code>--report-directory</code></li>
+<li><code>--report-compact</code></li>
+<li><code>--report-dir</code>, <code>--report-directory</code></li>
 <li><code>--report-filename</code></li>
 <li><code>--report-on-fatalerror</code></li>
 <li><code>--report-on-signal</code></li>
@@ -1087,22 +1234,28 @@ node --require "./a.js" --require "./b.js"
 <li><code>--throw-deprecation</code></li>
 <li><code>--title</code></li>
 <li><code>--tls-cipher-list</code></li>
+<li><code>--tls-keylog</code></li>
 <li><code>--tls-max-v1.2</code></li>
 <li><code>--tls-max-v1.3</code></li>
 <li><code>--tls-min-v1.0</code></li>
 <li><code>--tls-min-v1.1</code></li>
 <li><code>--tls-min-v1.2</code></li>
 <li><code>--tls-min-v1.3</code></li>
+<li><code>--trace-atomics-wait</code></li>
 <li><code>--trace-deprecation</code></li>
 <li><code>--trace-event-categories</code></li>
 <li><code>--trace-event-file-pattern</code></li>
 <li><code>--trace-events-enabled</code></li>
+<li><code>--trace-exit</code></li>
+<li><code>--trace-sigint</code></li>
 <li><code>--trace-sync-io</code></li>
 <li><code>--trace-tls</code></li>
+<li><code>--trace-uncaught</code></li>
 <li><code>--trace-warnings</code></li>
 <li><code>--track-heap-objects</code></li>
 <li><code>--unhandled-rejections</code></li>
 <li><code>--use-bundled-ca</code></li>
+<li><code>--use-largepages</code></li>
 <li><code>--use-openssl-ca</code></li>
 <li><code>--v8-pool-size</code></li>
 <li>
@@ -1114,7 +1267,10 @@ node --require "./a.js" --require "./b.js"
 <!-- node-options-v8 start -->
 <ul>
 <li><code>--abort-on-uncaught-exception</code></li>
+<li><code>--disallow-code-generation-from-strings</code></li>
+<li><code>--huge-max-old-generation-size</code></li>
 <li><code>--interpreted-frames-native-stack</code></li>
+<li><code>--jitless</code></li>
 <li><code>--max-old-space-size</code></li>
 <li><code>--perf-basic-prof-only-functions</code></li>
 <li><code>--perf-basic-prof</code></li>
@@ -1125,6 +1281,8 @@ node --require "./a.js" --require "./b.js"
 <!-- node-options-v8 end -->
 </li>
 </ul>
+<p><code>--perf-basic-prof-only-functions</code>, <code>--perf-basic-prof</code>,
+<code>--perf-prof-unwinding-info</code>, and <code>--perf-prof</code> are only available on Linux.</p>
 <h3><code>NODE_PATH=path[:…]</code><span><a class="mark" href="#cli_node_path_path" id="cli_node_path_path">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.32</span>
@@ -1167,6 +1325,19 @@ equivalent to using the <code>--redirect-warnings=file</code> command-line flag.
 <p>Path to the file used to store the persistent REPL history. The default path is
 <code>~/.node_repl_history</code>, which is overridden by this variable. Setting the value
 to an empty string (<code>''</code> or <code>' '</code>) disables persistent REPL history.</p>
+<h3><code>NODE_REPL_EXTERNAL_MODULE=file</code><span><a class="mark" href="#cli_node_repl_external_module_file" id="cli_node_repl_external_module_file">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v13.0.0, v12.16.0</span>
+</div>
+<p>Path to a Node.js module which will be loaded in place of the built-in REPL.
+Overriding this value to an empty string (<code>''</code>) will use the built-in REPL.</p>
+<h3><code>NODE_SKIP_PLATFORM_CHECK=value</code><span><a class="mark" href="#cli_node_skip_platform_check_value" id="cli_node_skip_platform_check_value">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v14.5.0</span>
+</div>
+<p>If <code>value</code> equals <code>'1'</code>, the check for a supported platform is skipped during
+Node.js startup. Node.js might not execute correctly. Any issues encountered
+on unsupported platforms will not be fixed.</p>
 <h3><code>NODE_TLS_REJECT_UNAUTHORIZED=value</code><span><a class="mark" href="#cli_node_tls_reject_unauthorized_value" id="cli_node_tls_reject_unauthorized_value">#</a></span></h3>
 <p>If <code>value</code> equals <code>'0'</code>, certificate validation is disabled for TLS connections.
 This makes TLS, and HTTPS by extension, insecure. The use of this environment
@@ -1179,54 +1350,59 @@ information is written as JSON to files with a <code>coverage</code> prefix).</p
 easier to instrument applications that call the <code>child_process.spawn()</code> family
 of functions. <code>NODE_V8_COVERAGE</code> can be set to an empty string, to prevent
 propagation.</p>
-<h4>Coverage Output<span><a class="mark" href="#cli_coverage_output" id="cli_coverage_output">#</a></span></h4>
+<h4>Coverage output<span><a class="mark" href="#cli_coverage_output" id="cli_coverage_output">#</a></span></h4>
 <p>Coverage is output as an array of <a href="https://chromedevtools.github.io/devtools-protocol/tot/Profiler#type-ScriptCoverage">ScriptCoverage</a> objects on the top-level
 key <code>result</code>:</p>
 <pre><code class="language-json">{
-  "result": [
+  <span class="hljs-attr">"result"</span>: [
     {
-      "scriptId": "67",
-      "url": "internal/tty.js",
-      "functions": []
+      <span class="hljs-attr">"scriptId"</span>: <span class="hljs-string">"67"</span>,
+      <span class="hljs-attr">"url"</span>: <span class="hljs-string">"internal/tty.js"</span>,
+      <span class="hljs-attr">"functions"</span>: []
     }
   ]
-}
-</code></pre>
-<h4>Source Map Cache<span><a class="mark" href="#cli_source_map_cache" id="cli_source_map_cache">#</a></span></h4>
+}</code></pre>
+<h4>Source map cache<span><a class="mark" href="#cli_source_map_cache" id="cli_source_map_cache">#</a></span></h4>
 <p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
-<p>If found, Source Map data is appended to the top-level key <code>source-map-cache</code>
+<p>If found, source map data is appended to the top-level key <code>source-map-cache</code>
 on the JSON coverage object.</p>
 <p><code>source-map-cache</code> is an object with keys representing the files source maps
-were extracted from, and the values include the raw source-map URL
-(in the key <code>url</code>) and the parsed Source Map V3 information (in the key <code>data</code>).</p>
+were extracted from, and values which include the raw source-map URL
+(in the key <code>url</code>), the parsed Source Map v3 information (in the key <code>data</code>),
+and the line lengths of the source file (in the key <code>lineLengths</code>).</p>
 <pre><code class="language-json">{
-  "result": [
+  <span class="hljs-attr">"result"</span>: [
     {
-      "scriptId": "68",
-      "url": "file:///absolute/path/to/source.js",
-      "functions": []
+      <span class="hljs-attr">"scriptId"</span>: <span class="hljs-string">"68"</span>,
+      <span class="hljs-attr">"url"</span>: <span class="hljs-string">"file:///absolute/path/to/source.js"</span>,
+      <span class="hljs-attr">"functions"</span>: []
     }
   ],
-  "source-map-cache": {
-    "file:///absolute/path/to/source.js": {
-      "url": "./path-to-map.json",
-      "data": {
-        "version": 3,
-        "sources": [
-          "file:///absolute/path/to/original.js"
+  <span class="hljs-attr">"source-map-cache"</span>: {
+    <span class="hljs-attr">"file:///absolute/path/to/source.js"</span>: {
+      <span class="hljs-attr">"url"</span>: <span class="hljs-string">"./path-to-map.json"</span>,
+      <span class="hljs-attr">"data"</span>: {
+        <span class="hljs-attr">"version"</span>: <span class="hljs-number">3</span>,
+        <span class="hljs-attr">"sources"</span>: [
+          <span class="hljs-string">"file:///absolute/path/to/original.js"</span>
         ],
-        "names": [
-          "Foo",
-          "console",
-          "info"
+        <span class="hljs-attr">"names"</span>: [
+          <span class="hljs-string">"Foo"</span>,
+          <span class="hljs-string">"console"</span>,
+          <span class="hljs-string">"info"</span>
         ],
-        "mappings": "MAAMA,IACJC,YAAaC",
-        "sourceRoot": "./"
-      }
+        <span class="hljs-attr">"mappings"</span>: <span class="hljs-string">"MAAMA,IACJC,YAAaC"</span>,
+        <span class="hljs-attr">"sourceRoot"</span>: <span class="hljs-string">"./"</span>
+      },
+      <span class="hljs-attr">"lineLengths"</span>: [
+        <span class="hljs-number">13</span>,
+        <span class="hljs-number">62</span>,
+        <span class="hljs-number">38</span>,
+        <span class="hljs-number">27</span>
+      ]
     }
   }
-}
-</code></pre>
+}</code></pre>
 <h3><code>OPENSSL_CONF=file</code><span><a class="mark" href="#cli_openssl_conf_file" id="cli_openssl_conf_file">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v6.11.0</span>
@@ -1272,12 +1448,26 @@ that run in libuv's threadpool will experience degraded performance. In order to
 mitigate this issue, one potential solution is to increase the size of libuv's
 threadpool by setting the <code>'UV_THREADPOOL_SIZE'</code> environment variable to a value
 greater than <code>4</code> (its current default value). For more information, see the
-<a href="http://docs.libuv.org/en/latest/threadpool.html">libuv threadpool documentation</a>.</p>
+<a href="https://docs.libuv.org/en/latest/threadpool.html">libuv threadpool documentation</a>.</p>
+<h2>Useful V8 options<span><a class="mark" href="#cli_useful_v8_options" id="cli_useful_v8_options">#</a></span></h2>
+<p>V8 has its own set of CLI options. Any V8 CLI option that is provided to <code>node</code>
+will be passed on to V8 to handle. V8's options have <em>no stability guarantee</em>.
+The V8 team themselves don't consider them to be part of their formal API,
+and reserve the right to change them at any time. Likewise, they are not
+covered by the Node.js stability guarantees. Many of the V8
+options are of interest only to V8 developers. Despite this, there is a small
+set of V8 options that are widely applicable to Node.js, and they are
+documented here:</p>
+<h3><code>--max-old-space-size=SIZE</code> (in megabytes)<span><a class="mark" href="#cli_max_old_space_size_size_in_megabytes" id="cli_max_old_space_size_size_in_megabytes">#</a></span></h3>
+<p>Sets the max memory size of V8's old memory section. As memory
+consumption approaches the limit, V8 will spend more time on
+garbage collection in an effort to free unused memory.</p>
+<p>On a machine with 2GB of memory, consider setting this to
+1536 (1.5GB) to leave some memory for other uses and avoid swapping.</p>
+<pre><code class="language-console"><span class="hljs-meta">$</span><span class="bash"> node --max-old-space-size=1536 index.js</span></code></pre></code></address></address></address></address></address></address></address></address></pre>
+        <!-- API END -->
       </div>
     </div>
   </div>
-  <script src="assets/sh_main.js"></script>
-  <script src="assets/sh_javascript.min.js"></script>
-  <script>highlight(undefined, undefined, 'pre');</script>
 </body>
 </html>

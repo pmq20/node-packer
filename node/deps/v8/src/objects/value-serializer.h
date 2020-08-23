@@ -30,7 +30,6 @@ class JSMap;
 class JSPrimitiveWrapper;
 class JSRegExp;
 class JSSet;
-class MutableHeapNumber;
 class Object;
 class Oddball;
 class Smi;
@@ -111,7 +110,6 @@ class ValueSerializer {
   void WriteOddball(Oddball oddball);
   void WriteSmi(Smi smi);
   void WriteHeapNumber(HeapNumber number);
-  void WriteMutableHeapNumber(MutableHeapNumber number);
   void WriteBigInt(BigInt bigint);
   void WriteString(Handle<String> string);
   Maybe<bool> WriteJSReceiver(Handle<JSReceiver> receiver)
@@ -122,7 +120,7 @@ class ValueSerializer {
   void WriteJSDate(JSDate date);
   Maybe<bool> WriteJSPrimitiveWrapper(Handle<JSPrimitiveWrapper> value)
       V8_WARN_UNUSED_RESULT;
-  void WriteJSRegExp(JSRegExp regexp);
+  void WriteJSRegExp(Handle<JSRegExp> regexp);
   Maybe<bool> WriteJSMap(Handle<JSMap> map) V8_WARN_UNUSED_RESULT;
   Maybe<bool> WriteJSSet(Handle<JSSet> map) V8_WARN_UNUSED_RESULT;
   Maybe<bool> WriteJSArrayBuffer(Handle<JSArrayBuffer> array_buffer)
@@ -226,9 +224,6 @@ class ValueDeserializer {
   bool ReadUint64(uint64_t* value) V8_WARN_UNUSED_RESULT;
   bool ReadDouble(double* value) V8_WARN_UNUSED_RESULT;
   bool ReadRawBytes(size_t length, const void** data) V8_WARN_UNUSED_RESULT;
-  void set_expect_inline_wasm(bool expect_inline_wasm) {
-    expect_inline_wasm_ = expect_inline_wasm;
-  }
 
  private:
   // Reading the wire format.
@@ -241,7 +236,6 @@ class ValueDeserializer {
   Maybe<T> ReadZigZag() V8_WARN_UNUSED_RESULT;
   Maybe<double> ReadDouble() V8_WARN_UNUSED_RESULT;
   Maybe<Vector<const uint8_t>> ReadRawBytes(int size) V8_WARN_UNUSED_RESULT;
-  bool expect_inline_wasm() const { return expect_inline_wasm_; }
 
   // Reads a string if it matches the one provided.
   // Returns true if this was the case. Otherwise, nothing is consumed.
@@ -278,7 +272,6 @@ class ValueDeserializer {
   MaybeHandle<JSArrayBufferView> ReadJSArrayBufferView(
       Handle<JSArrayBuffer> buffer) V8_WARN_UNUSED_RESULT;
   MaybeHandle<Object> ReadJSError() V8_WARN_UNUSED_RESULT;
-  MaybeHandle<JSObject> ReadWasmModule() V8_WARN_UNUSED_RESULT;
   MaybeHandle<JSObject> ReadWasmModuleTransfer() V8_WARN_UNUSED_RESULT;
   MaybeHandle<WasmMemoryObject> ReadWasmMemory() V8_WARN_UNUSED_RESULT;
   MaybeHandle<JSObject> ReadHostObject() V8_WARN_UNUSED_RESULT;
@@ -300,10 +293,8 @@ class ValueDeserializer {
   v8::ValueDeserializer::Delegate* const delegate_;
   const uint8_t* position_;
   const uint8_t* const end_;
-  AllocationType allocation_;
   uint32_t version_ = 0;
   uint32_t next_id_ = 0;
-  bool expect_inline_wasm_ = false;
 
   // Always global handles.
   Handle<FixedArray> id_map_;

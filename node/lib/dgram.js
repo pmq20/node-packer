@@ -21,7 +21,12 @@
 
 'use strict';
 
-const { Object } = primordials;
+const {
+  Array,
+  ArrayIsArray,
+  ObjectDefineProperty,
+  ObjectSetPrototypeOf,
+} = primordials;
 
 const errors = require('internal/errors');
 const {
@@ -31,16 +36,11 @@ const {
 } = require('internal/dgram');
 const { guessHandleType } = internalBinding('util');
 const {
-  isLegalPort,
-} = require('internal/net');
-const {
   ERR_INVALID_ARG_TYPE,
   ERR_MISSING_ARGS,
   ERR_SOCKET_ALREADY_BOUND,
   ERR_SOCKET_BAD_BUFFER_SIZE,
-  ERR_SOCKET_BAD_PORT,
   ERR_SOCKET_BUFFER_SIZE,
-  ERR_SOCKET_CANNOT_SEND,
   ERR_SOCKET_DGRAM_IS_CONNECTED,
   ERR_SOCKET_DGRAM_NOT_CONNECTED,
   ERR_SOCKET_DGRAM_NOT_RUNNING,
@@ -49,11 +49,12 @@ const {
 const {
   isInt32,
   validateString,
-  validateNumber
+  validateNumber,
+  validatePort,
 } = require('internal/validators');
 const { Buffer } = require('buffer');
 const { deprecate } = require('internal/util');
-const { isUint8Array } = require('internal/util/types');
+const { isArrayBufferView } = require('internal/util/types');
 const EventEmitter = require('events');
 const {
   defaultTriggerAsyncIdScope,
@@ -121,8 +122,8 @@ function Socket(type, listener) {
     sendBufferSize
   };
 }
-Object.setPrototypeOf(Socket.prototype, EventEmitter.prototype);
-Object.setPrototypeOf(Socket, EventEmitter);
+ObjectSetPrototypeOf(Socket.prototype, EventEmitter.prototype);
+ObjectSetPrototypeOf(Socket, EventEmitter);
 
 
 function createSocket(type, listener) {
@@ -211,10 +212,25 @@ Socket.prototype.bind = function(port_, address_ /* , callback */) {
 
   state.bindState = BIND_STATE_BINDING;
 
-  if (arguments.length && typeof arguments[arguments.length - 1] === 'function')
-    this.once('listening', arguments[arguments.length - 1]);
+  const cb = arguments.length && arguments[arguments.length - 1];
+  if (typeof cb === 'function') {
+    function removeListeners() {
+      this.removeListener('error', removeListeners);
+      this.removeListener('listening', onListening);
+    }
 
-  if (port instanceof UDP) {
+    function onListening() {
+      removeListeners.call(this);
+      cb.call(this);
+    }
+
+    this.on('error', removeListeners);
+    this.on('listening', onListening);
+  }
+
+  if (port !== null &&
+      typeof port === 'object' &&
+      typeof port.recvStart === 'function') {
     replaceHandle(this, port);
     startListening(this);
     return this;
@@ -240,8 +256,8 @@ Socket.prototype.bind = function(port_, address_ /* , callback */) {
       }, (err) => {
         // Callback to handle error.
         const ex = errnoException(err, 'open');
-        this.emit('error', ex);
         state.bindState = BIND_STATE_UNBOUND;
+        this.emit('error', ex);
       });
       return this;
     }
@@ -309,8 +325,8 @@ Socket.prototype.bind = function(port_, address_ /* , callback */) {
       }, (err) => {
         // Callback to handle error.
         const ex = exceptionWithHostPort(err, 'bind', ip, port);
-        this.emit('error', ex);
         state.bindState = BIND_STATE_UNBOUND;
+        this.emit('error', ex);
       });
     } else {
       if (!state.handle)
@@ -319,8 +335,8 @@ Socket.prototype.bind = function(port_, address_ /* , callback */) {
       const err = state.handle.bind(ip, port || 0, flags);
       if (err) {
         const ex = exceptionWithHostPort(err, 'bind', ip, port);
-        this.emit('error', ex);
         state.bindState = BIND_STATE_UNBOUND;
+        this.emit('error', ex);
         // Todo: close?
         return;
       }
@@ -332,21 +348,8 @@ Socket.prototype.bind = function(port_, address_ /* , callback */) {
   return this;
 };
 
-
-function validatePort(port) {
-  const legal = isLegalPort(port);
-  if (legal)
-    port = port | 0;
-
-  if (!legal || port === 0)
-    throw new ERR_SOCKET_BAD_PORT(port);
-
-  return port;
-}
-
-
 Socket.prototype.connect = function(port, address, callback) {
-  port = validatePort(port);
+  port = validatePort(port, 'Port', { allowZero: false });
   if (typeof address === 'function') {
     callback = address;
     address = '';
@@ -452,15 +455,19 @@ Socket.prototype.sendto = function(buffer,
 function sliceBuffer(buffer, offset, length) {
   if (typeof buffer === 'string') {
     buffer = Buffer.from(buffer);
-  } else if (!isUint8Array(buffer)) {
+  } else if (!isArrayBufferView(buffer)) {
     throw new ERR_INVALID_ARG_TYPE('buffer',
-                                   ['Buffer', 'Uint8Array', 'string'], buffer);
+                                   ['Buffer',
+                                    'TypedArray',
+                                    'DataView',
+                                    'string'],
+                                   buffer);
   }
 
   offset = offset >>> 0;
   length = length >>> 0;
 
-  return buffer.slice(offset, offset + length);
+  return Buffer.from(buffer.buffer, buffer.byteOffset + offset, length);
 }
 
 
@@ -471,10 +478,10 @@ function fixBufferList(list) {
     const buf = list[i];
     if (typeof buf === 'string')
       newlist[i] = Buffer.from(buf);
-    else if (!isUint8Array(buf))
+    else if (!isArrayBufferView(buf))
       return null;
     else
-      newlist[i] = buf;
+      newlist[i] = Buffer.from(buf.buffer, buf.byteOffset, buf.byteLength);
   }
 
   return newlist;
@@ -488,7 +495,7 @@ function enqueue(self, toEnqueue) {
   // event handler that flushes the send queue after binding is done.
   if (state.queue === undefined) {
     state.queue = [];
-    self.once('error', onListenError);
+    self.once(EventEmitter.errorMonitor, onListenError);
     self.once('listening', onListenSuccess);
   }
   state.queue.push(toEnqueue);
@@ -496,7 +503,7 @@ function enqueue(self, toEnqueue) {
 
 
 function onListenSuccess() {
-  this.removeListener('error', onListenError);
+  this.removeListener(EventEmitter.errorMonitor, onListenError);
   clearQueue.call(this);
 }
 
@@ -504,7 +511,6 @@ function onListenSuccess() {
 function onListenError(err) {
   this.removeListener('listening', onListenSuccess);
   this[kStateSymbol].queue = undefined;
-  this.emit('error', new ERR_SOCKET_CANNOT_SEND());
 }
 
 
@@ -514,8 +520,8 @@ function clearQueue() {
   state.queue = undefined;
 
   // Flush the send queue.
-  for (let i = 0; i < queue.length; i++)
-    queue[i]();
+  for (const queueEntry of queue)
+    queueEntry();
 }
 
 function isConnected(self) {
@@ -576,23 +582,30 @@ Socket.prototype.send = function(buffer,
       throw new ERR_SOCKET_DGRAM_IS_CONNECTED();
   }
 
-  if (!Array.isArray(buffer)) {
+  if (!ArrayIsArray(buffer)) {
     if (typeof buffer === 'string') {
       list = [ Buffer.from(buffer) ];
-    } else if (!isUint8Array(buffer)) {
+    } else if (!isArrayBufferView(buffer)) {
       throw new ERR_INVALID_ARG_TYPE('buffer',
-                                     ['Buffer', 'Uint8Array', 'string'],
+                                     ['Buffer',
+                                      'TypedArray',
+                                      'DataView',
+                                      'string'],
                                      buffer);
     } else {
       list = [ buffer ];
     }
   } else if (!(list = fixBufferList(buffer))) {
     throw new ERR_INVALID_ARG_TYPE('buffer list arguments',
-                                   ['Buffer', 'string'], buffer);
+                                   ['Buffer',
+                                    'TypedArray',
+                                    'DataView',
+                                    'string'],
+                                   buffer);
   }
 
   if (!connected)
-    port = validatePort(port);
+    port = validatePort(port, 'Port', { allowZero: false });
 
   // Normalize callback so it's either a function or undefined but not anything
   // else.
@@ -832,6 +845,51 @@ Socket.prototype.dropMembership = function(multicastAddress,
   }
 };
 
+Socket.prototype.addSourceSpecificMembership = function(sourceAddress,
+                                                        groupAddress,
+                                                        interfaceAddress) {
+  healthCheck(this);
+
+  if (typeof sourceAddress !== 'string') {
+    throw new ERR_INVALID_ARG_TYPE('sourceAddress', 'string', sourceAddress);
+  }
+
+  if (typeof groupAddress !== 'string') {
+    throw new ERR_INVALID_ARG_TYPE('groupAddress', 'string', groupAddress);
+  }
+
+  const err =
+    this[kStateSymbol].handle.addSourceSpecificMembership(sourceAddress,
+                                                          groupAddress,
+                                                          interfaceAddress);
+  if (err) {
+    throw errnoException(err, 'addSourceSpecificMembership');
+  }
+};
+
+
+Socket.prototype.dropSourceSpecificMembership = function(sourceAddress,
+                                                         groupAddress,
+                                                         interfaceAddress) {
+  healthCheck(this);
+
+  if (typeof sourceAddress !== 'string') {
+    throw new ERR_INVALID_ARG_TYPE('sourceAddress', 'string', sourceAddress);
+  }
+
+  if (typeof groupAddress !== 'string') {
+    throw new ERR_INVALID_ARG_TYPE('groupAddress', 'string', groupAddress);
+  }
+
+  const err =
+    this[kStateSymbol].handle.dropSourceSpecificMembership(sourceAddress,
+                                                           groupAddress,
+                                                           interfaceAddress);
+  if (err) {
+    throw errnoException(err, 'dropSourceSpecificMembership');
+  }
+};
+
 
 function healthCheck(socket) {
   if (!socket[kStateSymbol].handle) {
@@ -903,7 +961,7 @@ Socket.prototype.getSendBufferSize = function() {
 
 
 // Deprecated private APIs.
-Object.defineProperty(Socket.prototype, '_handle', {
+ObjectDefineProperty(Socket.prototype, '_handle', {
   get: deprecate(function() {
     return this[kStateSymbol].handle;
   }, 'Socket.prototype._handle is deprecated', 'DEP0112'),
@@ -913,7 +971,7 @@ Object.defineProperty(Socket.prototype, '_handle', {
 });
 
 
-Object.defineProperty(Socket.prototype, '_receiving', {
+ObjectDefineProperty(Socket.prototype, '_receiving', {
   get: deprecate(function() {
     return this[kStateSymbol].receiving;
   }, 'Socket.prototype._receiving is deprecated', 'DEP0112'),
@@ -923,7 +981,7 @@ Object.defineProperty(Socket.prototype, '_receiving', {
 });
 
 
-Object.defineProperty(Socket.prototype, '_bindState', {
+ObjectDefineProperty(Socket.prototype, '_bindState', {
   get: deprecate(function() {
     return this[kStateSymbol].bindState;
   }, 'Socket.prototype._bindState is deprecated', 'DEP0112'),
@@ -933,7 +991,7 @@ Object.defineProperty(Socket.prototype, '_bindState', {
 });
 
 
-Object.defineProperty(Socket.prototype, '_queue', {
+ObjectDefineProperty(Socket.prototype, '_queue', {
   get: deprecate(function() {
     return this[kStateSymbol].queue;
   }, 'Socket.prototype._queue is deprecated', 'DEP0112'),
@@ -943,7 +1001,7 @@ Object.defineProperty(Socket.prototype, '_queue', {
 });
 
 
-Object.defineProperty(Socket.prototype, '_reuseAddr', {
+ObjectDefineProperty(Socket.prototype, '_reuseAddr', {
   get: deprecate(function() {
     return this[kStateSymbol].reuseAddr;
   }, 'Socket.prototype._reuseAddr is deprecated', 'DEP0112'),
@@ -965,7 +1023,7 @@ Socket.prototype._stopReceiving = deprecate(function() {
 
 // Legacy alias on the C++ wrapper object. This is not public API, so we may
 // want to runtime-deprecate it at some point. There's no hurry, though.
-Object.defineProperty(UDP.prototype, 'owner', {
+ObjectDefineProperty(UDP.prototype, 'owner', {
   get() { return this[owner_symbol]; },
   set(v) { return this[owner_symbol] = v; }
 });

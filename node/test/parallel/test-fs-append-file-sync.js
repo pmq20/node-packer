@@ -70,11 +70,18 @@ const fileData3 = fs.readFileSync(filename3);
 
 assert.strictEqual(buf.length + currentFileData.length, fileData3.length);
 
-// Test that appendFile accepts numbers.
 const filename4 = join(tmpdir.path, 'append-sync4.txt');
 fs.writeFileSync(filename4, currentFileData, { mode: m });
 
-fs.appendFileSync(filename4, num, { mode: m });
+[
+  true, false, 0, 1, Infinity, () => {}, {}, [], undefined, null
+].forEach((value) => {
+  assert.throws(
+    () => fs.appendFileSync(filename4, value, { mode: m }),
+    { message: /data/, code: 'ERR_INVALID_ARG_TYPE' }
+  );
+});
+fs.appendFileSync(filename4, `${num}`, { mode: m });
 
 // Windows permissions aren't Unix.
 if (!common.isWindows) {
@@ -99,13 +106,3 @@ const fileData5 = fs.readFileSync(filename5);
 
 assert.strictEqual(Buffer.byteLength(data) + currentFileData.length,
                    fileData5.length);
-
-// Exit logic for cleanup.
-
-process.on('exit', function() {
-  fs.unlinkSync(filename);
-  fs.unlinkSync(filename2);
-  fs.unlinkSync(filename3);
-  fs.unlinkSync(filename4);
-  fs.unlinkSync(filename5);
-});

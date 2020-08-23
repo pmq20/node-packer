@@ -18,15 +18,20 @@
           "displayName": "Revoking deprecations"
         },
         {
-          "textRaw": "List of Deprecated APIs",
+          "textRaw": "List of deprecated APIs",
           "name": "list_of_deprecated_apis",
           "desc": "<p><a id=\"DEP0001\"></a></p>",
           "modules": [
             {
-              "textRaw": "DEP0001: http.OutgoingMessage.prototype.flush",
-              "name": "dep0001:_http.outgoingmessage.prototype.flush",
+              "textRaw": "DEP0001: `http.OutgoingMessage.prototype.flush`",
+              "name": "dep0001:_`http.outgoingmessage.prototype.flush`",
               "meta": {
                 "changes": [
+                  {
+                    "version": "v14.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/31164",
+                    "description": "End-of-Life."
+                  },
                   {
                     "version": [
                       "v4.8.6",
@@ -42,13 +47,13 @@
                   }
                 ]
               },
-              "desc": "<p>Type: Runtime</p>\n<p>The <code>OutgoingMessage.prototype.flush()</code> method is deprecated. Use\n<code>OutgoingMessage.prototype.flushHeaders()</code> instead.</p>\n<p><a id=\"DEP0002\"></a></p>",
+              "desc": "<p>Type: End-of-Life</p>\n<p><code>OutgoingMessage.prototype.flush()</code> has been removed. Use\n<code>OutgoingMessage.prototype.flushHeaders()</code> instead.</p>\n<p><a id=\"DEP0002\"></a></p>",
               "type": "module",
-              "displayName": "DEP0001: http.OutgoingMessage.prototype.flush"
+              "displayName": "DEP0001: `http.OutgoingMessage.prototype.flush`"
             },
             {
-              "textRaw": "DEP0002: require('_linklist')",
-              "name": "dep0002:_require('_linklist')",
+              "textRaw": "DEP0002: `require('_linklist')`",
+              "name": "dep0002:_`require('_linklist')`",
               "meta": {
                 "changes": [
                   {
@@ -70,13 +75,18 @@
               },
               "desc": "<p>Type: End-of-Life</p>\n<p>The <code>_linklist</code> module is deprecated. Please use a userland alternative.</p>\n<p><a id=\"DEP0003\"></a></p>",
               "type": "module",
-              "displayName": "DEP0002: require('_linklist')"
+              "displayName": "DEP0002: `require('_linklist')`"
             },
             {
-              "textRaw": "DEP0003: _writableState.buffer",
-              "name": "dep0003:__writablestate.buffer",
+              "textRaw": "DEP0003: `_writableState.buffer`",
+              "name": "dep0003:_`_writablestate.buffer`",
               "meta": {
                 "changes": [
+                  {
+                    "version": "v14.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/31165",
+                    "description": "End-of-Life"
+                  },
                   {
                     "version": [
                       "v4.8.6",
@@ -92,13 +102,13 @@
                   }
                 ]
               },
-              "desc": "<p>Type: Runtime</p>\n<p>The <code>_writableState.buffer</code> property is deprecated. Use the\n<code>_writableState.getBuffer()</code> method instead.</p>\n<p><a id=\"DEP0004\"></a></p>",
+              "desc": "<p>Type: End-of-Life</p>\n<p>The <code>_writableState.buffer</code> has been removed. Use <code>_writableState.getBuffer()</code>\ninstead.</p>\n<p><a id=\"DEP0004\"></a></p>",
               "type": "module",
-              "displayName": "DEP0003: _writableState.buffer"
+              "displayName": "DEP0003: `_writableState.buffer`"
             },
             {
-              "textRaw": "DEP0004: CryptoStream.prototype.readyState",
-              "name": "dep0004:_cryptostream.prototype.readystate",
+              "textRaw": "DEP0004: `CryptoStream.prototype.readyState`",
+              "name": "dep0004:_`cryptostream.prototype.readystate`",
               "meta": {
                 "changes": [
                   {
@@ -123,11 +133,11 @@
               },
               "desc": "<p>Type: End-of-Life</p>\n<p>The <code>CryptoStream.prototype.readyState</code> property was removed.</p>\n<p><a id=\"DEP0005\"></a></p>",
               "type": "module",
-              "displayName": "DEP0004: CryptoStream.prototype.readyState"
+              "displayName": "DEP0004: `CryptoStream.prototype.readyState`"
             },
             {
-              "textRaw": "DEP0005: Buffer() constructor",
-              "name": "dep0005:_buffer()_constructor",
+              "textRaw": "DEP0005: `Buffer()` constructor",
+              "name": "dep0005:_`buffer()`_constructor",
               "meta": {
                 "changes": [
                   {
@@ -147,13 +157,13 @@
                   }
                 ]
               },
-              "desc": "<p>Type: Runtime (supports <a href=\"cli.html#cli_pending_deprecation\"><code>--pending-deprecation</code></a>)</p>\n<p>The <code>Buffer()</code> function and <code>new Buffer()</code> constructor are deprecated due to\nAPI usability issues that can lead to accidental security issues.</p>\n<p>As an alternative, use one of the following methods of constructing <code>Buffer</code>\nobjects:</p>\n<ul>\n<li><a href=\"buffer.html#buffer_class_method_buffer_alloc_size_fill_encoding\"><code>Buffer.alloc(size[, fill[, encoding]])</code></a> - Create a <code>Buffer</code> with\n<em>initialized</em> memory.</li>\n<li><a href=\"buffer.html#buffer_class_method_buffer_allocunsafe_size\"><code>Buffer.allocUnsafe(size)</code></a> - Create a <code>Buffer</code> with\n<em>uninitialized</em> memory.</li>\n<li><a href=\"buffer.html#buffer_class_method_buffer_allocunsafeslow_size\"><code>Buffer.allocUnsafeSlow(size)</code></a> - Create a <code>Buffer</code> with <em>uninitialized</em>\nmemory.</li>\n<li><a href=\"buffer.html#buffer_class_method_buffer_from_array\"><code>Buffer.from(array)</code></a> - Create a <code>Buffer</code> with a copy of <code>array</code></li>\n<li><a href=\"buffer.html#buffer_class_method_buffer_from_arraybuffer_byteoffset_length\"><code>Buffer.from(arrayBuffer[, byteOffset[, length]])</code></a> -\nCreate a <code>Buffer</code> that wraps the given <code>arrayBuffer</code>.</li>\n<li><a href=\"buffer.html#buffer_class_method_buffer_from_buffer\"><code>Buffer.from(buffer)</code></a> - Create a <code>Buffer</code> that copies <code>buffer</code>.</li>\n<li><a href=\"buffer.html#buffer_class_method_buffer_from_string_encoding\"><code>Buffer.from(string[, encoding])</code></a> - Create a <code>Buffer</code>\nthat copies <code>string</code>.</li>\n</ul>\n<p>Without <code>--pending-deprecation</code>, runtime warnings occur only for code not in\n<code>node_modules</code>. This means there will not be deprecation warnings for\n<code>Buffer()</code> usage in dependencies. With <code>--pending-deprecation</code>, a runtime\nwarning results no matter where the <code>Buffer()</code> usage occurs.</p>\n<p><a id=\"DEP0006\"></a></p>",
+              "desc": "<p>Type: Runtime (supports <a href=\"cli.html#cli_pending_deprecation\"><code>--pending-deprecation</code></a>)</p>\n<p>The <code>Buffer()</code> function and <code>new Buffer()</code> constructor are deprecated due to\nAPI usability issues that can lead to accidental security issues.</p>\n<p>As an alternative, use one of the following methods of constructing <code>Buffer</code>\nobjects:</p>\n<ul>\n<li><a href=\"buffer.html#buffer_static_method_buffer_alloc_size_fill_encoding\"><code>Buffer.alloc(size[, fill[, encoding]])</code></a>: Create a <code>Buffer</code> with\n<em>initialized</em> memory.</li>\n<li><a href=\"buffer.html#buffer_static_method_buffer_allocunsafe_size\"><code>Buffer.allocUnsafe(size)</code></a>: Create a <code>Buffer</code> with\n<em>uninitialized</em> memory.</li>\n<li><a href=\"buffer.html#buffer_static_method_buffer_allocunsafeslow_size\"><code>Buffer.allocUnsafeSlow(size)</code></a>: Create a <code>Buffer</code> with <em>uninitialized</em>\nmemory.</li>\n<li><a href=\"buffer.html#buffer_static_method_buffer_from_array\"><code>Buffer.from(array)</code></a>: Create a <code>Buffer</code> with a copy of <code>array</code></li>\n<li><a href=\"buffer.html#buffer_static_method_buffer_from_arraybuffer_byteoffset_length\"><code>Buffer.from(arrayBuffer[, byteOffset[, length]])</code></a> -\nCreate a <code>Buffer</code> that wraps the given <code>arrayBuffer</code>.</li>\n<li><a href=\"buffer.html#buffer_static_method_buffer_from_buffer\"><code>Buffer.from(buffer)</code></a>: Create a <code>Buffer</code> that copies <code>buffer</code>.</li>\n<li><a href=\"buffer.html#buffer_static_method_buffer_from_string_encoding\"><code>Buffer.from(string[, encoding])</code></a>: Create a <code>Buffer</code>\nthat copies <code>string</code>.</li>\n</ul>\n<p>Without <code>--pending-deprecation</code>, runtime warnings occur only for code not in\n<code>node_modules</code>. This means there will not be deprecation warnings for\n<code>Buffer()</code> usage in dependencies. With <code>--pending-deprecation</code>, a runtime\nwarning results no matter where the <code>Buffer()</code> usage occurs.</p>\n<p><a id=\"DEP0006\"></a></p>",
               "type": "module",
-              "displayName": "DEP0005: Buffer() constructor"
+              "displayName": "DEP0005: `Buffer()` constructor"
             },
             {
-              "textRaw": "DEP0006: child_process options.customFds",
-              "name": "dep0006:_child_process_options.customfds",
+              "textRaw": "DEP0006: `child_process` `options.customFds`",
+              "name": "dep0006:_`child_process`_`options.customfds`",
               "meta": {
                 "changes": [
                   {
@@ -181,11 +191,11 @@
               },
               "desc": "<p>Type: End-of-Life</p>\n<p>Within the <a href=\"child_process.html\"><code>child_process</code></a> module's <code>spawn()</code>, <code>fork()</code>, and <code>exec()</code>\nmethods, the <code>options.customFds</code> option is deprecated. The <code>options.stdio</code>\noption should be used instead.</p>\n<p><a id=\"DEP0007\"></a></p>",
               "type": "module",
-              "displayName": "DEP0006: child_process options.customFds"
+              "displayName": "DEP0006: `child_process` `options.customFds`"
             },
             {
-              "textRaw": "DEP0007: Replace cluster worker.suicide with worker.exitedAfterDisconnect",
-              "name": "dep0007:_replace_cluster_worker.suicide_with_worker.exitedafterdisconnect",
+              "textRaw": "DEP0007: Replace `cluster` `worker.suicide` with `worker.exitedAfterDisconnect`",
+              "name": "dep0007:_replace_`cluster`_`worker.suicide`_with_`worker.exitedafterdisconnect`",
               "meta": {
                 "changes": [
                   {
@@ -212,11 +222,11 @@
               },
               "desc": "<p>Type: End-of-Life</p>\n<p>In an earlier version of the Node.js <code>cluster</code>, a boolean property with the name\n<code>suicide</code> was added to the <code>Worker</code> object. The intent of this property was to\nprovide an indication of how and why the <code>Worker</code> instance exited. In Node.js\n6.0.0, the old property was deprecated and replaced with a new\n<a href=\"cluster.html#cluster_worker_exitedafterdisconnect\"><code>worker.exitedAfterDisconnect</code></a> property. The old property name did not\nprecisely describe the actual semantics and was unnecessarily emotion-laden.</p>\n<p><a id=\"DEP0008\"></a></p>",
               "type": "module",
-              "displayName": "DEP0007: Replace cluster worker.suicide with worker.exitedAfterDisconnect"
+              "displayName": "DEP0007: Replace `cluster` `worker.suicide` with `worker.exitedAfterDisconnect`"
             },
             {
-              "textRaw": "DEP0008: require('constants')",
-              "name": "dep0008:_require('constants')",
+              "textRaw": "DEP0008: `require('constants')`",
+              "name": "dep0008:_`require('constants')`",
               "meta": {
                 "changes": [
                   {
@@ -233,13 +243,18 @@
               },
               "desc": "<p>Type: Documentation-only</p>\n<p>The <code>constants</code> module is deprecated. When requiring access to constants\nrelevant to specific Node.js builtin modules, developers should instead refer\nto the <code>constants</code> property exposed by the relevant module. For instance,\n<code>require('fs').constants</code> and <code>require('os').constants</code>.</p>\n<p><a id=\"DEP0009\"></a></p>",
               "type": "module",
-              "displayName": "DEP0008: require('constants')"
+              "displayName": "DEP0008: `require('constants')`"
             },
             {
-              "textRaw": "DEP0009: crypto.pbkdf2 without digest",
-              "name": "dep0009:_crypto.pbkdf2_without_digest",
+              "textRaw": "DEP0009: `crypto.pbkdf2` without digest",
+              "name": "dep0009:_`crypto.pbkdf2`_without_digest",
               "meta": {
                 "changes": [
+                  {
+                    "version": "v14.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/31166",
+                    "description": "End-of-Life (for `digest === null`)"
+                  },
                   {
                     "version": "v11.0.0",
                     "pr-url": "https://github.com/nodejs/node/pull/22861",
@@ -262,13 +277,13 @@
                   }
                 ]
               },
-              "desc": "<p>Type: Runtime</p>\n<p>Use of the <a href=\"crypto.html#crypto_crypto_pbkdf2_password_salt_iterations_keylen_digest_callback\"><code>crypto.pbkdf2()</code></a> API without specifying a digest was deprecated\nin Node.js 6.0 because the method defaulted to using the non-recommended\n<code>'SHA1'</code> digest. Previously, a deprecation warning was printed. Starting in\nNode.js 8.0.0, calling <code>crypto.pbkdf2()</code> or <code>crypto.pbkdf2Sync()</code> with\n<code>digest</code> set to <code>undefined</code> will throw a <code>TypeError</code>.</p>\n<p>Beginning in Node.js v11.0.0, calling these functions with <code>digest</code> set to\n<code>null</code> will print a deprecation warning to align with the behavior when <code>digest</code>\nis <code>undefined</code>.</p>\n<p><a id=\"DEP0010\"></a></p>",
+              "desc": "<p>Type: End-of-Life</p>\n<p>Use of the <a href=\"crypto.html#crypto_crypto_pbkdf2_password_salt_iterations_keylen_digest_callback\"><code>crypto.pbkdf2()</code></a> API without specifying a digest was deprecated\nin Node.js 6.0 because the method defaulted to using the non-recommended\n<code>'SHA1'</code> digest. Previously, a deprecation warning was printed. Starting in\nNode.js 8.0.0, calling <code>crypto.pbkdf2()</code> or <code>crypto.pbkdf2Sync()</code> with\n<code>digest</code> set to <code>undefined</code> will throw a <code>TypeError</code>.</p>\n<p>Beginning in Node.js v11.0.0, calling these functions with <code>digest</code> set to\n<code>null</code> would print a deprecation warning to align with the behavior when <code>digest</code>\nis <code>undefined</code>.</p>\n<p>Now, however, passing either <code>undefined</code> or <code>null</code> will throw a <code>TypeError</code>.</p>\n<p><a id=\"DEP0010\"></a></p>",
               "type": "module",
-              "displayName": "DEP0009: crypto.pbkdf2 without digest"
+              "displayName": "DEP0009: `crypto.pbkdf2` without digest"
             },
             {
-              "textRaw": "DEP0010: crypto.createCredentials",
-              "name": "dep0010:_crypto.createcredentials",
+              "textRaw": "DEP0010: `crypto.createCredentials`",
+              "name": "dep0010:_`crypto.createcredentials`",
               "meta": {
                 "changes": [
                   {
@@ -293,11 +308,11 @@
               },
               "desc": "<p>Type: End-of-Life</p>\n<p>The <code>crypto.createCredentials()</code> API was removed. Please use\n<a href=\"tls.html#tls_tls_createsecurecontext_options\"><code>tls.createSecureContext()</code></a> instead.</p>\n<p><a id=\"DEP0011\"></a></p>",
               "type": "module",
-              "displayName": "DEP0010: crypto.createCredentials"
+              "displayName": "DEP0010: `crypto.createCredentials`"
             },
             {
-              "textRaw": "DEP0011: crypto.Credentials",
-              "name": "dep0011:_crypto.credentials",
+              "textRaw": "DEP0011: `crypto.Credentials`",
+              "name": "dep0011:_`crypto.credentials`",
               "meta": {
                 "changes": [
                   {
@@ -322,11 +337,11 @@
               },
               "desc": "<p>Type: End-of-Life</p>\n<p>The <code>crypto.Credentials</code> class was removed. Please use <a href=\"tls.html#tls_tls_createsecurecontext_options\"><code>tls.SecureContext</code></a>\ninstead.</p>\n<p><a id=\"DEP0012\"></a></p>",
               "type": "module",
-              "displayName": "DEP0011: crypto.Credentials"
+              "displayName": "DEP0011: `crypto.Credentials`"
             },
             {
-              "textRaw": "DEP0012: Domain.dispose",
-              "name": "dep0012:_domain.dispose",
+              "textRaw": "DEP0012: `Domain.dispose`",
+              "name": "dep0012:_`domain.dispose`",
               "meta": {
                 "changes": [
                   {
@@ -351,11 +366,11 @@
               },
               "desc": "<p>Type: End-of-Life</p>\n<p><code>Domain.dispose()</code> has been removed. Recover from failed I/O actions\nexplicitly via error event handlers set on the domain instead.</p>\n<p><a id=\"DEP0013\"></a></p>",
               "type": "module",
-              "displayName": "DEP0012: Domain.dispose"
+              "displayName": "DEP0012: `Domain.dispose`"
             },
             {
-              "textRaw": "DEP0013: fs asynchronous function without callback",
-              "name": "dep0013:_fs_asynchronous_function_without_callback",
+              "textRaw": "DEP0013: `fs` asynchronous function without callback",
+              "name": "dep0013:_`fs`_asynchronous_function_without_callback",
               "meta": {
                 "changes": [
                   {
@@ -372,11 +387,11 @@
               },
               "desc": "<p>Type: End-of-Life</p>\n<p>Calling an asynchronous function without a callback throws a <code>TypeError</code>\nin Node.js 10.0.0 onwards. See <a href=\"https://github.com/nodejs/node/pull/12562\">https://github.com/nodejs/node/pull/12562</a>.</p>\n<p><a id=\"DEP0014\"></a></p>",
               "type": "module",
-              "displayName": "DEP0013: fs asynchronous function without callback"
+              "displayName": "DEP0013: `fs` asynchronous function without callback"
             },
             {
-              "textRaw": "DEP0014: fs.read legacy String interface",
-              "name": "dep0014:_fs.read_legacy_string_interface",
+              "textRaw": "DEP0014: `fs.read` legacy String interface",
+              "name": "dep0014:_`fs.read`_legacy_string_interface",
               "meta": {
                 "changes": [
                   {
@@ -406,11 +421,11 @@
               },
               "desc": "<p>Type: End-of-Life</p>\n<p>The <a href=\"fs.html#fs_fs_read_fd_buffer_offset_length_position_callback\"><code>fs.read()</code></a> legacy <code>String</code> interface is deprecated. Use the <code>Buffer</code>\nAPI as mentioned in the documentation instead.</p>\n<p><a id=\"DEP0015\"></a></p>",
               "type": "module",
-              "displayName": "DEP0014: fs.read legacy String interface"
+              "displayName": "DEP0014: `fs.read` legacy String interface"
             },
             {
-              "textRaw": "DEP0015: fs.readSync legacy String interface",
-              "name": "dep0015:_fs.readsync_legacy_string_interface",
+              "textRaw": "DEP0015: `fs.readSync` legacy String interface",
+              "name": "dep0015:_`fs.readsync`_legacy_string_interface",
               "meta": {
                 "changes": [
                   {
@@ -440,13 +455,18 @@
               },
               "desc": "<p>Type: End-of-Life</p>\n<p>The <a href=\"fs.html#fs_fs_readsync_fd_buffer_offset_length_position\"><code>fs.readSync()</code></a> legacy <code>String</code> interface is deprecated. Use the\n<code>Buffer</code> API as mentioned in the documentation instead.</p>\n<p><a id=\"DEP0016\"></a></p>",
               "type": "module",
-              "displayName": "DEP0015: fs.readSync legacy String interface"
+              "displayName": "DEP0015: `fs.readSync` legacy String interface"
             },
             {
-              "textRaw": "DEP0016: GLOBAL/root",
-              "name": "dep0016:_global/root",
+              "textRaw": "DEP0016: `GLOBAL`/`root`",
+              "name": "dep0016:_`global`/`root`",
               "meta": {
                 "changes": [
+                  {
+                    "version": "v14.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/31167",
+                    "description": "End-of-Life"
+                  },
                   {
                     "version": "v6.12.0",
                     "pr-url": "https://github.com/nodejs/node/pull/10116",
@@ -459,13 +479,13 @@
                   }
                 ]
               },
-              "desc": "<p>Type: Runtime</p>\n<p>The <code>GLOBAL</code> and <code>root</code> aliases for the <code>global</code> property are deprecated\nand should no longer be used.</p>\n<p><a id=\"DEP0017\"></a></p>",
+              "desc": "<p>Type: End-of-Life</p>\n<p>The <code>GLOBAL</code> and <code>root</code> aliases for the <code>global</code> property were deprecated\nin Node.js 6.0.0 and have since been removed.</p>\n<p><a id=\"DEP0017\"></a></p>",
               "type": "module",
-              "displayName": "DEP0016: GLOBAL/root"
+              "displayName": "DEP0016: `GLOBAL`/`root`"
             },
             {
-              "textRaw": "DEP0017: Intl.v8BreakIterator",
-              "name": "dep0017:_intl.v8breakiterator",
+              "textRaw": "DEP0017: `Intl.v8BreakIterator`",
+              "name": "dep0017:_`intl.v8breakiterator`",
               "meta": {
                 "changes": [
                   {
@@ -482,7 +502,7 @@
               },
               "desc": "<p>Type: End-of-Life</p>\n<p><code>Intl.v8BreakIterator</code> was a non-standard extension and has been removed.\nSee <a href=\"https://github.com/tc39/proposal-intl-segmenter\"><code>Intl.Segmenter</code></a>.</p>\n<p><a id=\"DEP0018\"></a></p>",
               "type": "module",
-              "displayName": "DEP0017: Intl.v8BreakIterator"
+              "displayName": "DEP0017: `Intl.v8BreakIterator`"
             },
             {
               "textRaw": "DEP0018: Unhandled promise rejections",
@@ -501,8 +521,8 @@
               "displayName": "DEP0018: Unhandled promise rejections"
             },
             {
-              "textRaw": "DEP0019: require('.') resolved outside directory",
-              "name": "dep0019:_require('.')_resolved_outside_directory",
+              "textRaw": "DEP0019: `require('.')` resolved outside directory",
+              "name": "dep0019:_`require('.')`_resolved_outside_directory",
               "meta": {
                 "changes": [
                   {
@@ -527,11 +547,11 @@
               },
               "desc": "<p>Type: End-of-Life</p>\n<p>In certain cases, <code>require('.')</code> could resolve outside the package directory.\nThis behavior has been removed.</p>\n<p><a id=\"DEP0020\"></a></p>",
               "type": "module",
-              "displayName": "DEP0019: require('.') resolved outside directory"
+              "displayName": "DEP0019: `require('.')` resolved outside directory"
             },
             {
-              "textRaw": "DEP0020: Server.connections",
-              "name": "dep0020:_server.connections",
+              "textRaw": "DEP0020: `Server.connections`",
+              "name": "dep0020:_`server.connections`",
               "meta": {
                 "changes": [
                   {
@@ -551,11 +571,11 @@
               },
               "desc": "<p>Type: Runtime</p>\n<p>The <a href=\"net.html#net_server_connections\"><code>Server.connections</code></a> property is deprecated. Please use the\n<a href=\"net.html#net_server_getconnections_callback\"><code>Server.getConnections()</code></a> method instead.</p>\n<p><a id=\"DEP0021\"></a></p>",
               "type": "module",
-              "displayName": "DEP0020: Server.connections"
+              "displayName": "DEP0020: `Server.connections`"
             },
             {
-              "textRaw": "DEP0021: Server.listenFD",
-              "name": "dep0021:_server.listenfd",
+              "textRaw": "DEP0021: `Server.listenFD`",
+              "name": "dep0021:_`server.listenfd`",
               "meta": {
                 "changes": [
                   {
@@ -580,13 +600,18 @@
               },
               "desc": "<p>Type: End-of-Life</p>\n<p>The <code>Server.listenFD()</code> method was deprecated and removed. Please use\n<a href=\"net.html#net_server_listen_handle_backlog_callback\"><code>Server.listen({fd: &#x3C;number>})</code></a> instead.</p>\n<p><a id=\"DEP0022\"></a></p>",
               "type": "module",
-              "displayName": "DEP0021: Server.listenFD"
+              "displayName": "DEP0021: `Server.listenFD`"
             },
             {
-              "textRaw": "DEP0022: os.tmpDir()",
-              "name": "dep0022:_os.tmpdir()",
+              "textRaw": "DEP0022: `os.tmpDir()`",
+              "name": "dep0022:_`os.tmpdir()`",
               "meta": {
                 "changes": [
+                  {
+                    "version": "v14.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/31169",
+                    "description": "End-of-Life."
+                  },
                   {
                     "version": "v7.0.0",
                     "pr-url": "https://github.com/nodejs/node/pull/6739",
@@ -594,13 +619,13 @@
                   }
                 ]
               },
-              "desc": "<p>Type: Runtime</p>\n<p>The <code>os.tmpDir()</code> API is deprecated. Please use <a href=\"os.html#os_os_tmpdir\"><code>os.tmpdir()</code></a> instead.</p>\n<p><a id=\"DEP0023\"></a></p>",
+              "desc": "<p>Type: End-of-Life</p>\n<p>The <code>os.tmpDir()</code> API was deprecated in Node.js 7.0.0 and has since been\nremoved. Please use <a href=\"os.html#os_os_tmpdir\"><code>os.tmpdir()</code></a> instead.</p>\n<p><a id=\"DEP0023\"></a></p>",
               "type": "module",
-              "displayName": "DEP0022: os.tmpDir()"
+              "displayName": "DEP0022: `os.tmpDir()`"
             },
             {
-              "textRaw": "DEP0023: os.getNetworkInterfaces()",
-              "name": "dep0023:_os.getnetworkinterfaces()",
+              "textRaw": "DEP0023: `os.getNetworkInterfaces()`",
+              "name": "dep0023:_`os.getnetworkinterfaces()`",
               "meta": {
                 "changes": [
                   {
@@ -625,11 +650,11 @@
               },
               "desc": "<p>Type: End-of-Life</p>\n<p>The <code>os.getNetworkInterfaces()</code> method is deprecated. Please use the\n<a href=\"os.html#os_os_networkinterfaces\"><code>os.networkInterfaces()</code></a> method instead.</p>\n<p><a id=\"DEP0024\"></a></p>",
               "type": "module",
-              "displayName": "DEP0023: os.getNetworkInterfaces()"
+              "displayName": "DEP0023: `os.getNetworkInterfaces()`"
             },
             {
-              "textRaw": "DEP0024: REPLServer.prototype.convertToContext()",
-              "name": "dep0024:_replserver.prototype.converttocontext()",
+              "textRaw": "DEP0024: `REPLServer.prototype.convertToContext()`",
+              "name": "dep0024:_`replserver.prototype.converttocontext()`",
               "meta": {
                 "changes": [
                   {
@@ -646,11 +671,11 @@
               },
               "desc": "<p>Type: End-of-Life</p>\n<p>The <code>REPLServer.prototype.convertToContext()</code> API has been removed.</p>\n<p><a id=\"DEP0025\"></a></p>",
               "type": "module",
-              "displayName": "DEP0024: REPLServer.prototype.convertToContext()"
+              "displayName": "DEP0024: `REPLServer.prototype.convertToContext()`"
             },
             {
-              "textRaw": "DEP0025: require('sys')",
-              "name": "dep0025:_require('sys')",
+              "textRaw": "DEP0025: `require('sys')`",
+              "name": "dep0025:_`require('sys')`",
               "meta": {
                 "changes": [
                   {
@@ -670,11 +695,11 @@
               },
               "desc": "<p>Type: Runtime</p>\n<p>The <code>sys</code> module is deprecated. Please use the <a href=\"util.html\"><code>util</code></a> module instead.</p>\n<p><a id=\"DEP0026\"></a></p>",
               "type": "module",
-              "displayName": "DEP0025: require('sys')"
+              "displayName": "DEP0025: `require('sys')`"
             },
             {
-              "textRaw": "DEP0026: util.print()",
-              "name": "dep0026:_util.print()",
+              "textRaw": "DEP0026: `util.print()`",
+              "name": "dep0026:_`util.print()`",
               "meta": {
                 "changes": [
                   {
@@ -699,11 +724,11 @@
               },
               "desc": "<p>Type: End-of-Life</p>\n<p><code>util.print()</code> has been removed. Please use <a href=\"console.html#console_console_log_data_args\"><code>console.log()</code></a> instead.</p>\n<p><a id=\"DEP0027\"></a></p>",
               "type": "module",
-              "displayName": "DEP0026: util.print()"
+              "displayName": "DEP0026: `util.print()`"
             },
             {
-              "textRaw": "DEP0027: util.puts()",
-              "name": "dep0027:_util.puts()",
+              "textRaw": "DEP0027: `util.puts()`",
+              "name": "dep0027:_`util.puts()`",
               "meta": {
                 "changes": [
                   {
@@ -728,11 +753,11 @@
               },
               "desc": "<p>Type: End-of-Life</p>\n<p><code>util.puts()</code> has been removed. Please use <a href=\"console.html#console_console_log_data_args\"><code>console.log()</code></a> instead.</p>\n<p><a id=\"DEP0028\"></a></p>",
               "type": "module",
-              "displayName": "DEP0027: util.puts()"
+              "displayName": "DEP0027: `util.puts()`"
             },
             {
-              "textRaw": "DEP0028: util.debug()",
-              "name": "dep0028:_util.debug()",
+              "textRaw": "DEP0028: `util.debug()`",
+              "name": "dep0028:_`util.debug()`",
               "meta": {
                 "changes": [
                   {
@@ -757,11 +782,11 @@
               },
               "desc": "<p>Type: End-of-Life</p>\n<p><code>util.debug()</code> has been removed. Please use <a href=\"console.html#console_console_error_data_args\"><code>console.error()</code></a> instead.</p>\n<p><a id=\"DEP0029\"></a></p>",
               "type": "module",
-              "displayName": "DEP0028: util.debug()"
+              "displayName": "DEP0028: `util.debug()`"
             },
             {
-              "textRaw": "DEP0029: util.error()",
-              "name": "dep0029:_util.error()",
+              "textRaw": "DEP0029: `util.error()`",
+              "name": "dep0029:_`util.error()`",
               "meta": {
                 "changes": [
                   {
@@ -786,11 +811,11 @@
               },
               "desc": "<p>Type: End-of-Life</p>\n<p><code>util.error()</code> has been removed. Please use <a href=\"console.html#console_console_error_data_args\"><code>console.error()</code></a> instead.</p>\n<p><a id=\"DEP0030\"></a></p>",
               "type": "module",
-              "displayName": "DEP0029: util.error()"
+              "displayName": "DEP0029: `util.error()`"
             },
             {
-              "textRaw": "DEP0030: SlowBuffer",
-              "name": "dep0030:_slowbuffer",
+              "textRaw": "DEP0030: `SlowBuffer`",
+              "name": "dep0030:_`slowbuffer`",
               "meta": {
                 "changes": [
                   {
@@ -805,13 +830,13 @@
                   }
                 ]
               },
-              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"buffer.html#buffer_class_slowbuffer\"><code>SlowBuffer</code></a> class is deprecated. Please use\n<a href=\"buffer.html#buffer_class_method_buffer_allocunsafeslow_size\"><code>Buffer.allocUnsafeSlow(size)</code></a> instead.</p>\n<p><a id=\"DEP0031\"></a></p>",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"buffer.html#buffer_class_slowbuffer\"><code>SlowBuffer</code></a> class is deprecated. Please use\n<a href=\"buffer.html#buffer_static_method_buffer_allocunsafeslow_size\"><code>Buffer.allocUnsafeSlow(size)</code></a> instead.</p>\n<p><a id=\"DEP0031\"></a></p>",
               "type": "module",
-              "displayName": "DEP0030: SlowBuffer"
+              "displayName": "DEP0030: `SlowBuffer`"
             },
             {
-              "textRaw": "DEP0031: ecdh.setPublicKey()",
-              "name": "dep0031:_ecdh.setpublickey()",
+              "textRaw": "DEP0031: `ecdh.setPublicKey()`",
+              "name": "dep0031:_`ecdh.setpublickey()`",
               "meta": {
                 "changes": [
                   {
@@ -828,11 +853,11 @@
               },
               "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"crypto.html#crypto_ecdh_setpublickey_publickey_encoding\"><code>ecdh.setPublicKey()</code></a> method is now deprecated as its inclusion in the\nAPI is not useful.</p>\n<p><a id=\"DEP0032\"></a></p>",
               "type": "module",
-              "displayName": "DEP0031: ecdh.setPublicKey()"
+              "displayName": "DEP0031: `ecdh.setPublicKey()`"
             },
             {
-              "textRaw": "DEP0032: domain module",
-              "name": "dep0032:_domain_module",
+              "textRaw": "DEP0032: `domain` module",
+              "name": "dep0032:_`domain`_module",
               "meta": {
                 "changes": [
                   {
@@ -852,11 +877,11 @@
               },
               "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"domain.html\"><code>domain</code></a> module is deprecated and should not be used.</p>\n<p><a id=\"DEP0033\"></a></p>",
               "type": "module",
-              "displayName": "DEP0032: domain module"
+              "displayName": "DEP0032: `domain` module"
             },
             {
-              "textRaw": "DEP0033: EventEmitter.listenerCount()",
-              "name": "dep0033:_eventemitter.listenercount()",
+              "textRaw": "DEP0033: `EventEmitter.listenerCount()`",
+              "name": "dep0033:_`eventemitter.listenercount()`",
               "meta": {
                 "changes": [
                   {
@@ -876,11 +901,11 @@
               },
               "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"events.html#events_eventemitter_listenercount_emitter_eventname\"><code>EventEmitter.listenerCount(emitter, eventName)</code></a> API is\ndeprecated. Please use <a href=\"events.html#events_emitter_listenercount_eventname\"><code>emitter.listenerCount(eventName)</code></a> instead.</p>\n<p><a id=\"DEP0034\"></a></p>",
               "type": "module",
-              "displayName": "DEP0033: EventEmitter.listenerCount()"
+              "displayName": "DEP0033: `EventEmitter.listenerCount()`"
             },
             {
-              "textRaw": "DEP0034: fs.exists(path, callback)",
-              "name": "dep0034:_fs.exists(path,_callback)",
+              "textRaw": "DEP0034: `fs.exists(path, callback)`",
+              "name": "dep0034:_`fs.exists(path,_callback)`",
               "meta": {
                 "changes": [
                   {
@@ -900,11 +925,11 @@
               },
               "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"fs.html#fs_fs_exists_path_callback\"><code>fs.exists(path, callback)</code></a> API is deprecated. Please use\n<a href=\"fs.html#fs_fs_stat_path_options_callback\"><code>fs.stat()</code></a> or <a href=\"fs.html#fs_fs_access_path_mode_callback\"><code>fs.access()</code></a> instead.</p>\n<p><a id=\"DEP0035\"></a></p>",
               "type": "module",
-              "displayName": "DEP0034: fs.exists(path, callback)"
+              "displayName": "DEP0034: `fs.exists(path, callback)`"
             },
             {
-              "textRaw": "DEP0035: fs.lchmod(path, mode, callback)",
-              "name": "dep0035:_fs.lchmod(path,_mode,_callback)",
+              "textRaw": "DEP0035: `fs.lchmod(path, mode, callback)`",
+              "name": "dep0035:_`fs.lchmod(path,_mode,_callback)`",
               "meta": {
                 "changes": [
                   {
@@ -923,11 +948,11 @@
               },
               "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"fs.html#fs_fs_lchmod_path_mode_callback\"><code>fs.lchmod(path, mode, callback)</code></a> API is deprecated.</p>\n<p><a id=\"DEP0036\"></a></p>",
               "type": "module",
-              "displayName": "DEP0035: fs.lchmod(path, mode, callback)"
+              "displayName": "DEP0035: `fs.lchmod(path, mode, callback)`"
             },
             {
-              "textRaw": "DEP0036: fs.lchmodSync(path, mode)",
-              "name": "dep0036:_fs.lchmodsync(path,_mode)",
+              "textRaw": "DEP0036: `fs.lchmodSync(path, mode)`",
+              "name": "dep0036:_`fs.lchmodsync(path,_mode)`",
               "meta": {
                 "changes": [
                   {
@@ -946,11 +971,11 @@
               },
               "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"fs.html#fs_fs_lchmodsync_path_mode\"><code>fs.lchmodSync(path, mode)</code></a> API is deprecated.</p>\n<p><a id=\"DEP0037\"></a></p>",
               "type": "module",
-              "displayName": "DEP0036: fs.lchmodSync(path, mode)"
+              "displayName": "DEP0036: `fs.lchmodSync(path, mode)`"
             },
             {
-              "textRaw": "DEP0037: fs.lchown(path, uid, gid, callback)",
-              "name": "dep0037:_fs.lchown(path,_uid,_gid,_callback)",
+              "textRaw": "DEP0037: `fs.lchown(path, uid, gid, callback)`",
+              "name": "dep0037:_`fs.lchown(path,_uid,_gid,_callback)`",
               "meta": {
                 "changes": [
                   {
@@ -974,11 +999,11 @@
               },
               "desc": "<p>Type: Deprecation revoked</p>\n<p>The <a href=\"fs.html#fs_fs_lchown_path_uid_gid_callback\"><code>fs.lchown(path, uid, gid, callback)</code></a> API was deprecated. The\ndeprecation was revoked because the requisite supporting APIs were added in\nlibuv.</p>\n<p><a id=\"DEP0038\"></a></p>",
               "type": "module",
-              "displayName": "DEP0037: fs.lchown(path, uid, gid, callback)"
+              "displayName": "DEP0037: `fs.lchown(path, uid, gid, callback)`"
             },
             {
-              "textRaw": "DEP0038: fs.lchownSync(path, uid, gid)",
-              "name": "dep0038:_fs.lchownsync(path,_uid,_gid)",
+              "textRaw": "DEP0038: `fs.lchownSync(path, uid, gid)`",
+              "name": "dep0038:_`fs.lchownsync(path,_uid,_gid)`",
               "meta": {
                 "changes": [
                   {
@@ -1002,11 +1027,11 @@
               },
               "desc": "<p>Type: Deprecation revoked</p>\n<p>The <a href=\"fs.html#fs_fs_lchownsync_path_uid_gid\"><code>fs.lchownSync(path, uid, gid)</code></a> API was deprecated. The deprecation was\nrevoked because the requisite supporting APIs were added in libuv.</p>\n<p><a id=\"DEP0039\"></a></p>",
               "type": "module",
-              "displayName": "DEP0038: fs.lchownSync(path, uid, gid)"
+              "displayName": "DEP0038: `fs.lchownSync(path, uid, gid)`"
             },
             {
-              "textRaw": "DEP0039: require.extensions",
-              "name": "dep0039:_require.extensions",
+              "textRaw": "DEP0039: `require.extensions`",
+              "name": "dep0039:_`require.extensions`",
               "meta": {
                 "changes": [
                   {
@@ -1026,11 +1051,11 @@
               },
               "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"modules.html#modules_require_extensions\"><code>require.extensions</code></a> property is deprecated.</p>\n<p><a id=\"DEP0040\"></a></p>",
               "type": "module",
-              "displayName": "DEP0039: require.extensions"
+              "displayName": "DEP0039: `require.extensions`"
             },
             {
-              "textRaw": "DEP0040: punycode module",
-              "name": "dep0040:_punycode_module",
+              "textRaw": "DEP0040: `punycode` module",
+              "name": "dep0040:_`punycode`_module",
               "meta": {
                 "changes": [
                   {
@@ -1042,11 +1067,11 @@
               },
               "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"punycode.html\"><code>punycode</code></a> module is deprecated. Please use a userland alternative\ninstead.</p>\n<p><a id=\"DEP0041\"></a></p>",
               "type": "module",
-              "displayName": "DEP0040: punycode module"
+              "displayName": "DEP0040: `punycode` module"
             },
             {
-              "textRaw": "DEP0041: NODE_REPL_HISTORY_FILE environment variable",
-              "name": "dep0041:_node_repl_history_file_environment_variable",
+              "textRaw": "DEP0041: `NODE_REPL_HISTORY_FILE` environment variable",
+              "name": "dep0041:_`node_repl_history_file`_environment_variable",
               "meta": {
                 "changes": [
                   {
@@ -1071,11 +1096,11 @@
               },
               "desc": "<p>Type: End-of-Life</p>\n<p>The <code>NODE_REPL_HISTORY_FILE</code> environment variable was removed. Please use\n<code>NODE_REPL_HISTORY</code> instead.</p>\n<p><a id=\"DEP0042\"></a></p>",
               "type": "module",
-              "displayName": "DEP0041: NODE_REPL_HISTORY_FILE environment variable"
+              "displayName": "DEP0041: `NODE_REPL_HISTORY_FILE` environment variable"
             },
             {
-              "textRaw": "DEP0042: tls.CryptoStream",
-              "name": "dep0042:_tls.cryptostream",
+              "textRaw": "DEP0042: `tls.CryptoStream`",
+              "name": "dep0042:_`tls.cryptostream`",
               "meta": {
                 "changes": [
                   {
@@ -1100,11 +1125,11 @@
               },
               "desc": "<p>Type: End-of-Life</p>\n<p>The <a href=\"tls.html#tls_class_cryptostream\"><code>tls.CryptoStream</code></a> class was removed. Please use\n<a href=\"tls.html#tls_class_tls_tlssocket\"><code>tls.TLSSocket</code></a> instead.</p>\n<p><a id=\"DEP0043\"></a></p>",
               "type": "module",
-              "displayName": "DEP0042: tls.CryptoStream"
+              "displayName": "DEP0042: `tls.CryptoStream`"
             },
             {
-              "textRaw": "DEP0043: tls.SecurePair",
-              "name": "dep0043:_tls.securepair",
+              "textRaw": "DEP0043: `tls.SecurePair`",
+              "name": "dep0043:_`tls.securepair`",
               "meta": {
                 "changes": [
                   {
@@ -1139,11 +1164,11 @@
               },
               "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"tls.html#tls_class_securepair\"><code>tls.SecurePair</code></a> class is deprecated. Please use\n<a href=\"tls.html#tls_class_tls_tlssocket\"><code>tls.TLSSocket</code></a> instead.</p>\n<p><a id=\"DEP0044\"></a></p>",
               "type": "module",
-              "displayName": "DEP0043: tls.SecurePair"
+              "displayName": "DEP0043: `tls.SecurePair`"
             },
             {
-              "textRaw": "DEP0044: util.isArray()",
-              "name": "dep0044:_util.isarray()",
+              "textRaw": "DEP0044: `util.isArray()`",
+              "name": "dep0044:_`util.isarray()`",
               "meta": {
                 "changes": [
                   {
@@ -1166,11 +1191,11 @@
               },
               "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"util.html#util_util_isarray_object\"><code>util.isArray()</code></a> API is deprecated. Please use <code>Array.isArray()</code>\ninstead.</p>\n<p><a id=\"DEP0045\"></a></p>",
               "type": "module",
-              "displayName": "DEP0044: util.isArray()"
+              "displayName": "DEP0044: `util.isArray()`"
             },
             {
-              "textRaw": "DEP0045: util.isBoolean()",
-              "name": "dep0045:_util.isboolean()",
+              "textRaw": "DEP0045: `util.isBoolean()`",
+              "name": "dep0045:_`util.isboolean()`",
               "meta": {
                 "changes": [
                   {
@@ -1193,11 +1218,11 @@
               },
               "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"util.html#util_util_isboolean_object\"><code>util.isBoolean()</code></a> API is deprecated.</p>\n<p><a id=\"DEP0046\"></a></p>",
               "type": "module",
-              "displayName": "DEP0045: util.isBoolean()"
+              "displayName": "DEP0045: `util.isBoolean()`"
             },
             {
-              "textRaw": "DEP0046: util.isBuffer()",
-              "name": "dep0046:_util.isbuffer()",
+              "textRaw": "DEP0046: `util.isBuffer()`",
+              "name": "dep0046:_`util.isbuffer()`",
               "meta": {
                 "changes": [
                   {
@@ -1218,13 +1243,13 @@
                   }
                 ]
               },
-              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"util.html#util_util_isbuffer_object\"><code>util.isBuffer()</code></a> API is deprecated. Please use\n<a href=\"buffer.html#buffer_class_method_buffer_isbuffer_obj\"><code>Buffer.isBuffer()</code></a> instead.</p>\n<p><a id=\"DEP0047\"></a></p>",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"util.html#util_util_isbuffer_object\"><code>util.isBuffer()</code></a> API is deprecated. Please use\n<a href=\"buffer.html#buffer_static_method_buffer_isbuffer_obj\"><code>Buffer.isBuffer()</code></a> instead.</p>\n<p><a id=\"DEP0047\"></a></p>",
               "type": "module",
-              "displayName": "DEP0046: util.isBuffer()"
+              "displayName": "DEP0046: `util.isBuffer()`"
             },
             {
-              "textRaw": "DEP0047: util.isDate()",
-              "name": "dep0047:_util.isdate()",
+              "textRaw": "DEP0047: `util.isDate()`",
+              "name": "dep0047:_`util.isdate()`",
               "meta": {
                 "changes": [
                   {
@@ -1247,11 +1272,11 @@
               },
               "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"util.html#util_util_isdate_object\"><code>util.isDate()</code></a> API is deprecated.</p>\n<p><a id=\"DEP0048\"></a></p>",
               "type": "module",
-              "displayName": "DEP0047: util.isDate()"
+              "displayName": "DEP0047: `util.isDate()`"
             },
             {
-              "textRaw": "DEP0048: util.isError()",
-              "name": "dep0048:_util.iserror()",
+              "textRaw": "DEP0048: `util.isError()`",
+              "name": "dep0048:_`util.iserror()`",
               "meta": {
                 "changes": [
                   {
@@ -1274,11 +1299,11 @@
               },
               "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"util.html#util_util_iserror_object\"><code>util.isError()</code></a> API is deprecated.</p>\n<p><a id=\"DEP0049\"></a></p>",
               "type": "module",
-              "displayName": "DEP0048: util.isError()"
+              "displayName": "DEP0048: `util.isError()`"
             },
             {
-              "textRaw": "DEP0049: util.isFunction()",
-              "name": "dep0049:_util.isfunction()",
+              "textRaw": "DEP0049: `util.isFunction()`",
+              "name": "dep0049:_`util.isfunction()`",
               "meta": {
                 "changes": [
                   {
@@ -1301,11 +1326,11 @@
               },
               "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"util.html#util_util_isfunction_object\"><code>util.isFunction()</code></a> API is deprecated.</p>\n<p><a id=\"DEP0050\"></a></p>",
               "type": "module",
-              "displayName": "DEP0049: util.isFunction()"
+              "displayName": "DEP0049: `util.isFunction()`"
             },
             {
-              "textRaw": "DEP0050: util.isNull()",
-              "name": "dep0050:_util.isnull()",
+              "textRaw": "DEP0050: `util.isNull()`",
+              "name": "dep0050:_`util.isnull()`",
               "meta": {
                 "changes": [
                   {
@@ -1328,11 +1353,11 @@
               },
               "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"util.html#util_util_isnull_object\"><code>util.isNull()</code></a> API is deprecated.</p>\n<p><a id=\"DEP0051\"></a></p>",
               "type": "module",
-              "displayName": "DEP0050: util.isNull()"
+              "displayName": "DEP0050: `util.isNull()`"
             },
             {
-              "textRaw": "DEP0051: util.isNullOrUndefined()",
-              "name": "dep0051:_util.isnullorundefined()",
+              "textRaw": "DEP0051: `util.isNullOrUndefined()`",
+              "name": "dep0051:_`util.isnullorundefined()`",
               "meta": {
                 "changes": [
                   {
@@ -1355,11 +1380,11 @@
               },
               "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"util.html#util_util_isnullorundefined_object\"><code>util.isNullOrUndefined()</code></a> API is deprecated.</p>\n<p><a id=\"DEP0052\"></a></p>",
               "type": "module",
-              "displayName": "DEP0051: util.isNullOrUndefined()"
+              "displayName": "DEP0051: `util.isNullOrUndefined()`"
             },
             {
-              "textRaw": "DEP0052: util.isNumber()",
-              "name": "dep0052:_util.isnumber()",
+              "textRaw": "DEP0052: `util.isNumber()`",
+              "name": "dep0052:_`util.isnumber()`",
               "meta": {
                 "changes": [
                   {
@@ -1382,11 +1407,11 @@
               },
               "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"util.html#util_util_isnumber_object\"><code>util.isNumber()</code></a> API is deprecated.</p>\n<p><a id=\"DEP0053\"></a></p>",
               "type": "module",
-              "displayName": "DEP0052: util.isNumber()"
+              "displayName": "DEP0052: `util.isNumber()`"
             },
             {
-              "textRaw": "DEP0053 util.isObject()",
-              "name": "dep0053_util.isobject()",
+              "textRaw": "DEP0053 `util.isObject()`",
+              "name": "dep0053_`util.isobject()`",
               "meta": {
                 "changes": [
                   {
@@ -1409,11 +1434,11 @@
               },
               "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"util.html#util_util_isobject_object\"><code>util.isObject()</code></a> API is deprecated.</p>\n<p><a id=\"DEP0054\"></a></p>",
               "type": "module",
-              "displayName": "DEP0053 util.isObject()"
+              "displayName": "DEP0053 `util.isObject()`"
             },
             {
-              "textRaw": "DEP0054: util.isPrimitive()",
-              "name": "dep0054:_util.isprimitive()",
+              "textRaw": "DEP0054: `util.isPrimitive()`",
+              "name": "dep0054:_`util.isprimitive()`",
               "meta": {
                 "changes": [
                   {
@@ -1436,11 +1461,11 @@
               },
               "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"util.html#util_util_isprimitive_object\"><code>util.isPrimitive()</code></a> API is deprecated.</p>\n<p><a id=\"DEP0055\"></a></p>",
               "type": "module",
-              "displayName": "DEP0054: util.isPrimitive()"
+              "displayName": "DEP0054: `util.isPrimitive()`"
             },
             {
-              "textRaw": "DEP0055: util.isRegExp()",
-              "name": "dep0055:_util.isregexp()",
+              "textRaw": "DEP0055: `util.isRegExp()`",
+              "name": "dep0055:_`util.isregexp()`",
               "meta": {
                 "changes": [
                   {
@@ -1463,11 +1488,11 @@
               },
               "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"util.html#util_util_isregexp_object\"><code>util.isRegExp()</code></a> API is deprecated.</p>\n<p><a id=\"DEP0056\"></a></p>",
               "type": "module",
-              "displayName": "DEP0055: util.isRegExp()"
+              "displayName": "DEP0055: `util.isRegExp()`"
             },
             {
-              "textRaw": "DEP0056: util.isString()",
-              "name": "dep0056:_util.isstring()",
+              "textRaw": "DEP0056: `util.isString()`",
+              "name": "dep0056:_`util.isstring()`",
               "meta": {
                 "changes": [
                   {
@@ -1490,11 +1515,11 @@
               },
               "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"util.html#util_util_isstring_object\"><code>util.isString()</code></a> API is deprecated.</p>\n<p><a id=\"DEP0057\"></a></p>",
               "type": "module",
-              "displayName": "DEP0056: util.isString()"
+              "displayName": "DEP0056: `util.isString()`"
             },
             {
-              "textRaw": "DEP0057: util.isSymbol()",
-              "name": "dep0057:_util.issymbol()",
+              "textRaw": "DEP0057: `util.isSymbol()`",
+              "name": "dep0057:_`util.issymbol()`",
               "meta": {
                 "changes": [
                   {
@@ -1517,11 +1542,11 @@
               },
               "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"util.html#util_util_issymbol_object\"><code>util.isSymbol()</code></a> API is deprecated.</p>\n<p><a id=\"DEP0058\"></a></p>",
               "type": "module",
-              "displayName": "DEP0057: util.isSymbol()"
+              "displayName": "DEP0057: `util.isSymbol()`"
             },
             {
-              "textRaw": "DEP0058: util.isUndefined()",
-              "name": "dep0058:_util.isundefined()",
+              "textRaw": "DEP0058: `util.isUndefined()`",
+              "name": "dep0058:_`util.isundefined()`",
               "meta": {
                 "changes": [
                   {
@@ -1544,11 +1569,11 @@
               },
               "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"util.html#util_util_isundefined_object\"><code>util.isUndefined()</code></a> API is deprecated.</p>\n<p><a id=\"DEP0059\"></a></p>",
               "type": "module",
-              "displayName": "DEP0058: util.isUndefined()"
+              "displayName": "DEP0058: `util.isUndefined()`"
             },
             {
-              "textRaw": "DEP0059: util.log()",
-              "name": "dep0059:_util.log()",
+              "textRaw": "DEP0059: `util.log()`",
+              "name": "dep0059:_`util.log()`",
               "meta": {
                 "changes": [
                   {
@@ -1565,11 +1590,11 @@
               },
               "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"util.html#util_util_log_string\"><code>util.log()</code></a> API is deprecated.</p>\n<p><a id=\"DEP0060\"></a></p>",
               "type": "module",
-              "displayName": "DEP0059: util.log()"
+              "displayName": "DEP0059: `util.log()`"
             },
             {
-              "textRaw": "DEP0060: util._extend()",
-              "name": "dep0060:_util._extend()",
+              "textRaw": "DEP0060: `util._extend()`",
+              "name": "dep0060:_`util._extend()`",
               "meta": {
                 "changes": [
                   {
@@ -1586,11 +1611,11 @@
               },
               "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"util.html#util_util_extend_target_source\"><code>util._extend()</code></a> API is deprecated.</p>\n<p><a id=\"DEP0061\"></a></p>",
               "type": "module",
-              "displayName": "DEP0060: util._extend()"
+              "displayName": "DEP0060: `util._extend()`"
             },
             {
-              "textRaw": "DEP0061: fs.SyncWriteStream",
-              "name": "dep0061:_fs.syncwritestream",
+              "textRaw": "DEP0061: `fs.SyncWriteStream`",
+              "name": "dep0061:_`fs.syncwritestream`",
               "meta": {
                 "changes": [
                   {
@@ -1612,11 +1637,11 @@
               },
               "desc": "<p>Type: End-of-Life</p>\n<p>The <code>fs.SyncWriteStream</code> class was never intended to be a publicly accessible\nAPI and has been removed. No alternative API is available. Please use a userland\nalternative.</p>\n<p><a id=\"DEP0062\"></a></p>",
               "type": "module",
-              "displayName": "DEP0061: fs.SyncWriteStream"
+              "displayName": "DEP0061: `fs.SyncWriteStream`"
             },
             {
-              "textRaw": "DEP0062: node --debug",
-              "name": "dep0062:_node_--debug",
+              "textRaw": "DEP0062: `node --debug`",
+              "name": "dep0062:_`node_--debug`",
               "meta": {
                 "changes": [
                   {
@@ -1633,11 +1658,11 @@
               },
               "desc": "<p>Type: End-of-Life</p>\n<p><code>--debug</code> activates the legacy V8 debugger interface, which was removed as\nof V8 5.8. It is replaced by Inspector which is activated with <code>--inspect</code>\ninstead.</p>\n<p><a id=\"DEP0063\"></a></p>",
               "type": "module",
-              "displayName": "DEP0062: node --debug"
+              "displayName": "DEP0062: `node --debug`"
             },
             {
-              "textRaw": "DEP0063: ServerResponse.prototype.writeHeader()",
-              "name": "dep0063:_serverresponse.prototype.writeheader()",
+              "textRaw": "DEP0063: `ServerResponse.prototype.writeHeader()`",
+              "name": "dep0063:_`serverresponse.prototype.writeheader()`",
               "meta": {
                 "changes": [
                   {
@@ -1649,11 +1674,11 @@
               },
               "desc": "<p>Type: Documentation-only</p>\n<p>The <code>http</code> module <code>ServerResponse.prototype.writeHeader()</code> API is\ndeprecated. Please use <code>ServerResponse.prototype.writeHead()</code> instead.</p>\n<p>The <code>ServerResponse.prototype.writeHeader()</code> method was never documented as an\nofficially supported API.</p>\n<p><a id=\"DEP0064\"></a></p>",
               "type": "module",
-              "displayName": "DEP0063: ServerResponse.prototype.writeHeader()"
+              "displayName": "DEP0063: `ServerResponse.prototype.writeHeader()`"
             },
             {
-              "textRaw": "DEP0064: tls.createSecurePair()",
-              "name": "dep0064:_tls.createsecurepair()",
+              "textRaw": "DEP0064: `tls.createSecurePair()`",
+              "name": "dep0064:_`tls.createsecurepair()`",
               "meta": {
                 "changes": [
                   {
@@ -1688,11 +1713,11 @@
               },
               "desc": "<p>Type: Runtime</p>\n<p>The <code>tls.createSecurePair()</code> API was deprecated in documentation in Node.js\n0.11.3. Users should use <code>tls.Socket</code> instead.</p>\n<p><a id=\"DEP0065\"></a></p>",
               "type": "module",
-              "displayName": "DEP0064: tls.createSecurePair()"
+              "displayName": "DEP0064: `tls.createSecurePair()`"
             },
             {
-              "textRaw": "DEP0065: repl.REPL_MODE_MAGIC and NODE_REPL_MODE=magic",
-              "name": "dep0065:_repl.repl_mode_magic_and_node_repl_mode=magic",
+              "textRaw": "DEP0065: `repl.REPL_MODE_MAGIC` and `NODE_REPL_MODE=magic`",
+              "name": "dep0065:_`repl.repl_mode_magic`_and_`node_repl_mode=magic`",
               "meta": {
                 "changes": [
                   {
@@ -1709,11 +1734,11 @@
               },
               "desc": "<p>Type: End-of-Life</p>\n<p>The <code>repl</code> module's <code>REPL_MODE_MAGIC</code> constant, used for <code>replMode</code> option, has\nbeen removed. Its behavior has been functionally identical to that of\n<code>REPL_MODE_SLOPPY</code> since Node.js 6.0.0, when V8 5.0 was imported. Please use\n<code>REPL_MODE_SLOPPY</code> instead.</p>\n<p>The <code>NODE_REPL_MODE</code> environment variable is used to set the underlying\n<code>replMode</code> of an interactive <code>node</code> session. Its value, <code>magic</code>, is also\nremoved. Please use <code>sloppy</code> instead.</p>\n<p><a id=\"DEP0066\"></a></p>",
               "type": "module",
-              "displayName": "DEP0065: repl.REPL_MODE_MAGIC and NODE_REPL_MODE=magic"
+              "displayName": "DEP0065: `repl.REPL_MODE_MAGIC` and `NODE_REPL_MODE=magic`"
             },
             {
-              "textRaw": "DEP0066: OutgoingMessage.prototype._headers, OutgoingMessage.prototype._headerNames",
-              "name": "dep0066:_outgoingmessage.prototype._headers,_outgoingmessage.prototype._headernames",
+              "textRaw": "DEP0066: `OutgoingMessage.prototype._headers, OutgoingMessage.prototype._headerNames`",
+              "name": "dep0066:_`outgoingmessage.prototype._headers,_outgoingmessage.prototype._headernames`",
               "meta": {
                 "changes": [
                   {
@@ -1730,11 +1755,11 @@
               },
               "desc": "<p>Type: Runtime</p>\n<p>The <code>http</code> module <code>OutgoingMessage.prototype._headers</code> and\n<code>OutgoingMessage.prototype._headerNames</code> properties are deprecated. Use one of\nthe public methods (e.g. <code>OutgoingMessage.prototype.getHeader()</code>,\n<code>OutgoingMessage.prototype.getHeaders()</code>,\n<code>OutgoingMessage.prototype.getHeaderNames()</code>,\n<code>OutgoingMessage.prototype.hasHeader()</code>,\n<code>OutgoingMessage.prototype.removeHeader()</code>,\n<code>OutgoingMessage.prototype.setHeader()</code>) for working with outgoing headers.</p>\n<p>The <code>OutgoingMessage.prototype._headers</code> and\n<code>OutgoingMessage.prototype._headerNames</code> properties were never documented as\nofficially supported properties.</p>\n<p><a id=\"DEP0067\"></a></p>",
               "type": "module",
-              "displayName": "DEP0066: OutgoingMessage.prototype._headers, OutgoingMessage.prototype._headerNames"
+              "displayName": "DEP0066: `OutgoingMessage.prototype._headers, OutgoingMessage.prototype._headerNames`"
             },
             {
-              "textRaw": "DEP0067: OutgoingMessage.prototype._renderHeaders",
-              "name": "dep0067:_outgoingmessage.prototype._renderheaders",
+              "textRaw": "DEP0067: `OutgoingMessage.prototype._renderHeaders`",
+              "name": "dep0067:_`outgoingmessage.prototype._renderheaders`",
               "meta": {
                 "changes": [
                   {
@@ -1746,11 +1771,11 @@
               },
               "desc": "<p>Type: Documentation-only</p>\n<p>The <code>http</code> module <code>OutgoingMessage.prototype._renderHeaders()</code> API is\ndeprecated.</p>\n<p>The <code>OutgoingMessage.prototype._renderHeaders</code> property was never documented as\nan officially supported API.</p>\n<p><a id=\"DEP0068\"></a></p>",
               "type": "module",
-              "displayName": "DEP0067: OutgoingMessage.prototype._renderHeaders"
+              "displayName": "DEP0067: `OutgoingMessage.prototype._renderHeaders`"
             },
             {
-              "textRaw": "DEP0068: node debug",
-              "name": "dep0068:_node_debug",
+              "textRaw": "DEP0068: `node debug`",
+              "name": "dep0068:_`node_debug`",
               "meta": {
                 "changes": [
                   {
@@ -1762,11 +1787,11 @@
               },
               "desc": "<p>Type: Runtime</p>\n<p><code>node debug</code> corresponds to the legacy CLI debugger which has been replaced with\na V8-inspector based CLI debugger available through <code>node inspect</code>.</p>\n<p><a id=\"DEP0069\"></a></p>",
               "type": "module",
-              "displayName": "DEP0068: node debug"
+              "displayName": "DEP0068: `node debug`"
             },
             {
-              "textRaw": "DEP0069: vm.runInDebugContext(string)",
-              "name": "dep0069:_vm.runindebugcontext(string)",
+              "textRaw": "DEP0069: `vm.runInDebugContext(string)`",
+              "name": "dep0069:_`vm.runindebugcontext(string)`",
               "meta": {
                 "changes": [
                   {
@@ -1788,11 +1813,11 @@
               },
               "desc": "<p>Type: End-of-Life</p>\n<p>DebugContext has been removed in V8 and is not available in Node.js 10+.</p>\n<p>DebugContext was an experimental API.</p>\n<p><a id=\"DEP0070\"></a></p>",
               "type": "module",
-              "displayName": "DEP0069: vm.runInDebugContext(string)"
+              "displayName": "DEP0069: `vm.runInDebugContext(string)`"
             },
             {
-              "textRaw": "DEP0070: async_hooks.currentId()",
-              "name": "dep0070:_async_hooks.currentid()",
+              "textRaw": "DEP0070: `async_hooks.currentId()`",
+              "name": "dep0070:_`async_hooks.currentid()`",
               "meta": {
                 "changes": [
                   {
@@ -1809,11 +1834,11 @@
               },
               "desc": "<p>Type: End-of-Life</p>\n<p><code>async_hooks.currentId()</code> was renamed to <code>async_hooks.executionAsyncId()</code> for\nclarity.</p>\n<p>This change was made while <code>async_hooks</code> was an experimental API.</p>\n<p><a id=\"DEP0071\"></a></p>",
               "type": "module",
-              "displayName": "DEP0070: async_hooks.currentId()"
+              "displayName": "DEP0070: `async_hooks.currentId()`"
             },
             {
-              "textRaw": "DEP0071: async_hooks.triggerId()",
-              "name": "dep0071:_async_hooks.triggerid()",
+              "textRaw": "DEP0071: `async_hooks.triggerId()`",
+              "name": "dep0071:_`async_hooks.triggerid()`",
               "meta": {
                 "changes": [
                   {
@@ -1830,11 +1855,11 @@
               },
               "desc": "<p>Type: End-of-Life</p>\n<p><code>async_hooks.triggerId()</code> was renamed to <code>async_hooks.triggerAsyncId()</code> for\nclarity.</p>\n<p>This change was made while <code>async_hooks</code> was an experimental API.</p>\n<p><a id=\"DEP0072\"></a></p>",
               "type": "module",
-              "displayName": "DEP0071: async_hooks.triggerId()"
+              "displayName": "DEP0071: `async_hooks.triggerId()`"
             },
             {
-              "textRaw": "DEP0072: async_hooks.AsyncResource.triggerId()",
-              "name": "dep0072:_async_hooks.asyncresource.triggerid()",
+              "textRaw": "DEP0072: `async_hooks.AsyncResource.triggerId()`",
+              "name": "dep0072:_`async_hooks.asyncresource.triggerid()`",
               "meta": {
                 "changes": [
                   {
@@ -1851,11 +1876,11 @@
               },
               "desc": "<p>Type: End-of-Life</p>\n<p><code>async_hooks.AsyncResource.triggerId()</code> was renamed to\n<code>async_hooks.AsyncResource.triggerAsyncId()</code> for clarity.</p>\n<p>This change was made while <code>async_hooks</code> was an experimental API.</p>\n<p><a id=\"DEP0073\"></a></p>",
               "type": "module",
-              "displayName": "DEP0072: async_hooks.AsyncResource.triggerId()"
+              "displayName": "DEP0072: `async_hooks.AsyncResource.triggerId()`"
             },
             {
-              "textRaw": "DEP0073: Several internal properties of net.Server",
-              "name": "dep0073:_several_internal_properties_of_net.server",
+              "textRaw": "DEP0073: Several internal properties of `net.Server`",
+              "name": "dep0073:_several_internal_properties_of_`net.server`",
               "meta": {
                 "changes": [
                   {
@@ -1872,11 +1897,11 @@
               },
               "desc": "<p>Type: End-of-Life</p>\n<p>Accessing several internal, undocumented properties of <code>net.Server</code> instances\nwith inappropriate names is deprecated.</p>\n<p>As the original API was undocumented and not generally useful for non-internal\ncode, no replacement API is provided.</p>\n<p><a id=\"DEP0074\"></a></p>",
               "type": "module",
-              "displayName": "DEP0073: Several internal properties of net.Server"
+              "displayName": "DEP0073: Several internal properties of `net.Server`"
             },
             {
-              "textRaw": "DEP0074: REPLServer.bufferedCommand",
-              "name": "dep0074:_replserver.bufferedcommand",
+              "textRaw": "DEP0074: `REPLServer.bufferedCommand`",
+              "name": "dep0074:_`replserver.bufferedcommand`",
               "meta": {
                 "changes": [
                   {
@@ -1888,11 +1913,11 @@
               },
               "desc": "<p>Type: Runtime</p>\n<p>The <code>REPLServer.bufferedCommand</code> property was deprecated in favor of\n<a href=\"repl.html#repl_replserver_clearbufferedcommand\"><code>REPLServer.clearBufferedCommand()</code></a>.</p>\n<p><a id=\"DEP0075\"></a></p>",
               "type": "module",
-              "displayName": "DEP0074: REPLServer.bufferedCommand"
+              "displayName": "DEP0074: `REPLServer.bufferedCommand`"
             },
             {
-              "textRaw": "DEP0075: REPLServer.parseREPLKeyword()",
-              "name": "dep0075:_replserver.parsereplkeyword()",
+              "textRaw": "DEP0075: `REPLServer.parseREPLKeyword()`",
+              "name": "dep0075:_`replserver.parsereplkeyword()`",
               "meta": {
                 "changes": [
                   {
@@ -1904,11 +1929,11 @@
               },
               "desc": "<p>Type: Runtime</p>\n<p><code>REPLServer.parseREPLKeyword()</code> was removed from userland visibility.</p>\n<p><a id=\"DEP0076\"></a></p>",
               "type": "module",
-              "displayName": "DEP0075: REPLServer.parseREPLKeyword()"
+              "displayName": "DEP0075: `REPLServer.parseREPLKeyword()`"
             },
             {
-              "textRaw": "DEP0076: tls.parseCertString()",
-              "name": "dep0076:_tls.parsecertstring()",
+              "textRaw": "DEP0076: `tls.parseCertString()`",
+              "name": "dep0076:_`tls.parsecertstring()`",
               "meta": {
                 "changes": [
                   {
@@ -1923,13 +1948,13 @@
                   }
                 ]
               },
-              "desc": "<p>Type: Runtime</p>\n<p><code>tls.parseCertString()</code> is a trivial parsing helper that was made public by\nmistake. This function can usually be replaced with:</p>\n<pre><code class=\"language-js\">const querystring = require('querystring');\nquerystring.parse(str, '\\n', '=');\n</code></pre>\n<p>This function is not completely equivalent to <code>querystring.parse()</code>. One\ndifference is that <code>querystring.parse()</code> does url decoding:</p>\n<pre><code class=\"language-sh\">> querystring.parse('%E5%A5%BD=1', '\\n', '=');\n{ '好': '1' }\n> tls.parseCertString('%E5%A5%BD=1');\n{ '%E5%A5%BD': '1' }\n</code></pre>\n<p><a id=\"DEP0077\"></a></p>",
+              "desc": "<p>Type: Runtime</p>\n<p><code>tls.parseCertString()</code> is a trivial parsing helper that was made public by\nmistake. This function can usually be replaced with:</p>\n<pre><code class=\"language-js\">const querystring = require('querystring');\nquerystring.parse(str, '\\n', '=');\n</code></pre>\n<p>This function is not completely equivalent to <code>querystring.parse()</code>. One\ndifference is that <code>querystring.parse()</code> does url decoding:</p>\n<pre><code class=\"language-console\">> querystring.parse('%E5%A5%BD=1', '\\n', '=');\n{ '好': '1' }\n> tls.parseCertString('%E5%A5%BD=1');\n{ '%E5%A5%BD': '1' }\n</code></pre>\n<p><a id=\"DEP0077\"></a></p>",
               "type": "module",
-              "displayName": "DEP0076: tls.parseCertString()"
+              "displayName": "DEP0076: `tls.parseCertString()`"
             },
             {
-              "textRaw": "DEP0077: Module._debug()",
-              "name": "dep0077:_module._debug()",
+              "textRaw": "DEP0077: `Module._debug()`",
+              "name": "dep0077:_`module._debug()`",
               "meta": {
                 "changes": [
                   {
@@ -1941,11 +1966,11 @@
               },
               "desc": "<p>Type: Runtime</p>\n<p><code>Module._debug()</code> is deprecated.</p>\n<p>The <code>Module._debug()</code> function was never documented as an officially\nsupported API.</p>\n<p><a id=\"DEP0078\"></a></p>",
               "type": "module",
-              "displayName": "DEP0077: Module._debug()"
+              "displayName": "DEP0077: `Module._debug()`"
             },
             {
-              "textRaw": "DEP0078: REPLServer.turnOffEditorMode()",
-              "name": "dep0078:_replserver.turnoffeditormode()",
+              "textRaw": "DEP0078: `REPLServer.turnOffEditorMode()`",
+              "name": "dep0078:_`replserver.turnoffeditormode()`",
               "meta": {
                 "changes": [
                   {
@@ -1957,11 +1982,11 @@
               },
               "desc": "<p>Type: Runtime</p>\n<p><code>REPLServer.turnOffEditorMode()</code> was removed from userland visibility.</p>\n<p><a id=\"DEP0079\"></a></p>",
               "type": "module",
-              "displayName": "DEP0078: REPLServer.turnOffEditorMode()"
+              "displayName": "DEP0078: `REPLServer.turnOffEditorMode()`"
             },
             {
-              "textRaw": "DEP0079: Custom inspection function on Objects via .inspect()",
-              "name": "dep0079:_custom_inspection_function_on_objects_via_.inspect()",
+              "textRaw": "DEP0079: Custom inspection function on objects via `.inspect()`",
+              "name": "dep0079:_custom_inspection_function_on_objects_via_`.inspect()`",
               "meta": {
                 "changes": [
                   {
@@ -1983,11 +2008,11 @@
               },
               "desc": "<p>Type: End-of-Life</p>\n<p>Using a property named <code>inspect</code> on an object to specify a custom inspection\nfunction for <a href=\"util.html#util_util_inspect_object_options\"><code>util.inspect()</code></a> is deprecated. Use <a href=\"util.html#util_util_inspect_custom\"><code>util.inspect.custom</code></a>\ninstead. For backward compatibility with Node.js prior to version 6.4.0, both\nmay be specified.</p>\n<p><a id=\"DEP0080\"></a></p>",
               "type": "module",
-              "displayName": "DEP0079: Custom inspection function on Objects via .inspect()"
+              "displayName": "DEP0079: Custom inspection function on objects via `.inspect()`"
             },
             {
-              "textRaw": "DEP0080: path._makeLong()",
-              "name": "dep0080:_path._makelong()",
+              "textRaw": "DEP0080: `path._makeLong()`",
+              "name": "dep0080:_`path._makelong()`",
               "meta": {
                 "changes": [
                   {
@@ -1999,11 +2024,11 @@
               },
               "desc": "<p>Type: Documentation-only</p>\n<p>The internal <code>path._makeLong()</code> was not intended for public use. However,\nuserland modules have found it useful. The internal API is deprecated\nand replaced with an identical, public <code>path.toNamespacedPath()</code> method.</p>\n<p><a id=\"DEP0081\"></a></p>",
               "type": "module",
-              "displayName": "DEP0080: path._makeLong()"
+              "displayName": "DEP0080: `path._makeLong()`"
             },
             {
-              "textRaw": "DEP0081: fs.truncate() using a file descriptor",
-              "name": "dep0081:_fs.truncate()_using_a_file_descriptor",
+              "textRaw": "DEP0081: `fs.truncate()` using a file descriptor",
+              "name": "dep0081:_`fs.truncate()`_using_a_file_descriptor",
               "meta": {
                 "changes": [
                   {
@@ -2015,11 +2040,11 @@
               },
               "desc": "<p>Type: Runtime</p>\n<p><code>fs.truncate()</code> <code>fs.truncateSync()</code> usage with a file descriptor is\ndeprecated. Please use <code>fs.ftruncate()</code> or <code>fs.ftruncateSync()</code> to work with\nfile descriptors.</p>\n<p><a id=\"DEP0082\"></a></p>",
               "type": "module",
-              "displayName": "DEP0081: fs.truncate() using a file descriptor"
+              "displayName": "DEP0081: `fs.truncate()` using a file descriptor"
             },
             {
-              "textRaw": "DEP0082: REPLServer.prototype.memory()",
-              "name": "dep0082:_replserver.prototype.memory()",
+              "textRaw": "DEP0082: `REPLServer.prototype.memory()`",
+              "name": "dep0082:_`replserver.prototype.memory()`",
               "meta": {
                 "changes": [
                   {
@@ -2031,11 +2056,11 @@
               },
               "desc": "<p>Type: Runtime</p>\n<p><code>REPLServer.prototype.memory()</code> is only necessary for the internal mechanics of\nthe <code>REPLServer</code> itself. Do not use this function.</p>\n<p><a id=\"DEP0083\"></a></p>",
               "type": "module",
-              "displayName": "DEP0082: REPLServer.prototype.memory()"
+              "displayName": "DEP0082: `REPLServer.prototype.memory()`"
             },
             {
-              "textRaw": "DEP0083: Disabling ECDH by setting ecdhCurve to false",
-              "name": "dep0083:_disabling_ecdh_by_setting_ecdhcurve_to_false",
+              "textRaw": "DEP0083: Disabling ECDH by setting `ecdhCurve` to `false`",
+              "name": "dep0083:_disabling_ecdh_by_setting_`ecdhcurve`_to_`false`",
               "meta": {
                 "changes": [
                   {
@@ -2052,7 +2077,7 @@
               },
               "desc": "<p>Type: End-of-Life.</p>\n<p>The <code>ecdhCurve</code> option to <code>tls.createSecureContext()</code> and <code>tls.TLSSocket</code> could\nbe set to <code>false</code> to disable ECDH entirely on the server only. This mode was\ndeprecated in preparation for migrating to OpenSSL 1.1.0 and consistency with\nthe client and is now unsupported. Use the <code>ciphers</code> parameter instead.</p>\n<p><a id=\"DEP0084\"></a></p>",
               "type": "module",
-              "displayName": "DEP0083: Disabling ECDH by setting ecdhCurve to false"
+              "displayName": "DEP0083: Disabling ECDH by setting `ecdhCurve` to `false`"
             },
             {
               "textRaw": "DEP0084: requiring bundled internal dependencies",
@@ -2076,7 +2101,7 @@
               "displayName": "DEP0084: requiring bundled internal dependencies"
             },
             {
-              "textRaw": "DEP0085: AsyncHooks Sensitive API",
+              "textRaw": "DEP0085: AsyncHooks sensitive API",
               "name": "dep0085:_asynchooks_sensitive_api",
               "meta": {
                 "changes": [
@@ -2095,13 +2120,13 @@
                   }
                 ]
               },
-              "desc": "<p>Type: End-of-Life</p>\n<p>The AsyncHooks Sensitive API was never documented and had various minor issues.\nUse the <code>AsyncResource</code> API instead. See\n<a href=\"https://github.com/nodejs/node/issues/15572\">https://github.com/nodejs/node/issues/15572</a>.</p>\n<p><a id=\"DEP0086\"></a></p>",
+              "desc": "<p>Type: End-of-Life</p>\n<p>The AsyncHooks sensitive API was never documented and had various minor issues.\nUse the <code>AsyncResource</code> API instead. See\n<a href=\"https://github.com/nodejs/node/issues/15572\">https://github.com/nodejs/node/issues/15572</a>.</p>\n<p><a id=\"DEP0086\"></a></p>",
               "type": "module",
-              "displayName": "DEP0085: AsyncHooks Sensitive API"
+              "displayName": "DEP0085: AsyncHooks sensitive API"
             },
             {
-              "textRaw": "DEP0086: Remove runInAsyncIdScope",
-              "name": "dep0086:_remove_runinasyncidscope",
+              "textRaw": "DEP0086: Remove `runInAsyncIdScope`",
+              "name": "dep0086:_remove_`runinasyncidscope`",
               "meta": {
                 "changes": [
                   {
@@ -2121,11 +2146,11 @@
               },
               "desc": "<p>Type: End-of-Life</p>\n<p><code>runInAsyncIdScope</code> doesn't emit the <code>'before'</code> or <code>'after'</code> event and can thus\ncause a lot of issues. See <a href=\"https://github.com/nodejs/node/issues/14328\">https://github.com/nodejs/node/issues/14328</a>.</p>\n<p><a id=\"DEP0089\"></a></p>",
               "type": "module",
-              "displayName": "DEP0086: Remove runInAsyncIdScope"
+              "displayName": "DEP0086: Remove `runInAsyncIdScope`"
             },
             {
-              "textRaw": "DEP0089: require('assert')",
-              "name": "dep0089:_require('assert')",
+              "textRaw": "DEP0089: `require('assert')`",
+              "name": "dep0089:_`require('assert')`",
               "meta": {
                 "changes": [
                   {
@@ -2145,7 +2170,7 @@
               },
               "desc": "<p>Type: Deprecation revoked</p>\n<p>Importing assert directly was not recommended as the exposed functions use\nloose equality checks. The deprecation was revoked because use of the <code>assert</code>\nmodule is not discouraged, and the deprecation caused end user confusion.</p>\n<p><a id=\"DEP0090\"></a></p>",
               "type": "module",
-              "displayName": "DEP0089: require('assert')"
+              "displayName": "DEP0089: `require('assert')`"
             },
             {
               "textRaw": "DEP0090: Invalid GCM authentication tag lengths",
@@ -2169,8 +2194,8 @@
               "displayName": "DEP0090: Invalid GCM authentication tag lengths"
             },
             {
-              "textRaw": "DEP0091: crypto.DEFAULT_ENCODING",
-              "name": "dep0091:_crypto.default_encoding",
+              "textRaw": "DEP0091: `crypto.DEFAULT_ENCODING`",
+              "name": "dep0091:_`crypto.default_encoding`",
               "meta": {
                 "changes": [
                   {
@@ -2182,7 +2207,7 @@
               },
               "desc": "<p>Type: Runtime</p>\n<p>The <a href=\"crypto.html#crypto_crypto_default_encoding\"><code>crypto.DEFAULT_ENCODING</code></a> property is deprecated.</p>\n<p><a id=\"DEP0092\"></a></p>",
               "type": "module",
-              "displayName": "DEP0091: crypto.DEFAULT_ENCODING"
+              "displayName": "DEP0091: `crypto.DEFAULT_ENCODING`"
             },
             {
               "textRaw": "DEP0092: Top-level `this` bound to `module.exports`",
@@ -2201,8 +2226,8 @@
               "displayName": "DEP0092: Top-level `this` bound to `module.exports`"
             },
             {
-              "textRaw": "DEP0093: crypto.fips is deprecated and replaced.",
-              "name": "dep0093:_crypto.fips_is_deprecated_and_replaced.",
+              "textRaw": "DEP0093: `crypto.fips` is deprecated and replaced.",
+              "name": "dep0093:_`crypto.fips`_is_deprecated_and_replaced.",
               "meta": {
                 "changes": [
                   {
@@ -2214,7 +2239,7 @@
               },
               "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"crypto.html#crypto_crypto_fips\"><code>crypto.fips</code></a> property is deprecated. Please use <code>crypto.setFips()</code>\nand <code>crypto.getFips()</code> instead.</p>\n<p><a id=\"DEP0094\"></a></p>",
               "type": "module",
-              "displayName": "DEP0093: crypto.fips is deprecated and replaced."
+              "displayName": "DEP0093: `crypto.fips` is deprecated and replaced."
             },
             {
               "textRaw": "DEP0094: Using `assert.fail()` with more than one argument.",
@@ -2233,8 +2258,8 @@
               "displayName": "DEP0094: Using `assert.fail()` with more than one argument."
             },
             {
-              "textRaw": "DEP0095: timers.enroll()",
-              "name": "dep0095:_timers.enroll()",
+              "textRaw": "DEP0095: `timers.enroll()`",
+              "name": "dep0095:_`timers.enroll()`",
               "meta": {
                 "changes": [
                   {
@@ -2246,11 +2271,11 @@
               },
               "desc": "<p>Type: Runtime</p>\n<p><code>timers.enroll()</code> is deprecated. Please use the publicly documented\n<a href=\"timers.html#timers_settimeout_callback_delay_args\"><code>setTimeout()</code></a> or <a href=\"timers.html#timers_setinterval_callback_delay_args\"><code>setInterval()</code></a> instead.</p>\n<p><a id=\"DEP0096\"></a></p>",
               "type": "module",
-              "displayName": "DEP0095: timers.enroll()"
+              "displayName": "DEP0095: `timers.enroll()`"
             },
             {
-              "textRaw": "DEP0096: timers.unenroll()",
-              "name": "dep0096:_timers.unenroll()",
+              "textRaw": "DEP0096: `timers.unenroll()`",
+              "name": "dep0096:_`timers.unenroll()`",
               "meta": {
                 "changes": [
                   {
@@ -2262,11 +2287,11 @@
               },
               "desc": "<p>Type: Runtime</p>\n<p><code>timers.unenroll()</code> is deprecated. Please use the publicly documented\n<a href=\"timers.html#timers_cleartimeout_timeout\"><code>clearTimeout()</code></a> or <a href=\"timers.html#timers_clearinterval_timeout\"><code>clearInterval()</code></a> instead.</p>\n<p><a id=\"DEP0097\"></a></p>",
               "type": "module",
-              "displayName": "DEP0096: timers.unenroll()"
+              "displayName": "DEP0096: `timers.unenroll()`"
             },
             {
-              "textRaw": "DEP0097: MakeCallback with domain property",
-              "name": "dep0097:_makecallback_with_domain_property",
+              "textRaw": "DEP0097: `MakeCallback` with `domain` property",
+              "name": "dep0097:_`makecallback`_with_`domain`_property",
               "meta": {
                 "changes": [
                   {
@@ -2278,11 +2303,11 @@
               },
               "desc": "<p>Type: Runtime</p>\n<p>Users of <code>MakeCallback</code> that add the <code>domain</code> property to carry context,\nshould start using the <code>async_context</code> variant of <code>MakeCallback</code> or\n<code>CallbackScope</code>, or the high-level <code>AsyncResource</code> class.</p>\n<p><a id=\"DEP0098\"></a></p>",
               "type": "module",
-              "displayName": "DEP0097: MakeCallback with domain property"
+              "displayName": "DEP0097: `MakeCallback` with `domain` property"
             },
             {
-              "textRaw": "DEP0098: AsyncHooks Embedder AsyncResource.emitBefore and AsyncResource.emitAfter APIs",
-              "name": "dep0098:_asynchooks_embedder_asyncresource.emitbefore_and_asyncresource.emitafter_apis",
+              "textRaw": "DEP0098: AsyncHooks embedder `AsyncResource.emitBefore` and `AsyncResource.emitAfter` APIs",
+              "name": "dep0098:_asynchooks_embedder_`asyncresource.emitbefore`_and_`asyncresource.emitafter`_apis",
               "meta": {
                 "changes": [
                   {
@@ -2303,11 +2328,11 @@
               },
               "desc": "<p>Type: End-of-Life</p>\n<p>The embedded API provided by AsyncHooks exposes <code>.emitBefore()</code> and\n<code>.emitAfter()</code> methods which are very easy to use incorrectly which can lead\nto unrecoverable errors.</p>\n<p>Use <a href=\"async_hooks.html#async_hooks_asyncresource_runinasyncscope_fn_thisarg_args\"><code>asyncResource.runInAsyncScope()</code></a> API instead which provides a much\nsafer, and more convenient, alternative. See\n<a href=\"https://github.com/nodejs/node/pull/18513\">https://github.com/nodejs/node/pull/18513</a>.</p>\n<p><a id=\"DEP0099\"></a></p>",
               "type": "module",
-              "displayName": "DEP0098: AsyncHooks Embedder AsyncResource.emitBefore and AsyncResource.emitAfter APIs"
+              "displayName": "DEP0098: AsyncHooks embedder `AsyncResource.emitBefore` and `AsyncResource.emitAfter` APIs"
             },
             {
-              "textRaw": "DEP0099: async context-unaware node::MakeCallback C++ APIs",
-              "name": "dep0099:_async_context-unaware_node::makecallback_c++_apis",
+              "textRaw": "DEP0099: Async context-unaware `node::MakeCallback` C++ APIs",
+              "name": "dep0099:_async_context-unaware_`node::makecallback`_c++_apis",
               "meta": {
                 "changes": [
                   {
@@ -2319,11 +2344,11 @@
               },
               "desc": "<p>Type: Compile-time</p>\n<p>Certain versions of <code>node::MakeCallback</code> APIs available to native modules are\ndeprecated. Please use the versions of the API that accept an <code>async_context</code>\nparameter.</p>\n<p><a id=\"DEP0100\"></a></p>",
               "type": "module",
-              "displayName": "DEP0099: async context-unaware node::MakeCallback C++ APIs"
+              "displayName": "DEP0099: Async context-unaware `node::MakeCallback` C++ APIs"
             },
             {
-              "textRaw": "DEP0100: process.assert()",
-              "name": "dep0100:_process.assert()",
+              "textRaw": "DEP0100: `process.assert()`",
+              "name": "dep0100:_`process.assert()`",
               "meta": {
                 "changes": [
                   {
@@ -2339,11 +2364,11 @@
               },
               "desc": "<p>Type: Runtime</p>\n<p><code>process.assert()</code> is deprecated. Please use the <a href=\"assert.html\"><code>assert</code></a> module instead.</p>\n<p>This was never a documented feature.</p>\n<p><a id=\"DEP0101\"></a></p>",
               "type": "module",
-              "displayName": "DEP0100: process.assert()"
+              "displayName": "DEP0100: `process.assert()`"
             },
             {
-              "textRaw": "DEP0101: --with-lttng",
-              "name": "dep0101:_--with-lttng",
+              "textRaw": "DEP0101: `--with-lttng`",
+              "name": "dep0101:_`--with-lttng`",
               "meta": {
                 "changes": [
                   {
@@ -2355,11 +2380,11 @@
               },
               "desc": "<p>Type: End-of-Life</p>\n<p>The <code>--with-lttng</code> compile-time option has been removed.</p>\n<p><a id=\"DEP0102\"></a></p>",
               "type": "module",
-              "displayName": "DEP0101: --with-lttng"
+              "displayName": "DEP0101: `--with-lttng`"
             },
             {
-              "textRaw": "DEP0102: Using `noAssert` in Buffer#(read|write) operations.",
-              "name": "dep0102:_using_`noassert`_in_buffer#(read|write)_operations.",
+              "textRaw": "DEP0102: Using `noAssert` in `Buffer#(read|write)` operations.",
+              "name": "dep0102:_using_`noassert`_in_`buffer#(read|write)`_operations.",
               "meta": {
                 "changes": [
                   {
@@ -2371,11 +2396,11 @@
               },
               "desc": "<p>Type: End-of-Life</p>\n<p>Using the <code>noAssert</code> argument has no functionality anymore. All input is going\nto be verified, no matter if it is set to true or not. Skipping the verification\ncould lead to hard to find errors and crashes.</p>\n<p><a id=\"DEP0103\"></a></p>",
               "type": "module",
-              "displayName": "DEP0102: Using `noAssert` in Buffer#(read|write) operations."
+              "displayName": "DEP0102: Using `noAssert` in `Buffer#(read|write)` operations."
             },
             {
-              "textRaw": "DEP0103: process.binding('util').is[...] typechecks",
-              "name": "dep0103:_process.binding('util').is[...]_typechecks",
+              "textRaw": "DEP0103: `process.binding('util').is[...]` typechecks",
+              "name": "dep0103:_`process.binding('util').is[...]`_typechecks",
               "meta": {
                 "changes": [
                   {
@@ -2392,11 +2417,11 @@
               },
               "desc": "<p>Type: Documentation-only (supports <a href=\"cli.html#cli_pending_deprecation\"><code>--pending-deprecation</code></a>)</p>\n<p>Using <code>process.binding()</code> in general should be avoided. The type checking\nmethods in particular can be replaced by using <a href=\"util.html#util_util_types\"><code>util.types</code></a>.</p>\n<p>This deprecation has been superseded by the deprecation of the\n<code>process.binding()</code> API (<a href=\"#DEP0111\">DEP0111</a>).</p>\n<p><a id=\"DEP0104\"></a></p>",
               "type": "module",
-              "displayName": "DEP0103: process.binding('util').is[...] typechecks"
+              "displayName": "DEP0103: `process.binding('util').is[...]` typechecks"
             },
             {
-              "textRaw": "DEP0104: process.env string coercion",
-              "name": "dep0104:_process.env_string_coercion",
+              "textRaw": "DEP0104: `process.env` string coercion",
+              "name": "dep0104:_`process.env`_string_coercion",
               "meta": {
                 "changes": [
                   {
@@ -2408,11 +2433,11 @@
               },
               "desc": "<p>Type: Documentation-only (supports <a href=\"cli.html#cli_pending_deprecation\"><code>--pending-deprecation</code></a>)</p>\n<p>When assigning a non-string property to <a href=\"process.html#process_process_env\"><code>process.env</code></a>, the assigned value is\nimplicitly converted to a string. This behavior is deprecated if the assigned\nvalue is not a string, boolean, or number. In the future, such assignment may\nresult in a thrown error. Please convert the property to a string before\nassigning it to <code>process.env</code>.</p>\n<p><a id=\"DEP0105\"></a></p>",
               "type": "module",
-              "displayName": "DEP0104: process.env string coercion"
+              "displayName": "DEP0104: `process.env` string coercion"
             },
             {
-              "textRaw": "DEP0105: decipher.finaltol",
-              "name": "dep0105:_decipher.finaltol",
+              "textRaw": "DEP0105: `decipher.finaltol`",
+              "name": "dep0105:_`decipher.finaltol`",
               "meta": {
                 "changes": [
                   {
@@ -2429,11 +2454,11 @@
               },
               "desc": "<p>Type: End-of-Life</p>\n<p><code>decipher.finaltol()</code> has never been documented and was an alias for\n<a href=\"crypto.html#crypto_decipher_final_outputencoding\"><code>decipher.final()</code></a>. This API has been removed, and it is recommended to use\n<a href=\"crypto.html#crypto_decipher_final_outputencoding\"><code>decipher.final()</code></a> instead.</p>\n<p><a id=\"DEP0106\"></a></p>",
               "type": "module",
-              "displayName": "DEP0105: decipher.finaltol"
+              "displayName": "DEP0105: `decipher.finaltol`"
             },
             {
-              "textRaw": "DEP0106: crypto.createCipher and crypto.createDecipher",
-              "name": "dep0106:_crypto.createcipher_and_crypto.createdecipher",
+              "textRaw": "DEP0106: `crypto.createCipher` and `crypto.createDecipher`",
+              "name": "dep0106:_`crypto.createcipher`_and_`crypto.createdecipher`",
               "meta": {
                 "changes": [
                   {
@@ -2450,11 +2475,11 @@
               },
               "desc": "<p>Type: Runtime</p>\n<p>Using <a href=\"crypto.html#crypto_crypto_createcipher_algorithm_password_options\"><code>crypto.createCipher()</code></a> and <a href=\"crypto.html#crypto_crypto_createdecipher_algorithm_password_options\"><code>crypto.createDecipher()</code></a> should be\navoided as they use a weak key derivation function (MD5 with no salt) and static\ninitialization vectors. It is recommended to derive a key using\n<a href=\"crypto.html#crypto_crypto_pbkdf2_password_salt_iterations_keylen_digest_callback\"><code>crypto.pbkdf2()</code></a> or <a href=\"crypto.html#crypto_crypto_scrypt_password_salt_keylen_options_callback\"><code>crypto.scrypt()</code></a> and to use\n<a href=\"crypto.html#crypto_crypto_createcipheriv_algorithm_key_iv_options\"><code>crypto.createCipheriv()</code></a> and <a href=\"crypto.html#crypto_crypto_createdecipheriv_algorithm_key_iv_options\"><code>crypto.createDecipheriv()</code></a> to obtain the\n<a href=\"crypto.html#crypto_class_cipher\"><code>Cipher</code></a> and <a href=\"crypto.html#crypto_class_decipher\"><code>Decipher</code></a> objects respectively.</p>\n<p><a id=\"DEP0107\"></a></p>",
               "type": "module",
-              "displayName": "DEP0106: crypto.createCipher and crypto.createDecipher"
+              "displayName": "DEP0106: `crypto.createCipher` and `crypto.createDecipher`"
             },
             {
-              "textRaw": "DEP0107: tls.convertNPNProtocols()",
-              "name": "dep0107:_tls.convertnpnprotocols()",
+              "textRaw": "DEP0107: `tls.convertNPNProtocols()`",
+              "name": "dep0107:_`tls.convertnpnprotocols()`",
               "meta": {
                 "changes": [
                   {
@@ -2471,11 +2496,11 @@
               },
               "desc": "<p>Type: End-of-Life</p>\n<p>This was an undocumented helper function not intended for use outside Node.js\ncore and obsoleted by the removal of NPN (Next Protocol Negotiation) support.</p>\n<p><a id=\"DEP0108\"></a></p>",
               "type": "module",
-              "displayName": "DEP0107: tls.convertNPNProtocols()"
+              "displayName": "DEP0107: `tls.convertNPNProtocols()`"
             },
             {
-              "textRaw": "DEP0108: zlib.bytesRead",
-              "name": "dep0108:_zlib.bytesread",
+              "textRaw": "DEP0108: `zlib.bytesRead`",
+              "name": "dep0108:_`zlib.bytesread`",
               "meta": {
                 "changes": [
                   {
@@ -2492,11 +2517,11 @@
               },
               "desc": "<p>Type: Runtime</p>\n<p>Deprecated alias for <a href=\"zlib.html#zlib_zlib_byteswritten\"><code>zlib.bytesWritten</code></a>. This original name was chosen\nbecause it also made sense to interpret the value as the number of bytes\nread by the engine, but is inconsistent with other streams in Node.js that\nexpose values under these names.</p>\n<p><a id=\"DEP0109\"></a></p>",
               "type": "module",
-              "displayName": "DEP0108: zlib.bytesRead"
+              "displayName": "DEP0108: `zlib.bytesRead`"
             },
             {
-              "textRaw": "DEP0109: http, https, and tls support for invalid URLs",
-              "name": "dep0109:_http,_https,_and_tls_support_for_invalid_urls",
+              "textRaw": "DEP0109: `http`, `https`, and `tls` support for invalid URLs",
+              "name": "dep0109:_`http`,_`https`,_and_`tls`_support_for_invalid_urls",
               "meta": {
                 "changes": [
                   {
@@ -2508,11 +2533,11 @@
               },
               "desc": "<p>Type: Runtime</p>\n<p>Some previously supported (but strictly invalid) URLs were accepted through the\n<a href=\"http.html#http_http_request_options_callback\"><code>http.request()</code></a>, <a href=\"http.html#http_http_get_options_callback\"><code>http.get()</code></a>, <a href=\"https.html#https_https_request_options_callback\"><code>https.request()</code></a>,\n<a href=\"https.html#https_https_get_options_callback\"><code>https.get()</code></a>, and <a href=\"tls.html#tls_tls_checkserveridentity_hostname_cert\"><code>tls.checkServerIdentity()</code></a> APIs because those were\naccepted by the legacy <code>url.parse()</code> API. The mentioned APIs now use the WHATWG\nURL parser that requires strictly valid URLs. Passing an invalid URL is\ndeprecated and support will be removed in the future.</p>\n<p><a id=\"DEP0110\"></a></p>",
               "type": "module",
-              "displayName": "DEP0109: http, https, and tls support for invalid URLs"
+              "displayName": "DEP0109: `http`, `https`, and `tls` support for invalid URLs"
             },
             {
-              "textRaw": "DEP0110: vm.Script cached data",
-              "name": "dep0110:_vm.script_cached_data",
+              "textRaw": "DEP0110: `vm.Script` cached data",
+              "name": "dep0110:_`vm.script`_cached_data",
               "meta": {
                 "changes": [
                   {
@@ -2524,11 +2549,11 @@
               },
               "desc": "<p>Type: Documentation-only</p>\n<p>The <code>produceCachedData</code> option is deprecated. Use\n<a href=\"vm.html#vm_script_createcacheddata\"><code>script.createCachedData()</code></a> instead.</p>\n<p><a id=\"DEP0111\"></a></p>",
               "type": "module",
-              "displayName": "DEP0110: vm.Script cached data"
+              "displayName": "DEP0110: `vm.Script` cached data"
             },
             {
-              "textRaw": "DEP0111: process.binding()",
-              "name": "dep0111:_process.binding()",
+              "textRaw": "DEP0111: `process.binding()`",
+              "name": "dep0111:_`process.binding()`",
               "meta": {
                 "changes": [
                   {
@@ -2545,11 +2570,11 @@
               },
               "desc": "<p>Type: Documentation-only (supports <a href=\"cli.html#cli_pending_deprecation\"><code>--pending-deprecation</code></a>)</p>\n<p><code>process.binding()</code> is for use by Node.js internal code only.</p>\n<p><a id=\"DEP0112\"></a></p>",
               "type": "module",
-              "displayName": "DEP0111: process.binding()"
+              "displayName": "DEP0111: `process.binding()`"
             },
             {
-              "textRaw": "DEP0112: dgram private APIs",
-              "name": "dep0112:_dgram_private_apis",
+              "textRaw": "DEP0112: `dgram` private APIs",
+              "name": "dep0112:_`dgram`_private_apis",
               "meta": {
                 "changes": [
                   {
@@ -2561,11 +2586,11 @@
               },
               "desc": "<p>Type: Runtime</p>\n<p>The <code>dgram</code> module previously contained several APIs that were never meant to\naccessed outside of Node.js core: <code>Socket.prototype._handle</code>,\n<code>Socket.prototype._receiving</code>, <code>Socket.prototype._bindState</code>,\n<code>Socket.prototype._queue</code>, <code>Socket.prototype._reuseAddr</code>,\n<code>Socket.prototype._healthCheck()</code>, <code>Socket.prototype._stopReceiving()</code>, and\n<code>dgram._createSocketHandle()</code>.</p>\n<p><a id=\"DEP0113\"></a></p>",
               "type": "module",
-              "displayName": "DEP0112: dgram private APIs"
+              "displayName": "DEP0112: `dgram` private APIs"
             },
             {
-              "textRaw": "DEP0113: Cipher.setAuthTag(), Decipher.getAuthTag()",
-              "name": "dep0113:_cipher.setauthtag(),_decipher.getauthtag()",
+              "textRaw": "DEP0113: `Cipher.setAuthTag()`, `Decipher.getAuthTag()`",
+              "name": "dep0113:_`cipher.setauthtag()`,_`decipher.getauthtag()`",
               "meta": {
                 "changes": [
                   {
@@ -2582,11 +2607,11 @@
               },
               "desc": "<p>Type: End-of-Life</p>\n<p><code>Cipher.setAuthTag()</code> and <code>Decipher.getAuthTag()</code> are no longer available. They\nwere never documented and would throw when called.</p>\n<p><a id=\"DEP0114\"></a></p>",
               "type": "module",
-              "displayName": "DEP0113: Cipher.setAuthTag(), Decipher.getAuthTag()"
+              "displayName": "DEP0113: `Cipher.setAuthTag()`, `Decipher.getAuthTag()`"
             },
             {
-              "textRaw": "DEP0114: crypto._toBuf()",
-              "name": "dep0114:_crypto._tobuf()",
+              "textRaw": "DEP0114: `crypto._toBuf()`",
+              "name": "dep0114:_`crypto._tobuf()`",
               "meta": {
                 "changes": [
                   {
@@ -2603,11 +2628,11 @@
               },
               "desc": "<p>Type: End-of-Life</p>\n<p>The <code>crypto._toBuf()</code> function was not designed to be used by modules outside\nof Node.js core and was removed.</p>\n<p><a id=\"DEP0115\"></a></p>",
               "type": "module",
-              "displayName": "DEP0114: crypto._toBuf()"
+              "displayName": "DEP0114: `crypto._toBuf()`"
             },
             {
-              "textRaw": "DEP0115: crypto.prng(), crypto.pseudoRandomBytes(), crypto.rng()",
-              "name": "dep0115:_crypto.prng(),_crypto.pseudorandombytes(),_crypto.rng()",
+              "textRaw": "DEP0115: `crypto.prng()`, `crypto.pseudoRandomBytes()`, `crypto.rng()`",
+              "name": "dep0115:_`crypto.prng()`,_`crypto.pseudorandombytes()`,_`crypto.rng()`",
               "meta": {
                 "changes": [
                   {
@@ -2622,7 +2647,7 @@
               },
               "desc": "<p>Type: Documentation-only (supports <a href=\"cli.html#cli_pending_deprecation\"><code>--pending-deprecation</code></a>)</p>\n<p>In recent versions of Node.js, there is no difference between\n<a href=\"crypto.html#crypto_crypto_randombytes_size_callback\"><code>crypto.randomBytes()</code></a> and <code>crypto.pseudoRandomBytes()</code>. The latter is\ndeprecated along with the undocumented aliases <code>crypto.prng()</code> and\n<code>crypto.rng()</code> in favor of <a href=\"crypto.html#crypto_crypto_randombytes_size_callback\"><code>crypto.randomBytes()</code></a> and may be removed in a\nfuture release.</p>\n<p><a id=\"DEP0116\"></a></p>",
               "type": "module",
-              "displayName": "DEP0115: crypto.prng(), crypto.pseudoRandomBytes(), crypto.rng()"
+              "displayName": "DEP0115: `crypto.prng()`, `crypto.pseudoRandomBytes()`, `crypto.rng()`"
             },
             {
               "textRaw": "DEP0116: Legacy URL API",
@@ -2662,8 +2687,8 @@
               "displayName": "DEP0117: Native crypto handles"
             },
             {
-              "textRaw": "DEP0118: dns.lookup() support for a falsy hostname",
-              "name": "dep0118:_dns.lookup()_support_for_a_falsy_hostname",
+              "textRaw": "DEP0118: `dns.lookup()` support for a falsy host name",
+              "name": "dep0118:_`dns.lookup()`_support_for_a_falsy_host_name",
               "meta": {
                 "changes": [
                   {
@@ -2673,13 +2698,13 @@
                   }
                 ]
               },
-              "desc": "<p>Type: Runtime</p>\n<p>Previous versions of Node.js supported <code>dns.lookup()</code> with a falsy hostname\nlike <code>dns.lookup(false)</code> due to backward compatibility.\nThis behavior is undocumented and is thought to be unused in real world apps.\nIt will become an error in future versions of Node.js.</p>\n<p><a id=\"DEP0119\"></a></p>",
+              "desc": "<p>Type: Runtime</p>\n<p>Previous versions of Node.js supported <code>dns.lookup()</code> with a falsy host name\nlike <code>dns.lookup(false)</code> due to backward compatibility.\nThis behavior is undocumented and is thought to be unused in real world apps.\nIt will become an error in future versions of Node.js.</p>\n<p><a id=\"DEP0119\"></a></p>",
               "type": "module",
-              "displayName": "DEP0118: dns.lookup() support for a falsy hostname"
+              "displayName": "DEP0118: `dns.lookup()` support for a falsy host name"
             },
             {
-              "textRaw": "DEP0119: process.binding('uv').errname() private API",
-              "name": "dep0119:_process.binding('uv').errname()_private_api",
+              "textRaw": "DEP0119: `process.binding('uv').errname()` private API",
+              "name": "dep0119:_`process.binding('uv').errname()`_private_api",
               "meta": {
                 "changes": [
                   {
@@ -2691,10 +2716,10 @@
               },
               "desc": "<p>Type: Documentation-only (supports <a href=\"cli.html#cli_pending_deprecation\"><code>--pending-deprecation</code></a>)</p>\n<p><code>process.binding('uv').errname()</code> is deprecated. Please use\n<a href=\"util.html#util_util_getsystemerrorname_err\"><code>util.getSystemErrorName()</code></a> instead.</p>\n<p><a id=\"DEP0120\"></a></p>",
               "type": "module",
-              "displayName": "DEP0119: process.binding('uv').errname() private API"
+              "displayName": "DEP0119: `process.binding('uv').errname()` private API"
             },
             {
-              "textRaw": "DEP0120: Windows Performance Counter Support",
+              "textRaw": "DEP0120: Windows Performance Counter support",
               "name": "dep0120:_windows_performance_counter_support",
               "meta": {
                 "changes": [
@@ -2712,11 +2737,11 @@
               },
               "desc": "<p>Type: End-of-Life</p>\n<p>Windows Performance Counter support has been removed from Node.js. The\nundocumented <code>COUNTER_NET_SERVER_CONNECTION()</code>,\n<code>COUNTER_NET_SERVER_CONNECTION_CLOSE()</code>, <code>COUNTER_HTTP_SERVER_REQUEST()</code>,\n<code>COUNTER_HTTP_SERVER_RESPONSE()</code>, <code>COUNTER_HTTP_CLIENT_REQUEST()</code>, and\n<code>COUNTER_HTTP_CLIENT_RESPONSE()</code> functions have been deprecated.</p>\n<p><a id=\"DEP0121\"></a></p>",
               "type": "module",
-              "displayName": "DEP0120: Windows Performance Counter Support"
+              "displayName": "DEP0120: Windows Performance Counter support"
             },
             {
-              "textRaw": "DEP0121: net._setSimultaneousAccepts()",
-              "name": "dep0121:_net._setsimultaneousaccepts()",
+              "textRaw": "DEP0121: `net._setSimultaneousAccepts()`",
+              "name": "dep0121:_`net._setsimultaneousaccepts()`",
               "meta": {
                 "changes": [
                   {
@@ -2728,11 +2753,11 @@
               },
               "desc": "<p>Type: Runtime</p>\n<p>The undocumented <code>net._setSimultaneousAccepts()</code> function was originally\nintended for debugging and performance tuning when using the <code>child_process</code>\nand <code>cluster</code> modules on Windows. The function is not generally useful and\nis being removed. See discussion here:\n<a href=\"https://github.com/nodejs/node/issues/18391\">https://github.com/nodejs/node/issues/18391</a></p>\n<p><a id=\"DEP0122\"></a></p>",
               "type": "module",
-              "displayName": "DEP0121: net._setSimultaneousAccepts()"
+              "displayName": "DEP0121: `net._setSimultaneousAccepts()`"
             },
             {
-              "textRaw": "DEP0122: tls Server.prototype.setOptions()",
-              "name": "dep0122:_tls_server.prototype.setoptions()",
+              "textRaw": "DEP0122: `tls` `Server.prototype.setOptions()`",
+              "name": "dep0122:_`tls`_`server.prototype.setoptions()`",
               "meta": {
                 "changes": [
                   {
@@ -2744,7 +2769,7 @@
               },
               "desc": "<p>Type: Runtime</p>\n<p>Please use <code>Server.prototype.setSecureContext()</code> instead.</p>\n<p><a id=\"DEP0123\"></a></p>",
               "type": "module",
-              "displayName": "DEP0122: tls Server.prototype.setOptions()"
+              "displayName": "DEP0122: `tls` `Server.prototype.setOptions()`"
             },
             {
               "textRaw": "DEP0123: setting the TLS ServerName to an IP address",
@@ -2763,8 +2788,8 @@
               "displayName": "DEP0123: setting the TLS ServerName to an IP address"
             },
             {
-              "textRaw": "DEP0124: using REPLServer.rli",
-              "name": "dep0124:_using_replserver.rli",
+              "textRaw": "DEP0124: using `REPLServer.rli`",
+              "name": "dep0124:_using_`replserver.rli`",
               "meta": {
                 "changes": [
                   {
@@ -2776,11 +2801,11 @@
               },
               "desc": "<p>Type: Runtime</p>\n<p>This property is a reference to the instance itself.</p>\n<p><a id=\"DEP0125\"></a></p>",
               "type": "module",
-              "displayName": "DEP0124: using REPLServer.rli"
+              "displayName": "DEP0124: using `REPLServer.rli`"
             },
             {
-              "textRaw": "DEP0125: require('_stream_wrap')",
-              "name": "dep0125:_require('_stream_wrap')",
+              "textRaw": "DEP0125: `require('_stream_wrap')`",
+              "name": "dep0125:_`require('_stream_wrap')`",
               "meta": {
                 "changes": [
                   {
@@ -2792,11 +2817,11 @@
               },
               "desc": "<p>Type: Runtime</p>\n<p>The <code>_stream_wrap</code> module is deprecated.</p>\n<p><a id=\"DEP0126\"></a></p>",
               "type": "module",
-              "displayName": "DEP0125: require('_stream_wrap')"
+              "displayName": "DEP0125: `require('_stream_wrap')`"
             },
             {
-              "textRaw": "DEP0126: timers.active()",
-              "name": "dep0126:_timers.active()",
+              "textRaw": "DEP0126: `timers.active()`",
+              "name": "dep0126:_`timers.active()`",
               "meta": {
                 "changes": [
                   {
@@ -2808,11 +2833,11 @@
               },
               "desc": "<p>Type: Runtime</p>\n<p>The previously undocumented <code>timers.active()</code> is deprecated.\nPlease use the publicly documented <a href=\"timers.html#timers_timeout_refresh\"><code>timeout.refresh()</code></a> instead.\nIf re-referencing the timeout is necessary, <a href=\"timers.html#timers_timeout_ref\"><code>timeout.ref()</code></a> can be used\nwith no performance impact since Node.js 10.</p>\n<p><a id=\"DEP0127\"></a></p>",
               "type": "module",
-              "displayName": "DEP0126: timers.active()"
+              "displayName": "DEP0126: `timers.active()`"
             },
             {
-              "textRaw": "DEP0127: timers._unrefActive()",
-              "name": "dep0127:_timers._unrefactive()",
+              "textRaw": "DEP0127: `timers._unrefActive()`",
+              "name": "dep0127:_`timers._unrefactive()`",
               "meta": {
                 "changes": [
                   {
@@ -2824,7 +2849,7 @@
               },
               "desc": "<p>Type: Runtime</p>\n<p>The previously undocumented and \"private\" <code>timers._unrefActive()</code> is deprecated.\nPlease use the publicly documented <a href=\"timers.html#timers_timeout_refresh\"><code>timeout.refresh()</code></a> instead.\nIf unreferencing the timeout is necessary, <a href=\"timers.html#timers_timeout_unref\"><code>timeout.unref()</code></a> can be used\nwith no performance impact since Node.js 10.</p>\n<p><a id=\"DEP0128\"></a></p>",
               "type": "module",
-              "displayName": "DEP0127: timers._unrefActive()"
+              "displayName": "DEP0127: `timers._unrefActive()`"
             },
             {
               "textRaw": "DEP0128: modules with an invalid `main` entry and an `index.js` file",
@@ -2843,10 +2868,15 @@
               "displayName": "DEP0128: modules with an invalid `main` entry and an `index.js` file"
             },
             {
-              "textRaw": "DEP0129: ChildProcess._channel",
-              "name": "dep0129:_childprocess._channel",
+              "textRaw": "DEP0129: `ChildProcess._channel`",
+              "name": "dep0129:_`childprocess._channel`",
               "meta": {
                 "changes": [
+                  {
+                    "version": "v13.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/27949",
+                    "description": "Runtime deprecation."
+                  },
                   {
                     "version": "v11.14.0",
                     "pr-url": "https://github.com/nodejs/node/pull/26982",
@@ -2854,15 +2884,20 @@
                   }
                 ]
               },
-              "desc": "<p>Type: Documentation-only</p>\n<p>The <code>_channel</code> property of child process objects returned by <code>spawn()</code> and\nsimilar functions is not intended for public use. Use <code>ChildProcess.channel</code>\ninstead.</p>\n<p><a id=\"DEP0130\"></a></p>",
+              "desc": "<p>Type: Runtime</p>\n<p>The <code>_channel</code> property of child process objects returned by <code>spawn()</code> and\nsimilar functions is not intended for public use. Use <code>ChildProcess.channel</code>\ninstead.</p>\n<p><a id=\"DEP0130\"></a></p>",
               "type": "module",
-              "displayName": "DEP0129: ChildProcess._channel"
+              "displayName": "DEP0129: `ChildProcess._channel`"
             },
             {
-              "textRaw": "DEP0130: Module.createRequireFromPath()",
-              "name": "dep0130:_module.createrequirefrompath()",
+              "textRaw": "DEP0130: `Module.createRequireFromPath()`",
+              "name": "dep0130:_`module.createrequirefrompath()`",
               "meta": {
                 "changes": [
+                  {
+                    "version": "v13.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/27951",
+                    "description": "Runtime deprecation."
+                  },
                   {
                     "version": "v12.2.0",
                     "pr-url": "https://github.com/nodejs/node/pull/27405",
@@ -2870,9 +2905,9 @@
                   }
                 ]
               },
-              "desc": "<p>Type: Documentation-only</p>\n<p>Module.createRequireFromPath() is deprecated. Please use <a href=\"modules.html#modules_module_createrequire_filename\"><code>module.createRequire()</code></a> instead.</p>\n<p><a id=\"DEP0131\"></a></p>",
+              "desc": "<p>Type: Runtime</p>\n<p>Module.createRequireFromPath() is deprecated. Please use\n<a href=\"modules.html#modules_module_createrequire_filename\"><code>module.createRequire()</code></a> instead.</p>\n<p><a id=\"DEP0131\"></a></p>",
               "type": "module",
-              "displayName": "DEP0130: Module.createRequireFromPath()"
+              "displayName": "DEP0130: `Module.createRequireFromPath()`"
             },
             {
               "textRaw": "DEP0131: Legacy HTTP parser",
@@ -2880,19 +2915,24 @@
               "meta": {
                 "changes": [
                   {
+                    "version": "v13.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/29589",
+                    "description": "This feature has been removed."
+                  },
+                  {
                     "version": "v12.3.0",
                     "pr-url": "https://github.com/nodejs/node/pull/27498",
                     "description": "Documentation-only."
                   }
                 ]
               },
-              "desc": "<p>Type: Documentation-only</p>\n<p>The legacy HTTP parser, used by default in versions of Node.js prior to 12.0.0,\nis deprecated. This deprecation applies to users of the\n<a href=\"cli.html#cli_http_parser_library\"><code>--http-parser=legacy</code></a> command-line flag.</p>\n<p><a id=\"DEP0132\"></a></p>",
+              "desc": "<p>Type: End-of-Life</p>\n<p>The legacy HTTP parser, used by default in versions of Node.js prior to 12.0.0,\nis deprecated and has been removed in v13.0.0. Prior to v13.0.0, the\n<code>--http-parser=legacy</code> command-line flag could be used to revert to using the\nlegacy parser.</p>\n<p><a id=\"DEP0132\"></a></p>",
               "type": "module",
               "displayName": "DEP0131: Legacy HTTP parser"
             },
             {
-              "textRaw": "DEP0132: worker.terminate() with callback",
-              "name": "dep0132:_worker.terminate()_with_callback",
+              "textRaw": "DEP0132: `worker.terminate()` with callback",
+              "name": "dep0132:_`worker.terminate()`_with_callback",
               "meta": {
                 "changes": [
                   {
@@ -2904,11 +2944,11 @@
               },
               "desc": "<p>Type: Runtime</p>\n<p>Passing a callback to <a href=\"worker_threads.html#worker_threads_worker_terminate\"><code>worker.terminate()</code></a> is deprecated. Use the returned\n<code>Promise</code> instead, or a listener to the worker’s <code>'exit'</code> event.</p>\n<p><a id=\"DEP0133\"></a></p>",
               "type": "module",
-              "displayName": "DEP0132: worker.terminate() with callback"
+              "displayName": "DEP0132: `worker.terminate()` with callback"
             },
             {
-              "textRaw": "DEP0133: http connection",
-              "name": "dep0133:_http_connection",
+              "textRaw": "DEP0133: `http` `connection`",
+              "name": "dep0133:_`http`_`connection`",
               "meta": {
                 "changes": [
                   {
@@ -2918,13 +2958,13 @@
                   }
                 ]
               },
-              "desc": "<p>Type: Documentation-only</p>\n<p>Prefer [<code>response.socket</code>][] over [<code>response.connection</code>][] and\n[<code>request.socket</code>][] over [<code>request.connection</code>][].</p>\n<p><a id=\"DEP0134\"></a></p>",
+              "desc": "<p>Type: Documentation-only</p>\n<p>Prefer <a href=\"http.html#http_response_socket\"><code>response.socket</code></a> over <a href=\"http.html#http_response_connection\"><code>response.connection</code></a> and\n<a href=\"http.html#http_request_socket\"><code>request.socket</code></a> over <a href=\"http.html#http_request_connection\"><code>request.connection</code></a>.</p>\n<p><a id=\"DEP0134\"></a></p>",
               "type": "module",
-              "displayName": "DEP0133: http connection"
+              "displayName": "DEP0133: `http` `connection`"
             },
             {
-              "textRaw": "DEP0134: process._tickCallback",
-              "name": "dep0134:_process._tickcallback",
+              "textRaw": "DEP0134: `process._tickCallback`",
+              "name": "dep0134:_`process._tickcallback`",
               "meta": {
                 "changes": [
                   {
@@ -2934,13 +2974,191 @@
                   }
                 ]
               },
-              "desc": "<p>Type: Documentation-only (supports <a href=\"cli.html#cli_pending_deprecation\"><code>--pending-deprecation</code></a>)</p>\n<p>The <code>process._tickCallback</code> property was never documented as\nan officially supported API.</p>",
+              "desc": "<p>Type: Documentation-only (supports <a href=\"cli.html#cli_pending_deprecation\"><code>--pending-deprecation</code></a>)</p>\n<p>The <code>process._tickCallback</code> property was never documented as\nan officially supported API.</p>\n<p><a id=\"DEP0135\"></a></p>",
               "type": "module",
-              "displayName": "DEP0134: process._tickCallback"
+              "displayName": "DEP0134: `process._tickCallback`"
+            },
+            {
+              "textRaw": "DEP0135: `WriteStream.open()` and `ReadStream.open()` are internal",
+              "name": "dep0135:_`writestream.open()`_and_`readstream.open()`_are_internal",
+              "meta": {
+                "changes": [
+                  {
+                    "version": "v13.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/29061"
+                  }
+                ]
+              },
+              "desc": "<p>Type: Runtime</p>\n<p><a href=\"fs.html#fs_class_fs_writestream\"><code>WriteStream.open()</code></a> and <a href=\"fs.html#fs_class_fs_readstream\"><code>ReadStream.open()</code></a> are undocumented internal\nAPIs that do not make sense to use in userland. File streams should always be\nopened through their corresponding factory methods <a href=\"fs.html#fs_fs_createwritestream_path_options\"><code>fs.createWriteStream()</code></a>\nand <a href=\"fs.html#fs_fs_createreadstream_path_options\"><code>fs.createReadStream()</code></a>) or by passing a file descriptor in options.</p>\n<p><a id=\"DEP0136\"></a></p>",
+              "type": "module",
+              "displayName": "DEP0135: `WriteStream.open()` and `ReadStream.open()` are internal"
+            },
+            {
+              "textRaw": "DEP0136: `http` `finished`",
+              "name": "dep0136:_`http`_`finished`",
+              "meta": {
+                "changes": [
+                  {
+                    "version": [
+                      "v13.4.0",
+                      "v12.16.0"
+                    ],
+                    "pr-url": "https://github.com/nodejs/node/pull/28679",
+                    "description": "Documentation-only deprecation."
+                  }
+                ]
+              },
+              "desc": "<p>Type: Documentation-only</p>\n<p><a href=\"#http_response_finished\"><code>response.finished</code></a> indicates whether <a href=\"http.html#http_response_end_data_encoding_callback\"><code>response.end()</code></a> has been\ncalled, not whether <code>'finish'</code> has been emitted and the underlying data\nis flushed.</p>\n<p>Use <a href=\"#http_response_writablefinished\"><code>response.writableFinished</code></a> or <a href=\"#http_response_writableended\"><code>response.writableEnded</code></a>\naccordingly instead to avoid the ambigiuty.</p>\n<p>To maintain existing behaviour <code>response.finished</code> should be replaced with\n<code>response.writableEnded</code>.</p>\n<p><a id=\"DEP0137\"></a></p>",
+              "type": "module",
+              "displayName": "DEP0136: `http` `finished`"
+            },
+            {
+              "textRaw": "DEP0137: Closing fs.FileHandle on garbage collection",
+              "name": "dep0137:_closing_fs.filehandle_on_garbage_collection",
+              "meta": {
+                "changes": [
+                  {
+                    "version": "v14.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/28396",
+                    "description": "Runtime deprecation."
+                  }
+                ]
+              },
+              "desc": "<p>Type: Runtime</p>\n<p>Allowing a <a href=\"fs.html#fs_class_filehandle\"><code>fs.FileHandle</code></a> object to be closed on garbage collection is\ndeprecated. In the future, doing so may result in a thrown error that will\nterminate the process.</p>\n<p>Please ensure that all <code>fs.FileHandle</code> objects are explicitly closed using\n<code>FileHandle.prototype.close()</code> when the <code>fs.FileHandle</code> is no longer needed:</p>\n<pre><code class=\"language-js\">const fsPromises = require('fs').promises;\nasync function openAndClose() {\n  let filehandle;\n  try {\n    filehandle = await fsPromises.open('thefile.txt', 'r');\n  } finally {\n    if (filehandle !== undefined)\n      await filehandle.close();\n  }\n}\n</code></pre>\n<p><a id=\"DEP0138\"></a></p>",
+              "type": "module",
+              "displayName": "DEP0137: Closing fs.FileHandle on garbage collection"
+            },
+            {
+              "textRaw": "DEP0138: `process.mainModule`",
+              "name": "dep0138:_`process.mainmodule`",
+              "meta": {
+                "changes": [
+                  {
+                    "version": "v14.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/32232",
+                    "description": "Documentation-only deprecation."
+                  }
+                ]
+              },
+              "desc": "<p>Type: Documentation-only</p>\n<p><a href=\"process.html#process_process_mainmodule\"><code>process.mainModule</code></a> is a CommonJS-only feature while <code>process</code> global\nobject is shared with non-CommonJS environment. Its use within ECMAScript\nmodules is unsupported.</p>\n<p>It is deprecated in favor of <a href=\"modules.html#modules_accessing_the_main_module\"><code>require.main</code></a>, because it serves the same\npurpose and is only available on CommonJS environment.</p>\n<p><a id=\"DEP0139\"></a></p>",
+              "type": "module",
+              "displayName": "DEP0138: `process.mainModule`"
+            },
+            {
+              "textRaw": "DEP0139: `process.umask()` with no arguments",
+              "name": "dep0139:_`process.umask()`_with_no_arguments",
+              "meta": {
+                "changes": [
+                  {
+                    "version": "v14.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/32499",
+                    "description": "Documentation-only deprecation."
+                  }
+                ]
+              },
+              "desc": "<p>Type: Documentation-only</p>\n<p>Calling <code>process.umask()</code> with no argument causes the process-wide umask to be\nwritten twice. This introduces a race condition between threads, and is a\npotential security vulnerability. There is no safe, cross-platform alternative\nAPI.</p>\n<p><a id=\"DEP0140\"></a></p>",
+              "type": "module",
+              "displayName": "DEP0139: `process.umask()` with no arguments"
+            },
+            {
+              "textRaw": "DEP0140: Use `request.destroy()` instead of `request.abort()`",
+              "name": "dep0140:_use_`request.destroy()`_instead_of_`request.abort()`",
+              "meta": {
+                "changes": [
+                  {
+                    "version": "v14.1.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/32807",
+                    "description": "Documentation-only deprecation."
+                  }
+                ]
+              },
+              "desc": "<p>Type: Documentation-only</p>\n<p>Use <a href=\"http.html#http_request_destroy_error\"><code>request.destroy()</code></a> instead of <a href=\"http.html#http_request_abort\"><code>request.abort()</code></a>.</p>\n<p><a id=\"DEP0141\"></a></p>",
+              "type": "module",
+              "displayName": "DEP0140: Use `request.destroy()` instead of `request.abort()`"
+            },
+            {
+              "textRaw": "DEP0141: `repl.inputStream` and `repl.outputStream`",
+              "name": "dep0141:_`repl.inputstream`_and_`repl.outputstream`",
+              "meta": {
+                "changes": [
+                  {
+                    "version": "v14.3.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/33294",
+                    "description": "Documentation-only (supports [`--pending-deprecation`][])."
+                  }
+                ]
+              },
+              "desc": "<p>Type: Documentation-only (supports <a href=\"cli.html#cli_pending_deprecation\"><code>--pending-deprecation</code></a>)</p>\n<p>The <code>repl</code> module exported the input and output stream twice. Use <code>.input</code>\ninstead of <code>.inputStream</code> and <code>.output</code> instead of <code>.outputStream</code>.</p>\n<p><a id=\"DEP0142\"></a></p>",
+              "type": "module",
+              "displayName": "DEP0141: `repl.inputStream` and `repl.outputStream`"
+            },
+            {
+              "textRaw": "DEP0142: `repl._builtinLibs`",
+              "name": "dep0142:_`repl._builtinlibs`",
+              "meta": {
+                "changes": [
+                  {
+                    "version": "v14.3.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/33294",
+                    "description": "Documentation-only (supports [`--pending-deprecation`][])."
+                  }
+                ]
+              },
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <code>repl</code> module exports a <code>_builtinLibs</code> property that contains an array with\nnative modules. It was incomplete so far and instead it's better to rely upon\n<code>require('module').builtinModules</code>.</p>\n<p><a id=\"DEP0143\"></a></p>",
+              "type": "module",
+              "displayName": "DEP0142: `repl._builtinLibs`"
+            },
+            {
+              "textRaw": "DEP0143: `Transform._transformState`",
+              "name": "dep0143:_`transform._transformstate`",
+              "meta": {
+                "changes": [
+                  {
+                    "version": "v14.5.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/33126",
+                    "description": "Runtime deprecation."
+                  }
+                ]
+              },
+              "desc": "<p>Type: Runtime\n<code>Transform._transformState</code> will be removed in future versions where it is\nno longer required due to simplification of the implementation.</p>\n<p><a id=\"DEP0144\"></a></p>",
+              "type": "module",
+              "displayName": "DEP0143: `Transform._transformState`"
+            },
+            {
+              "textRaw": "DEP0144: `module.parent`",
+              "name": "dep0144:_`module.parent`",
+              "meta": {
+                "changes": [
+                  {
+                    "version": "v14.6.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/32217",
+                    "description": "Documentation-only deprecation."
+                  }
+                ]
+              },
+              "desc": "<p>Type: Documentation-only</p>\n<p>A CommonJS module can access the first module that required it using\n<code>module.parent</code>. This feature is deprecated because it does not work\nconsistently in the presence of ECMAScript modules and because it gives an\ninaccurate representation of the CommonJS module graph.</p>\n<p>Some modules use it to check if they are the entry point of the current process.\nInstead, it is recommended to compare <code>require.main</code> and <code>module</code>:</p>\n<pre><code class=\"language-js\">if (require.main === module) {\n  // Code section that will run only if current file is the entry point.\n}\n</code></pre>\n<p>When looking for the CommonJS modules that have required the current one,\n<code>require.cache</code> and <code>module.children</code> can be used:</p>\n<pre><code class=\"language-js\">const moduleParents = Object.values(require.cache)\n  .filter((m) => m.children.includes(module));\n</code></pre>\n<p><a id=\"DEP0145\"></a></p>",
+              "type": "module",
+              "displayName": "DEP0144: `module.parent`"
+            },
+            {
+              "textRaw": "DEP0145: `socket.bufferSize`",
+              "name": "dep0145:_`socket.buffersize`",
+              "meta": {
+                "changes": [
+                  {
+                    "version": "v14.6.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/34088",
+                    "description": "Documentation-only deprecation."
+                  }
+                ]
+              },
+              "desc": "<p>Type: Documentation-only</p>\n<p><a href=\"net.html#net_socket_buffersize\"><code>socket.bufferSize</code></a> is just an alias for <a href=\"stream.html#stream_writable_writablelength\"><code>writable.writableLength</code></a>.</p>",
+              "type": "module",
+              "displayName": "DEP0145: `socket.bufferSize`"
             }
           ],
           "type": "misc",
-          "displayName": "List of Deprecated APIs"
+          "displayName": "List of deprecated APIs"
         }
       ]
     }

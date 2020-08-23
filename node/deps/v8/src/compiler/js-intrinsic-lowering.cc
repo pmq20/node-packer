@@ -9,6 +9,7 @@
 #include "src/codegen/code-factory.h"
 #include "src/compiler/access-builder.h"
 #include "src/compiler/js-graph.h"
+#include "src/compiler/js-heap-broker.h"
 #include "src/compiler/linkage.h"
 #include "src/compiler/node-matchers.h"
 #include "src/compiler/node-properties.h"
@@ -21,15 +22,22 @@ namespace v8 {
 namespace internal {
 namespace compiler {
 
-JSIntrinsicLowering::JSIntrinsicLowering(Editor* editor, JSGraph* jsgraph)
-    : AdvancedReducer(editor), jsgraph_(jsgraph) {}
+JSIntrinsicLowering::JSIntrinsicLowering(Editor* editor, JSGraph* jsgraph,
+                                         JSHeapBroker* broker)
+    : AdvancedReducer(editor), jsgraph_(jsgraph), broker_(broker) {}
 
 Reduction JSIntrinsicLowering::Reduce(Node* node) {
+  DisallowHeapAccessIf no_heap_access(broker()->is_concurrent_inlining());
+
   if (node->opcode() != IrOpcode::kJSCallRuntime) return NoChange();
   const Runtime::Function* const f =
       Runtime::FunctionForId(CallRuntimeParametersOf(node->op()).id());
-  if (f->function_id == Runtime::kTurbofanStaticAssert)
+  if (f->function_id == Runtime::kTurbofanStaticAssert) {
     return ReduceTurbofanStaticAssert(node);
+  }
+  if (f->function_id == Runtime::kIsBeingInterpreted) {
+    return ReduceIsBeingInterpreted(node);
+  }
   if (f->intrinsic_type != Runtime::IntrinsicType::INLINE) return NoChange();
   switch (f->function_id) {
     case Runtime::kInlineCopyDataProperties:
@@ -108,7 +116,7 @@ Reduction JSIntrinsicLowering::ReduceDeoptimizeNow(Node* node) {
   // TODO(bmeurer): Move MergeControlToEnd() to the AdvancedReducer.
   Node* deoptimize = graph()->NewNode(
       common()->Deoptimize(DeoptimizeKind::kEager,
-                           DeoptimizeReason::kDeoptimizeNow, VectorSlotPair()),
+                           DeoptimizeReason::kDeoptimizeNow, FeedbackSource()),
       frame_state, effect, control);
   NodeProperties::MergeControlToEnd(graph(), common(), deoptimize);
   Revisit(graph()->end());
@@ -281,6 +289,11 @@ Reduction JSIntrinsicLowering::ReduceTurbofanStaticAssert(Node* node) {
   return Changed(jsgraph_->UndefinedConstant());
 }
 
+Reduction JSIntrinsicLowering::ReduceIsBeingInterpreted(Node* node) {
+  RelaxEffectsAndControls(node);
+  return Changed(jsgraph_->FalseConstant());
+}
+
 Reduction JSIntrinsicLowering::Change(Node* node, const Operator* op) {
   // Replace all effect uses of {node} with the effect dependency.
   RelaxEffectsAndControls(node);
@@ -307,7 +320,7 @@ Reduction JSIntrinsicLowering::ReduceToObject(Node* node) {
 Reduction JSIntrinsicLowering::ReduceToString(Node* node) {
   // ToString is unnecessary if the input is a string.
   HeapObjectMatcher m(NodeProperties::GetValueInput(node, 0));
-  if (m.HasValue() && m.Value()->IsString()) {
+  if (m.HasValue() && m.Ref(broker()).IsString()) {
     ReplaceWithValue(node, m.node());
     return Replace(m.node());
   }

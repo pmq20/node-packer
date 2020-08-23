@@ -72,7 +72,7 @@ struct CompilationEnv {
                                : 0),
         max_memory_size((module && module->has_maximum_pages
                              ? module->maximum_pages
-                             : kV8MaxWasmMemoryPages) *
+                             : max_initial_mem_pages()) *
                         uint64_t{kWasmPageSize}),
         enabled_features(enabled_features),
         lower_simd(lower_simd) {}
@@ -93,10 +93,7 @@ enum class CompilationEvent : uint8_t {
   kFinishedBaselineCompilation,
   kFinishedTopTierCompilation,
   kFailedCompilation,
-
-  // Marker:
-  // After an event >= kFirstFinalEvent, no further events are generated.
-  kFirstFinalEvent = kFinishedTopTierCompilation
+  kFinishedRecompilation
 };
 
 // The implementation of {CompilationState} lives in module-compiler.cc.
@@ -121,16 +118,17 @@ class CompilationState {
   bool failed() const;
   V8_EXPORT_PRIVATE bool baseline_compilation_finished() const;
   V8_EXPORT_PRIVATE bool top_tier_compilation_finished() const;
+  V8_EXPORT_PRIVATE bool recompilation_finished() const;
 
   // Override {operator delete} to avoid implicit instantiation of {operator
   // delete} with {size_t} argument. The {size_t} argument would be incorrect.
   void operator delete(void* ptr) { ::operator delete(ptr); }
 
+  CompilationState() = delete;
+
  private:
   // NativeModule is allowed to call the static {New} method.
   friend class NativeModule;
-
-  CompilationState() = delete;
 
   // The CompilationState keeps a {std::weak_ptr} back to the {NativeModule}
   // such that it can keep it alive (by regaining a {std::shared_ptr}) in

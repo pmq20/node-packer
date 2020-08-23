@@ -18,9 +18,8 @@
 namespace v8 {
 namespace internal {
 
-OBJECT_CONSTRUCTORS_IMPL(FreeSpace, HeapObject)
+TQ_OBJECT_CONSTRUCTORS_IMPL(FreeSpace)
 
-SMI_ACCESSORS(FreeSpace, size, kSizeOffset)
 RELAXED_SMI_ACCESSORS(FreeSpace, size, kSizeOffset)
 
 int FreeSpace::Size() { return size(); }
@@ -37,7 +36,8 @@ void FreeSpace::set_next(FreeSpace next) {
 }
 
 FreeSpace FreeSpace::cast(HeapObject o) {
-  SLOW_DCHECK(!GetHeapFromWritableObject(o)->deserialization_complete() ||
+  SLOW_DCHECK((!Heap::InOffThreadSpace(o) &&
+               !GetHeapFromWritableObject(o)->deserialization_complete()) ||
               o.IsFreeSpace());
   return bit_cast<FreeSpace>(o);
 }

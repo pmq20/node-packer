@@ -10,17 +10,21 @@
 // Clients of this interface shouldn't depend on lots of heap internals.
 // Do not include anything from src/heap other than src/heap/heap.h and its
 // write barrier here!
+#include "src/base/atomicops.h"
 #include "src/heap/heap-write-barrier.h"
 #include "src/heap/heap.h"
+#include "src/heap/third-party/heap-api.h"
 
 #include "src/base/atomic-utils.h"
 #include "src/base/platform/platform.h"
 #include "src/objects/feedback-vector.h"
 
-// TODO(mstarzinger): There is one more include to remove in order to no longer
+// TODO(gc): There is one more include to remove in order to no longer
 // leak heap internals to users of this interface!
 #include "src/execution/isolate-data.h"
 #include "src/execution/isolate.h"
+#include "src/heap/memory-chunk.h"
+#include "src/heap/read-only-spaces.h"
 #include "src/heap/spaces-inl.h"
 #include "src/objects/allocation-site-inl.h"
 #include "src/objects/api-callbacks-inl.h"
@@ -64,16 +68,23 @@ int64_t Heap::external_memory() {
 }
 
 void Heap::update_external_memory(int64_t delta) {
-  isolate()->isolate_data()->external_memory_ += delta;
+  const int64_t amount = isolate()->isolate_data()->external_memory_ + delta;
+  isolate()->isolate_data()->external_memory_ = amount;
+  if (amount <
+      isolate()->isolate_data()->external_memory_low_since_mark_compact_) {
+    isolate()->isolate_data()->external_memory_low_since_mark_compact_ = amount;
+    isolate()->isolate_data()->external_memory_limit_ =
+        amount + kExternalAllocationSoftLimit;
+  }
 }
 
-void Heap::update_external_memory_concurrently_freed(intptr_t freed) {
+void Heap::update_external_memory_concurrently_freed(uintptr_t freed) {
   external_memory_concurrently_freed_ += freed;
 }
 
 void Heap::account_external_memory_concurrently_freed() {
-  isolate()->isolate_data()->external_memory_ -=
-      external_memory_concurrently_freed_;
+  update_external_memory(
+      -static_cast<int64_t>(external_memory_concurrently_freed_));
   external_memory_concurrently_freed_ = 0;
 }
 
@@ -109,10 +120,6 @@ void Heap::SetRootScriptList(Object value) {
 
 void Heap::SetRootStringTable(StringTable value) {
   roots_table()[RootIndex::kStringTable] = value.ptr();
-}
-
-void Heap::SetRootNoScriptSharedFunctionInfos(Object value) {
-  roots_table()[RootIndex::kNoScriptSharedFunctionInfos] = value.ptr();
 }
 
 void Heap::SetMessageListeners(TemplateList value) {
@@ -158,11 +165,22 @@ size_t Heap::NewSpaceAllocationCounter() {
   return new_space_allocation_counter_ + new_space()->AllocatedSinceLastGC();
 }
 
+inline const base::AddressRegion& Heap::code_range() {
+#ifdef V8_ENABLE_THIRD_PARTY_HEAP
+  return tp_heap_->GetCodeRange();
+#else
+  return memory_allocator_->code_range();
+#endif
+}
+
 AllocationResult Heap::AllocateRaw(int size_in_bytes, AllocationType type,
+                                   AllocationOrigin origin,
                                    AllocationAlignment alignment) {
   DCHECK(AllowHandleAllocation::IsAllowed());
   DCHECK(AllowHeapAllocation::IsAllowed());
-  DCHECK(gc_state_ == NOT_IN_GC);
+  DCHECK_IMPLIES(type == AllocationType::kCode,
+                 alignment == AllocationAlignment::kCodeAligned);
+  DCHECK_EQ(gc_state_, NOT_IN_GC);
 #ifdef V8_ENABLE_ALLOCATION_TIMEOUT
   if (FLAG_random_gc_interval > 0 || FLAG_gc_interval >= 0) {
     if (!always_allocate() && Heap::allocation_timeout_-- <= 0) {
@@ -179,47 +197,55 @@ AllocationResult Heap::AllocateRaw(int size_in_bytes, AllocationType type,
   HeapObject object;
   AllocationResult allocation;
 
-  if (AllocationType::kYoung == type) {
-    if (large_object) {
-      if (FLAG_young_generation_large_objects) {
-        allocation = new_lo_space_->AllocateRaw(size_in_bytes);
-      } else {
-        // If young generation large objects are disalbed we have to tenure the
-        // allocation and violate the given allocation type. This could be
-        // dangerous. We may want to remove FLAG_young_generation_large_objects
-        // and avoid patching.
-        allocation = lo_space_->AllocateRaw(size_in_bytes);
-      }
-    } else {
-      allocation = new_space_->AllocateRaw(size_in_bytes, alignment);
-    }
-  } else if (AllocationType::kOld == type) {
-    if (large_object) {
-      allocation = lo_space_->AllocateRaw(size_in_bytes);
-    } else {
-      allocation = old_space_->AllocateRaw(size_in_bytes, alignment);
-    }
-  } else if (AllocationType::kCode == type) {
-    if (size_in_bytes <= code_space()->AreaSize() && !large_object) {
-      allocation = code_space_->AllocateRawUnaligned(size_in_bytes);
-    } else {
-      allocation = code_lo_space_->AllocateRaw(size_in_bytes);
-    }
-  } else if (AllocationType::kMap == type) {
-    allocation = map_space_->AllocateRawUnaligned(size_in_bytes);
-  } else if (AllocationType::kReadOnly == type) {
-#ifdef V8_USE_SNAPSHOT
-    DCHECK(isolate_->serializer_enabled());
-#endif
-    DCHECK(!large_object);
-    DCHECK(CanAllocateInReadOnlySpace());
-    allocation = read_only_space_->AllocateRaw(size_in_bytes, alignment);
+  if (FLAG_single_generation && type == AllocationType::kYoung) {
+    type = AllocationType::kOld;
+  }
+
+  if (V8_ENABLE_THIRD_PARTY_HEAP_BOOL) {
+    allocation = tp_heap_->Allocate(size_in_bytes, type, alignment);
   } else {
-    UNREACHABLE();
+    if (AllocationType::kYoung == type) {
+      if (large_object) {
+        if (FLAG_young_generation_large_objects) {
+          allocation = new_lo_space_->AllocateRaw(size_in_bytes);
+        } else {
+          // If young generation large objects are disalbed we have to tenure
+          // the allocation and violate the given allocation type. This could be
+          // dangerous. We may want to remove
+          // FLAG_young_generation_large_objects and avoid patching.
+          allocation = lo_space_->AllocateRaw(size_in_bytes);
+        }
+      } else {
+        allocation = new_space_->AllocateRaw(size_in_bytes, alignment, origin);
+      }
+    } else if (AllocationType::kOld == type) {
+      if (large_object) {
+        allocation = lo_space_->AllocateRaw(size_in_bytes);
+      } else {
+        allocation = old_space_->AllocateRaw(size_in_bytes, alignment, origin);
+      }
+    } else if (AllocationType::kCode == type) {
+      if (size_in_bytes <= code_space()->AreaSize() && !large_object) {
+        allocation = code_space_->AllocateRawUnaligned(size_in_bytes);
+      } else {
+        allocation = code_lo_space_->AllocateRaw(size_in_bytes);
+      }
+    } else if (AllocationType::kMap == type) {
+      allocation = map_space_->AllocateRawUnaligned(size_in_bytes);
+    } else if (AllocationType::kReadOnly == type) {
+      DCHECK(isolate_->serializer_enabled());
+      DCHECK(!large_object);
+      DCHECK(CanAllocateInReadOnlySpace());
+      DCHECK_EQ(AllocationOrigin::kRuntime, origin);
+      allocation =
+          read_only_space_->AllocateRaw(size_in_bytes, alignment, origin);
+    } else {
+      UNREACHABLE();
+    }
   }
 
   if (allocation.To(&object)) {
-    if (AllocationType::kCode == type) {
+    if (AllocationType::kCode == type && !V8_ENABLE_THIRD_PARTY_HEAP_BOOL) {
       // Unprotect the memory chunk of the object if it was not unprotected
       // already.
       UnprotectAndRegisterMemoryChunk(object);
@@ -234,6 +260,55 @@ AllocationResult Heap::AllocateRaw(int size_in_bytes, AllocationType type,
   }
 
   return allocation;
+}
+
+template <Heap::AllocationRetryMode mode>
+HeapObject Heap::AllocateRawWith(int size, AllocationType allocation,
+                                 AllocationOrigin origin,
+                                 AllocationAlignment alignment) {
+  DCHECK(AllowHandleAllocation::IsAllowed());
+  DCHECK(AllowHeapAllocation::IsAllowed());
+  if (V8_ENABLE_THIRD_PARTY_HEAP_BOOL) {
+    AllocationResult result = AllocateRaw(size, allocation, origin, alignment);
+    DCHECK(!result.IsRetry());
+    return result.ToObjectChecked();
+  }
+  DCHECK_EQ(gc_state_, NOT_IN_GC);
+  Heap* heap = isolate()->heap();
+  Address* top = heap->NewSpaceAllocationTopAddress();
+  Address* limit = heap->NewSpaceAllocationLimitAddress();
+  if (allocation == AllocationType::kYoung &&
+      alignment == AllocationAlignment::kWordAligned &&
+      size <= kMaxRegularHeapObjectSize &&
+      (*limit - *top >= static_cast<unsigned>(size)) &&
+      V8_LIKELY(!FLAG_single_generation && FLAG_inline_new &&
+                FLAG_gc_interval == 0)) {
+    DCHECK(IsAligned(size, kTaggedSize));
+    HeapObject obj = HeapObject::FromAddress(*top);
+    *top += size;
+    heap->CreateFillerObjectAt(obj.address(), size, ClearRecordedSlots::kNo);
+    MSAN_ALLOCATED_UNINITIALIZED_MEMORY(obj.address(), size);
+    return obj;
+  }
+  switch (mode) {
+    case kLightRetry:
+      return AllocateRawWithLightRetrySlowPath(size, allocation, origin,
+                                               alignment);
+    case kRetryOrFail:
+      return AllocateRawWithRetryOrFailSlowPath(size, allocation, origin,
+                                                alignment);
+  }
+  UNREACHABLE();
+}
+
+Address Heap::DeserializerAllocate(AllocationType type, int size_in_bytes) {
+  if (V8_ENABLE_THIRD_PARTY_HEAP_BOOL) {
+    AllocationResult allocation = tp_heap_->Allocate(
+        size_in_bytes, type, AllocationAlignment::kDoubleAligned);
+    return allocation.ToObjectChecked().ptr();
+  } else {
+    UNIMPLEMENTED();  // unimplemented
+  }
 }
 
 void Heap::OnAllocationEvent(HeapObject object, int size_in_bytes) {
@@ -303,7 +378,7 @@ void Heap::FinalizeExternalString(String string) {
       ExternalBackingStoreType::kExternalString,
       ext_string.ExternalPayloadSize());
 
-  ext_string.DisposeResource();
+  ext_string.DisposeResource(isolate());
 }
 
 Address Heap::NewSpaceTop() { return new_space_->top(); }
@@ -321,6 +396,7 @@ bool Heap::InYoungGeneration(MaybeObject object) {
 
 // static
 bool Heap::InYoungGeneration(HeapObject heap_object) {
+  if (V8_ENABLE_THIRD_PARTY_HEAP_BOOL) return false;
   bool result = MemoryChunk::FromHeapObject(heap_object)->InYoungGeneration();
 #ifdef DEBUG
   // If in the young generation, then check we're either not in the middle of
@@ -373,6 +449,9 @@ bool Heap::InOldSpace(Object object) { return old_space_->Contains(object); }
 
 // static
 Heap* Heap::FromWritableHeapObject(HeapObject obj) {
+  if (V8_ENABLE_THIRD_PARTY_HEAP_BOOL) {
+    return Heap::GetIsolateFromWritableObject(obj)->heap();
+  }
   MemoryChunk* chunk = MemoryChunk::FromHeapObject(obj);
   // RO_SPACE can be shared between heaps, so we can't use RO_SPACE objects to
   // find a heap. The exception is when the ReadOnlySpace is writeable, during
@@ -499,11 +578,27 @@ Oddball Heap::ToBoolean(bool condition) {
 }
 
 int Heap::NextScriptId() {
-  int last_id = last_script_id().value();
-  if (last_id == Smi::kMaxValue) last_id = v8::UnboundScript::kNoScriptId;
-  last_id++;
-  set_last_script_id(Smi::FromInt(last_id));
-  return last_id;
+  FullObjectSlot last_script_id_slot(&roots_table()[RootIndex::kLastScriptId]);
+  Smi last_id = Smi::cast(last_script_id_slot.Relaxed_Load());
+  Smi new_id, last_id_before_cas;
+  do {
+    if (last_id.value() == Smi::kMaxValue) {
+      STATIC_ASSERT(v8::UnboundScript::kNoScriptId == 0);
+      new_id = Smi::FromInt(1);
+    } else {
+      new_id = Smi::FromInt(last_id.value() + 1);
+    }
+
+    // CAS returns the old value on success, and the current value in the slot
+    // on failure. Therefore, we want to break if the returned value matches the
+    // old value (last_id), and keep looping (with the new last_id value) if it
+    // doesn't.
+    last_id_before_cas = last_id;
+    last_id =
+        Smi::cast(last_script_id_slot.Relaxed_CompareAndSwap(last_id, new_id));
+  } while (last_id != last_id_before_cas);
+
+  return new_id.value();
 }
 
 int Heap::NextDebuggingId() {
@@ -547,16 +642,20 @@ void Heap::DecrementExternalBackingStoreBytes(ExternalBackingStoreType type,
   base::CheckedDecrement(&backing_store_bytes_, amount);
 }
 
+bool Heap::HasDirtyJSFinalizationRegistries() {
+  return !dirty_js_finalization_registries_list().IsUndefined(isolate());
+}
+
 AlwaysAllocateScope::AlwaysAllocateScope(Heap* heap) : heap_(heap) {
   heap_->always_allocate_scope_count_++;
 }
 
-AlwaysAllocateScope::AlwaysAllocateScope(Isolate* isolate)
-    : AlwaysAllocateScope(isolate->heap()) {}
-
 AlwaysAllocateScope::~AlwaysAllocateScope() {
   heap_->always_allocate_scope_count_--;
 }
+
+AlwaysAllocateScopeForTesting::AlwaysAllocateScopeForTesting(Heap* heap)
+    : scope_(heap) {}
 
 CodeSpaceMemoryModificationScope::CodeSpaceMemoryModificationScope(Heap* heap)
     : heap_(heap) {
@@ -604,6 +703,14 @@ CodePageCollectionMemoryModificationScope::
     heap_->DisableUnprotectedMemoryChunksRegistry();
   }
 }
+
+#ifdef V8_ENABLE_THIRD_PARTY_HEAP
+CodePageMemoryModificationScope::CodePageMemoryModificationScope(Code code)
+    : chunk_(nullptr), scope_active_(false) {}
+#else
+CodePageMemoryModificationScope::CodePageMemoryModificationScope(Code code)
+    : CodePageMemoryModificationScope(MemoryChunk::FromHeapObject(code)) {}
+#endif
 
 CodePageMemoryModificationScope::CodePageMemoryModificationScope(
     MemoryChunk* chunk)

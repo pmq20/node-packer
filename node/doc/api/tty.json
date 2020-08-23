@@ -8,10 +8,10 @@
       "introduced_in": "v0.10.0",
       "stability": 2,
       "stabilityText": "Stable",
-      "desc": "<p>The <code>tty</code> module provides the <code>tty.ReadStream</code> and <code>tty.WriteStream</code> classes.\nIn most cases, it will not be necessary or possible to use this module directly.\nHowever, it can be accessed using:</p>\n<pre><code class=\"language-js\">const tty = require('tty');\n</code></pre>\n<p>When Node.js detects that it is being run with a text terminal (\"TTY\")\nattached, <a href=\"process.html#process_process_stdin\"><code>process.stdin</code></a> will, by default, be initialized as an instance of\n<code>tty.ReadStream</code> and both <a href=\"process.html#process_process_stdout\"><code>process.stdout</code></a> and <a href=\"process.html#process_process_stderr\"><code>process.stderr</code></a> will, by\ndefault be instances of <code>tty.WriteStream</code>. The preferred method of determining\nwhether Node.js is being run within a TTY context is to check that the value of\nthe <code>process.stdout.isTTY</code> property is <code>true</code>:</p>\n<pre><code class=\"language-sh\">$ node -p -e \"Boolean(process.stdout.isTTY)\"\ntrue\n$ node -p -e \"Boolean(process.stdout.isTTY)\" | cat\nfalse\n</code></pre>\n<p>In most cases, there should be little to no reason for an application to\nmanually create instances of the <code>tty.ReadStream</code> and <code>tty.WriteStream</code>\nclasses.</p>",
+      "desc": "<p><strong>Source Code:</strong> <a href=\"https://github.com/nodejs/node/blob/v14.8.0/lib/tty.js\">lib/tty.js</a></p>\n<p>The <code>tty</code> module provides the <code>tty.ReadStream</code> and <code>tty.WriteStream</code> classes.\nIn most cases, it will not be necessary or possible to use this module directly.\nHowever, it can be accessed using:</p>\n<pre><code class=\"language-js\">const tty = require('tty');\n</code></pre>\n<p>When Node.js detects that it is being run with a text terminal (\"TTY\")\nattached, <a href=\"process.html#process_process_stdin\"><code>process.stdin</code></a> will, by default, be initialized as an instance of\n<code>tty.ReadStream</code> and both <a href=\"process.html#process_process_stdout\"><code>process.stdout</code></a> and <a href=\"process.html#process_process_stderr\"><code>process.stderr</code></a> will, by\ndefault be instances of <code>tty.WriteStream</code>. The preferred method of determining\nwhether Node.js is being run within a TTY context is to check that the value of\nthe <code>process.stdout.isTTY</code> property is <code>true</code>:</p>\n<pre><code class=\"language-console\">$ node -p -e \"Boolean(process.stdout.isTTY)\"\ntrue\n$ node -p -e \"Boolean(process.stdout.isTTY)\" | cat\nfalse\n</code></pre>\n<p>In most cases, there should be little to no reason for an application to\nmanually create instances of the <code>tty.ReadStream</code> and <code>tty.WriteStream</code>\nclasses.</p>",
       "classes": [
         {
-          "textRaw": "Class: tty.ReadStream",
+          "textRaw": "Class: `tty.ReadStream`",
           "type": "class",
           "name": "tty.ReadStream",
           "meta": {
@@ -23,7 +23,7 @@
           "desc": "<ul>\n<li>Extends: <a href=\"net.html#net_class_net_socket\" class=\"type\">&lt;net.Socket&gt;</a></li>\n</ul>\n<p>Represents the readable side of a TTY. In normal circumstances\n<a href=\"process.html#process_process_stdin\"><code>process.stdin</code></a> will be the only <code>tty.ReadStream</code> instance in a Node.js\nprocess and there should be no reason to create additional instances.</p>",
           "properties": [
             {
-              "textRaw": "readStream.isRaw",
+              "textRaw": "`readStream.isRaw`",
               "name": "isRaw",
               "meta": {
                 "added": [
@@ -34,7 +34,7 @@
               "desc": "<p>A <code>boolean</code> that is <code>true</code> if the TTY is currently configured to operate as a\nraw device. Defaults to <code>false</code>.</p>"
             },
             {
-              "textRaw": "readStream.isTTY",
+              "textRaw": "`readStream.isTTY`",
               "name": "isTTY",
               "meta": {
                 "added": [
@@ -47,7 +47,7 @@
           ],
           "methods": [
             {
-              "textRaw": "readStream.setRawMode(mode)",
+              "textRaw": "`readStream.setRawMode(mode)`",
               "type": "method",
               "name": "setRawMode",
               "meta": {
@@ -59,10 +59,10 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {this} - the read stream instance.",
+                    "textRaw": "Returns: {this} The read stream instance.",
                     "name": "return",
                     "type": "this",
-                    "desc": "the read stream instance."
+                    "desc": "The read stream instance."
                   },
                   "params": [
                     {
@@ -79,7 +79,7 @@
           ]
         },
         {
-          "textRaw": "Class: tty.WriteStream",
+          "textRaw": "Class: `tty.WriteStream`",
           "type": "class",
           "name": "tty.WriteStream",
           "meta": {
@@ -91,7 +91,7 @@
           "desc": "<ul>\n<li>Extends: <a href=\"net.html#net_class_net_socket\" class=\"type\">&lt;net.Socket&gt;</a></li>\n</ul>\n<p>Represents the writable side of a TTY. In normal circumstances,\n<a href=\"process.html#process_process_stdout\"><code>process.stdout</code></a> and <a href=\"process.html#process_process_stderr\"><code>process.stderr</code></a> will be the only\n<code>tty.WriteStream</code> instances created for a Node.js process and there\nshould be no reason to create additional instances.</p>",
           "events": [
             {
-              "textRaw": "Event: 'resize'",
+              "textRaw": "Event: `'resize'`",
               "type": "event",
               "name": "resize",
               "meta": {
@@ -106,7 +106,7 @@
           ],
           "methods": [
             {
-              "textRaw": "writeStream.clearLine(dir[, callback])",
+              "textRaw": "`writeStream.clearLine(dir[, callback])`",
               "type": "method",
               "name": "clearLine",
               "meta": {
@@ -136,17 +136,17 @@
                       "type": "number",
                       "options": [
                         {
-                          "textRaw": "`-1` - to the left from cursor",
+                          "textRaw": "`-1`: to the left from cursor",
                           "name": "-1",
                           "desc": "to the left from cursor"
                         },
                         {
-                          "textRaw": "`1` - to the right from cursor",
+                          "textRaw": "`1`: to the right from cursor",
                           "name": "1",
                           "desc": "to the right from cursor"
                         },
                         {
-                          "textRaw": "`0` - the entire line",
+                          "textRaw": "`0`: the entire line",
                           "name": "0",
                           "desc": "the entire line"
                         }
@@ -156,8 +156,7 @@
                       "textRaw": "`callback` {Function} Invoked once the operation completes.",
                       "name": "callback",
                       "type": "Function",
-                      "desc": "Invoked once the operation completes.",
-                      "optional": true
+                      "desc": "Invoked once the operation completes."
                     }
                   ]
                 }
@@ -165,7 +164,7 @@
               "desc": "<p><code>writeStream.clearLine()</code> clears the current line of this <code>WriteStream</code> in a\ndirection identified by <code>dir</code>.</p>"
             },
             {
-              "textRaw": "writeStream.clearScreenDown([callback])",
+              "textRaw": "`writeStream.clearScreenDown([callback])`",
               "type": "method",
               "name": "clearScreenDown",
               "meta": {
@@ -193,8 +192,7 @@
                       "textRaw": "`callback` {Function} Invoked once the operation completes.",
                       "name": "callback",
                       "type": "Function",
-                      "desc": "Invoked once the operation completes.",
-                      "optional": true
+                      "desc": "Invoked once the operation completes."
                     }
                   ]
                 }
@@ -202,7 +200,7 @@
               "desc": "<p><code>writeStream.clearScreenDown()</code> clears this <code>WriteStream</code> from the current\ncursor down.</p>"
             },
             {
-              "textRaw": "writeStream.cursorTo(x[, y][, callback])",
+              "textRaw": "`writeStream.cursorTo(x[, y][, callback])`",
               "type": "method",
               "name": "cursorTo",
               "meta": {
@@ -234,15 +232,13 @@
                     {
                       "textRaw": "`y` {number}",
                       "name": "y",
-                      "type": "number",
-                      "optional": true
+                      "type": "number"
                     },
                     {
                       "textRaw": "`callback` {Function} Invoked once the operation completes.",
                       "name": "callback",
                       "type": "Function",
-                      "desc": "Invoked once the operation completes.",
-                      "optional": true
+                      "desc": "Invoked once the operation completes."
                     }
                   ]
                 }
@@ -250,7 +246,7 @@
               "desc": "<p><code>writeStream.cursorTo()</code> moves this <code>WriteStream</code>'s cursor to the specified\nposition.</p>"
             },
             {
-              "textRaw": "writeStream.getColorDepth([env])",
+              "textRaw": "`writeStream.getColorDepth([env])`",
               "type": "method",
               "name": "getColorDepth",
               "meta": {
@@ -272,8 +268,7 @@
                       "name": "env",
                       "type": "Object",
                       "default": "`process.env`",
-                      "desc": "An object containing the environment variables to check. This enables simulating the usage of a specific terminal.",
-                      "optional": true
+                      "desc": "An object containing the environment variables to check. This enables simulating the usage of a specific terminal."
                     }
                   ]
                 }
@@ -281,7 +276,7 @@
               "desc": "<p>Returns:</p>\n<ul>\n<li><code>1</code> for 2,</li>\n<li><code>4</code> for 16,</li>\n<li><code>8</code> for 256,</li>\n<li><code>24</code> for 16,777,216\ncolors supported.</li>\n</ul>\n<p>Use this to determine what colors the terminal supports. Due to the nature of\ncolors in terminals it is possible to either have false positives or false\nnegatives. It depends on process information and the environment variables that\nmay lie about what terminal is used.\nIt is possible to pass in an <code>env</code> object to simulate the usage of a specific\nterminal. This can be useful to check how specific environment settings behave.</p>\n<p>To enforce a specific color support, use one of the below environment settings.</p>\n<ul>\n<li>2 colors: <code>FORCE_COLOR = 0</code> (Disables colors)</li>\n<li>16 colors: <code>FORCE_COLOR = 1</code></li>\n<li>256 colors: <code>FORCE_COLOR = 2</code></li>\n<li>16,777,216 colors: <code>FORCE_COLOR = 3</code></li>\n</ul>\n<p>Disabling color support is also possible by using the <code>NO_COLOR</code> and\n<code>NODE_DISABLE_COLORS</code> environment variables.</p>"
             },
             {
-              "textRaw": "writeStream.getWindowSize()",
+              "textRaw": "`writeStream.getWindowSize()`",
               "type": "method",
               "name": "getWindowSize",
               "meta": {
@@ -303,12 +298,13 @@
               "desc": "<p><code>writeStream.getWindowSize()</code> returns the size of the <a href=\"tty.html\">TTY</a>\ncorresponding to this <code>WriteStream</code>. The array is of the type\n<code>[numColumns, numRows]</code> where <code>numColumns</code> and <code>numRows</code> represent the number\nof columns and rows in the corresponding <a href=\"tty.html\">TTY</a>.</p>"
             },
             {
-              "textRaw": "writeStream.hasColors([count][, env])",
+              "textRaw": "`writeStream.hasColors([count][, env])`",
               "type": "method",
               "name": "hasColors",
               "meta": {
                 "added": [
-                  "v11.13.0"
+                  "v11.13.0",
+                  "v10.16.0"
                 ],
                 "changes": []
               },
@@ -325,16 +321,14 @@
                       "name": "count",
                       "type": "integer",
                       "default": "16",
-                      "desc": "The number of colors that are requested (minimum 2).",
-                      "optional": true
+                      "desc": "The number of colors that are requested (minimum 2)."
                     },
                     {
                       "textRaw": "`env` {Object} An object containing the environment variables to check. This enables simulating the usage of a specific terminal. **Default:** `process.env`.",
                       "name": "env",
                       "type": "Object",
                       "default": "`process.env`",
-                      "desc": "An object containing the environment variables to check. This enables simulating the usage of a specific terminal.",
-                      "optional": true
+                      "desc": "An object containing the environment variables to check. This enables simulating the usage of a specific terminal."
                     }
                   ]
                 }
@@ -342,7 +336,7 @@
               "desc": "<p>Returns <code>true</code> if the <code>writeStream</code> supports at least as many colors as provided\nin <code>count</code>. Minimum support is 2 (black and white).</p>\n<p>This has the same false positives and negatives as described in\n<a href=\"#tty_writestream_getcolordepth_env\"><code>writeStream.getColorDepth()</code></a>.</p>\n<pre><code class=\"language-js\">process.stdout.hasColors();\n// Returns true or false depending on if `stdout` supports at least 16 colors.\nprocess.stdout.hasColors(256);\n// Returns true or false depending on if `stdout` supports at least 256 colors.\nprocess.stdout.hasColors({ TMUX: '1' });\n// Returns true.\nprocess.stdout.hasColors(2 ** 24, { TMUX: '1' });\n// Returns false (the environment setting pretends to support 2 ** 8 colors).\n</code></pre>"
             },
             {
-              "textRaw": "writeStream.moveCursor(dx, dy[, callback])",
+              "textRaw": "`writeStream.moveCursor(dx, dy[, callback])`",
               "type": "method",
               "name": "moveCursor",
               "meta": {
@@ -380,8 +374,7 @@
                       "textRaw": "`callback` {Function} Invoked once the operation completes.",
                       "name": "callback",
                       "type": "Function",
-                      "desc": "Invoked once the operation completes.",
-                      "optional": true
+                      "desc": "Invoked once the operation completes."
                     }
                   ]
                 }
@@ -391,7 +384,7 @@
           ],
           "properties": [
             {
-              "textRaw": "writeStream.columns",
+              "textRaw": "`writeStream.columns`",
               "name": "columns",
               "meta": {
                 "added": [
@@ -402,7 +395,7 @@
               "desc": "<p>A <code>number</code> specifying the number of columns the TTY currently has. This property\nis updated whenever the <code>'resize'</code> event is emitted.</p>"
             },
             {
-              "textRaw": "writeStream.isTTY",
+              "textRaw": "`writeStream.isTTY`",
               "name": "isTTY",
               "meta": {
                 "added": [
@@ -413,7 +406,7 @@
               "desc": "<p>A <code>boolean</code> that is always <code>true</code>.</p>"
             },
             {
-              "textRaw": "writeStream.rows",
+              "textRaw": "`writeStream.rows`",
               "name": "rows",
               "meta": {
                 "added": [
@@ -428,7 +421,7 @@
       ],
       "methods": [
         {
-          "textRaw": "tty.isatty(fd)",
+          "textRaw": "`tty.isatty(fd)`",
           "type": "method",
           "name": "isatty",
           "meta": {

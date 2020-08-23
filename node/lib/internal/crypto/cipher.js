@@ -1,6 +1,8 @@
 'use strict';
 
-const { Object } = primordials;
+const {
+  ObjectSetPrototypeOf,
+} = primordials;
 
 const {
   RSA_PKCS1_OAEP_PADDING,
@@ -12,7 +14,7 @@ const {
   ERR_INVALID_ARG_TYPE,
   ERR_INVALID_OPT_VALUE
 } = require('internal/errors').codes;
-const { validateString } = require('internal/validators');
+const { validateEncoding, validateString } = require('internal/validators');
 
 const {
   preparePrivateKey,
@@ -66,11 +68,11 @@ function rsaFunctionFor(method, defaultPadding, keyType) {
 const publicEncrypt = rsaFunctionFor(_publicEncrypt, RSA_PKCS1_OAEP_PADDING,
                                      'public');
 const publicDecrypt = rsaFunctionFor(_publicDecrypt, RSA_PKCS1_PADDING,
-                                     'private');
+                                     'public');
 const privateEncrypt = rsaFunctionFor(_privateEncrypt, RSA_PKCS1_PADDING,
                                       'private');
 const privateDecrypt = rsaFunctionFor(_privateDecrypt, RSA_PKCS1_OAEP_PADDING,
-                                      'public');
+                                      'private');
 
 function getDecoder(decoder, encoding) {
   encoding = normalizeEncoding(encoding);
@@ -126,8 +128,8 @@ function Cipher(cipher, password, options) {
   createCipher.call(this, cipher, password, options, true);
 }
 
-Object.setPrototypeOf(Cipher.prototype, LazyTransform.prototype);
-Object.setPrototypeOf(Cipher, LazyTransform);
+ObjectSetPrototypeOf(Cipher.prototype, LazyTransform.prototype);
+ObjectSetPrototypeOf(Cipher, LazyTransform);
 
 Cipher.prototype._transform = function _transform(chunk, encoding, callback) {
   this.push(this[kHandle].update(chunk, encoding));
@@ -149,7 +151,9 @@ Cipher.prototype.update = function update(data, inputEncoding, outputEncoding) {
   inputEncoding = inputEncoding || encoding;
   outputEncoding = outputEncoding || encoding;
 
-  if (typeof data !== 'string' && !isArrayBufferView(data)) {
+  if (typeof data === 'string') {
+    validateEncoding(data, inputEncoding);
+  } else if (!isArrayBufferView(data)) {
     throw new ERR_INVALID_ARG_TYPE(
       'data', ['string', 'Buffer', 'TypedArray', 'DataView'], data);
   }
@@ -237,8 +241,8 @@ function addCipherPrototypeFunctions(constructor) {
   constructor.prototype.setAAD = Cipher.prototype.setAAD;
 }
 
-Object.setPrototypeOf(Cipheriv.prototype, LazyTransform.prototype);
-Object.setPrototypeOf(Cipheriv, LazyTransform);
+ObjectSetPrototypeOf(Cipheriv.prototype, LazyTransform.prototype);
+ObjectSetPrototypeOf(Cipheriv, LazyTransform);
 addCipherPrototypeFunctions(Cipheriv);
 
 function Decipher(cipher, password, options) {
@@ -248,8 +252,8 @@ function Decipher(cipher, password, options) {
   createCipher.call(this, cipher, password, options, false);
 }
 
-Object.setPrototypeOf(Decipher.prototype, LazyTransform.prototype);
-Object.setPrototypeOf(Decipher, LazyTransform);
+ObjectSetPrototypeOf(Decipher.prototype, LazyTransform.prototype);
+ObjectSetPrototypeOf(Decipher, LazyTransform);
 addCipherPrototypeFunctions(Decipher);
 
 
@@ -260,8 +264,8 @@ function Decipheriv(cipher, key, iv, options) {
   createCipherWithIV.call(this, cipher, key, options, false, iv);
 }
 
-Object.setPrototypeOf(Decipheriv.prototype, LazyTransform.prototype);
-Object.setPrototypeOf(Decipheriv, LazyTransform);
+ObjectSetPrototypeOf(Decipheriv.prototype, LazyTransform.prototype);
+ObjectSetPrototypeOf(Decipheriv, LazyTransform);
 addCipherPrototypeFunctions(Decipheriv);
 
 module.exports = {

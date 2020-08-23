@@ -4,8 +4,8 @@
 #if defined(NODE_WANT_INTERNALS) && NODE_WANT_INTERNALS
 
 #include "async_wrap.h"
-#include "env.h"
 
+#include <algorithm>
 #include <sstream>
 #include <string>
 
@@ -21,32 +21,89 @@
 #endif
 
 namespace node {
+class Environment;
+
+template <typename T>
+inline std::string ToString(const T& value);
+
+// C++-style variant of sprintf()/fprintf() that:
+// - Returns an std::string
+// - Handles \0 bytes correctly
+// - Supports %p and %s. %d, %i and %u are aliases for %s.
+// - Accepts any class that has a ToString() method for stringification.
+template <typename... Args>
+inline std::string SPrintF(const char* format, Args&&... args);
+template <typename... Args>
+inline void FPrintF(FILE* file, const char* format, Args&&... args);
+void FWrite(FILE* file, const std::string& str);
+
+// Listing the AsyncWrap provider types first enables us to cast directly
+// from a provider type to a debug category.
+#define DEBUG_CATEGORY_NAMES(V)                                                \
+  NODE_ASYNC_PROVIDER_TYPES(V)                                                 \
+  V(HUGEPAGES)                                                                 \
+  V(INSPECTOR_SERVER)                                                          \
+  V(INSPECTOR_PROFILER)                                                        \
+  V(CODE_CACHE)                                                                \
+  V(WASI)
+
+enum class DebugCategory {
+#define V(name) name,
+  DEBUG_CATEGORY_NAMES(V)
+#undef V
+      CATEGORY_COUNT
+};
+
+class EnabledDebugList {
+ public:
+  bool enabled(DebugCategory category) const {
+    DCHECK_GE(static_cast<int>(category), 0);
+    DCHECK_LT(static_cast<int>(category),
+              static_cast<int>(DebugCategory::CATEGORY_COUNT));
+    return enabled_[static_cast<int>(category)];
+  }
+
+  // Uses NODE_DEBUG_NATIVE to initialize the categories. When env is not a
+  // nullptr, the environment variables set in the Environment are used.
+  // Otherwise the system environment variables are used.
+  void Parse(Environment* env);
+
+ private:
+  // Set all categories matching cats to the value of enabled.
+  void Parse(const std::string& cats, bool enabled);
+  void set_enabled(DebugCategory category, bool enabled) {
+    DCHECK_GE(static_cast<int>(category), 0);
+    DCHECK_LT(static_cast<int>(category),
+              static_cast<int>(DebugCategory::CATEGORY_COUNT));
+    enabled_[static_cast<int>(category)] = true;
+  }
+
+  bool enabled_[static_cast<int>(DebugCategory::CATEGORY_COUNT)] = {false};
+};
 
 template <typename... Args>
-inline void FORCE_INLINE Debug(Environment* env,
+inline void FORCE_INLINE Debug(EnabledDebugList* list,
                                DebugCategory cat,
                                const char* format,
-                               Args&&... args) {
-  if (!UNLIKELY(env->debug_enabled(cat)))
-    return;
-  fprintf(stderr, format, std::forward<Args>(args)...);
-}
+                               Args&&... args);
+
+inline void FORCE_INLINE Debug(EnabledDebugList* list,
+                               DebugCategory cat,
+                               const char* message);
+
+template <typename... Args>
+inline void FORCE_INLINE
+Debug(Environment* env, DebugCategory cat, const char* format, Args&&... args);
 
 inline void FORCE_INLINE Debug(Environment* env,
                                DebugCategory cat,
-                               const char* message) {
-  if (!UNLIKELY(env->debug_enabled(cat)))
-    return;
-  fprintf(stderr, "%s", message);
-}
+                               const char* message);
 
 template <typename... Args>
 inline void Debug(Environment* env,
                   DebugCategory cat,
                   const std::string& format,
-                  Args&&... args) {
-  Debug(env, cat, format.c_str(), std::forward<Args>(args)...);
-}
+                  Args&&... args);
 
 // Used internally by the 'real' Debug(AsyncWrap*, ...) functions below, so that
 // the FORCE_INLINE flag on them doesn't apply to the contents of this function
@@ -58,31 +115,17 @@ inline void Debug(Environment* env,
 template <typename... Args>
 void COLD_NOINLINE UnconditionalAsyncWrapDebug(AsyncWrap* async_wrap,
                                                const char* format,
-                                               Args&&... args) {
-  Debug(async_wrap->env(),
-        static_cast<DebugCategory>(async_wrap->provider_type()),
-        async_wrap->diagnostic_name() + " " + format + "\n",
-        std::forward<Args>(args)...);
-}
+                                               Args&&... args);
 
 template <typename... Args>
 inline void FORCE_INLINE Debug(AsyncWrap* async_wrap,
                                const char* format,
-                               Args&&... args) {
-  DCHECK_NOT_NULL(async_wrap);
-  DebugCategory cat =
-      static_cast<DebugCategory>(async_wrap->provider_type());
-  if (!UNLIKELY(async_wrap->env()->debug_enabled(cat)))
-    return;
-  UnconditionalAsyncWrapDebug(async_wrap, format, std::forward<Args>(args)...);
-}
+                               Args&&... args);
 
 template <typename... Args>
 inline void FORCE_INLINE Debug(AsyncWrap* async_wrap,
                                const std::string& format,
-                               Args&&... args) {
-  Debug(async_wrap, format.c_str(), std::forward<Args>(args)...);
-}
+                               Args&&... args);
 
 // Debug helper for inspecting the currently running `node` executable.
 class NativeSymbolDebuggingContext {
@@ -121,6 +164,16 @@ class NativeSymbolDebuggingContext {
 void CheckedUvLoopClose(uv_loop_t* loop);
 void PrintLibuvHandleInformation(uv_loop_t* loop, FILE* stream);
 
+namespace per_process {
+extern EnabledDebugList enabled_debug_list;
+
+template <typename... Args>
+inline void FORCE_INLINE Debug(DebugCategory cat,
+                               const char* format,
+                               Args&&... args);
+
+inline void FORCE_INLINE Debug(DebugCategory cat, const char* message);
+}  // namespace per_process
 }  // namespace node
 
 #endif  // defined(NODE_WANT_INTERNALS) && NODE_WANT_INTERNALS

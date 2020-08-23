@@ -6,7 +6,6 @@ namespace {
 using v8::FunctionCallbackInfo;
 using v8::Isolate;
 using v8::Local;
-using v8::NewStringType;
 using v8::Object;
 using v8::Promise;
 using v8::String;
@@ -15,8 +14,7 @@ using v8::Value;
 static void ThrowError(Isolate* isolate, const char* err_msg) {
   Local<String> str = String::NewFromOneByte(
       isolate,
-      reinterpret_cast<const uint8_t*>(err_msg),
-      NewStringType::kNormal).ToLocalChecked();
+      reinterpret_cast<const uint8_t*>(err_msg)).ToLocalChecked();
   isolate->ThrowException(str);
 }
 

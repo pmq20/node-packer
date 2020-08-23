@@ -1,6 +1,9 @@
 'use strict';
 
-const { Object } = primordials;
+const {
+  ObjectSetPrototypeOf,
+  Symbol,
+} = primordials;
 
 const {
   Hash: _Hash,
@@ -24,10 +27,8 @@ const {
   ERR_CRYPTO_HASH_UPDATE_FAILED,
   ERR_INVALID_ARG_TYPE
 } = require('internal/errors').codes;
-const {
-  validateString,
-  validateUint32
-} = require('internal/validators');
+const { validateEncoding, validateString, validateUint32 } =
+  require('internal/validators');
 const { isArrayBufferView } = require('internal/util/types');
 const LazyTransform = require('internal/streams/lazy_transform');
 const kState = Symbol('kState');
@@ -36,7 +37,8 @@ const kFinalized = Symbol('kFinalized');
 function Hash(algorithm, options) {
   if (!(this instanceof Hash))
     return new Hash(algorithm, options);
-  validateString(algorithm, 'algorithm');
+  if (!(algorithm instanceof _Hash))
+    validateString(algorithm, 'algorithm');
   const xofLen = typeof options === 'object' && options !== null ?
     options.outputLength : undefined;
   if (xofLen !== undefined)
@@ -48,8 +50,16 @@ function Hash(algorithm, options) {
   LazyTransform.call(this, options);
 }
 
-Object.setPrototypeOf(Hash.prototype, LazyTransform.prototype);
-Object.setPrototypeOf(Hash, LazyTransform);
+ObjectSetPrototypeOf(Hash.prototype, LazyTransform.prototype);
+ObjectSetPrototypeOf(Hash, LazyTransform);
+
+Hash.prototype.copy = function copy(options) {
+  const state = this[kState];
+  if (state[kFinalized])
+    throw new ERR_CRYPTO_HASH_FINALIZED();
+
+  return new Hash(this[kHandle], options);
+};
 
 Hash.prototype._transform = function _transform(chunk, encoding, callback) {
   this[kHandle].update(chunk, encoding);
@@ -62,20 +72,20 @@ Hash.prototype._flush = function _flush(callback) {
 };
 
 Hash.prototype.update = function update(data, encoding) {
+  encoding = encoding || getDefaultEncoding();
+
   const state = this[kState];
   if (state[kFinalized])
     throw new ERR_CRYPTO_HASH_FINALIZED();
 
-  if (typeof data !== 'string' && !isArrayBufferView(data)) {
-    throw new ERR_INVALID_ARG_TYPE('data',
-                                   ['string',
-                                    'Buffer',
-                                    'TypedArray',
-                                    'DataView'],
-                                   data);
+  if (typeof data === 'string') {
+    validateEncoding(data, encoding);
+  } else if (!isArrayBufferView(data)) {
+    throw new ERR_INVALID_ARG_TYPE(
+      'data', ['string', 'Buffer', 'TypedArray', 'DataView'], data);
   }
 
-  if (!this[kHandle].update(data, encoding || getDefaultEncoding()))
+  if (!this[kHandle].update(data, encoding))
     throw new ERR_CRYPTO_HASH_UPDATE_FAILED();
   return this;
 };
@@ -107,8 +117,8 @@ function Hmac(hmac, key, options) {
   LazyTransform.call(this, options);
 }
 
-Object.setPrototypeOf(Hmac.prototype, LazyTransform.prototype);
-Object.setPrototypeOf(Hmac, LazyTransform);
+ObjectSetPrototypeOf(Hmac.prototype, LazyTransform.prototype);
+ObjectSetPrototypeOf(Hmac, LazyTransform);
 
 Hmac.prototype.update = Hash.prototype.update;
 

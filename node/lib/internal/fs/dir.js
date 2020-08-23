@@ -1,6 +1,10 @@
 'use strict';
 
-const { Object } = primordials;
+const {
+  ObjectDefineProperty,
+  Symbol,
+  SymbolAsyncIterator,
+} = primordials;
 
 const pathModule = require('path');
 const binding = internalBinding('fs');
@@ -8,6 +12,7 @@ const dirBinding = internalBinding('fs_dir');
 const {
   codes: {
     ERR_DIR_CLOSED,
+    ERR_DIR_CONCURRENT_OPERATION,
     ERR_INVALID_CALLBACK,
     ERR_MISSING_ARGS
   }
@@ -21,26 +26,43 @@ const {
   getValidatedPath,
   handleErrorFromBinding
 } = require('internal/fs/utils');
+const {
+  validateUint32
+} = require('internal/validators');
 
 const kDirHandle = Symbol('kDirHandle');
 const kDirPath = Symbol('kDirPath');
+const kDirBufferedEntries = Symbol('kDirBufferedEntries');
 const kDirClosed = Symbol('kDirClosed');
 const kDirOptions = Symbol('kDirOptions');
+const kDirReadImpl = Symbol('kDirReadImpl');
 const kDirReadPromisified = Symbol('kDirReadPromisified');
 const kDirClosePromisified = Symbol('kDirClosePromisified');
+const kDirOperationQueue = Symbol('kDirOperationQueue');
 
 class Dir {
   constructor(handle, path, options) {
     if (handle == null) throw new ERR_MISSING_ARGS('handle');
     this[kDirHandle] = handle;
+    this[kDirBufferedEntries] = [];
     this[kDirPath] = path;
     this[kDirClosed] = false;
 
-    this[kDirOptions] = getOptions(options, {
-      encoding: 'utf8'
-    });
+    // Either `null` or an Array of pending operations (= functions to be called
+    // once the current operation is done).
+    this[kDirOperationQueue] = null;
 
-    this[kDirReadPromisified] = internalUtil.promisify(this.read).bind(this);
+    this[kDirOptions] = {
+      bufferSize: 32,
+      ...getOptions(options, {
+        encoding: 'utf8'
+      })
+    };
+
+    validateUint32(this[kDirOptions].bufferSize, 'options.bufferSize', true);
+
+    this[kDirReadPromisified] =
+        internalUtil.promisify(this[kDirReadImpl]).bind(this, false);
     this[kDirClosePromisified] = internalUtil.promisify(this.close).bind(this);
   }
 
@@ -49,6 +71,10 @@ class Dir {
   }
 
   read(callback) {
+    return this[kDirReadImpl](true, callback);
+  }
+
+  [kDirReadImpl](maybeSync, callback) {
     if (this[kDirClosed] === true) {
       throw new ERR_DIR_CLOSED();
     }
@@ -59,28 +85,64 @@ class Dir {
       throw new ERR_INVALID_CALLBACK(callback);
     }
 
+    if (this[kDirOperationQueue] !== null) {
+      this[kDirOperationQueue].push(() => {
+        this[kDirReadImpl](maybeSync, callback);
+      });
+      return;
+    }
+
+    if (this[kDirBufferedEntries].length > 0) {
+      const [ name, type ] = this[kDirBufferedEntries].splice(0, 2);
+      if (maybeSync)
+        process.nextTick(getDirent, this[kDirPath], name, type, callback);
+      else
+        getDirent(this[kDirPath], name, type, callback);
+      return;
+    }
+
     const req = new FSReqCallback();
     req.oncomplete = (err, result) => {
+      process.nextTick(() => {
+        const queue = this[kDirOperationQueue];
+        this[kDirOperationQueue] = null;
+        for (const op of queue) op();
+      });
+
       if (err || result === null) {
         return callback(err, result);
       }
+
+      this[kDirBufferedEntries] = result.slice(2);
       getDirent(this[kDirPath], result[0], result[1], callback);
     };
 
+    this[kDirOperationQueue] = [];
     this[kDirHandle].read(
       this[kDirOptions].encoding,
+      this[kDirOptions].bufferSize,
       req
     );
   }
 
-  readSync(options) {
+  readSync() {
     if (this[kDirClosed] === true) {
       throw new ERR_DIR_CLOSED();
+    }
+
+    if (this[kDirOperationQueue] !== null) {
+      throw new ERR_DIR_CONCURRENT_OPERATION();
+    }
+
+    if (this[kDirBufferedEntries].length > 0) {
+      const [ name, type ] = this[kDirBufferedEntries].splice(0, 2);
+      return getDirent(this[kDirPath], name, type);
     }
 
     const ctx = { path: this[kDirPath] };
     const result = this[kDirHandle].read(
       this[kDirOptions].encoding,
+      this[kDirOptions].bufferSize,
       undefined,
       ctx
     );
@@ -90,6 +152,7 @@ class Dir {
       return result;
     }
 
+    this[kDirBufferedEntries] = result.slice(2);
     return getDirent(this[kDirPath], result[0], result[1]);
   }
 
@@ -104,6 +167,13 @@ class Dir {
       throw new ERR_INVALID_CALLBACK(callback);
     }
 
+    if (this[kDirOperationQueue] !== null) {
+      this[kDirOperationQueue].push(() => {
+        this.close(callback);
+      });
+      return;
+    }
+
     this[kDirClosed] = true;
     const req = new FSReqCallback();
     req.oncomplete = callback;
@@ -113,6 +183,10 @@ class Dir {
   closeSync() {
     if (this[kDirClosed] === true) {
       throw new ERR_DIR_CLOSED();
+    }
+
+    if (this[kDirOperationQueue] !== null) {
+      throw new ERR_DIR_CONCURRENT_OPERATION();
     }
 
     this[kDirClosed] = true;
@@ -137,7 +211,7 @@ class Dir {
   }
 }
 
-Object.defineProperty(Dir.prototype, Symbol.asyncIterator, {
+ObjectDefineProperty(Dir.prototype, SymbolAsyncIterator, {
   value: Dir.prototype.entries,
   enumerable: false,
   writable: true,

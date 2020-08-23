@@ -16,13 +16,10 @@
 namespace v8 {
 namespace internal {
 
-OBJECT_CONSTRUCTORS_IMPL(JSPromise, JSObject)
-CAST_ACCESSOR(JSPromise)
+TQ_OBJECT_CONSTRUCTORS_IMPL(JSPromise)
 
-ACCESSORS(JSPromise, reactions_or_result, Object, kReactionsOrResultOffset)
-SMI_ACCESSORS(JSPromise, flags, kFlagsOffset)
-BOOL_ACCESSORS(JSPromise, flags, has_handler, kHasHandlerBit)
-BOOL_ACCESSORS(JSPromise, flags, handled_hint, kHandledHintBit)
+BOOL_ACCESSORS(JSPromise, flags, has_handler, HasHandlerBit::kShift)
+BOOL_ACCESSORS(JSPromise, flags, handled_hint, HandledHintBit::kShift)
 
 Object JSPromise::result() const {
   DCHECK_NE(Promise::kPending, status());

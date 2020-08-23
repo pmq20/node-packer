@@ -6,6 +6,7 @@
 #define V8_REGEXP_REGEXP_H_
 
 #include "src/objects/js-regexp.h"
+#include "src/regexp/regexp-error.h"
 
 namespace v8 {
 namespace internal {
@@ -13,6 +14,9 @@ namespace internal {
 class RegExpNode;
 class RegExpTree;
 
+enum class RegExpCompilationTarget : int { kBytecode, kNative };
+
+// TODO(jgruber): Do not expose in regexp.h.
 // TODO(jgruber): Consider splitting between ParseData and CompileData.
 struct RegExpCompileData {
   // The parsed AST as produced by the RegExpParser.
@@ -21,9 +25,9 @@ struct RegExpCompileData {
   // The compiled Node graph as produced by RegExpTree::ToNode methods.
   RegExpNode* node = nullptr;
 
-  // The generated code as produced by the compiler. Either a Code object (for
-  // irregexp native code) or a ByteArray (for irregexp bytecode).
-  Object code;
+  // Either the generated code as produced by the compiler or a trampoline
+  // to the interpreter.
+  Handle<Object> code;
 
   // True, iff the pattern is a 'simple' atom with zero captures. In other
   // words, the pattern consists of a string with no metacharacters and special
@@ -39,19 +43,28 @@ struct RegExpCompileData {
 
   // The error message. Only used if an error occurred during parsing or
   // compilation.
-  Handle<String> error;
+  RegExpError error = RegExpError::kNone;
+
+  // The position at which the error was detected. Only used if an
+  // error occurred.
+  int error_pos = 0;
 
   // The number of capture groups, without the global capture \0.
   int capture_count = 0;
 
   // The number of registers used by the generated code.
   int register_count = 0;
+
+  // The compilation target (bytecode or native code).
+  RegExpCompilationTarget compilation_target;
 };
 
 class RegExp final : public AllStatic {
  public:
-  // Whether the irregexp engine generates native code or interpreter bytecode.
-  static bool GeneratesNativeCode() { return !FLAG_regexp_interpret_all; }
+  // Whether the irregexp engine generates interpreter bytecode.
+  static bool CanGenerateBytecode() {
+    return FLAG_regexp_interpret_all || FLAG_regexp_tier_up;
+  }
 
   // Parses the RegExp pattern and prepares the JSRegExp object with
   // generic data and choice of implementation - as well as what
@@ -59,7 +72,12 @@ class RegExp final : public AllStatic {
   // Returns false if compilation fails.
   V8_WARN_UNUSED_RESULT static MaybeHandle<Object> Compile(
       Isolate* isolate, Handle<JSRegExp> re, Handle<String> pattern,
-      JSRegExp::Flags flags);
+      JSRegExp::Flags flags, uint32_t backtrack_limit);
+
+  enum CallOrigin : int {
+    kFromRuntime = 0,
+    kFromJs = 1,
+  };
 
   // See ECMA-262 section 15.10.6.2.
   // This function calls the garbage collector if necessary.
@@ -73,7 +91,7 @@ class RegExp final : public AllStatic {
   static constexpr int kInternalRegExpException = -1;
   static constexpr int kInternalRegExpRetry = -2;
 
-  enum IrregexpResult {
+  enum IrregexpResult : int32_t {
     RE_FAILURE = kInternalRegExpFailure,
     RE_SUCCESS = kInternalRegExpSuccess,
     RE_EXCEPTION = kInternalRegExpException,

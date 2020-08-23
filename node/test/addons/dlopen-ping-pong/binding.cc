@@ -5,7 +5,9 @@
 
 #include <dlfcn.h>
 
-extern "C" const char* dlopen_pong(void) {
+extern "C"
+__attribute__((visibility("default")))
+const char* dlopen_pong(void) {
   return "pong";
 }
 
@@ -15,7 +17,6 @@ using v8::FunctionCallbackInfo;
 using v8::Isolate;
 using v8::Local;
 using v8::Object;
-using v8::NewStringType;
 using v8::String;
 using v8::Value;
 
@@ -36,7 +37,7 @@ void Ping(const FunctionCallbackInfo<Value>& args) {
   Isolate* isolate = args.GetIsolate();
   assert(ping_func != nullptr);
   args.GetReturnValue().Set(String::NewFromUtf8(
-        isolate, ping_func(), NewStringType::kNormal).ToLocalChecked());
+        isolate, ping_func()).ToLocalChecked());
 }
 
 void init(Local<Object> exports) {

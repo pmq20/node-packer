@@ -26,7 +26,7 @@ const bench = common.createBenchmark(main, {
 
 function run(fn, n, actual, expected) {
   bench.start();
-  for (var i = 0; i < n; ++i) {
+  for (let i = 0; i < n; ++i) {
     fn(actual, expected);
   }
   bench.end(n);
@@ -38,7 +38,7 @@ function main({ n, len, primitive, method, strict }) {
   const expected = [];
   const expectedWrong = [];
 
-  for (var x = 0; x < len; x++) {
+  for (let x = 0; x < len; x++) {
     actual.push(prim);
     expected.push(prim);
     expectedWrong.push(prim);
@@ -52,8 +52,6 @@ function main({ n, len, primitive, method, strict }) {
   const expectedWrongSet = new Set(expectedWrong);
 
   switch (method) {
-    // Empty string falls through to next line as default, mostly for tests.
-    case '':
     case 'deepEqual_Array':
       run(strict ? deepStrictEqual : deepEqual, n, actual, expected);
       break;

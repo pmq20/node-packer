@@ -1,6 +1,20 @@
 'use strict';
 
-const { Math } = primordials;
+// Most platforms don't allow reads or writes >= 2 GB.
+// See https://github.com/libuv/libuv/pull/1501.
+const kIoMaxLength = 2 ** 31 - 1;
+
+// Note: This is different from kReadFileBufferLength used for non-promisified
+// fs.readFile.
+const kReadFileMaxChunkSize = 2 ** 14;
+const kWriteFileMaxChunkSize = 2 ** 14;
+
+const {
+  MathMax,
+  MathMin,
+  NumberIsSafeInteger,
+  Symbol,
+} = primordials;
 
 const {
   F_OK,
@@ -10,14 +24,14 @@ const {
   S_IFREG
 } = internalBinding('constants').fs;
 const binding = internalBinding('fs');
-const { Buffer, kMaxLength } = require('buffer');
+const { Buffer } = require('buffer');
 const {
   ERR_FS_FILE_TOO_LARGE,
   ERR_INVALID_ARG_TYPE,
   ERR_INVALID_ARG_VALUE,
   ERR_METHOD_NOT_IMPLEMENTED
 } = require('internal/errors').codes;
-const { isUint8Array } = require('internal/util/types');
+const { isArrayBufferView } = require('internal/util/types');
 const { rimrafPromises } = require('internal/fs/rimraf');
 const {
   copyObject,
@@ -25,6 +39,7 @@ const {
   getOptions,
   getStatsFromBinding,
   getValidatedPath,
+  getValidMode,
   nullCheck,
   preprocessSymlinkDestination,
   stringToFlags,
@@ -34,11 +49,12 @@ const {
   validateOffsetLengthRead,
   validateOffsetLengthWrite,
   validateRmdirOptions,
+  validateStringAfterArrayBufferView,
   warnOnNonPortableTemplate
 } = require('internal/fs/utils');
 const { opendir } = require('internal/fs/dir');
 const {
-  parseMode,
+  parseFileMode,
   validateBuffer,
   validateInteger,
   validateUint32
@@ -47,13 +63,19 @@ const pathModule = require('path');
 const { promisify } = require('internal/util');
 
 const kHandle = Symbol('kHandle');
+const kFd = Symbol('kFd');
 const { kUsePromises } = binding;
+const {
+  JSTransferable, kDeserialize, kTransfer, kTransferList
+} = require('internal/worker/js_transferable');
 
 const getDirectoryEntriesPromise = promisify(getDirents);
 
-class FileHandle {
+class FileHandle extends JSTransferable {
   constructor(filehandle) {
+    super();
     this[kHandle] = filehandle;
+    this[kFd] = filehandle ? filehandle.fd : -1;
   }
 
   getAsyncId() {
@@ -61,11 +83,11 @@ class FileHandle {
   }
 
   get fd() {
-    return this[kHandle].fd;
+    return this[kFd];
   }
 
   appendFile(data, options) {
-    return appendFile(this, data, options);
+    return writeFile(this, data, options);
   }
 
   chmod(mode) {
@@ -86,6 +108,10 @@ class FileHandle {
 
   read(buffer, offset, length, position) {
     return read(this, buffer, offset, length, position);
+  }
+
+  readv(buffers, position) {
+    return readv(this, buffers, position);
   }
 
   readFile(options) {
@@ -116,8 +142,29 @@ class FileHandle {
     return writeFile(this, data, options);
   }
 
-  close() {
+  close = () => {
+    this[kFd] = -1;
     return this[kHandle].close();
+  }
+
+  [kTransfer]() {
+    const handle = this[kHandle];
+    this[kFd] = -1;
+    this[kHandle] = null;
+
+    return {
+      data: { handle },
+      deserializeInfo: 'internal/fs/promises:FileHandle'
+    };
+  }
+
+  [kTransferList]() {
+    return [ this[kHandle] ];
+  }
+
+  [kDeserialize]({ handle }) {
+    this[kHandle] = handle;
+    this[kFd] = handle.fd;
   }
 }
 
@@ -126,23 +173,17 @@ function validateFileHandle(handle) {
     throw new ERR_INVALID_ARG_TYPE('filehandle', 'FileHandle', handle);
 }
 
-async function writeFileHandle(filehandle, data, options) {
-  let buffer = isUint8Array(data) ?
-    data : Buffer.from('' + data, options.encoding || 'utf8');
-  let remaining = buffer.length;
+async function writeFileHandle(filehandle, data) {
+  let remaining = data.length;
   if (remaining === 0) return;
   do {
     const { bytesWritten } =
-      await write(filehandle, buffer, 0,
-                  Math.min(16384, buffer.length));
+      await write(filehandle, data, 0,
+                  MathMin(kWriteFileMaxChunkSize, data.length));
     remaining -= bytesWritten;
-    buffer = buffer.slice(bytesWritten);
+    data = data.slice(bytesWritten);
   } while (remaining > 0);
 }
-
-// Note: This is different from kReadFileBufferLength used for non-promisified
-// fs.readFile.
-const kReadFileMaxChunkSize = 16384;
 
 async function readFileHandle(filehandle, options) {
   const statFields = await binding.fstat(filehandle.fd, false, kUsePromises);
@@ -154,13 +195,13 @@ async function readFileHandle(filehandle, options) {
     size = 0;
   }
 
-  if (size > kMaxLength)
+  if (size > kIoMaxLength)
     throw new ERR_FS_FILE_TOO_LARGE(size);
 
   const chunks = [];
   const chunkSize = size === 0 ?
     kReadFileMaxChunkSize :
-    Math.min(size, kReadFileMaxChunkSize);
+    MathMin(size, kReadFileMaxChunkSize);
   let endOfFile = false;
   do {
     const buf = Buffer.alloc(chunkSize);
@@ -172,11 +213,8 @@ async function readFileHandle(filehandle, options) {
   } while (!endOfFile);
 
   const result = Buffer.concat(chunks);
-  if (options.encoding) {
-    return result.toString(options.encoding);
-  } else {
-    return result;
-  }
+
+  return options.encoding ? result.toString(options.encoding) : result;
 }
 
 // All of the functions are defined as async in order to ensure that errors
@@ -184,27 +222,27 @@ async function readFileHandle(filehandle, options) {
 async function access(path, mode = F_OK) {
   path = getValidatedPath(path);
 
-  mode = mode | 0;
+  mode = getValidMode(mode, 'access');
   return binding.access(pathModule.toNamespacedPath(path), mode,
                         kUsePromises);
 }
 
-async function copyFile(src, dest, flags) {
+async function copyFile(src, dest, mode) {
   src = getValidatedPath(src, 'src');
   dest = getValidatedPath(dest, 'dest');
-  flags = flags | 0;
+  mode = getValidMode(mode, 'copyFile');
   return binding.copyFile(pathModule.toNamespacedPath(src),
                           pathModule.toNamespacedPath(dest),
-                          flags, kUsePromises);
+                          mode,
+                          kUsePromises);
 }
 
 // Note that unlike fs.open() which uses numeric file descriptors,
 // fsPromises.open() uses the fs.FileHandle class.
 async function open(path, flags, mode) {
   path = getValidatedPath(path);
-  if (arguments.length < 2) flags = 'r';
   const flagsNumber = stringToFlags(flags);
-  mode = parseMode(mode, 'mode', 0o666);
+  mode = parseFileMode(mode, 'mode', 0o666);
   return new FileHandle(
     await binding.openFileHandle(pathModule.toNamespacedPath(path),
                                  flagsNumber, mode, kUsePromises));
@@ -214,7 +252,12 @@ async function read(handle, buffer, offset, length, position) {
   validateFileHandle(handle);
   validateBuffer(buffer);
 
-  offset |= 0;
+  if (offset == null) {
+    offset = 0;
+  } else {
+    validateInteger(offset, 'offset');
+  }
+
   length |= 0;
 
   if (length === 0)
@@ -227,7 +270,7 @@ async function read(handle, buffer, offset, length, position) {
 
   validateOffsetLengthRead(offset, length, buffer.length);
 
-  if (!Number.isSafeInteger(position))
+  if (!NumberIsSafeInteger(position))
     position = -1;
 
   const bytesRead = (await binding.read(handle.fd, buffer, offset, length,
@@ -236,15 +279,30 @@ async function read(handle, buffer, offset, length, position) {
   return { bytesRead, buffer };
 }
 
+async function readv(handle, buffers, position) {
+  validateFileHandle(handle);
+  validateBufferArray(buffers);
+
+  if (typeof position !== 'number')
+    position = null;
+
+  const bytesRead = (await binding.readBuffers(handle.fd, buffers, position,
+                                               kUsePromises)) || 0;
+  return { bytesRead, buffers };
+}
+
 async function write(handle, buffer, offset, length, position) {
   validateFileHandle(handle);
 
   if (buffer.length === 0)
     return { bytesWritten: 0, buffer };
 
-  if (isUint8Array(buffer)) {
-    if (typeof offset !== 'number')
+  if (isArrayBufferView(buffer)) {
+    if (offset == null) {
       offset = 0;
+    } else {
+      validateInteger(offset, 'offset');
+    }
     if (typeof length !== 'number')
       length = buffer.length - offset;
     if (typeof position !== 'number')
@@ -256,8 +314,7 @@ async function write(handle, buffer, offset, length, position) {
     return { bytesWritten, buffer };
   }
 
-  if (typeof buffer !== 'string')
-    buffer += '';
+  validateStringAfterArrayBufferView(buffer, 'buffer');
   const bytesWritten = (await binding.writeString(handle.fd, buffer, offset,
                                                   length, kUsePromises)) || 0;
   return { bytesWritten, buffer };
@@ -284,13 +341,14 @@ async function rename(oldPath, newPath) {
 }
 
 async function truncate(path, len = 0) {
-  return ftruncate(await open(path, 'r+'), len);
+  const fd = await open(path, 'r+');
+  return ftruncate(fd, len).finally(fd.close.bind(fd));
 }
 
 async function ftruncate(handle, len = 0) {
   validateFileHandle(handle);
   validateInteger(len, 'len');
-  len = Math.max(0, len);
+  len = MathMax(0, len);
   return binding.ftruncate(handle.fd, len, kUsePromises);
 }
 
@@ -325,10 +383,10 @@ async function mkdir(path, options) {
   } = options || {};
   path = getValidatedPath(path);
   if (typeof recursive !== 'boolean')
-    throw new ERR_INVALID_ARG_TYPE('recursive', 'boolean', recursive);
+    throw new ERR_INVALID_ARG_TYPE('options.recursive', 'boolean', recursive);
 
   return binding.mkdir(pathModule.toNamespacedPath(path),
-                       parseMode(mode, 'mode', 0o777), recursive,
+                       parseFileMode(mode, 'mode', 0o777), recursive,
                        kUsePromises);
 }
 
@@ -396,13 +454,13 @@ async function unlink(path) {
 
 async function fchmod(handle, mode) {
   validateFileHandle(handle);
-  mode = parseMode(mode, 'mode');
+  mode = parseFileMode(mode, 'mode');
   return binding.fchmod(handle.fd, mode, kUsePromises);
 }
 
 async function chmod(path, mode) {
   path = getValidatedPath(path);
-  mode = parseMode(mode, 'mode');
+  mode = parseFileMode(mode, 'mode');
   return binding.chmod(pathModule.toNamespacedPath(path), mode, kUsePromises);
 }
 
@@ -411,7 +469,7 @@ async function lchmod(path, mode) {
     throw new ERR_METHOD_NOT_IMPLEMENTED('lchmod()');
 
   const fd = await open(path, O_WRONLY | O_SYMLINK);
-  return fchmod(fd, mode).finally(fd.close.bind(fd));
+  return fchmod(fd, mode).finally(fd.close);
 }
 
 async function lchown(path, uid, gid) {
@@ -452,6 +510,14 @@ async function futimes(handle, atime, mtime) {
   return binding.futimes(handle.fd, atime, mtime, kUsePromises);
 }
 
+async function lutimes(path, atime, mtime) {
+  path = getValidatedPath(path);
+  return binding.lutimes(pathModule.toNamespacedPath(path),
+                         toUnixTimestamp(atime),
+                         toUnixTimestamp(mtime),
+                         kUsePromises);
+}
+
 async function realpath(path, options) {
   options = getOptions(options, {});
   path = getValidatedPath(path);
@@ -472,11 +538,16 @@ async function writeFile(path, data, options) {
   options = getOptions(options, { encoding: 'utf8', mode: 0o666, flag: 'w' });
   const flag = options.flag || 'w';
 
+  if (!isArrayBufferView(data)) {
+    validateStringAfterArrayBufferView(data, 'data');
+    data = Buffer.from(data, options.encoding || 'utf8');
+  }
+
   if (path instanceof FileHandle)
-    return writeFileHandle(path, data, options);
+    return writeFileHandle(path, data);
 
   const fd = await open(path, flag, options.mode);
-  return writeFileHandle(fd, data, options).finally(fd.close.bind(fd));
+  return writeFileHandle(fd, data).finally(fd.close);
 }
 
 async function appendFile(path, data, options) {
@@ -494,7 +565,7 @@ async function readFile(path, options) {
     return readFileHandle(path, options);
 
   const fd = await open(path, flag, 0o666);
-  return readFileHandle(fd, options).finally(fd.close.bind(fd));
+  return readFileHandle(fd, options).finally(fd.close);
 }
 
 module.exports = {
@@ -519,6 +590,7 @@ module.exports = {
     lchown,
     chown,
     utimes,
+    lutimes,
     realpath,
     mkdtemp,
     writeFile,

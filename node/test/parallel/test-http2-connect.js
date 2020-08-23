@@ -9,8 +9,11 @@ const {
 } = require('../common');
 if (!hasCrypto)
   skip('missing crypto');
-const { createServer, connect } = require('http2');
+const fixtures = require('../common/fixtures');
+const assert = require('assert');
+const { createServer, createSecureServer, connect } = require('http2');
 const { connect: netConnect } = require('net');
+const { connect: tlsConnect } = require('tls');
 
 // Check for session connect callback and event
 {
@@ -69,6 +72,36 @@ const { connect: netConnect } = require('net');
   connect(authority).on('error', () => {});
 }
 
+// Check for session connect callback on already connected TLS socket
+{
+  const serverOptions = {
+    key: fixtures.readKey('agent1-key.pem'),
+    cert: fixtures.readKey('agent1-cert.pem')
+  };
+  const server = createSecureServer(serverOptions);
+  server.listen(0, mustCall(() => {
+    const { port } = server.address();
+
+    const onSocketConnect = () => {
+      const authority = `https://localhost:${port}`;
+      const createConnection = mustCall(() => socket);
+      const options = { createConnection };
+      connect(authority, options, mustCall(onSessionConnect));
+    };
+
+    const onSessionConnect = (session) => {
+      session.close();
+      server.close();
+    };
+
+    const clientOptions = {
+      port,
+      rejectUnauthorized: false
+    };
+    const socket = tlsConnect(clientOptions, mustCall(onSocketConnect));
+  }));
+}
+
 // Check for error for init settings error
 {
   createServer(function() {
@@ -78,7 +111,7 @@ const { connect: netConnect } = require('net');
       }
     }).on('error', expectsError({
       code: 'ERR_HTTP2_INVALID_SETTING_VALUE',
-      type: RangeError
+      name: 'RangeError'
     }));
   });
 }
@@ -86,11 +119,11 @@ const { connect: netConnect } = require('net');
 // Check for error for an invalid protocol (not http or https)
 {
   const authority = 'ssh://localhost';
-  expectsError(() => {
+  assert.throws(() => {
     connect(authority);
   }, {
     code: 'ERR_HTTP2_UNSUPPORTED_PROTOCOL',
-    type: Error
+    name: 'Error'
   });
 }
 

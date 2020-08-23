@@ -1,19 +1,28 @@
 'use strict';
 
 const {
+  ArrayIsArray,
+  NumberIsInteger,
+  NumberMAX_SAFE_INTEGER,
+  NumberMIN_SAFE_INTEGER,
+} = primordials;
+
+const {
   hideStackFrames,
   codes: {
+    ERR_SOCKET_BAD_PORT,
     ERR_INVALID_ARG_TYPE,
     ERR_INVALID_ARG_VALUE,
     ERR_OUT_OF_RANGE,
-    ERR_UNKNOWN_SIGNAL
+    ERR_UNKNOWN_SIGNAL,
+    ERR_INVALID_CALLBACK,
   }
 } = require('internal/errors');
+const { normalizeEncoding } = require('internal/util');
 const {
   isArrayBufferView
 } = require('internal/util/types');
 const { signals } = internalBinding('constants').os;
-const { MAX_SAFE_INTEGER, MIN_SAFE_INTEGER } = Number;
 
 function isInt32(value) {
   return value === (value | 0);
@@ -38,7 +47,11 @@ const modeDesc = 'must be a 32-bit unsigned integer or an octal string';
  * @param {number} def If specified, will be returned for invalid values
  * @returns {number}
  */
-function parseMode(value, name, def) {
+function parseFileMode(value, name, def) {
+  if (value == null && def !== undefined) {
+    return def;
+  }
+
   if (isUint32(value)) {
     return value;
   }
@@ -54,18 +67,14 @@ function parseMode(value, name, def) {
     return parseInt(value, 8);
   }
 
-  if (def !== undefined && value == null) {
-    return def;
-  }
-
   throw new ERR_INVALID_ARG_VALUE(name, value, modeDesc);
 }
 
 const validateInteger = hideStackFrames(
-  (value, name, min = MIN_SAFE_INTEGER, max = MAX_SAFE_INTEGER) => {
+  (value, name, min = NumberMIN_SAFE_INTEGER, max = NumberMAX_SAFE_INTEGER) => {
     if (typeof value !== 'number')
       throw new ERR_INVALID_ARG_TYPE(name, 'number', value);
-    if (!Number.isInteger(value))
+    if (!NumberIsInteger(value))
       throw new ERR_OUT_OF_RANGE(name, 'an integer', value);
     if (value < min || value > max)
       throw new ERR_OUT_OF_RANGE(name, `>= ${min} && <= ${max}`, value);
@@ -79,7 +88,7 @@ const validateInt32 = hideStackFrames(
       if (typeof value !== 'number') {
         throw new ERR_INVALID_ARG_TYPE(name, 'number', value);
       }
-      if (!Number.isInteger(value)) {
+      if (!NumberIsInteger(value)) {
         throw new ERR_OUT_OF_RANGE(name, 'an integer', value);
       }
       throw new ERR_OUT_OF_RANGE(name, `>= ${min} && <= ${max}`, value);
@@ -95,7 +104,7 @@ const validateUint32 = hideStackFrames((value, name, positive) => {
     if (typeof value !== 'number') {
       throw new ERR_INVALID_ARG_TYPE(name, 'number', value);
     }
-    if (!Number.isInteger(value)) {
+    if (!NumberIsInteger(value)) {
       throw new ERR_OUT_OF_RANGE(name, 'an integer', value);
     }
     const min = positive ? 1 : 0;
@@ -116,6 +125,30 @@ function validateNumber(value, name) {
   if (typeof value !== 'number')
     throw new ERR_INVALID_ARG_TYPE(name, 'number', value);
 }
+
+function validateBoolean(value, name) {
+  if (typeof value !== 'boolean')
+    throw new ERR_INVALID_ARG_TYPE(name, 'boolean', value);
+}
+
+const validateObject = hideStackFrames(
+  (value, name, { nullable = false } = {}) => {
+    if ((!nullable && value === null) ||
+        ArrayIsArray(value) ||
+        typeof value !== 'object') {
+      throw new ERR_INVALID_ARG_TYPE(name, 'Object', value);
+    }
+  });
+
+const validateArray = hideStackFrames((value, name, { minLength = 0 } = {}) => {
+  if (!ArrayIsArray(value)) {
+    throw new ERR_INVALID_ARG_TYPE(name, 'Array', value);
+  }
+  if (value.length < minLength) {
+    const reason = `must be longer than ${minLength}`;
+    throw new ERR_INVALID_ARG_VALUE(name, value, reason);
+  }
+});
 
 function validateSignalName(signal, name = 'signal') {
   if (typeof signal !== 'string')
@@ -139,15 +172,49 @@ const validateBuffer = hideStackFrames((buffer, name = 'buffer') => {
   }
 });
 
+function validateEncoding(data, encoding) {
+  const normalizedEncoding = normalizeEncoding(encoding);
+  const length = data.length;
+
+  if (normalizedEncoding === 'hex' && length % 2 !== 0) {
+    throw new ERR_INVALID_ARG_VALUE('encoding', encoding,
+                                    `is invalid for data of length ${length}`);
+  }
+}
+
+// Check that the port number is not NaN when coerced to a number,
+// is an integer and that it falls within the legal range of port numbers.
+function validatePort(port, name = 'Port', { allowZero = true } = {}) {
+  if ((typeof port !== 'number' && typeof port !== 'string') ||
+      (typeof port === 'string' && port.trim().length === 0) ||
+      +port !== (+port >>> 0) ||
+      port > 0xFFFF ||
+      (port === 0 && !allowZero)) {
+    throw new ERR_SOCKET_BAD_PORT(name, port, allowZero);
+  }
+  return port | 0;
+}
+
+const validateCallback = hideStackFrames((callback) => {
+  if (typeof callback !== 'function')
+    throw new ERR_INVALID_CALLBACK(callback);
+});
+
 module.exports = {
   isInt32,
   isUint32,
-  parseMode,
+  parseFileMode,
+  validateArray,
+  validateBoolean,
   validateBuffer,
-  validateInteger,
+  validateEncoding,
   validateInt32,
-  validateUint32,
-  validateString,
+  validateInteger,
   validateNumber,
-  validateSignalName
+  validateObject,
+  validatePort,
+  validateSignalName,
+  validateString,
+  validateUint32,
+  validateCallback,
 };

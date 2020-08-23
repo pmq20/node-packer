@@ -4,7 +4,6 @@
 #if defined(NODE_WANT_INTERNALS) && NODE_WANT_INTERNALS
 
 #include "node.h"
-#include "env.h"
 
 #include <string>
 
@@ -121,11 +120,11 @@ class URL {
   URL(const std::string& input, const std::string& base) :
       URL(input.c_str(), input.length(), base.c_str(), base.length()) {}
 
-  int32_t flags() {
+  int32_t flags() const {
     return context_.flags;
   }
 
-  int port() {
+  int port() const {
     return context_.port;
   }
 

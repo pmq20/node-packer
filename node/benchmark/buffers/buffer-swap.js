@@ -7,6 +7,8 @@ const bench = common.createBenchmark(main, {
   method: ['swap16', 'swap32', 'swap64'/* , 'htons', 'htonl', 'htonll' */],
   len: [64, 256, 768, 1024, 2056, 8192],
   n: [1e6]
+}, {
+  test: { len: 16 }
 });
 
 // The htons and htonl methods below are used to benchmark the
@@ -36,7 +38,7 @@ Buffer.prototype.htons = function htons() {
 Buffer.prototype.htonl = function htonl() {
   if (this.length % 4 !== 0)
     throw new RangeError();
-  for (var i = 0; i < this.length; i += 4) {
+  for (let i = 0; i < this.length; i += 4) {
     swap(this, i, i + 3);
     swap(this, i + 1, i + 2);
   }
@@ -66,7 +68,7 @@ function createBuffer(len, aligned) {
 function genMethod(method) {
   const fnString = `
       return function ${method}(n, buf) {
-        for (var i = 0; i <= n; i++)
+        for (let i = 0; i <= n; i++)
           buf.${method}();
       }`;
   return (new Function(fnString))();
@@ -74,7 +76,7 @@ function genMethod(method) {
 
 function main({ method, len, n, aligned = 'true' }) {
   const buf = createBuffer(len, aligned === 'true');
-  const bufferSwap = genMethod(method || 'swap16');
+  const bufferSwap = genMethod(method);
 
   bufferSwap(n, buf);
   bench.start();

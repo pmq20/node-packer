@@ -9,6 +9,7 @@
 #ifndef V8_OBJECTS_JS_SEGMENT_ITERATOR_H_
 #define V8_OBJECTS_JS_SEGMENT_ITERATOR_H_
 
+#include "src/base/bit-field.h"
 #include "src/execution/isolate.h"
 #include "src/heap/factory.h"
 #include "src/objects/js-segmenter.h"
@@ -27,7 +28,8 @@ class UnicodeString;
 namespace v8 {
 namespace internal {
 
-class JSSegmentIterator : public JSObject {
+class JSSegmentIterator
+    : public TorqueGeneratedJSSegmentIterator<JSSegmentIterator, JSObject> {
  public:
   // ecma402 #sec-CreateSegmentIterator
   V8_WARN_UNUSED_RESULT static MaybeHandle<JSSegmentIterator> Create(
@@ -63,37 +65,23 @@ class JSSegmentIterator : public JSObject {
                                                        int32_t start,
                                                        int32_t end) const;
 
-  DECL_CAST(JSSegmentIterator)
-
   // SegmentIterator accessors.
   DECL_ACCESSORS(icu_break_iterator, Managed<icu::BreakIterator>)
   DECL_ACCESSORS(unicode_string, Managed<icu::UnicodeString>)
 
   DECL_PRINTER(JSSegmentIterator)
-  DECL_VERIFIER(JSSegmentIterator)
 
   inline void set_granularity(JSSegmenter::Granularity granularity);
   inline JSSegmenter::Granularity granularity() const;
 
-// Bit positions in |flags|.
-#define FLAGS_BIT_FIELDS(V, _)                       \
-  V(GranularityBits, JSSegmenter::Granularity, 2, _) \
-  V(BreakTypeSetBits, bool, 1, _)
-  DEFINE_BIT_FIELDS(FLAGS_BIT_FIELDS)
-#undef FLAGS_BIT_FIELDS
+  // Bit positions in |flags|.
+  DEFINE_TORQUE_GENERATED_JS_SEGMENT_ITERATOR_FLAGS()
 
   STATIC_ASSERT(JSSegmenter::Granularity::GRAPHEME <= GranularityBits::kMax);
   STATIC_ASSERT(JSSegmenter::Granularity::WORD <= GranularityBits::kMax);
   STATIC_ASSERT(JSSegmenter::Granularity::SENTENCE <= GranularityBits::kMax);
 
-  // [flags] Bit field containing various flags about the function.
-  DECL_INT_ACCESSORS(flags)
-
-// Layout description.
-  DEFINE_FIELD_OFFSET_CONSTANTS(JSObject::kHeaderSize,
-                                TORQUE_GENERATED_JSSEGMENT_ITERATOR_FIELDS)
-
-  OBJECT_CONSTRUCTORS(JSSegmentIterator, JSObject);
+  TQ_OBJECT_CONSTRUCTORS(JSSegmentIterator)
 };
 
 }  // namespace internal

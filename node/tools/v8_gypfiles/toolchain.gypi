@@ -64,9 +64,6 @@
     # Print to stdout on Android.
     'v8_android_log_stdout%': 0,
 
-    # Force disable libstdc++ debug mode.
-    'disable_glibcxx_debug%': 0,
-
     'v8_enable_backtrace%': 0,
 
     # Enable profiling support. Only required on Windows.
@@ -101,34 +98,6 @@
       }],
       ['OS=="linux" and host_arch=="ia32"', {
         'binutils_dir%': 'third_party/binutils/Linux_ia32/Release/bin',
-      }],
-
-      # linux_use_bundled_gold: whether to use the gold linker binary checked
-      # into third_party/binutils.  Force this off via GYP_DEFINES when you
-      # are using a custom toolchain and need to control -B in ldflags.
-      # Do not use 32-bit gold on 32-bit hosts as it runs out address space
-      # for component=static_library builds.
-      ['((OS=="linux" or OS=="android") and (target_arch=="x64" or target_arch=="arm" or (target_arch=="ia32" and host_arch=="x64"))) or (OS=="linux" and target_arch=="mipsel")', {
-        'linux_use_bundled_gold%': 1,
-      }, {
-        'linux_use_bundled_gold%': 0,
-      }],
-      # linux_use_bundled_binutils: whether to use the binary binutils
-      # checked into third_party/binutils.  These are not multi-arch so cannot
-      # be used except on x86 and x86-64 (the only two architectures which
-      # are currently checke in).  Force this off via GYP_DEFINES when you
-      # are using a custom toolchain and need to control -B in cflags.
-      ['OS=="linux" and (target_arch=="ia32" or target_arch=="x64")', {
-        'linux_use_bundled_binutils%': 1,
-      }, {
-        'linux_use_bundled_binutils%': 0,
-      }],
-      # linux_use_gold_flags: whether to use build flags that rely on gold.
-      # On by default for x64 Linux.
-      ['OS=="linux" and target_arch=="x64"', {
-        'linux_use_gold_flags%': 1,
-      }, {
-        'linux_use_gold_flags%': 0,
       }],
     ],
 
@@ -301,11 +270,17 @@
         'defines': [
           'V8_TARGET_ARCH_ARM64',
         ],
+        'conditions': [
+          ['v8_control_flow_integrity==1', {
+            'cflags': [ '-mbranch-protection=standard' ],
+          }],
+        ],
       }],
       ['v8_target_arch=="s390x"', {
         'defines': [
           'V8_TARGET_ARCH_S390',
         ],
+        'cflags': [ '-ffp-contract=off' ],
         'conditions': [
           ['v8_target_arch=="s390x"', {
             'defines': [
@@ -322,10 +297,12 @@
           ],
       }],  # s390x
       ['v8_target_arch=="ppc" or v8_target_arch=="ppc64"', {
-        'defines': [
-          'V8_TARGET_ARCH_PPC',
-        ],
         'conditions': [
+          ['v8_target_arch=="ppc"', {
+            'defines': [
+              'V8_TARGET_ARCH_PPC',
+            ],
+          }],
           ['v8_target_arch=="ppc64"', {
             'defines': [
               'V8_TARGET_ARCH_PPC64',
@@ -985,26 +962,6 @@
           '-mx32',
         ],
       }],  # v8_target_arch=="x32"
-      ['linux_use_gold_flags==1', {
-        # Newer gccs and clangs support -fuse-ld, use the flag to force gold
-        # selection.
-        # gcc -- http://gcc.gnu.org/onlinedocs/gcc-4.8.0/gcc/Optimize-Options.html
-        'ldflags': [ '-fuse-ld=gold', ],
-      }],
-      ['linux_use_bundled_binutils==1', {
-        'cflags': [
-          '-B<!(cd <(DEPTH) && pwd -P)/<(binutils_dir)',
-        ],
-      }],
-      ['linux_use_bundled_gold==1', {
-        # Put our binutils, which contains gold in the search path. We pass
-        # the path to gold to the compiler. gyp leaves unspecified what the
-        # cwd is when running the compiler, so the normal gyp path-munging
-        # fails us. This hack gets the right path.
-        'ldflags': [
-          '-B<!(cd <(DEPTH) && pwd -P)/<(binutils_dir)',
-        ],
-      }],
       ['OS=="win"', {
         'defines': [
           'WIN32',
@@ -1167,11 +1124,6 @@
             # Support for backtrace_symbols.
             'ldflags': [ '-rdynamic' ],
           }],
-          ['OS=="linux" and disable_glibcxx_debug==0', {
-            # Enable libstdc++ debugging facilities to help catch problems
-            # early, see http://crbug.com/65151 .
-            'defines': ['_GLIBCXX_DEBUG=1',],
-          }],
           ['OS=="aix"', {
             'ldflags': [ '-Wl,-bbigtoc' ],
             'conditions': [
@@ -1191,21 +1143,6 @@
                 'defines!': [
                   'DEBUG',
                   'ENABLE_SLOW_DCHECKS',
-                ],
-              }],
-            ],
-          }],
-          ['linux_use_gold_flags==1', {
-            'target_conditions': [
-              ['_toolset=="target"', {
-                'ldflags': [
-                  # Experimentation found that using four linking threads
-                  # saved ~20% of link time.
-                  # https://groups.google.com/a/chromium.org/group/chromium-dev/browse_thread/thread/281527606915bb36
-                  # Only apply this to the target linker, since the host
-                  # linker might not be gold, but isn't used much anyway.
-                  '-Wl,--threads',
-                  '-Wl,--thread-count=4',
                 ],
               }],
             ],

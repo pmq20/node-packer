@@ -47,17 +47,33 @@ assert.strictEqual(
 );
 
 {
-  access(__filename, 'r')
+  access(__filename, 0)
     .then(common.mustCall());
 
-  access('this file does not exist', 'r')
-    .then(common.mustNotCall())
-    .catch(common.expectsError({
+  assert.rejects(
+    access('this file does not exist', 0),
+    {
       code: 'ENOENT',
-      type: Error,
-      message:
-        /^ENOENT: no such file or directory, access/
-    }));
+      name: 'Error',
+      message: /^ENOENT: no such file or directory, access/
+    }
+  );
+
+  assert.rejects(
+    access(__filename, 8),
+    {
+      code: 'ERR_OUT_OF_RANGE',
+      message: /"mode".*must be an integer >= 0 && <= 7\. Received 8$/
+    }
+  );
+
+  assert.rejects(
+    access(__filename, { [Symbol.toPrimitive]() { return 5; } }),
+    {
+      code: 'ERR_INVALID_ARG_TYPE',
+      message: /"mode" argument.+integer\. Received an instance of Object$/
+    }
+  );
 }
 
 function verifyStatObject(stat) {
@@ -68,7 +84,7 @@ function verifyStatObject(stat) {
 
 async function getHandle(dest) {
   await copyFile(fixtures.path('baz.js'), dest);
-  await access(dest, 'r');
+  await access(dest);
 
   return open(dest, 'r+');
 }
@@ -83,6 +99,7 @@ async function getHandle(dest) {
     {
       const handle = await getHandle(dest);
       assert.strictEqual(typeof handle, 'object');
+      await handle.close();
     }
 
     // file stats
@@ -106,6 +123,7 @@ async function getHandle(dest) {
 
       await handle.datasync();
       await handle.sync();
+      await handle.close();
     }
 
     // Test fs.read promises when length to read is zero bytes
@@ -119,6 +137,7 @@ async function getHandle(dest) {
       assert.strictEqual(ret.bytesRead, 0);
 
       await unlink(dest);
+      await handle.close();
     }
 
     // Bytes written to file match buffer
@@ -130,6 +149,7 @@ async function getHandle(dest) {
       const ret = await handle.read(Buffer.alloc(bufLen), 0, bufLen, 0);
       assert.strictEqual(ret.bytesRead, bufLen);
       assert.deepStrictEqual(ret.buffer, buf);
+      await handle.close();
     }
 
     // Truncate file to specified length
@@ -143,6 +163,7 @@ async function getHandle(dest) {
       assert.deepStrictEqual(ret.buffer, buf);
       await truncate(dest, 5);
       assert.deepStrictEqual((await readFile(dest)).toString(), 'hello');
+      await handle.close();
     }
 
     // Invalid change of ownership
@@ -181,6 +202,8 @@ async function getHandle(dest) {
           message: 'The value of "gid" is out of range. ' +
                     'It must be >= 0 && < 4294967296. Received -1'
         });
+
+      await handle.close();
     }
 
     // Set modification times
@@ -196,7 +219,7 @@ async function getHandle(dest) {
         // expect it to be ENOSYS
         common.expectsError({
           code: 'ENOSYS',
-          type: Error
+          name: 'Error'
         })(err);
       }
 
@@ -236,7 +259,7 @@ async function getHandle(dest) {
               lchmod(newLink, newMode),
               common.expectsError({
                 code: 'ERR_METHOD_NOT_IMPLEMENTED',
-                type: Error,
+                name: 'Error',
                 message: 'The lchmod() method is not implemented'
               })
             )
@@ -301,7 +324,7 @@ async function getHandle(dest) {
     {
       const dir = path.join(tmpDir, nextdir(), nextdir());
       await mkdir(path.dirname(dir));
-      await writeFile(dir);
+      await writeFile(dir, '');
       assert.rejects(
         mkdir(dir, { recursive: true }),
         {
@@ -318,7 +341,7 @@ async function getHandle(dest) {
       const file = path.join(tmpDir, nextdir(), nextdir());
       const dir = path.join(file, nextdir(), nextdir());
       await mkdir(path.dirname(file));
-      await writeFile(file);
+      await writeFile(file, '');
       assert.rejects(
         mkdir(dir, { recursive: true }),
         {
@@ -356,9 +379,7 @@ async function getHandle(dest) {
           async () => mkdir(dir, { recursive }),
           {
             code: 'ERR_INVALID_ARG_TYPE',
-            name: 'TypeError',
-            message: 'The "recursive" argument must be of type boolean. ' +
-              `Received type ${typeof recursive}`
+            name: 'TypeError'
           }
         );
       });

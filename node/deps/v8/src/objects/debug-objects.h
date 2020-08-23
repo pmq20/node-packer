@@ -5,9 +5,13 @@
 #ifndef V8_OBJECTS_DEBUG_OBJECTS_H_
 #define V8_OBJECTS_DEBUG_OBJECTS_H_
 
+#include <memory>
+
+#include "src/base/bit-field.h"
 #include "src/objects/fixed-array.h"
 #include "src/objects/objects.h"
 #include "src/objects/struct.h"
+#include "torque-generated/bit-fields-tq.h"
 
 // Has to be the last include (doesn't have include guards):
 #include "src/objects/object-macros.h"
@@ -20,32 +24,11 @@ class BytecodeArray;
 
 // The DebugInfo class holds additional information for a function being
 // debugged.
-class DebugInfo : public Struct {
+class DebugInfo : public TorqueGeneratedDebugInfo<DebugInfo, Struct> {
  public:
   NEVER_READ_ONLY_SPACE
-  enum Flag {
-    kNone = 0,
-    kHasBreakInfo = 1 << 0,
-    kPreparedForDebugExecution = 1 << 1,
-    kHasCoverageInfo = 1 << 2,
-    kBreakAtEntry = 1 << 3,
-    kCanBreakAtEntry = 1 << 4,
-    kDebugExecutionMode = 1 << 5
-  };
-
+  DEFINE_TORQUE_GENERATED_DEBUG_INFO_FLAGS()
   using Flags = base::Flags<Flag>;
-
-  // A bitfield that lists uses of the current instance.
-  DECL_INT_ACCESSORS(flags)
-
-  // The shared function info for the source being debugged.
-  DECL_ACCESSORS(shared, SharedFunctionInfo)
-
-  // Bit field containing various information collected for debugging.
-  DECL_INT_ACCESSORS(debugger_hints)
-
-  // Script field from shared function info.
-  DECL_ACCESSORS(script, Object)
 
   // DebugInfo can be detached from the SharedFunctionInfo iff it is empty.
   bool IsEmpty() const;
@@ -82,17 +65,6 @@ class DebugInfo : public Struct {
   void SetBreakAtEntry();
   void ClearBreakAtEntry();
   bool BreakAtEntry() const;
-
-  // The original uninstrumented bytecode array for functions with break
-  // points - the instrumented bytecode is held in the shared function info.
-  DECL_ACCESSORS(original_bytecode_array, Object)
-
-  // The debug instrumented bytecode array for functions with break points
-  // - also pointed to by the shared function info.
-  DECL_ACCESSORS(debug_bytecode_array, Object)
-
-  // Fixed array holding status information for each active break point.
-  DECL_ACCESSORS(break_points, FixedArray)
 
   // Check if there is a break point at a source position.
   bool HasBreakPoint(Isolate* isolate, int source_position);
@@ -141,15 +113,8 @@ class DebugInfo : public Struct {
   // This could also be implemented as a weak hash table.
   DECL_INT_ACCESSORS(debugging_id)
 
-// Bit positions in |debugger_hints|.
-#define DEBUGGER_HINTS_BIT_FIELDS(V, _)       \
-  V(SideEffectStateBits, int, 2, _)           \
-  V(DebugIsBlackboxedBit, bool, 1, _)         \
-  V(ComputedDebugIsBlackboxedBit, bool, 1, _) \
-  V(DebuggingIdBits, int, 20, _)
-
-  DEFINE_BIT_FIELDS(DEBUGGER_HINTS_BIT_FIELDS)
-#undef DEBUGGER_HINTS_BIT_FIELDS
+  // Bit positions in |debugger_hints|.
+  DEFINE_TORQUE_GENERATED_DEBUGGER_HINTS()
 
   static const int kNoDebuggingId = 0;
 
@@ -160,17 +125,6 @@ class DebugInfo : public Struct {
 
   // Clears all fields related to block coverage.
   void ClearCoverageInfo(Isolate* isolate);
-  DECL_ACCESSORS(coverage_info, Object)
-
-  DECL_CAST(DebugInfo)
-
-  // Dispatched behavior.
-  DECL_PRINTER(DebugInfo)
-  DECL_VERIFIER(DebugInfo)
-
-  // Layout description.
-  DEFINE_FIELD_OFFSET_CONSTANTS(Struct::kHeaderSize,
-                                TORQUE_GENERATED_DEBUG_INFO_FIELDS)
 
   static const int kEstimatedNofBreakPointsInFunction = 4;
 
@@ -178,19 +132,15 @@ class DebugInfo : public Struct {
   // Get the break point info object for a source position.
   Object GetBreakPointInfo(Isolate* isolate, int source_position);
 
-  OBJECT_CONSTRUCTORS(DebugInfo, Struct);
+  TQ_OBJECT_CONSTRUCTORS(DebugInfo)
 };
 
 // The BreakPointInfo class holds information for break points set in a
 // function. The DebugInfo object holds a BreakPointInfo object for each code
 // position with one or more break points.
-class BreakPointInfo : public Tuple2 {
+class BreakPointInfo
+    : public TorqueGeneratedBreakPointInfo<BreakPointInfo, Struct> {
  public:
-  // The position in the source for the break position.
-  DECL_INT_ACCESSORS(source_position)
-  // List of related JavaScript break points.
-  DECL_ACCESSORS(break_points, Object)
-
   // Removes a break point.
   static void ClearBreakPoint(Isolate* isolate, Handle<BreakPointInfo> info,
                               Handle<BreakPoint> break_point);
@@ -200,75 +150,61 @@ class BreakPointInfo : public Tuple2 {
   // Check if break point info has this break point.
   static bool HasBreakPoint(Isolate* isolate, Handle<BreakPointInfo> info,
                             Handle<BreakPoint> break_point);
+  // Check if break point info has break point with this id.
+  static MaybeHandle<BreakPoint> GetBreakPointById(Isolate* isolate,
+                                                   Handle<BreakPointInfo> info,
+                                                   int breakpoint_id);
   // Get the number of break points for this code offset.
   int GetBreakPointCount(Isolate* isolate);
 
   int GetStatementPosition(Handle<DebugInfo> debug_info);
 
-  DECL_CAST(BreakPointInfo)
-
-  static const int kSourcePositionOffset = kValue1Offset;
-  static const int kBreakPointsOffset = kValue2Offset;
-
-  OBJECT_CONSTRUCTORS(BreakPointInfo, Tuple2);
+  TQ_OBJECT_CONSTRUCTORS(BreakPointInfo)
 };
 
 // Holds information related to block code coverage.
-class CoverageInfo : public FixedArray {
+class CoverageInfo
+    : public TorqueGeneratedCoverageInfo<CoverageInfo, HeapObject> {
  public:
-  int SlotCount() const;
-
   int StartSourcePosition(int slot_index) const;
   int EndSourcePosition(int slot_index) const;
   int BlockCount(int slot_index) const;
 
   void InitializeSlot(int slot_index, int start_pos, int end_pos);
-  void IncrementBlockCount(int slot_index);
   void ResetBlockCount(int slot_index);
 
-  static int FixedArrayLengthForSlotCount(int slot_count) {
-    return slot_count * kSlotIndexCount + kFirstSlotIndex;
+  // Computes the size for a CoverageInfo instance of a given length.
+  static int SizeFor(int slot_count) {
+    return OBJECT_POINTER_ALIGN(kHeaderSize + slot_count * Slot::kSize);
   }
-
-  DECL_CAST(CoverageInfo)
 
   // Print debug info.
-  void Print(std::unique_ptr<char[]> function_name);
+  void CoverageInfoPrint(std::ostream& os,
+                         std::unique_ptr<char[]> function_name = nullptr);
 
-  static const int kFirstSlotIndex = 0;
+  class BodyDescriptor;  // GC visitor.
 
-  // Each slot is assigned a group of indices starting at kFirstSlotIndex.
-  // Within this group, semantics are as follows:
-  static const int kSlotStartSourcePositionIndex = 0;
-  static const int kSlotEndSourcePositionIndex = 1;
-  static const int kSlotBlockCountIndex = 2;
-  static const int kSlotPaddingIndex = 3;  // Padding to make the index count 4.
-  static const int kSlotIndexCount = 4;
-
-  static const int kSlotIndexCountLog2 = 2;
-  static const int kSlotIndexCountMask = (kSlotIndexCount - 1);
-  STATIC_ASSERT(1 << kSlotIndexCountLog2 == kSlotIndexCount);
+  // Description of layout within each slot.
+  using Slot = TorqueGeneratedCoverageInfoSlotOffsets;
 
  private:
-  static int FirstIndexForSlot(int slot_index) {
-    return kFirstSlotIndex + slot_index * kSlotIndexCount;
-  }
+  int SlotFieldOffset(int slot_index, int field_offset) const;
 
-  OBJECT_CONSTRUCTORS(CoverageInfo, FixedArray);
+  TQ_OBJECT_CONSTRUCTORS(CoverageInfo)
 };
 
 // Holds breakpoint related information. This object is used by inspector.
-class BreakPoint : public Tuple2 {
+class BreakPoint : public TorqueGeneratedBreakPoint<BreakPoint, Struct> {
  public:
-  DECL_INT_ACCESSORS(id)
-  DECL_ACCESSORS(condition, String)
+  TQ_OBJECT_CONSTRUCTORS(BreakPoint)
+};
 
-  DECL_CAST(BreakPoint)
+// Holds Wasm values. This is used by the inspector.
+class WasmValue : public TorqueGeneratedWasmValue<WasmValue, Struct> {
+ public:
+  NEVER_READ_ONLY_SPACE
 
-  static const int kIdOffset = kValue1Offset;
-  static const int kConditionOffset = kValue2Offset;
-
-  OBJECT_CONSTRUCTORS(BreakPoint, Tuple2);
+  TQ_OBJECT_CONSTRUCTORS(WasmValue)
 };
 
 }  // namespace internal

@@ -2,20 +2,31 @@
 
 /* global SharedArrayBuffer */
 
-const { Object } = primordials;
+const {
+  ArrayIsArray,
+  MathMax,
+  ObjectCreate,
+  ObjectEntries,
+  Promise,
+  PromiseResolve,
+  Symbol,
+  SymbolFor,
+} = primordials;
 
 const EventEmitter = require('events');
 const assert = require('internal/assert');
 const path = require('path');
 
+const errorCodes = require('internal/errors').codes;
 const {
+  ERR_WORKER_NOT_RUNNING,
   ERR_WORKER_PATH,
   ERR_WORKER_UNSERIALIZABLE_ERROR,
   ERR_WORKER_UNSUPPORTED_EXTENSION,
   ERR_WORKER_INVALID_EXEC_ARGV,
   ERR_INVALID_ARG_TYPE,
-} = require('internal/errors').codes;
-const { validateString } = require('internal/validators');
+  ERR_INVALID_ARG_VALUE,
+} = errorCodes;
 const { getOptionValue } = require('internal/options');
 
 const workerIo = require('internal/worker/io');
@@ -31,14 +42,20 @@ const {
   ReadableWorkerStdio,
   WritableWorkerStdio
 } = workerIo;
-const { deserializeError } = require('internal/error-serdes');
-const { pathToFileURL } = require('url');
+const { deserializeError } = require('internal/error_serdes');
+const { fileURLToPath, isURLInstance, pathToFileURL } = require('internal/url');
 
 const {
   ownsProcessState,
   isMainThread,
+  resourceLimits: resourceLimitsRaw,
   threadId,
   Worker: WorkerImpl,
+  kMaxYoungGenerationSizeMb,
+  kMaxOldGenerationSizeMb,
+  kCodeRangeSizeMb,
+  kStackSizeMb,
+  kTotalResourceLimitCount
 } = internalBinding('worker');
 
 const kHandle = Symbol('kHandle');
@@ -50,8 +67,10 @@ const kOnCouldNotSerializeErr = Symbol('kOnCouldNotSerializeErr');
 const kOnErrorMessage = Symbol('kOnErrorMessage');
 const kParentSideStdio = Symbol('kParentSideStdio');
 
-const SHARE_ENV = Symbol.for('nodejs.worker_threads.SHARE_ENV');
-const debug = require('internal/util/debuglog').debuglog('worker');
+const SHARE_ENV = SymbolFor('nodejs.worker_threads.SHARE_ENV');
+let debug = require('internal/util/debuglog').debuglog('worker', (fn) => {
+  debug = fn;
+});
 
 let cwdCounter;
 
@@ -68,28 +87,56 @@ class Worker extends EventEmitter {
   constructor(filename, options = {}) {
     super();
     debug(`[${threadId}] create new worker`, filename, options);
-    validateString(filename, 'filename');
-    if (options.execArgv && !Array.isArray(options.execArgv)) {
+    if (options.execArgv && !ArrayIsArray(options.execArgv)) {
       throw new ERR_INVALID_ARG_TYPE('options.execArgv',
-                                     'array',
+                                     'Array',
                                      options.execArgv);
     }
-    if (!options.eval) {
-      if (!path.isAbsolute(filename) && !/^\.\.?[\\/]/.test(filename)) {
+    let argv;
+    if (options.argv) {
+      if (!ArrayIsArray(options.argv)) {
+        throw new ERR_INVALID_ARG_TYPE('options.argv', 'Array', options.argv);
+      }
+      argv = options.argv.map(String);
+    }
+
+    let url;
+    if (options.eval) {
+      if (typeof filename !== 'string') {
+        throw new ERR_INVALID_ARG_VALUE(
+          'options.eval',
+          options.eval,
+          'must be false when \'filename\' is not a string'
+        );
+      }
+      url = null;
+    } else {
+      if (isURLInstance(filename)) {
+        url = filename;
+        filename = fileURLToPath(filename);
+      } else if (typeof filename !== 'string') {
+        throw new ERR_INVALID_ARG_TYPE(
+          'filename',
+          ['string', 'URL'],
+          filename
+        );
+      } else if (path.isAbsolute(filename) || /^\.\.?[\\/]/.test(filename)) {
+        filename = path.resolve(filename);
+        url = pathToFileURL(filename);
+      } else {
         throw new ERR_WORKER_PATH(filename);
       }
-      filename = path.resolve(filename);
 
       const ext = path.extname(filename);
-      if (ext !== '.js' && ext !== '.mjs') {
+      if (ext !== '.js' && ext !== '.mjs' && ext !== '.cjs') {
         throw new ERR_WORKER_UNSUPPORTED_EXTENSION(ext);
       }
     }
 
     let env;
     if (typeof options.env === 'object' && options.env !== null) {
-      env = Object.create(null);
-      for (const [ key, value ] of Object.entries(options.env))
+      env = ObjectCreate(null);
+      for (const [ key, value ] of ObjectEntries(options.env))
         env[key] = `${value}`;
     } else if (options.env == null) {
       env = process.env;
@@ -100,20 +147,22 @@ class Worker extends EventEmitter {
         options.env);
     }
 
-    const url = options.eval ? null : pathToFileURL(filename);
     // Set up the C++ handle for the worker, as well as some internal wiring.
-    this[kHandle] = new WorkerImpl(url, options.execArgv);
+    this[kHandle] = new WorkerImpl(url,
+                                   env === process.env ? null : env,
+                                   options.execArgv,
+                                   parseResourceLimits(options.resourceLimits),
+                                   !!options.trackUnmanagedFds);
     if (this[kHandle].invalidExecArgv) {
       throw new ERR_WORKER_INVALID_EXEC_ARGV(this[kHandle].invalidExecArgv);
     }
-    if (env === process.env) {
-      // This may be faster than manually cloning the object in C++, especially
-      // when recursively spawning Workers.
-      this[kHandle].cloneParentEnvVars();
-    } else if (env !== undefined) {
-      this[kHandle].setEnvVars(env);
+    if (this[kHandle].invalidNodeOptions) {
+      throw new ERR_WORKER_INVALID_EXEC_ARGV(
+        this[kHandle].invalidNodeOptions, 'invalid NODE_OPTIONS env variable');
     }
-    this[kHandle].onexit = (code) => this[kOnExit](code);
+    this[kHandle].onexit = (code, customErr, customErrReason) => {
+      this[kOnExit](code, customErr, customErrReason);
+    };
     this[kPort] = this[kHandle].messagePort;
     this[kPort].on('message', (data) => this[kOnMessage](data));
     this[kPort].start();
@@ -138,30 +187,46 @@ class Worker extends EventEmitter {
     this[kParentSideStdio] = { stdin, stdout, stderr };
 
     const { port1, port2 } = new MessageChannel();
+    const transferList = [port2];
+    // If transferList is provided.
+    if (options.transferList)
+      transferList.push(...options.transferList);
+
     this[kPublicPort] = port1;
-    this[kPublicPort].on('message', (message) => this.emit('message', message));
+    for (const event of ['message', 'messageerror']) {
+      this[kPublicPort].on(event, (message) => this.emit(event, message));
+    }
     setupPortReferencing(this[kPublicPort], this, 'message');
     this[kPort].postMessage({
+      argv,
       type: messageTypes.LOAD_SCRIPT,
       filename,
       doEval: !!options.eval,
       cwdCounter: cwdCounter || workerIo.sharedCwdCounter,
       workerData: options.workerData,
       publicPort: port2,
+      manifestURL: getOptionValue('--experimental-policy') ?
+        require('internal/process/policy').url :
+        null,
       manifestSrc: getOptionValue('--experimental-policy') ?
         require('internal/process/policy').src :
         null,
       hasStdin: !!options.stdin
-    }, [port2]);
+    }, transferList);
     // Actually start the new thread now that everything is in place.
     this[kHandle].startThread();
   }
 
-  [kOnExit](code) {
+  [kOnExit](code, customErr, customErrReason) {
     debug(`[${threadId}] hears end event for Worker ${this.threadId}`);
     drainMessagePort(this[kPublicPort]);
     drainMessagePort(this[kPort]);
     this[kDispose]();
+    if (customErr) {
+      debug(`[${threadId}] failing with custom error ${customErr} \
+        and with reason ${customErrReason}`);
+      this.emit('error', new errorCodes[customErr](customErrReason));
+    }
     this.emit('exit', code);
     this.removeAllListeners();
   }
@@ -186,8 +251,11 @@ class Worker extends EventEmitter {
         return this[kOnErrorMessage](message.error);
       case messageTypes.STDIO_PAYLOAD:
       {
-        const { stream, chunk, encoding } = message;
-        return this[kParentSideStdio][stream].push(chunk, encoding);
+        const { stream, chunks } = message;
+        const readable = this[kParentSideStdio][stream];
+        for (const { chunk, encoding } of chunks)
+          readable.push(chunk, encoding);
+        return;
       }
       case messageTypes.STDIO_WANTS_MORE_DATA:
       {
@@ -233,11 +301,11 @@ class Worker extends EventEmitter {
         'Passing a callback to worker.terminate() is deprecated. ' +
         'It returns a Promise instead.',
         'DeprecationWarning', 'DEP0132');
-      if (this[kHandle] === null) return Promise.resolve();
+      if (this[kHandle] === null) return PromiseResolve();
       this.once('exit', (exitCode) => callback(null, exitCode));
     }
 
-    if (this[kHandle] === null) return Promise.resolve();
+    if (this[kHandle] === null) return PromiseResolve();
 
     this[kHandle].stopThread();
 
@@ -280,6 +348,23 @@ class Worker extends EventEmitter {
   get stderr() {
     return this[kParentSideStdio].stderr;
   }
+
+  get resourceLimits() {
+    if (this[kHandle] === null) return {};
+
+    return makeResourceLimits(this[kHandle].getResourceLimits());
+  }
+
+  getHeapSnapshot() {
+    const heapSnapshotTaker = this[kHandle] && this[kHandle].takeHeapSnapshot();
+    return new Promise((resolve, reject) => {
+      if (!heapSnapshotTaker) return reject(new ERR_WORKER_NOT_RUNNING());
+      heapSnapshotTaker.ondone = (handle) => {
+        const { HeapSnapshotStream } = require('internal/heap_utils');
+        resolve(new HeapSnapshotStream(handle));
+      };
+    });
+  }
 }
 
 function pipeWithoutWarning(source, dest) {
@@ -294,10 +379,38 @@ function pipeWithoutWarning(source, dest) {
   dest._maxListeners = destMaxListeners;
 }
 
+const resourceLimitsArray = new Float64Array(kTotalResourceLimitCount);
+function parseResourceLimits(obj) {
+  const ret = resourceLimitsArray;
+  ret.fill(-1);
+  if (typeof obj !== 'object' || obj === null) return ret;
+
+  if (typeof obj.maxOldGenerationSizeMb === 'number')
+    ret[kMaxOldGenerationSizeMb] = MathMax(obj.maxOldGenerationSizeMb, 2);
+  if (typeof obj.maxYoungGenerationSizeMb === 'number')
+    ret[kMaxYoungGenerationSizeMb] = obj.maxYoungGenerationSizeMb;
+  if (typeof obj.codeRangeSizeMb === 'number')
+    ret[kCodeRangeSizeMb] = obj.codeRangeSizeMb;
+  if (typeof obj.stackSizeMb === 'number')
+    ret[kStackSizeMb] = obj.stackSizeMb;
+  return ret;
+}
+
+function makeResourceLimits(float64arr) {
+  return {
+    maxYoungGenerationSizeMb: float64arr[kMaxYoungGenerationSizeMb],
+    maxOldGenerationSizeMb: float64arr[kMaxOldGenerationSizeMb],
+    codeRangeSizeMb: float64arr[kCodeRangeSizeMb],
+    stackSizeMb: float64arr[kStackSizeMb]
+  };
+}
+
 module.exports = {
   ownsProcessState,
   isMainThread,
   SHARE_ENV,
+  resourceLimits:
+    !isMainThread ? makeResourceLimits(resourceLimitsRaw) : {},
   threadId,
   Worker,
 };

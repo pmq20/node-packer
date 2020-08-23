@@ -1,5 +1,3 @@
-// Flags: --experimental-modules
-
 'use strict';
 const common = require('../common');
 const assert = require('assert');
@@ -17,8 +15,8 @@ function expectErrorProperty(result, propertyKey, value) {
     }));
 }
 
-function expectMissingModuleError(result) {
-  expectErrorProperty(result, 'code', 'ERR_MODULE_NOT_FOUND');
+function expectModuleError(result, err) {
+  expectErrorProperty(result, 'code', err);
 }
 
 function expectOkNamespace(result) {
@@ -54,11 +52,12 @@ function expectFsNamespace(result) {
   expectFsNamespace(import('fs'));
   expectFsNamespace(eval('import("fs")'));
   expectFsNamespace(eval('import("fs")'));
+  expectFsNamespace(import('nodejs:fs'));
 
-  expectMissingModuleError(import('./not-an-existing-module.mjs'));
-  // TODO(jkrems): Right now this doesn't hit a protocol error because the
-  // module resolution step already rejects it. These arguably should be
-  // protocol errors.
-  expectMissingModuleError(import('node:fs'));
-  expectMissingModuleError(import('http://example.com/foo.js'));
+  expectModuleError(import('nodejs:unknown'),
+                    'ERR_UNKNOWN_BUILTIN_MODULE');
+  expectModuleError(import('./not-an-existing-module.mjs'),
+                    'ERR_MODULE_NOT_FOUND');
+  expectModuleError(import('http://example.com/foo.js'),
+                    'ERR_UNSUPPORTED_ESM_URL_SCHEME');
 })();

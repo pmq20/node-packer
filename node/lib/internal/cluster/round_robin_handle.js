@@ -1,16 +1,22 @@
 'use strict';
+
+const {
+  ArrayIsArray,
+  Boolean,
+  Map,
+} = primordials;
+
 const assert = require('internal/assert');
 const net = require('net');
 const { sendHelper } = require('internal/cluster/utils');
-const uv = internalBinding('uv');
 const { constants } = internalBinding('tcp_wrap');
 
 module.exports = RoundRobinHandle;
 
-function RoundRobinHandle(key, address, port, addressType, fd, flags) {
+function RoundRobinHandle(key, address, { port, fd, flags }) {
   this.key = key;
   this.all = new Map();
-  this.free = [];
+  this.free = new Map();
   this.handles = [];
   this.handle = null;
   this.server = net.createServer(assert.fail);
@@ -58,10 +64,7 @@ RoundRobinHandle.prototype.add = function(worker, send) {
   // Still busy binding.
   this.server.once('listening', done);
   this.server.once('error', (err) => {
-    // Hack: translate 'EADDRINUSE' error string back to numeric error code.
-    // It works but ideally we'd have some backchannel between the net and
-    // cluster modules for stuff like this.
-    send(uv[`UV_${err.errno}`], null);
+    send(err.errno, null);
   });
 };
 
@@ -71,10 +74,7 @@ RoundRobinHandle.prototype.remove = function(worker) {
   if (!existed)
     return false;
 
-  const index = this.free.indexOf(worker);
-
-  if (index !== -1)
-    this.free.splice(index, 1);
+  this.free.delete(worker.id);
 
   if (this.all.size !== 0)
     return false;
@@ -91,21 +91,24 @@ RoundRobinHandle.prototype.remove = function(worker) {
 
 RoundRobinHandle.prototype.distribute = function(err, handle) {
   this.handles.push(handle);
-  const worker = this.free.shift();
+  const [ workerEntry ] = this.free;
 
-  if (worker)
+  if (ArrayIsArray(workerEntry)) {
+    const [ workerId, worker ] = workerEntry;
+    this.free.delete(workerId);
     this.handoff(worker);
+  }
 };
 
 RoundRobinHandle.prototype.handoff = function(worker) {
-  if (this.all.has(worker.id) === false) {
+  if (!this.all.has(worker.id)) {
     return;  // Worker is closing (or has closed) the server.
   }
 
   const handle = this.handles.shift();
 
   if (handle === undefined) {
-    this.free.push(worker);  // Add to ready queue again.
+    this.free.set(worker.id, worker);  // Add to ready queue again.
     return;
   }
 

@@ -54,7 +54,6 @@
   V(MAP_PROTOTYPE_DICTIONARY_TYPE)               \
   V(MAP_PROTOTYPE_TYPE)                          \
   V(MAP_STABLE_TYPE)                             \
-  V(NOSCRIPT_SHARED_FUNCTION_INFOS_TYPE)         \
   V(NUMBER_STRING_CACHE_TYPE)                    \
   V(OBJECT_DICTIONARY_ELEMENTS_TYPE)             \
   V(OBJECT_ELEMENTS_TYPE)                        \
@@ -95,7 +94,7 @@ class ObjectStats {
  public:
   static const size_t kNoOverAllocation = 0;
 
-  explicit ObjectStats(Heap* heap) : heap_(heap) { ClearObjectStats(); }
+  explicit ObjectStats(Heap* heap) : heap_(heap) { ClearObjectStats(true); }
 
   // See description on VIRTUAL_INSTANCE_TYPE_LIST.
   enum VirtualInstanceType {
@@ -167,7 +166,10 @@ class ObjectStats {
 
   size_t tagged_fields_count_;
   size_t embedder_fields_count_;
+  size_t inobject_smi_fields_count_;
   size_t unboxed_double_fields_count_;
+  size_t boxed_double_fields_count_;
+  size_t string_data_count_;
   size_t raw_fields_count_;
 
   friend class ObjectStatsCollectorImpl;

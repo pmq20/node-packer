@@ -20,8 +20,6 @@ const bench = common.createBenchmark(main, {
 });
 
 function main({ type, n, len, method, strict }) {
-  if (!method)
-    method = 'deepEqual';
   const clazz = global[type];
   const actual = new clazz(len);
   const expected = new clazz(len);
@@ -36,7 +34,7 @@ function main({ type, n, len, method, strict }) {
   const value2 = method.includes('not') ? expectedWrong : expected;
 
   bench.start();
-  for (var i = 0; i < n; ++i) {
+  for (let i = 0; i < n; ++i) {
     actual[0] = i;
     value2[0] = i;
     fn(actual, value2);

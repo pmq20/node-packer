@@ -13,6 +13,9 @@
 #include "src/execution/arguments-inl.h"
 #include "src/execution/frames-inl.h"
 #include "src/execution/isolate-inl.h"
+#include "src/execution/messages.h"
+#include "src/execution/runtime-profiler.h"
+#include "src/handles/maybe-handles.h"
 #include "src/init/bootstrapper.h"
 #include "src/logging/counters.h"
 #include "src/numbers/conversions.h"
@@ -195,13 +198,40 @@ RUNTIME_FUNCTION(Runtime_ThrowAccessedUninitializedVariable) {
       NewReferenceError(MessageTemplate::kAccessedUninitializedVariable, name));
 }
 
-RUNTIME_FUNCTION(Runtime_NewTypeError) {
+RUNTIME_FUNCTION(Runtime_NewError) {
   HandleScope scope(isolate);
   DCHECK_EQ(2, args.length());
   CONVERT_INT32_ARG_CHECKED(template_index, 0);
   CONVERT_ARG_HANDLE_CHECKED(Object, arg0, 1);
   MessageTemplate message_template = MessageTemplateFromInt(template_index);
-  return *isolate->factory()->NewTypeError(message_template, arg0);
+  return *isolate->factory()->NewError(message_template, arg0);
+}
+
+RUNTIME_FUNCTION(Runtime_NewTypeError) {
+  HandleScope scope(isolate);
+  DCHECK_LE(args.length(), 4);
+  DCHECK_GE(args.length(), 1);
+  CONVERT_INT32_ARG_CHECKED(template_index, 0);
+  MessageTemplate message_template = MessageTemplateFromInt(template_index);
+
+  Handle<Object> arg0;
+  if (args.length() >= 2) {
+    CHECK(args[1].IsObject());
+    arg0 = args.at<Object>(1);
+  }
+
+  Handle<Object> arg1;
+  if (args.length() >= 3) {
+    CHECK(args[2].IsObject());
+    arg1 = args.at<Object>(2);
+  }
+  Handle<Object> arg2;
+  if (args.length() >= 4) {
+    CHECK(args[3].IsObject());
+    arg2 = args.at<Object>(3);
+  }
+
+  return *isolate->factory()->NewTypeError(message_template, arg0, arg1, arg2);
 }
 
 RUNTIME_FUNCTION(Runtime_NewReferenceError) {
@@ -281,6 +311,21 @@ RUNTIME_FUNCTION(Runtime_StackGuard) {
   return isolate->stack_guard()->HandleInterrupts();
 }
 
+RUNTIME_FUNCTION(Runtime_StackGuardWithGap) {
+  SealHandleScope shs(isolate);
+  DCHECK_EQ(args.length(), 1);
+  CONVERT_UINT32_ARG_CHECKED(gap, 0);
+  TRACE_EVENT0("v8.execute", "V8.StackGuard");
+
+  // First check if this is a real stack overflow.
+  StackLimitCheck check(isolate);
+  if (check.JsHasOverflowed(gap)) {
+    return isolate->StackOverflow();
+  }
+
+  return isolate->stack_guard()->HandleInterrupts();
+}
+
 RUNTIME_FUNCTION(Runtime_BytecodeBudgetInterrupt) {
   HandleScope scope(isolate);
   DCHECK_EQ(1, args.length());
@@ -294,10 +339,11 @@ RUNTIME_FUNCTION(Runtime_BytecodeBudgetInterrupt) {
     function->feedback_vector().set_invocation_count(1);
     return ReadOnlyRoots(isolate).undefined_value();
   }
-  // Handle interrupts.
   {
     SealHandleScope shs(isolate);
-    return isolate->stack_guard()->HandleInterrupts();
+    isolate->counters()->runtime_profiler_ticks()->Increment();
+    isolate->runtime_profiler()->MarkCandidatesForOptimization();
+    return ReadOnlyRoots(isolate).undefined_value();
   }
 }
 
@@ -322,7 +368,8 @@ RUNTIME_FUNCTION(Runtime_AllocateInYoungGeneration) {
   double_align = false;
 
   return *isolate->factory()->NewFillerObject(size, double_align,
-                                              AllocationType::kYoung);
+                                              AllocationType::kYoung,
+                                              AllocationOrigin::kGeneratedCode);
 }
 
 RUNTIME_FUNCTION(Runtime_AllocateInOldGeneration) {
@@ -339,7 +386,8 @@ RUNTIME_FUNCTION(Runtime_AllocateInOldGeneration) {
     CHECK(size <= kMaxRegularHeapObjectSize);
   }
   return *isolate->factory()->NewFillerObject(size, double_align,
-                                              AllocationType::kOld);
+                                              AllocationType::kOld,
+                                              AllocationOrigin::kGeneratedCode);
 }
 
 RUNTIME_FUNCTION(Runtime_AllocateByteArray) {
@@ -372,228 +420,44 @@ RUNTIME_FUNCTION(Runtime_AllocateSeqTwoByteString) {
   return *result;
 }
 
-namespace {
-
-bool ComputeLocation(Isolate* isolate, MessageLocation* target) {
-  JavaScriptFrameIterator it(isolate);
-  if (!it.done()) {
-    // Compute the location from the function and the relocation info of the
-    // baseline code. For optimized code this will use the deoptimization
-    // information to get canonical location information.
-    std::vector<FrameSummary> frames;
-    it.frame()->Summarize(&frames);
-    auto& summary = frames.back().AsJavaScript();
-    Handle<SharedFunctionInfo> shared(summary.function()->shared(), isolate);
-    Handle<Object> script(shared->script(), isolate);
-    SharedFunctionInfo::EnsureSourcePositionsAvailable(isolate, shared);
-    int pos = summary.abstract_code()->SourcePosition(summary.code_offset());
-    if (script->IsScript() &&
-        !(Handle<Script>::cast(script)->source().IsUndefined(isolate))) {
-      Handle<Script> casted_script = Handle<Script>::cast(script);
-      *target = MessageLocation(casted_script, pos, pos + 1, shared);
-      return true;
-    }
-  }
-  return false;
-}
-
-Handle<String> BuildDefaultCallSite(Isolate* isolate, Handle<Object> object) {
-  IncrementalStringBuilder builder(isolate);
-
-  builder.AppendString(Object::TypeOf(isolate, object));
-  if (object->IsString()) {
-    builder.AppendCString(" \"");
-    builder.AppendString(Handle<String>::cast(object));
-    builder.AppendCString("\"");
-  } else if (object->IsNull(isolate)) {
-    builder.AppendCString(" ");
-    builder.AppendString(isolate->factory()->null_string());
-  } else if (object->IsTrue(isolate)) {
-    builder.AppendCString(" ");
-    builder.AppendString(isolate->factory()->true_string());
-  } else if (object->IsFalse(isolate)) {
-    builder.AppendCString(" ");
-    builder.AppendString(isolate->factory()->false_string());
-  } else if (object->IsNumber()) {
-    builder.AppendCString(" ");
-    builder.AppendString(isolate->factory()->NumberToString(object));
-  }
-
-  return builder.Finish().ToHandleChecked();
-}
-
-Handle<String> RenderCallSite(Isolate* isolate, Handle<Object> object,
-                              CallPrinter::ErrorHint* hint) {
-  MessageLocation location;
-  if (ComputeLocation(isolate, &location)) {
-    ParseInfo info(isolate, location.shared());
-    if (parsing::ParseAny(&info, location.shared(), isolate)) {
-      info.ast_value_factory()->Internalize(isolate);
-      CallPrinter printer(isolate, location.shared()->IsUserJavaScript());
-      Handle<String> str = printer.Print(info.literal(), location.start_pos());
-      *hint = printer.GetErrorHint();
-      if (str->length() > 0) return str;
-    } else {
-      isolate->clear_pending_exception();
-    }
-  }
-  return BuildDefaultCallSite(isolate, object);
-}
-
-MessageTemplate UpdateErrorTemplate(CallPrinter::ErrorHint hint,
-                                    MessageTemplate default_id) {
-  switch (hint) {
-    case CallPrinter::ErrorHint::kNormalIterator:
-      return MessageTemplate::kNotIterable;
-
-    case CallPrinter::ErrorHint::kCallAndNormalIterator:
-      return MessageTemplate::kNotCallableOrIterable;
-
-    case CallPrinter::ErrorHint::kAsyncIterator:
-      return MessageTemplate::kNotAsyncIterable;
-
-    case CallPrinter::ErrorHint::kCallAndAsyncIterator:
-      return MessageTemplate::kNotCallableOrAsyncIterable;
-
-    case CallPrinter::ErrorHint::kNone:
-      return default_id;
-  }
-  return default_id;
-}
-
-}  // namespace
-
-MaybeHandle<Object> Runtime::ThrowIteratorError(Isolate* isolate,
-                                                Handle<Object> object) {
-  CallPrinter::ErrorHint hint = CallPrinter::kNone;
-  Handle<String> callsite = RenderCallSite(isolate, object, &hint);
-  MessageTemplate id = MessageTemplate::kNotIterableNoSymbolLoad;
-
-  if (hint == CallPrinter::kNone) {
-    Handle<Symbol> iterator_symbol = isolate->factory()->iterator_symbol();
-    THROW_NEW_ERROR(isolate, NewTypeError(id, callsite, iterator_symbol),
-                    Object);
-  }
-
-  id = UpdateErrorTemplate(hint, id);
-  THROW_NEW_ERROR(isolate, NewTypeError(id, callsite), Object);
-}
-
 RUNTIME_FUNCTION(Runtime_ThrowIteratorError) {
   HandleScope scope(isolate);
   DCHECK_EQ(1, args.length());
   CONVERT_ARG_HANDLE_CHECKED(Object, object, 0);
-  RETURN_RESULT_OR_FAILURE(isolate,
-                           Runtime::ThrowIteratorError(isolate, object));
+  return isolate->Throw(*ErrorUtils::NewIteratorError(isolate, object));
+}
+
+RUNTIME_FUNCTION(Runtime_ThrowSpreadArgError) {
+  HandleScope scope(isolate);
+  DCHECK_EQ(2, args.length());
+  CONVERT_SMI_ARG_CHECKED(message_id_smi, 0);
+  MessageTemplate message_id = MessageTemplateFromInt(message_id_smi);
+  CONVERT_ARG_HANDLE_CHECKED(Object, object, 1);
+  return ErrorUtils::ThrowSpreadArgError(isolate, message_id, object);
 }
 
 RUNTIME_FUNCTION(Runtime_ThrowCalledNonCallable) {
   HandleScope scope(isolate);
   DCHECK_EQ(1, args.length());
   CONVERT_ARG_HANDLE_CHECKED(Object, object, 0);
-  CallPrinter::ErrorHint hint = CallPrinter::kNone;
-  Handle<String> callsite = RenderCallSite(isolate, object, &hint);
-  MessageTemplate id = MessageTemplate::kCalledNonCallable;
-  id = UpdateErrorTemplate(hint, id);
-  THROW_NEW_ERROR_RETURN_FAILURE(isolate, NewTypeError(id, callsite));
+  return isolate->Throw(
+      *ErrorUtils::NewCalledNonCallableError(isolate, object));
 }
 
 RUNTIME_FUNCTION(Runtime_ThrowConstructedNonConstructable) {
   HandleScope scope(isolate);
   DCHECK_EQ(1, args.length());
   CONVERT_ARG_HANDLE_CHECKED(Object, object, 0);
-  CallPrinter::ErrorHint hint = CallPrinter::kNone;
-  Handle<String> callsite = RenderCallSite(isolate, object, &hint);
-  MessageTemplate id = MessageTemplate::kNotConstructor;
-  THROW_NEW_ERROR_RETURN_FAILURE(isolate, NewTypeError(id, callsite));
+  return isolate->Throw(
+      *ErrorUtils::NewConstructedNonConstructable(isolate, object));
 }
-
-namespace {
-
-// Helper visitor for ThrowPatternAssignmentNonCoercible which finds an
-// object literal (representing a destructuring assignment) at a given source
-// position.
-class PatternFinder final : public AstTraversalVisitor<PatternFinder> {
- public:
-  PatternFinder(Isolate* isolate, Expression* root, int position)
-      : AstTraversalVisitor(isolate, root),
-        position_(position),
-        object_literal_(nullptr) {}
-
-  ObjectLiteral* object_literal() const { return object_literal_; }
-
- private:
-  // This is required so that the overriden Visit* methods can be
-  // called by the base class (template).
-  friend class AstTraversalVisitor<PatternFinder>;
-
-  void VisitObjectLiteral(ObjectLiteral* lit) {
-    // TODO(leszeks): This could be smarter in only traversing object literals
-    // that are known to be a destructuring pattern. We could then also
-    // potentially find the corresponding assignment value and report that too.
-    if (lit->position() == position_) {
-      object_literal_ = lit;
-      return;
-    }
-    AstTraversalVisitor::VisitObjectLiteral(lit);
-  }
-
-  int position_;
-  ObjectLiteral* object_literal_;
-};
-
-}  // namespace
 
 RUNTIME_FUNCTION(Runtime_ThrowPatternAssignmentNonCoercible) {
   HandleScope scope(isolate);
-  DCHECK_EQ(0, args.length());
-
-  // Find the object literal representing the destructuring assignment, so that
-  // we can try to attribute the error to a property name on it rather than to
-  // the literal itself.
-  MaybeHandle<String> maybe_property_name;
-  MessageLocation location;
-  if (ComputeLocation(isolate, &location)) {
-    ParseInfo info(isolate, location.shared());
-    if (parsing::ParseAny(&info, location.shared(), isolate)) {
-      info.ast_value_factory()->Internalize(isolate);
-
-      PatternFinder finder(isolate, info.literal(), location.start_pos());
-      finder.Run();
-      if (finder.object_literal()) {
-        for (ObjectLiteralProperty* pattern_property :
-             *finder.object_literal()->properties()) {
-          Expression* key = pattern_property->key();
-          if (key->IsPropertyName()) {
-            int pos = key->position();
-            maybe_property_name =
-                key->AsLiteral()->AsRawPropertyName()->string();
-            // Change the message location to point at the property name.
-            location = MessageLocation(location.script(), pos, pos + 1,
-                                       location.shared());
-            break;
-          }
-        }
-      }
-    } else {
-      isolate->clear_pending_exception();
-    }
-  }
-
-  // Create a "non-coercible" type error with a property name if one is
-  // available, otherwise create a generic one.
-  Handle<Object> error;
-  Handle<String> property_name;
-  if (maybe_property_name.ToHandle(&property_name)) {
-    error = isolate->factory()->NewTypeError(
-        MessageTemplate::kNonCoercibleWithProperty, property_name);
-  } else {
-    error = isolate->factory()->NewTypeError(MessageTemplate::kNonCoercible);
-  }
-
-  // Explicitly pass the calculated location, as we may have updated it to match
-  // the property name.
-  return isolate->Throw(*error, &location);
+  DCHECK_EQ(1, args.length());
+  CONVERT_ARG_HANDLE_CHECKED(Object, object, 0);
+  return ErrorUtils::ThrowLoadFromNullOrUndefined(isolate, object,
+                                                  MaybeHandle<Object>());
 }
 
 RUNTIME_FUNCTION(Runtime_ThrowConstructorReturnedNonObject) {
@@ -734,19 +598,21 @@ RUNTIME_FUNCTION(Runtime_GetTemplateObject) {
       isolate, native_context, description, shared_info, slot_id);
 }
 
-RUNTIME_FUNCTION(Runtime_ReportMessage) {
+RUNTIME_FUNCTION(Runtime_ReportMessageFromMicrotask) {
   // Helper to report messages and continue JS execution. This is intended to
-  // behave similarly to reporting exceptions which reach the top-level in
-  // Execution.cc, but allow the JS code to continue. This is useful for
-  // implementing algorithms such as RunMicrotasks in JS.
+  // behave similarly to reporting exceptions which reach the top-level, but
+  // allow the JS code to continue.
   HandleScope scope(isolate);
   DCHECK_EQ(1, args.length());
 
-  CONVERT_ARG_HANDLE_CHECKED(Object, message_obj, 0);
+  CONVERT_ARG_HANDLE_CHECKED(Object, exception, 0);
 
   DCHECK(!isolate->has_pending_exception());
-  isolate->set_pending_exception(*message_obj);
-  isolate->ReportPendingMessagesFromJavaScript();
+  isolate->set_pending_exception(*exception);
+  MessageLocation* no_location = nullptr;
+  Handle<JSMessageObject> message =
+      isolate->CreateMessageOrAbort(exception, no_location);
+  MessageHandler::ReportMessage(isolate, no_location, message);
   isolate->clear_pending_exception();
   return ReadOnlyRoots(isolate).undefined_value();
 }
@@ -760,5 +626,18 @@ RUNTIME_FUNCTION(Runtime_GetInitializerFunction) {
   Handle<Object> initializer = JSReceiver::GetDataProperty(constructor, key);
   return *initializer;
 }
+
+RUNTIME_FUNCTION(Runtime_DoubleToStringWithRadix) {
+  HandleScope scope(isolate);
+  DCHECK_EQ(2, args.length());
+  CONVERT_DOUBLE_ARG_CHECKED(number, 0);
+  CONVERT_INT32_ARG_CHECKED(radix, 1);
+
+  char* const str = DoubleToRadixCString(number, radix);
+  Handle<String> result = isolate->factory()->NewStringFromAsciiChecked(str);
+  DeleteArray(str);
+  return *result;
+}
+
 }  // namespace internal
 }  // namespace v8

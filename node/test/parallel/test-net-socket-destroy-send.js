@@ -12,16 +12,12 @@ server.listen(0, common.mustCall(function() {
   conn.on('connect', common.mustCall(function() {
     // Test destroy returns this, even on multiple calls when it short-circuits.
     assert.strictEqual(conn, conn.destroy().destroy());
-    conn.on('error', common.expectsError({
-      code: 'ERR_STREAM_DESTROYED',
-      message: 'Cannot call write after a stream was destroyed',
-      type: Error
-    }));
+    conn.on('error', common.mustNotCall());
 
     conn.write(Buffer.from('kaboom'), common.expectsError({
       code: 'ERR_STREAM_DESTROYED',
       message: 'Cannot call write after a stream was destroyed',
-      type: Error
+      name: 'Error'
     }));
     server.close();
   }));

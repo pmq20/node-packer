@@ -1,6 +1,9 @@
 'use strict';
 
-const { Object } = primordials;
+const {
+  Map,
+  ObjectAssign,
+} = primordials;
 
 const assert = require('internal/assert');
 const path = require('path');
@@ -116,8 +119,8 @@ function shared(message, handle, indexesKey, cb) {
     send({ act: 'close', key });
     handles.delete(key);
     indexes.delete(indexesKey);
-    return close.apply(this, arguments);
-  }.bind(handle);
+    return close.apply(handle, arguments);
+  };
   assert(handles.has(key) === false);
   handles.set(key, handle);
   cb(message.errno, handle);
@@ -128,7 +131,7 @@ function rr(message, indexesKey, cb) {
   if (message.errno)
     return cb(message.errno, null);
 
-  var key = message.key;
+  let key = message.key;
 
   function listen(backlog) {
     // TODO(bnoordhuis) Send a message to the master that tells it to
@@ -154,7 +157,7 @@ function rr(message, indexesKey, cb) {
 
   function getsockname(out) {
     if (key)
-      Object.assign(out, message.sockname);
+      ObjectAssign(out, message.sockname);
 
     return 0;
   }
@@ -225,16 +228,23 @@ function _disconnect(masterInitiated) {
 
 // Extend generic Worker with methods specific to worker processes.
 Worker.prototype.disconnect = function() {
-  _disconnect.call(this);
+  if (![ 'disconnecting', 'destroying' ].includes(this.state)) {
+    this.state = 'disconnecting';
+    _disconnect.call(this);
+  }
+
   return this;
 };
 
 Worker.prototype.destroy = function() {
-  this.exitedAfterDisconnect = true;
+  if (this.state === 'destroying')
+    return;
 
+  this.exitedAfterDisconnect = true;
   if (!this.isConnected()) {
     process.exit(0);
   } else {
+    this.state = 'destroying';
     send({ act: 'exitedAfterDisconnect' }, () => process.disconnect());
     process.once('disconnect', () => process.exit(0));
   }

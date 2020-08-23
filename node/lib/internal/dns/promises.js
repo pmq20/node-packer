@@ -1,16 +1,21 @@
 'use strict';
 
-const { Object } = primordials;
+const {
+  ObjectCreate,
+  ObjectDefineProperty,
+  Promise,
+} = primordials;
 
 const {
   bindDefaultResolver,
   Resolver: CallbackResolver,
   validateHints,
+  validateTimeout,
   emitInvalidHostnameWarning,
 } = require('internal/dns/utils');
 const { codes, dnsException } = require('internal/errors');
 const { toASCII } = require('internal/idna');
-const { isIP, isLegalPort } = require('internal/net');
+const { isIP } = require('internal/net');
 const {
   getaddrinfo,
   getnameinfo,
@@ -23,10 +28,11 @@ const {
   ERR_INVALID_ARG_TYPE,
   ERR_INVALID_OPT_VALUE,
   ERR_MISSING_ARGS,
-  ERR_SOCKET_BAD_PORT
 } = codes;
-const { validateString } = require('internal/validators');
-
+const {
+  validatePort,
+  validateString
+} = require('internal/validators');
 
 function onlookup(err, addresses) {
   if (err) {
@@ -62,11 +68,7 @@ function createLookupPromise(family, hostname, all, hints, verbatim) {
   return new Promise((resolve, reject) => {
     if (!hostname) {
       emitInvalidHostnameWarning(hostname);
-      if (all)
-        resolve([]);
-      else
-        resolve({ address: null, family: family === 6 ? 6 : 4 });
-
+      resolve(all ? [] : { address: null, family: family === 6 ? 6 : 4 });
       return;
     }
 
@@ -74,11 +76,7 @@ function createLookupPromise(family, hostname, all, hints, verbatim) {
 
     if (matchedFamily !== 0) {
       const result = { address: hostname, family: matchedFamily };
-      if (all)
-        resolve([result]);
-      else
-        resolve(result);
-
+      resolve(all ? [result] : result);
       return;
     }
 
@@ -158,8 +156,7 @@ function lookupService(address, port) {
   if (isIP(address) === 0)
     throw new ERR_INVALID_OPT_VALUE('address', address);
 
-  if (!isLegalPort(port))
-    throw new ERR_SOCKET_BAD_PORT(port);
+  validatePort(port);
 
   return createLookupServicePromise(address, +port);
 }
@@ -203,17 +200,18 @@ function resolver(bindingName) {
     return createResolverPromise(this, bindingName, name, ttl);
   }
 
-  Object.defineProperty(query, 'name', { value: bindingName });
+  ObjectDefineProperty(query, 'name', { value: bindingName });
   return query;
 }
 
 
-const resolveMap = Object.create(null);
+const resolveMap = ObjectCreate(null);
 
 // Resolver instances correspond 1:1 to c-ares channels.
 class Resolver {
-  constructor() {
-    this._handle = new ChannelWrap();
+  constructor(options = undefined) {
+    const timeout = validateTimeout(options);
+    this._handle = new ChannelWrap(timeout);
   }
 }
 

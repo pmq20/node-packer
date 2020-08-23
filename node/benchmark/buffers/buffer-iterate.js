@@ -21,7 +21,7 @@ function main({ size, type, method, n }) {
     Buffer.alloc(size) :
     SlowBuffer(size).fill(0);
 
-  const fn = methods[method || 'for'];
+  const fn = methods[method];
 
   bench.start();
   fn(buffer, n);
@@ -29,15 +29,15 @@ function main({ size, type, method, n }) {
 }
 
 function benchFor(buffer, n) {
-  for (var k = 0; k < n; k++) {
-    for (var i = 0; i < buffer.length; i++) {
+  for (let k = 0; k < n; k++) {
+    for (let i = 0; i < buffer.length; i++) {
       assert(buffer[i] === 0);
     }
   }
 }
 
 function benchForOf(buffer, n) {
-  for (var k = 0; k < n; k++) {
+  for (let k = 0; k < n; k++) {
     for (const b of buffer) {
       assert(b === 0);
     }
@@ -45,7 +45,7 @@ function benchForOf(buffer, n) {
 }
 
 function benchIterator(buffer, n) {
-  for (var k = 0; k < n; k++) {
+  for (let k = 0; k < n; k++) {
     const iter = buffer[Symbol.iterator]();
     let cur = iter.next();
 

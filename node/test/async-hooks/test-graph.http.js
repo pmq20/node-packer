@@ -11,11 +11,11 @@ const http = require('http');
 const hooks = initHooks();
 hooks.enable();
 
-const server = http.createServer(common.mustCall(function(req, res) {
+const server = http.createServer(common.mustCall((req, res) => {
   res.end();
-  this.close(common.mustCall());
+  server.close(common.mustCall());
 }));
-server.listen(0, common.mustCall(function() {
+server.listen(0, common.mustCall(() => {
   http.get({
     host: '::1',
     family: 6,
@@ -23,7 +23,7 @@ server.listen(0, common.mustCall(function() {
   }, common.mustCall());
 }));
 
-process.on('exit', function() {
+process.on('exit', () => {
   hooks.disable();
 
   verifyGraph(
@@ -39,13 +39,12 @@ process.on('exit', function() {
         id: 'httpclientrequest:1',
         triggerAsyncId: 'tcpserver:1' },
       { type: 'TCPWRAP', id: 'tcp:2', triggerAsyncId: 'tcpserver:1' },
-      { type: 'Timeout', id: 'timeout:1', triggerAsyncId: 'tcp:2' },
       { type: 'HTTPINCOMINGMESSAGE',
         id: 'httpincomingmessage:1',
         triggerAsyncId: 'tcp:2' },
       { type: 'Timeout',
-        id: 'timeout:2',
-        triggerAsyncId: 'tcp:2' },
+        id: 'timeout:1',
+        triggerAsyncId: 'httpincomingmessage:1' },
       { type: 'SHUTDOWNWRAP',
         id: 'shutdown:1',
         triggerAsyncId: 'tcp:2' } ]

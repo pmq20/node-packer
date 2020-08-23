@@ -1,15 +1,25 @@
 'use strict';
 
-const { Object } = primordials;
+const {
+  ObjectDefineProperty,
+  Set
+} = primordials;
 
 const { Buffer } = require('buffer');
 const {
   ERR_CRYPTO_ECDH_INVALID_FORMAT,
   ERR_CRYPTO_ECDH_INVALID_PUBLIC_KEY,
-  ERR_INVALID_ARG_TYPE
+  ERR_CRYPTO_INCOMPATIBLE_KEY,
+  ERR_CRYPTO_INVALID_KEY_OBJECT_TYPE,
+  ERR_INVALID_ARG_TYPE,
+  ERR_INVALID_OPT_VALUE
 } = require('internal/errors').codes;
-const { validateString } = require('internal/validators');
+const {
+  validateString,
+  validateInt32,
+} = require('internal/validators');
 const { isArrayBufferView } = require('internal/util/types');
+const { KeyObject } = require('internal/crypto/keys');
 const {
   getDefaultEncoding,
   kHandle,
@@ -19,7 +29,8 @@ const {
   DiffieHellman: _DiffieHellman,
   DiffieHellmanGroup: _DiffieHellmanGroup,
   ECDH: _ECDH,
-  ECDHConvertKey: _ECDHConvertKey
+  ECDHConvertKey: _ECDHConvertKey,
+  statelessDH
 } = internalBinding('crypto');
 const {
   POINT_CONVERSION_COMPRESSED,
@@ -43,6 +54,13 @@ function DiffieHellman(sizeOrKey, keyEncoding, generator, genEncoding) {
     );
   }
 
+  // Sizes < 0 don't make sense but they _are_ accepted (and subsequently
+  // rejected with ERR_OSSL_BN_BITS_TOO_SMALL) by OpenSSL. The glue code
+  // in node_crypto.cc accepts values that are IsInt32() for that reason
+  // and that's why we do that here too.
+  if (typeof sizeOrKey === 'number')
+    validateInt32(sizeOrKey, 'sizeOrKey');
+
   if (keyEncoding && !Buffer.isEncoding(keyEncoding) &&
       keyEncoding !== 'buffer') {
     genEncoding = generator;
@@ -59,11 +77,13 @@ function DiffieHellman(sizeOrKey, keyEncoding, generator, genEncoding) {
 
   if (!generator)
     generator = DH_GENERATOR;
-  else if (typeof generator !== 'number')
+  else if (typeof generator === 'number')
+    validateInt32(generator, 'generator');
+  else
     generator = toBuf(generator, genEncoding);
 
   this[kHandle] = new _DiffieHellman(sizeOrKey, generator);
-  Object.defineProperty(this, 'verifyError', {
+  ObjectDefineProperty(this, 'verifyError', {
     enumerable: true,
     value: this[kHandle].verifyError,
     writable: false
@@ -75,7 +95,7 @@ function DiffieHellmanGroup(name) {
   if (!(this instanceof DiffieHellmanGroup))
     return new DiffieHellmanGroup(name);
   this[kHandle] = new _DiffieHellmanGroup(name);
-  Object.defineProperty(this, 'verifyError', {
+  ObjectDefineProperty(this, 'verifyError', {
     enumerable: true,
     value: this[kHandle].verifyError,
     writable: false
@@ -230,8 +250,40 @@ function getFormat(format) {
   return POINT_CONVERSION_UNCOMPRESSED;
 }
 
+const dhEnabledKeyTypes = new Set(['dh', 'ec', 'x448', 'x25519']);
+
+function diffieHellman(options) {
+  if (typeof options !== 'object')
+    throw new ERR_INVALID_ARG_TYPE('options', 'object', options);
+
+  const { privateKey, publicKey } = options;
+  if (!(privateKey instanceof KeyObject))
+    throw new ERR_INVALID_OPT_VALUE('privateKey', privateKey);
+
+  if (!(publicKey instanceof KeyObject))
+    throw new ERR_INVALID_OPT_VALUE('publicKey', publicKey);
+
+  if (privateKey.type !== 'private')
+    throw new ERR_CRYPTO_INVALID_KEY_OBJECT_TYPE(privateKey.type, 'private');
+
+  if (publicKey.type !== 'public' && publicKey.type !== 'private') {
+    throw new ERR_CRYPTO_INVALID_KEY_OBJECT_TYPE(publicKey.type,
+                                                 'private or public');
+  }
+
+  const privateType = privateKey.asymmetricKeyType;
+  const publicType = publicKey.asymmetricKeyType;
+  if (privateType !== publicType || !dhEnabledKeyTypes.has(privateType)) {
+    throw new ERR_CRYPTO_INCOMPATIBLE_KEY('key types for Diffie-Hellman',
+                                          `${privateType} and ${publicType}`);
+  }
+
+  return statelessDH(privateKey[kHandle], publicKey[kHandle]);
+}
+
 module.exports = {
   DiffieHellman,
   DiffieHellmanGroup,
-  ECDH
+  ECDH,
+  diffieHellman
 };

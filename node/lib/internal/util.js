@@ -1,6 +1,24 @@
 'use strict';
 
-const { Object, Reflect } = primordials;
+const {
+  ArrayFrom,
+  ArrayIsArray,
+  Error,
+  Map,
+  ObjectCreate,
+  ObjectDefineProperties,
+  ObjectDefineProperty,
+  ObjectGetOwnPropertyDescriptor,
+  ObjectGetOwnPropertyDescriptors,
+  ObjectGetPrototypeOf,
+  ObjectSetPrototypeOf,
+  Promise,
+  ReflectConstruct,
+  Set,
+  Symbol,
+  SymbolFor,
+} = primordials;
+
 const {
   codes: {
     ERR_INVALID_ARG_TYPE,
@@ -15,7 +33,8 @@ const {
   getHiddenValue,
   setHiddenValue,
   arrow_message_private_symbol: kArrowMessagePrivateSymbolIndex,
-  decorated_private_symbol: kDecoratedPrivateSymbolIndex
+  decorated_private_symbol: kDecoratedPrivateSymbolIndex,
+  sleep: _sleep
 } = internalBinding('util');
 const { isNativeError } = internalBinding('types');
 
@@ -65,13 +84,13 @@ function deprecate(fn, msg, code) {
       }
     }
     if (new.target) {
-      return Reflect.construct(fn, args, new.target);
+      return ReflectConstruct(fn, args, new.target);
     }
     return fn.apply(this, args);
   }
 
   // The wrapper will keep the same prototype as fn to maintain prototype chain
-  Object.setPrototypeOf(deprecated, fn);
+  ObjectSetPrototypeOf(deprecated, fn);
   if (fn.prototype) {
     // Setting this (rather than using Object.setPrototype, as above) ensures
     // that calling the unwrapped constructor gives an instanceof the wrapped
@@ -166,7 +185,7 @@ function emitExperimentalWarning(feature) {
 
 function filterDuplicateStrings(items, low) {
   const map = new Map();
-  for (var i = 0; i < items.length; i++) {
+  for (let i = 0; i < items.length; i++) {
     const item = items[i];
     const key = item.toLowerCase();
     if (low) {
@@ -175,7 +194,7 @@ function filterDuplicateStrings(items, low) {
       map.set(key, item);
     }
   }
-  return Array.from(map.values()).sort();
+  return ArrayFrom(map.values()).sort();
 }
 
 function cachedResult(fn) {
@@ -195,14 +214,14 @@ function cachedResult(fn) {
 //   B() instanceof B // true
 function createClassWrapper(type) {
   function fn(...args) {
-    return Reflect.construct(type, args, new.target || type);
+    return ReflectConstruct(type, args, new.target || type);
   }
   // Mask the wrapper function name and length values
-  Object.defineProperties(fn, {
+  ObjectDefineProperties(fn, {
     name: { value: type.name },
     length: { value: type.length }
   });
-  Object.setPrototypeOf(fn, type);
+  ObjectSetPrototypeOf(fn, type);
   fn.prototype = type.prototype;
   return fn;
 }
@@ -212,7 +231,7 @@ function getSignalsToNamesMapping() {
   if (signalsToNamesMapping !== undefined)
     return signalsToNamesMapping;
 
-  signalsToNamesMapping = Object.create(null);
+  signalsToNamesMapping = ObjectCreate(null);
   for (const key in signals) {
     signalsToNamesMapping[signals[key]] = key;
   }
@@ -234,14 +253,14 @@ function convertToValidSignal(signal) {
 
 function getConstructorOf(obj) {
   while (obj) {
-    const descriptor = Object.getOwnPropertyDescriptor(obj, 'constructor');
+    const descriptor = ObjectGetOwnPropertyDescriptor(obj, 'constructor');
     if (descriptor !== undefined &&
         typeof descriptor.value === 'function' &&
         descriptor.value.name !== '') {
       return descriptor.value;
     }
 
-    obj = Object.getPrototypeOf(obj);
+    obj = ObjectGetPrototypeOf(obj);
   }
 
   return null;
@@ -252,7 +271,7 @@ function getSystemErrorName(err) {
   return entry ? entry[0] : `Unknown system error ${err}`;
 }
 
-const kCustomPromisifiedSymbol = Symbol('util.promisify.custom');
+const kCustomPromisifiedSymbol = SymbolFor('nodejs.util.promisify.custom');
 const kCustomPromisifyArgsSymbol = Symbol('customPromisifyArgs');
 
 function promisify(original) {
@@ -264,7 +283,7 @@ function promisify(original) {
     if (typeof fn !== 'function') {
       throw new ERR_INVALID_ARG_TYPE('util.promisify.custom', 'Function', fn);
     }
-    return Object.defineProperty(fn, kCustomPromisifiedSymbol, {
+    return ObjectDefineProperty(fn, kCustomPromisifiedSymbol, {
       value: fn, enumerable: false, writable: false, configurable: true
     });
   }
@@ -281,7 +300,7 @@ function promisify(original) {
         }
         if (argumentNames !== undefined && values.length > 1) {
           const obj = {};
-          for (var i = 0; i < argumentNames.length; i++)
+          for (let i = 0; i < argumentNames.length; i++)
             obj[argumentNames[i]] = values[i];
           resolve(obj);
         } else {
@@ -291,14 +310,14 @@ function promisify(original) {
     });
   }
 
-  Object.setPrototypeOf(fn, Object.getPrototypeOf(original));
+  ObjectSetPrototypeOf(fn, ObjectGetPrototypeOf(original));
 
-  Object.defineProperty(fn, kCustomPromisifiedSymbol, {
+  ObjectDefineProperty(fn, kCustomPromisifiedSymbol, {
     value: fn, enumerable: false, writable: false, configurable: true
   });
-  return Object.defineProperties(
+  return ObjectDefineProperties(
     fn,
-    Object.getOwnPropertyDescriptors(original)
+    ObjectGetOwnPropertyDescriptors(original)
   );
 }
 
@@ -352,7 +371,7 @@ function isInsideNodeModules() {
 
   // Iterate over all stack frames and look for the first one not coming
   // from inside Node.js itself:
-  if (Array.isArray(stack)) {
+  if (ArrayIsArray(stack)) {
     for (const frame of stack) {
       const filename = frame.getFileName();
       // If a filename does not start with / or contain \,
@@ -374,6 +393,17 @@ function once(callback) {
   };
 }
 
+let validateUint32;
+
+function sleep(msec) {
+  // Lazy-load to avoid a circular dependency.
+  if (validateUint32 === undefined)
+    ({ validateUint32 } = require('internal/validators'));
+
+  validateUint32(msec, 'msec');
+  _sleep(msec);
+}
+
 module.exports = {
   assertCrypto,
   cachedResult,
@@ -391,6 +421,7 @@ module.exports = {
   normalizeEncoding,
   once,
   promisify,
+  sleep,
   spliceOne,
   removeColors,
 
@@ -399,7 +430,7 @@ module.exports = {
 
   // Symbol used to provide a custom inspect function for an object as an
   // alternative to using 'inspect'
-  customInspectSymbol: Symbol.for('nodejs.util.inspect.custom'),
+  customInspectSymbol: SymbolFor('nodejs.util.inspect.custom'),
 
   // Used by the buffer module to capture an internal reference to the
   // default isEncoding implementation, just in case userland overrides it.

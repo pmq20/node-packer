@@ -1,9 +1,13 @@
 'use strict';
 
+const {
+  Array,
+} = primordials;
+
 const { ERR_INVALID_URI } = require('internal/errors').codes;
 
 const hexTable = new Array(256);
-for (var i = 0; i < 256; ++i)
+for (let i = 0; i < 256; ++i)
   hexTable[i] = '%' + ((i < 16 ? '0' : '') + i.toString(16)).toUpperCase();
 
 const isHexTable = [
@@ -30,21 +34,27 @@ function encodeStr(str, noEscapeTable, hexTable) {
   if (len === 0)
     return '';
 
-  var out = '';
-  var lastPos = 0;
+  let out = '';
+  let lastPos = 0;
+  let i = 0;
 
-  for (var i = 0; i < len; i++) {
-    var c = str.charCodeAt(i);
+  outer:
+  for (; i < len; i++) {
+    let c = str.charCodeAt(i);
 
     // ASCII
-    if (c < 0x80) {
-      if (noEscapeTable[c] === 1)
-        continue;
-      if (lastPos < i)
-        out += str.slice(lastPos, i);
-      lastPos = i + 1;
-      out += hexTable[c];
-      continue;
+    while (c < 0x80) {
+      if (noEscapeTable[c] !== 1) {
+        if (lastPos < i)
+          out += str.slice(lastPos, i);
+        lastPos = i + 1;
+        out += hexTable[c];
+      }
+
+      if (++i === len)
+        break outer;
+
+      c = str.charCodeAt(i);
     }
 
     if (lastPos < i)
@@ -73,7 +83,7 @@ function encodeStr(str, noEscapeTable, hexTable) {
     if (i >= len)
       throw new ERR_INVALID_URI();
 
-    var c2 = str.charCodeAt(i) & 0x3FF;
+    const c2 = str.charCodeAt(i) & 0x3FF;
 
     lastPos = i + 1;
     c = 0x10000 + (((c & 0x3FF) << 10) | c2);

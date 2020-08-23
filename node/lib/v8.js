@@ -14,7 +14,22 @@
 
 'use strict';
 
-const { ObjectPrototype } = primordials;
+const {
+  Array,
+  ArrayBuffer,
+  Error,
+  Float32Array,
+  Float64Array,
+  Int16Array,
+  Int32Array,
+  Int8Array,
+  Map,
+  ObjectPrototypeToString,
+  Uint16Array,
+  Uint32Array,
+  Uint8Array,
+  Uint8ClampedArray,
+} = primordials;
 
 const { Buffer } = require('buffer');
 const { validateString } = require('internal/validators');
@@ -24,6 +39,7 @@ const {
 } = internalBinding('serdes');
 const assert = require('internal/assert');
 const { copy } = internalBinding('buffer');
+const { inspect } = require('internal/util/inspect');
 const { FastBuffer } = require('internal/buffer');
 const { getValidatedPath } = require('internal/fs/utils');
 const { toNamespacedPath } = require('path');
@@ -31,14 +47,7 @@ const {
   createHeapSnapshotStream,
   triggerHeapSnapshot
 } = internalBinding('heap_utils');
-const { Readable } = require('stream');
-const { owner_symbol } = require('internal/async_hooks').symbols;
-const {
-  kUpdateTimer,
-  onStreamRead,
-} = require('internal/stream_base_commons');
-const kHandle = Symbol('kHandle');
-
+const { HeapSnapshotStream } = require('internal/heap_utils');
 
 function writeHeapSnapshot(filename) {
   if (filename !== undefined) {
@@ -46,31 +55,6 @@ function writeHeapSnapshot(filename) {
     filename = toNamespacedPath(filename);
   }
   return triggerHeapSnapshot(filename);
-}
-
-class HeapSnapshotStream extends Readable {
-  constructor(handle) {
-    super({ autoDestroy: true });
-    this[kHandle] = handle;
-    handle[owner_symbol] = this;
-    handle.onread = onStreamRead;
-  }
-
-  _read() {
-    if (this[kHandle])
-      this[kHandle].readStart();
-  }
-
-  _destroy() {
-    // Release the references on the handle so that
-    // it can be garbage collected.
-    this[kHandle][owner_symbol] = undefined;
-    this[kHandle] = undefined;
-  }
-
-  [kUpdateTimer]() {
-    // Does nothing
-  }
 }
 
 function getHeapSnapshot() {
@@ -89,12 +73,12 @@ class Deserializer extends _Deserializer { }
 const {
   cachedDataVersionTag,
   setFlagsFromString: _setFlagsFromString,
-  heapStatisticsArrayBuffer,
-  heapSpaceStatisticsArrayBuffer,
-  heapCodeStatisticsArrayBuffer,
-  updateHeapStatisticsArrayBuffer,
-  updateHeapSpaceStatisticsArrayBuffer,
-  updateHeapCodeStatisticsArrayBuffer,
+  heapStatisticsBuffer,
+  heapSpaceStatisticsBuffer,
+  heapCodeStatisticsBuffer,
+  updateHeapStatisticsBuffer,
+  updateHeapSpaceStatisticsBuffer,
+  updateHeapCodeStatisticsBuffer,
 
   // Properties for heap statistics buffer extraction.
   kTotalHeapSizeIndex,
@@ -111,7 +95,6 @@ const {
 
   // Properties for heap spaces statistics buffer extraction.
   kHeapSpaces,
-  kHeapSpaceStatisticsPropertiesCount,
   kSpaceSizeIndex,
   kSpaceUsedSizeIndex,
   kSpaceAvailableSizeIndex,
@@ -125,15 +108,6 @@ const {
 
 const kNumberOfHeapSpaces = kHeapSpaces.length;
 
-const heapStatisticsBuffer =
-    new Float64Array(heapStatisticsArrayBuffer);
-
-const heapSpaceStatisticsBuffer =
-    new Float64Array(heapSpaceStatisticsArrayBuffer);
-
-const heapCodeStatisticsBuffer =
-    new Float64Array(heapCodeStatisticsArrayBuffer);
-
 function setFlagsFromString(flags) {
   validateString(flags, 'flags');
   _setFlagsFromString(flags);
@@ -142,7 +116,7 @@ function setFlagsFromString(flags) {
 function getHeapStatistics() {
   const buffer = heapStatisticsBuffer;
 
-  updateHeapStatisticsArrayBuffer();
+  updateHeapStatisticsBuffer();
 
   return {
     'total_heap_size': buffer[kTotalHeapSizeIndex],
@@ -162,16 +136,15 @@ function getHeapStatistics() {
 function getHeapSpaceStatistics() {
   const heapSpaceStatistics = new Array(kNumberOfHeapSpaces);
   const buffer = heapSpaceStatisticsBuffer;
-  updateHeapSpaceStatisticsArrayBuffer();
 
-  for (var i = 0; i < kNumberOfHeapSpaces; i++) {
-    const propertyOffset = i * kHeapSpaceStatisticsPropertiesCount;
+  for (let i = 0; i < kNumberOfHeapSpaces; i++) {
+    updateHeapSpaceStatisticsBuffer(i);
     heapSpaceStatistics[i] = {
       space_name: kHeapSpaces[i],
-      space_size: buffer[propertyOffset + kSpaceSizeIndex],
-      space_used_size: buffer[propertyOffset + kSpaceUsedSizeIndex],
-      space_available_size: buffer[propertyOffset + kSpaceAvailableSizeIndex],
-      physical_space_size: buffer[propertyOffset + kPhysicalSpaceSizeIndex]
+      space_size: buffer[kSpaceSizeIndex],
+      space_used_size: buffer[kSpaceUsedSizeIndex],
+      space_available_size: buffer[kSpaceAvailableSizeIndex],
+      physical_space_size: buffer[kPhysicalSpaceSizeIndex]
     };
   }
 
@@ -181,7 +154,7 @@ function getHeapSpaceStatistics() {
 function getHeapCodeStatistics() {
   const buffer = heapCodeStatisticsBuffer;
 
-  updateHeapCodeStatisticsArrayBuffer();
+  updateHeapCodeStatisticsBuffer();
   return {
     'code_and_metadata_size': buffer[kCodeAndMetadataSizeIndex],
     'bytecode_and_metadata_size': buffer[kBytecodeAndMetadataSizeIndex],
@@ -219,7 +192,7 @@ const arrayBufferViewTypeToIndex = new Map();
 {
   const dummy = new ArrayBuffer();
   for (const [i, ctor] of arrayBufferViewTypes.entries()) {
-    const tag = ObjectPrototype.toString(new ctor(dummy));
+    const tag = ObjectPrototypeToString(new ctor(dummy));
     arrayBufferViewTypeToIndex.set(tag, i);
   }
 }
@@ -238,11 +211,12 @@ class DefaultSerializer extends Serializer {
     if (abView.constructor === Buffer) {
       i = bufferConstructorIndex;
     } else {
-      const tag = ObjectPrototype.toString(abView);
+      const tag = ObjectPrototypeToString(abView);
       i = arrayBufferViewTypeToIndex.get(tag);
 
       if (i === undefined) {
-        throw new this._getDataCloneError(`Unknown host object type: ${tag}`);
+        throw new this._getDataCloneError(
+          `Unserializable host object: ${inspect(abView)}`);
       }
     }
     this.writeUint32(i);
@@ -266,14 +240,13 @@ class DefaultDeserializer extends Deserializer {
       return new ctor(this.buffer.buffer,
                       offset,
                       byteLength / BYTES_PER_ELEMENT);
-    } else {
-      // Copy to an aligned buffer first.
-      const buffer_copy = Buffer.allocUnsafe(byteLength);
-      copy(this.buffer, buffer_copy, 0, byteOffset, byteOffset + byteLength);
-      return new ctor(buffer_copy.buffer,
-                      buffer_copy.byteOffset,
-                      byteLength / BYTES_PER_ELEMENT);
     }
+    // Copy to an aligned buffer first.
+    const buffer_copy = Buffer.allocUnsafe(byteLength);
+    copy(this.buffer, buffer_copy, 0, byteOffset, byteOffset + byteLength);
+    return new ctor(buffer_copy.buffer,
+                    buffer_copy.byteOffset,
+                    byteLength / BYTES_PER_ELEMENT);
   }
 }
 
@@ -303,5 +276,5 @@ module.exports = {
   DefaultDeserializer,
   deserialize,
   serialize,
-  writeHeapSnapshot
+  writeHeapSnapshot,
 };

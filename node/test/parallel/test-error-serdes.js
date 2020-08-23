@@ -3,7 +3,7 @@
 require('../common');
 const assert = require('assert');
 const { ERR_INVALID_ARG_TYPE } = require('internal/errors').codes;
-const { serializeError, deserializeError } = require('internal/error-serdes');
+const { serializeError, deserializeError } = require('internal/error_serdes');
 
 function cycle(err) {
   return deserializeError(serializeError(err));
@@ -16,12 +16,17 @@ assert.strictEqual(cycle(null), null);
 assert.strictEqual(cycle(undefined), undefined);
 assert.strictEqual(cycle('foo'), 'foo');
 
-{
-  const err = cycle(new Error('foo'));
+let err = new Error('foo');
+for (let i = 0; i < 10; i++) {
   assert(err instanceof Error);
+  assert(Object.prototype.toString.call(err), '[object Error]');
   assert.strictEqual(err.name, 'Error');
   assert.strictEqual(err.message, 'foo');
   assert(/^Error: foo\n/.test(err.stack));
+
+  const prev = err;
+  err = cycle(err);
+  assert.deepStrictEqual(err, prev);
 }
 
 assert.strictEqual(cycle(new RangeError('foo')).name, 'RangeError');

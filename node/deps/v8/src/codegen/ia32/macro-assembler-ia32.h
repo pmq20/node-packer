@@ -24,6 +24,26 @@ using MemOperand = Operand;
 enum RememberedSetAction { EMIT_REMEMBERED_SET, OMIT_REMEMBERED_SET };
 enum SmiCheck { INLINE_SMI_CHECK, OMIT_SMI_CHECK };
 
+// Convenient class to access arguments below the stack pointer.
+class StackArgumentsAccessor {
+ public:
+  // argc = the number of arguments not including the receiver.
+  explicit StackArgumentsAccessor(Register argc) : argc_(argc) {
+    DCHECK_NE(argc_, no_reg);
+  }
+
+  // Argument 0 is the receiver (despite argc not including the receiver).
+  Operand operator[](int index) const { return GetArgumentOperand(index); }
+
+  Operand GetArgumentOperand(int index) const;
+  Operand GetReceiverOperand() const { return GetArgumentOperand(0); }
+
+ private:
+  const Register argc_;
+
+  DISALLOW_IMPLICIT_CONSTRUCTORS(StackArgumentsAccessor);
+};
+
 class V8_EXPORT_PRIVATE TurboAssembler : public TurboAssemblerBase {
  public:
   using TurboAssemblerBase::TurboAssemblerBase;
@@ -91,23 +111,27 @@ class V8_EXPORT_PRIVATE TurboAssembler : public TurboAssemblerBase {
   // register.
   void LoadEntryFromBuiltinIndex(Register builtin_index);
   void CallBuiltinByIndex(Register builtin_index) override;
+  void CallBuiltin(int builtin_index);
 
   void LoadCodeObjectEntry(Register destination, Register code_object) override;
   void CallCodeObject(Register code_object) override;
   void JumpCodeObject(Register code_object) override;
+  void Jump(const ExternalReference& reference) override;
 
   void RetpolineCall(Register reg);
   void RetpolineCall(Address destination, RelocInfo::Mode rmode);
 
   void Jump(Handle<Code> code_object, RelocInfo::Mode rmode);
 
+  void LoadMap(Register destination, Register object);
+
   void RetpolineJump(Register reg);
 
-  void CallForDeoptimization(Address target, int deopt_id);
+  void Trap() override;
+  void DebugBreak() override;
 
-  // Call a runtime routine. This expects {centry} to contain a fitting CEntry
-  // builtin for the target runtime function and uses an indirect call.
-  void CallRuntimeWithCEntry(Runtime::FunctionId fid, Register centry);
+  void CallForDeoptimization(Address target, int deopt_id, Label* exit,
+                             DeoptimizeKind kind);
 
   // Jump the register contains a smi.
   inline void JumpIfSmi(Register value, Label* smi_label,
@@ -136,14 +160,14 @@ class V8_EXPORT_PRIVATE TurboAssembler : public TurboAssemblerBase {
 
   // Removes current frame and its arguments from the stack preserving the
   // arguments and a return address pushed to the stack for the next call. Both
-  // |callee_args_count| and |caller_args_count_reg| do not include receiver.
-  // |callee_args_count| is not modified, |caller_args_count_reg| is trashed.
+  // |callee_args_count| and |caller_args_count| do not include receiver.
+  // |callee_args_count| is not modified. |caller_args_count| is trashed.
   // |number_of_temp_values_after_return_address| specifies the number of words
   // pushed to the stack after the return address. This is to allow "allocation"
   // of scratch registers that this function requires by saving their values on
   // the stack.
-  void PrepareForTailCall(const ParameterCount& callee_args_count,
-                          Register caller_args_count_reg, Register scratch0,
+  void PrepareForTailCall(Register callee_args_count,
+                          Register caller_args_count, Register scratch0,
                           Register scratch1,
                           int number_of_temp_values_after_return_address);
 
@@ -200,6 +224,12 @@ class V8_EXPORT_PRIVATE TurboAssembler : public TurboAssemblerBase {
 
   void PushPC();
 
+  enum class PushArrayOrder { kNormal, kReverse };
+  // `array` points to the first element (the lowest address).
+  // `array` and `size` are not modified.
+  void PushArray(Register array, Register size, Register scratch,
+                 PushArrayOrder order = PushArrayOrder::kNormal);
+
   // Operand pointing to an external reference.
   // May emit code to set up the scratch register. The operand is
   // only guaranteed to be correct as long as the scratch register
@@ -213,8 +243,6 @@ class V8_EXPORT_PRIVATE TurboAssembler : public TurboAssemblerBase {
 
   void LoadAddress(Register destination, ExternalReference source);
 
-  void CompareStackLimit(Register with);
-  void CompareRealStackLimit(Register with);
   void CompareRoot(Register with, RootIndex index);
   void CompareRoot(Register with, Register scratch, RootIndex index);
 
@@ -236,6 +264,7 @@ class V8_EXPORT_PRIVATE TurboAssembler : public TurboAssemblerBase {
   void Pshufd(XMMRegister dst, Operand src, uint8_t shuffle);
   void Psraw(XMMRegister dst, uint8_t shift);
   void Psrlw(XMMRegister dst, uint8_t shift);
+  void Psrlq(XMMRegister dst, uint8_t shift);
 
 // SSE/SSE2 instructions with AVX version.
 #define AVX_OP2_WITH_TYPE(macro_name, name, dst_type, src_type) \
@@ -257,6 +286,14 @@ class V8_EXPORT_PRIVATE TurboAssembler : public TurboAssemblerBase {
   AVX_OP2_WITH_TYPE(Movd, movd, Register, XMMRegister)
   AVX_OP2_WITH_TYPE(Movd, movd, Operand, XMMRegister)
   AVX_OP2_WITH_TYPE(Cvtdq2ps, cvtdq2ps, XMMRegister, Operand)
+  AVX_OP2_WITH_TYPE(Sqrtps, sqrtps, XMMRegister, XMMRegister)
+  AVX_OP2_WITH_TYPE(Sqrtpd, sqrtpd, XMMRegister, XMMRegister)
+  AVX_OP2_WITH_TYPE(Sqrtpd, sqrtpd, XMMRegister, const Operand&)
+  AVX_OP2_WITH_TYPE(Movaps, movaps, XMMRegister, XMMRegister)
+  AVX_OP2_WITH_TYPE(Movapd, movapd, XMMRegister, XMMRegister)
+  AVX_OP2_WITH_TYPE(Movapd, movapd, XMMRegister, const Operand&)
+  AVX_OP2_WITH_TYPE(Pmovmskb, pmovmskb, Register, XMMRegister)
+  AVX_OP2_WITH_TYPE(Movmskps, movmskps, Register, XMMRegister)
 
 #undef AVX_OP2_WITH_TYPE
 
@@ -277,14 +314,19 @@ class V8_EXPORT_PRIVATE TurboAssembler : public TurboAssemblerBase {
 
   AVX_OP3_XO(Packsswb, packsswb)
   AVX_OP3_XO(Packuswb, packuswb)
+  AVX_OP3_XO(Paddusb, paddusb)
+  AVX_OP3_XO(Pand, pand)
   AVX_OP3_XO(Pcmpeqb, pcmpeqb)
   AVX_OP3_XO(Pcmpeqw, pcmpeqw)
   AVX_OP3_XO(Pcmpeqd, pcmpeqd)
   AVX_OP3_XO(Psubb, psubb)
   AVX_OP3_XO(Psubw, psubw)
   AVX_OP3_XO(Psubd, psubd)
+  AVX_OP3_XO(Psubq, psubq)
   AVX_OP3_XO(Punpcklbw, punpcklbw)
   AVX_OP3_XO(Punpckhbw, punpckhbw)
+  AVX_OP3_XO(Punpckldq, punpckldq)
+  AVX_OP3_XO(Punpcklqdq, punpcklqdq)
   AVX_OP3_XO(Pxor, pxor)
   AVX_OP3_XO(Andps, andps)
   AVX_OP3_XO(Andnps, andnps)
@@ -293,9 +335,67 @@ class V8_EXPORT_PRIVATE TurboAssembler : public TurboAssemblerBase {
   AVX_OP3_XO(Xorpd, xorpd)
   AVX_OP3_XO(Sqrtss, sqrtss)
   AVX_OP3_XO(Sqrtsd, sqrtsd)
+  AVX_OP3_XO(Orps, orps)
+  AVX_OP3_XO(Orpd, orpd)
+  AVX_OP3_XO(Andnpd, andnpd)
 
 #undef AVX_OP3_XO
 #undef AVX_OP3_WITH_TYPE
+
+// Only use this macro when dst and src1 is the same in SSE case.
+#define AVX_PACKED_OP3_WITH_TYPE(macro_name, name, dst_type, src_type) \
+  void macro_name(dst_type dst, dst_type src1, src_type src2) {        \
+    if (CpuFeatures::IsSupported(AVX)) {                               \
+      CpuFeatureScope scope(this, AVX);                                \
+      v##name(dst, src1, src2);                                        \
+    } else {                                                           \
+      DCHECK_EQ(dst, src1);                                            \
+      name(dst, src2);                                                 \
+    }                                                                  \
+  }
+#define AVX_PACKED_OP3(macro_name, name)                               \
+  AVX_PACKED_OP3_WITH_TYPE(macro_name, name, XMMRegister, XMMRegister) \
+  AVX_PACKED_OP3_WITH_TYPE(macro_name, name, XMMRegister, Operand)
+
+  AVX_PACKED_OP3(Addpd, addpd)
+  AVX_PACKED_OP3(Subps, subps)
+  AVX_PACKED_OP3(Subpd, subpd)
+  AVX_PACKED_OP3(Mulpd, mulpd)
+  AVX_PACKED_OP3(Divpd, divpd)
+  AVX_PACKED_OP3(Cmpeqpd, cmpeqpd)
+  AVX_PACKED_OP3(Cmpneqpd, cmpneqpd)
+  AVX_PACKED_OP3(Cmpltpd, cmpltpd)
+  AVX_PACKED_OP3(Cmplepd, cmplepd)
+  AVX_PACKED_OP3(Minps, minps)
+  AVX_PACKED_OP3(Minpd, minpd)
+  AVX_PACKED_OP3(Maxps, maxps)
+  AVX_PACKED_OP3(Maxpd, maxpd)
+  AVX_PACKED_OP3(Cmpunordps, cmpunordps)
+  AVX_PACKED_OP3(Cmpunordpd, cmpunordpd)
+  AVX_PACKED_OP3(Psllw, psllw)
+  AVX_PACKED_OP3(Pslld, pslld)
+  AVX_PACKED_OP3(Psllq, psllq)
+  AVX_PACKED_OP3(Psrlw, psrlw)
+  AVX_PACKED_OP3(Psrld, psrld)
+  AVX_PACKED_OP3(Psrlq, psrlq)
+  AVX_PACKED_OP3(Psraw, psraw)
+  AVX_PACKED_OP3(Psrad, psrad)
+  AVX_PACKED_OP3(Paddq, paddq)
+  AVX_PACKED_OP3(Psubq, psubq)
+  AVX_PACKED_OP3(Pmuludq, pmuludq)
+  AVX_PACKED_OP3(Pavgb, pavgb)
+  AVX_PACKED_OP3(Pavgw, pavgw)
+#undef AVX_PACKED_OP3
+
+  AVX_PACKED_OP3_WITH_TYPE(Psllw, psllw, XMMRegister, uint8_t)
+  AVX_PACKED_OP3_WITH_TYPE(Pslld, pslld, XMMRegister, uint8_t)
+  AVX_PACKED_OP3_WITH_TYPE(Psllq, psllq, XMMRegister, uint8_t)
+  AVX_PACKED_OP3_WITH_TYPE(Psrlw, psrlw, XMMRegister, uint8_t)
+  AVX_PACKED_OP3_WITH_TYPE(Psrld, psrld, XMMRegister, uint8_t)
+  AVX_PACKED_OP3_WITH_TYPE(Psrlq, psrlq, XMMRegister, uint8_t)
+  AVX_PACKED_OP3_WITH_TYPE(Psraw, psraw, XMMRegister, uint8_t)
+  AVX_PACKED_OP3_WITH_TYPE(Psrad, psrad, XMMRegister, uint8_t)
+#undef AVX_PACKED_OP3_WITH_TYPE
 
 // Non-SSE2 instructions.
 #define AVX_OP2_WITH_TYPE_SCOPE(macro_name, name, dst_type, src_type, \
@@ -313,6 +413,22 @@ class V8_EXPORT_PRIVATE TurboAssembler : public TurboAssemblerBase {
     }                                                                 \
     UNREACHABLE();                                                    \
   }
+#define AVX_OP2_XO_SSE3(macro_name, name)                                   \
+  AVX_OP2_WITH_TYPE_SCOPE(macro_name, name, XMMRegister, XMMRegister, SSE3) \
+  AVX_OP2_WITH_TYPE_SCOPE(macro_name, name, XMMRegister, Operand, SSE3)
+  AVX_OP2_XO_SSE3(Movddup, movddup)
+
+#undef AVX_OP2_XO_SSE3
+
+#define AVX_OP2_XO_SSSE3(macro_name, name)                                   \
+  AVX_OP2_WITH_TYPE_SCOPE(macro_name, name, XMMRegister, XMMRegister, SSSE3) \
+  AVX_OP2_WITH_TYPE_SCOPE(macro_name, name, XMMRegister, Operand, SSSE3)
+  AVX_OP2_XO_SSSE3(Pabsb, pabsb)
+  AVX_OP2_XO_SSSE3(Pabsw, pabsw)
+  AVX_OP2_XO_SSSE3(Pabsd, pabsd)
+
+#undef AVX_OP2_XO_SSE3
+
 #define AVX_OP2_XO_SSE4(macro_name, name)                                     \
   AVX_OP2_WITH_TYPE_SCOPE(macro_name, name, XMMRegister, XMMRegister, SSE4_1) \
   AVX_OP2_WITH_TYPE_SCOPE(macro_name, name, XMMRegister, Operand, SSE4_1)
@@ -320,8 +436,10 @@ class V8_EXPORT_PRIVATE TurboAssembler : public TurboAssemblerBase {
   AVX_OP2_XO_SSE4(Ptest, ptest)
   AVX_OP2_XO_SSE4(Pmovsxbw, pmovsxbw)
   AVX_OP2_XO_SSE4(Pmovsxwd, pmovsxwd)
+  AVX_OP2_XO_SSE4(Pmovsxdq, pmovsxdq)
   AVX_OP2_XO_SSE4(Pmovzxbw, pmovzxbw)
   AVX_OP2_XO_SSE4(Pmovzxwd, pmovzxwd)
+  AVX_OP2_XO_SSE4(Pmovzxdq, pmovzxdq)
 
 #undef AVX_OP2_WITH_TYPE_SCOPE
 #undef AVX_OP2_XO_SSE4
@@ -348,10 +466,19 @@ class V8_EXPORT_PRIVATE TurboAssembler : public TurboAssemblerBase {
   void Pextrb(Register dst, XMMRegister src, uint8_t imm8);
   void Pextrw(Register dst, XMMRegister src, uint8_t imm8);
   void Pextrd(Register dst, XMMRegister src, uint8_t imm8);
+  void Pinsrb(XMMRegister dst, Register src, int8_t imm8) {
+    Pinsrb(dst, Operand(src), imm8);
+  }
+  void Pinsrb(XMMRegister dst, Operand src, int8_t imm8);
   void Pinsrd(XMMRegister dst, Register src, uint8_t imm8) {
     Pinsrd(dst, Operand(src), imm8);
   }
   void Pinsrd(XMMRegister dst, Operand src, uint8_t imm8);
+  void Pinsrw(XMMRegister dst, Register src, int8_t imm8) {
+    Pinsrw(dst, Operand(src), imm8);
+  }
+  void Pinsrw(XMMRegister dst, Operand src, int8_t imm8);
+  void Vbroadcastss(XMMRegister dst, Operand src);
 
   // Expression support
   // cvtsi2sd instruction only writes to the low 64-bit of dst register, which
@@ -426,6 +553,16 @@ class V8_EXPORT_PRIVATE TurboAssembler : public TurboAssemblerBase {
 
   // TODO(860429): Remove remaining poisoning infrastructure on ia32.
   void ResetSpeculationPoisonRegister() { UNREACHABLE(); }
+
+  // Control-flow integrity:
+
+  // Define a function entrypoint. This doesn't emit any code for this
+  // architecture, as control-flow integrity is not supported for it.
+  void CodeEntry() {}
+  // Define an exception handler.
+  void ExceptionHandler() {}
+  // Define an exception handler and bind a label.
+  void BindExceptionHandler(Label* label) { bind(label); }
 
   void CallRecordWriteStub(Register object, Register address,
                            RememberedSetAction remembered_set_action,
@@ -516,8 +653,8 @@ class V8_EXPORT_PRIVATE MacroAssembler : public TurboAssembler {
   // Load the global proxy from the current context.
   void LoadGlobalProxy(Register dst);
 
-  // Load the global function with the given index.
-  void LoadGlobalFunction(int index, Register function);
+  // Load a value from the native context with a given index.
+  void LoadNativeContextSlot(Register dst, int index);
 
   // ---------------------------------------------------------------------------
   // JavaScript invokes
@@ -525,19 +662,19 @@ class V8_EXPORT_PRIVATE MacroAssembler : public TurboAssembler {
   // Invoke the JavaScript function code by either calling or jumping.
 
   void InvokeFunctionCode(Register function, Register new_target,
-                          const ParameterCount& expected,
-                          const ParameterCount& actual, InvokeFlag flag);
+                          Register expected_parameter_count,
+                          Register actual_parameter_count, InvokeFlag flag);
 
-  // On function call, call into the debugger if necessary.
+  // On function call, call into the debugger.
   // This may clobber ecx.
-  void CheckDebugHook(Register fun, Register new_target,
-                      const ParameterCount& expected,
-                      const ParameterCount& actual);
+  void CallDebugOnFunctionCall(Register fun, Register new_target,
+                               Register expected_parameter_count,
+                               Register actual_parameter_count);
 
   // Invoke the JavaScript function in the given register. Changes the
   // current context to the context in the function before invoking.
   void InvokeFunction(Register function, Register new_target,
-                      const ParameterCount& actual, InvokeFlag flag);
+                      Register actual_parameter_count, InvokeFlag flag);
 
   // Compare object type for heap object.
   // Incoming register is heap_object and outgoing register is map.
@@ -667,10 +804,9 @@ class V8_EXPORT_PRIVATE MacroAssembler : public TurboAssembler {
 
  private:
   // Helper functions for generating invokes.
-  void InvokePrologue(const ParameterCount& expected,
-                      const ParameterCount& actual, Label* done,
-                      bool* definitely_mismatches, InvokeFlag flag,
-                      Label::Distance done_distance);
+  void InvokePrologue(Register expected_parameter_count,
+                      Register actual_parameter_count, Label* done,
+                      InvokeFlag flag);
 
   void EnterExitFramePrologue(StackFrame::Type frame_type, Register scratch);
   void EnterExitFrameEpilogue(int argc, bool save_doubles);
@@ -699,18 +835,6 @@ inline Operand FieldOperand(Register object, int offset) {
 inline Operand FieldOperand(Register object, Register index, ScaleFactor scale,
                             int offset) {
   return Operand(object, index, scale, offset - kHeapObjectTag);
-}
-
-inline Operand ContextOperand(Register context, int index) {
-  return Operand(context, Context::SlotOffset(index));
-}
-
-inline Operand ContextOperand(Register context, Register index) {
-  return Operand(context, index, times_tagged_size, Context::SlotOffset(0));
-}
-
-inline Operand NativeContextOperand() {
-  return ContextOperand(esi, Context::NATIVE_CONTEXT_INDEX);
 }
 
 #define ACCESS_MASM(masm) masm->

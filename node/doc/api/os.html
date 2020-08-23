@@ -3,10 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>OS | Node.js v12.13.0 Documentation</title>
+  <meta name="nodejs.org:node-version" content="v14.8.0">
+  <title>OS | Node.js v14.8.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
-  <link rel="stylesheet" href="assets/sh.css">
+  <link rel="stylesheet" href="assets/hljs.css">
   <link rel="canonical" href="https://nodejs.org/api/os.html">
 </head>
 <body class="alt apidoc" id="api-section-os">
@@ -18,29 +19,30 @@
         </a>
       </div>
       <ul>
-<li><a href="documentation.html" class="nav-documentation">About these Docs</a></li>
-<li><a href="synopsis.html" class="nav-synopsis">Usage &#x26; Example</a></li>
+<li><a href="documentation.html" class="nav-documentation">About this documentation</a></li>
+<li><a href="synopsis.html" class="nav-synopsis">Usage and example</a></li>
 </ul>
 <div class="line"></div>
 <ul>
-<li><a href="assert.html" class="nav-assert">Assertion Testing</a></li>
-<li><a href="async_hooks.html" class="nav-async_hooks">Async Hooks</a></li>
+<li><a href="assert.html" class="nav-assert">Assertion testing</a></li>
+<li><a href="async_hooks.html" class="nav-async_hooks">Async hooks</a></li>
 <li><a href="buffer.html" class="nav-buffer">Buffer</a></li>
-<li><a href="addons.html" class="nav-addons">C++ Addons</a></li>
-<li><a href="n-api.html" class="nav-n-api">C/C++ Addons - N-API</a></li>
-<li><a href="child_process.html" class="nav-child_process">Child Processes</a></li>
+<li><a href="addons.html" class="nav-addons">C++ addons</a></li>
+<li><a href="n-api.html" class="nav-n-api">C/C++ addons with N-API</a></li>
+<li><a href="embedding.html" class="nav-embedding">C++ embedder API</a></li>
+<li><a href="child_process.html" class="nav-child_process">Child processes</a></li>
 <li><a href="cluster.html" class="nav-cluster">Cluster</a></li>
-<li><a href="cli.html" class="nav-cli">Command Line Options</a></li>
+<li><a href="cli.html" class="nav-cli">Command line options</a></li>
 <li><a href="console.html" class="nav-console">Console</a></li>
 <li><a href="crypto.html" class="nav-crypto">Crypto</a></li>
 <li><a href="debugger.html" class="nav-debugger">Debugger</a></li>
 <li><a href="deprecations.html" class="nav-deprecations">Deprecated APIs</a></li>
 <li><a href="dns.html" class="nav-dns">DNS</a></li>
 <li><a href="domain.html" class="nav-domain">Domain</a></li>
-<li><a href="esm.html" class="nav-esm">ECMAScript Modules</a></li>
+<li><a href="esm.html" class="nav-esm">ECMAScript modules</a></li>
 <li><a href="errors.html" class="nav-errors">Errors</a></li>
 <li><a href="events.html" class="nav-events">Events</a></li>
-<li><a href="fs.html" class="nav-fs">File System</a></li>
+<li><a href="fs.html" class="nav-fs">File system</a></li>
 <li><a href="globals.html" class="nav-globals">Globals</a></li>
 <li><a href="http.html" class="nav-http">HTTP</a></li>
 <li><a href="http2.html" class="nav-http2">HTTP/2</a></li>
@@ -51,37 +53,38 @@
 <li><a href="net.html" class="nav-net">Net</a></li>
 <li><a href="os.html" class="nav-os active">OS</a></li>
 <li><a href="path.html" class="nav-path">Path</a></li>
-<li><a href="perf_hooks.html" class="nav-perf_hooks">Performance Hooks</a></li>
+<li><a href="perf_hooks.html" class="nav-perf_hooks">Performance hooks</a></li>
 <li><a href="policy.html" class="nav-policy">Policies</a></li>
 <li><a href="process.html" class="nav-process">Process</a></li>
 <li><a href="punycode.html" class="nav-punycode">Punycode</a></li>
-<li><a href="querystring.html" class="nav-querystring">Query Strings</a></li>
+<li><a href="querystring.html" class="nav-querystring">Query strings</a></li>
 <li><a href="readline.html" class="nav-readline">Readline</a></li>
 <li><a href="repl.html" class="nav-repl">REPL</a></li>
 <li><a href="report.html" class="nav-report">Report</a></li>
 <li><a href="stream.html" class="nav-stream">Stream</a></li>
-<li><a href="string_decoder.html" class="nav-string_decoder">String Decoder</a></li>
+<li><a href="string_decoder.html" class="nav-string_decoder">String decoder</a></li>
 <li><a href="timers.html" class="nav-timers">Timers</a></li>
 <li><a href="tls.html" class="nav-tls">TLS/SSL</a></li>
-<li><a href="tracing.html" class="nav-tracing">Trace Events</a></li>
+<li><a href="tracing.html" class="nav-tracing">Trace events</a></li>
 <li><a href="tty.html" class="nav-tty">TTY</a></li>
-<li><a href="dgram.html" class="nav-dgram">UDP/Datagram</a></li>
+<li><a href="dgram.html" class="nav-dgram">UDP/datagram</a></li>
 <li><a href="url.html" class="nav-url">URL</a></li>
 <li><a href="util.html" class="nav-util">Utilities</a></li>
 <li><a href="v8.html" class="nav-v8">V8</a></li>
 <li><a href="vm.html" class="nav-vm">VM</a></li>
-<li><a href="worker_threads.html" class="nav-worker_threads">Worker Threads</a></li>
+<li><a href="wasi.html" class="nav-wasi">WASI</a></li>
+<li><a href="worker_threads.html" class="nav-worker_threads">Worker threads</a></li>
 <li><a href="zlib.html" class="nav-zlib">Zlib</a></li>
 </ul>
 <div class="line"></div>
 <ul>
-<li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">GitHub Repo &#x26; Issue Tracker</a></li>
+<li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">Code repository and issue tracker</a></li>
 </ul>
     </div>
 
     <div id="column1" data-id="os" class="interior">
       <header>
-        <h1>Node.js v12.13.0 Documentation</h1>
+        <h1>Node.js v14.8.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -96,11 +99,13 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v12.x/api/os.html">12.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v14.x/api/os.html">14.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v13.x/api/os.html">13.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v12.x/api/os.html">12.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v11.x/api/os.html">11.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v10.x/api/os.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/os.html">9.x</a></li>
-<li><a href="https://nodejs.org/docs/latest-v8.x/api/os.html">8.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v8.x/api/os.html">8.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/os.html">7.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v6.x/api/os.html">6.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v5.x/api/os.html">5.x</a></li>
@@ -121,39 +126,40 @@
 <li>
 <p><span class="stability_2"><a href="#os_os">OS</a></span></p>
 <ul>
-<li><a href="#os_os_eol">os.EOL</a></li>
-<li><a href="#os_os_arch">os.arch()</a></li>
-<li><a href="#os_os_constants">os.constants</a></li>
-<li><a href="#os_os_cpus">os.cpus()</a></li>
-<li><a href="#os_os_endianness">os.endianness()</a></li>
-<li><a href="#os_os_freemem">os.freemem()</a></li>
-<li><a href="#os_os_getpriority_pid">os.getPriority([pid])</a></li>
-<li><a href="#os_os_homedir">os.homedir()</a></li>
-<li><a href="#os_os_hostname">os.hostname()</a></li>
-<li><a href="#os_os_loadavg">os.loadavg()</a></li>
-<li><a href="#os_os_networkinterfaces">os.networkInterfaces()</a></li>
-<li><a href="#os_os_platform">os.platform()</a></li>
-<li><a href="#os_os_release">os.release()</a></li>
-<li><a href="#os_os_setpriority_pid_priority">os.setPriority([pid, ]priority)</a></li>
-<li><a href="#os_os_tmpdir">os.tmpdir()</a></li>
-<li><a href="#os_os_totalmem">os.totalmem()</a></li>
-<li><a href="#os_os_type">os.type()</a></li>
-<li><a href="#os_os_uptime">os.uptime()</a></li>
-<li><a href="#os_os_userinfo_options">os.userInfo([options])</a></li>
+<li><a href="#os_os_eol"><code>os.EOL</code></a></li>
+<li><a href="#os_os_arch"><code>os.arch()</code></a></li>
+<li><a href="#os_os_constants"><code>os.constants</code></a></li>
+<li><a href="#os_os_cpus"><code>os.cpus()</code></a></li>
+<li><a href="#os_os_endianness"><code>os.endianness()</code></a></li>
+<li><a href="#os_os_freemem"><code>os.freemem()</code></a></li>
+<li><a href="#os_os_getpriority_pid"><code>os.getPriority([pid])</code></a></li>
+<li><a href="#os_os_homedir"><code>os.homedir()</code></a></li>
+<li><a href="#os_os_hostname"><code>os.hostname()</code></a></li>
+<li><a href="#os_os_loadavg"><code>os.loadavg()</code></a></li>
+<li><a href="#os_os_networkinterfaces"><code>os.networkInterfaces()</code></a></li>
+<li><a href="#os_os_platform"><code>os.platform()</code></a></li>
+<li><a href="#os_os_release"><code>os.release()</code></a></li>
+<li><a href="#os_os_setpriority_pid_priority"><code>os.setPriority([pid, ]priority)</code></a></li>
+<li><a href="#os_os_tmpdir"><code>os.tmpdir()</code></a></li>
+<li><a href="#os_os_totalmem"><code>os.totalmem()</code></a></li>
+<li><a href="#os_os_type"><code>os.type()</code></a></li>
+<li><a href="#os_os_uptime"><code>os.uptime()</code></a></li>
+<li><a href="#os_os_userinfo_options"><code>os.userInfo([options])</code></a></li>
+<li><a href="#os_os_version"><code>os.version()</code></a></li>
 <li>
-<p><a href="#os_os_constants_1">OS Constants</a></p>
+<p><a href="#os_os_constants_1">OS constants</a></p>
 <ul>
-<li><a href="#os_signal_constants">Signal Constants</a></li>
+<li><a href="#os_signal_constants">Signal constants</a></li>
 <li>
-<p><a href="#os_error_constants">Error Constants</a></p>
+<p><a href="#os_error_constants">Error constants</a></p>
 <ul>
-<li><a href="#os_posix_error_constants">POSIX Error Constants</a></li>
-<li><a href="#os_windows_specific_error_constants">Windows Specific Error Constants</a></li>
+<li><a href="#os_posix_error_constants">POSIX error constants</a></li>
+<li><a href="#os_windows_specific_error_constants">Windows-specific error constants</a></li>
 </ul>
 </li>
-<li><a href="#os_dlopen_constants">dlopen Constants</a></li>
-<li><a href="#os_priority_constants">Priority Constants</a></li>
-<li><a href="#os_libuv_constants">libuv Constants</a></li>
+<li><a href="#os_dlopen_constants">dlopen constants</a></li>
+<li><a href="#os_priority_constants">Priority constants</a></li>
+<li><a href="#os_libuv_constants">libuv constants</a></li>
 </ul>
 </li>
 </ul>
@@ -165,53 +171,51 @@
         <h1>OS<span><a class="mark" href="#os_os" id="os_os">#</a></span></h1>
 
 <p></p><div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p></p>
-<p>The <code>os</code> module provides a number of operating system-related utility methods.
-It can be accessed using:</p>
-<pre><code class="language-js">const os = require('os');
-</code></pre>
-<h2>os.EOL<span><a class="mark" href="#os_os_eol" id="os_os_eol">#</a></span></h2>
+<p><strong>Source Code:</strong> <a href="https://github.com/nodejs/node/blob/v14.8.0/lib/os.js">lib/os.js</a></p>
+<p>The <code>os</code> module provides operating system-related utility methods and
+properties. It can be accessed using:</p>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> os = <span class="hljs-built_in">require</span>(<span class="hljs-string">'os'</span>);</code></pre>
+<h2><code>os.EOL</code><span><a class="mark" href="#os_os_eol" id="os_os_eol">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.7.8</span>
 </div>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
-<p>A string constant defining the operating system-specific end-of-line marker:</p>
+<p>The operating system-specific end-of-line marker.</p>
 <ul>
 <li><code>\n</code> on POSIX</li>
 <li><code>\r\n</code> on Windows</li>
 </ul>
-<h2>os.arch()<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/os.js#L114">[src]</a><span><a class="mark" href="#os_os_arch" id="os_os_arch">#</a></span></h2>
+<h2><code>os.arch()</code><span><a class="mark" href="#os_os_arch" id="os_os_arch">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.5.0</span>
 </div>
 <ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
-<p>The <code>os.arch()</code> method returns a string identifying the operating system CPU
-architecture for which the Node.js binary was compiled.</p>
-<p>The current possible values are: <code>'arm'</code>, <code>'arm64'</code>, <code>'ia32'</code>, <code>'mips'</code>,
+<p>Returns the operating system CPU architecture for which the Node.js binary was
+compiled. Possible values are <code>'arm'</code>, <code>'arm64'</code>, <code>'ia32'</code>, <code>'mips'</code>,
 <code>'mipsel'</code>, <code>'ppc'</code>, <code>'ppc64'</code>, <code>'s390'</code>, <code>'s390x'</code>, <code>'x32'</code>, and <code>'x64'</code>.</p>
-<p>Equivalent to <a href="process.html#process_process_arch"><code>process.arch</code></a>.</p>
-<h2>os.constants<span><a class="mark" href="#os_os_constants" id="os_os_constants">#</a></span></h2>
+<p>The return value is equivalent to <a href="process.html#process_process_arch"><code>process.arch</code></a>.</p>
+<h2><code>os.constants</code><span><a class="mark" href="#os_os_constants" id="os_os_constants">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v6.3.0</span>
 </div>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></li>
 </ul>
-<p>Returns an object containing commonly used operating system specific constants
-for error codes, process signals, and so on. The specific constants currently
-defined are described in <a href="#os_os_constants_1">OS Constants</a>.</p>
-<h2>os.cpus()<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/os.js#L93">[src]</a><span><a class="mark" href="#os_os_cpus" id="os_os_cpus">#</a></span></h2>
+<p>Contains commonly used operating system-specific constants for error codes,
+process signals, and so on. The specific constants defined are described in
+<a href="#os_os_constants_1">OS constants</a>.</p>
+<h2><code>os.cpus()</code><span><a class="mark" href="#os_os_cpus" id="os_os_cpus">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.3.3</span>
 </div>
 <ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object[]></a></li>
 </ul>
-<p>The <code>os.cpus()</code> method returns an array of objects containing information about
-each logical CPU core.</p>
+<p>Returns an array of objects containing information about each logical CPU core.</p>
 <p>The properties included on each object include:</p>
 <ul>
 <li><code>model</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
@@ -230,121 +234,71 @@ each logical CPU core.</p>
 <!-- eslint-disable semi -->
 <pre><code class="language-js">[
   {
-    model: 'Intel(R) Core(TM) i7 CPU         860  @ 2.80GHz',
-    speed: 2926,
-    times: {
-      user: 252020,
-      nice: 0,
-      sys: 30340,
-      idle: 1070356870,
-      irq: 0
+    <span class="hljs-attr">model</span>: <span class="hljs-string">'Intel(R) Core(TM) i7 CPU         860  @ 2.80GHz'</span>,
+    <span class="hljs-attr">speed</span>: <span class="hljs-number">2926</span>,
+    <span class="hljs-attr">times</span>: {
+      <span class="hljs-attr">user</span>: <span class="hljs-number">252020</span>,
+      <span class="hljs-attr">nice</span>: <span class="hljs-number">0</span>,
+      <span class="hljs-attr">sys</span>: <span class="hljs-number">30340</span>,
+      <span class="hljs-attr">idle</span>: <span class="hljs-number">1070356870</span>,
+      <span class="hljs-attr">irq</span>: <span class="hljs-number">0</span>
     }
   },
   {
-    model: 'Intel(R) Core(TM) i7 CPU         860  @ 2.80GHz',
-    speed: 2926,
-    times: {
-      user: 306960,
-      nice: 0,
-      sys: 26980,
-      idle: 1071569080,
-      irq: 0
+    <span class="hljs-attr">model</span>: <span class="hljs-string">'Intel(R) Core(TM) i7 CPU         860  @ 2.80GHz'</span>,
+    <span class="hljs-attr">speed</span>: <span class="hljs-number">2926</span>,
+    <span class="hljs-attr">times</span>: {
+      <span class="hljs-attr">user</span>: <span class="hljs-number">306960</span>,
+      <span class="hljs-attr">nice</span>: <span class="hljs-number">0</span>,
+      <span class="hljs-attr">sys</span>: <span class="hljs-number">26980</span>,
+      <span class="hljs-attr">idle</span>: <span class="hljs-number">1071569080</span>,
+      <span class="hljs-attr">irq</span>: <span class="hljs-number">0</span>
     }
   },
   {
-    model: 'Intel(R) Core(TM) i7 CPU         860  @ 2.80GHz',
-    speed: 2926,
-    times: {
-      user: 248450,
-      nice: 0,
-      sys: 21750,
-      idle: 1070919370,
-      irq: 0
+    <span class="hljs-attr">model</span>: <span class="hljs-string">'Intel(R) Core(TM) i7 CPU         860  @ 2.80GHz'</span>,
+    <span class="hljs-attr">speed</span>: <span class="hljs-number">2926</span>,
+    <span class="hljs-attr">times</span>: {
+      <span class="hljs-attr">user</span>: <span class="hljs-number">248450</span>,
+      <span class="hljs-attr">nice</span>: <span class="hljs-number">0</span>,
+      <span class="hljs-attr">sys</span>: <span class="hljs-number">21750</span>,
+      <span class="hljs-attr">idle</span>: <span class="hljs-number">1070919370</span>,
+      <span class="hljs-attr">irq</span>: <span class="hljs-number">0</span>
     }
   },
   {
-    model: 'Intel(R) Core(TM) i7 CPU         860  @ 2.80GHz',
-    speed: 2926,
-    times: {
-      user: 256880,
-      nice: 0,
-      sys: 19430,
-      idle: 1070905480,
-      irq: 20
-    }
-  },
-  {
-    model: 'Intel(R) Core(TM) i7 CPU         860  @ 2.80GHz',
-    speed: 2926,
-    times: {
-      user: 511580,
-      nice: 20,
-      sys: 40900,
-      idle: 1070842510,
-      irq: 0
-    }
-  },
-  {
-    model: 'Intel(R) Core(TM) i7 CPU         860  @ 2.80GHz',
-    speed: 2926,
-    times: {
-      user: 291660,
-      nice: 0,
-      sys: 34360,
-      idle: 1070888000,
-      irq: 10
-    }
-  },
-  {
-    model: 'Intel(R) Core(TM) i7 CPU         860  @ 2.80GHz',
-    speed: 2926,
-    times: {
-      user: 308260,
-      nice: 0,
-      sys: 55410,
-      idle: 1071129970,
-      irq: 880
-    }
-  },
-  {
-    model: 'Intel(R) Core(TM) i7 CPU         860  @ 2.80GHz',
-    speed: 2926,
-    times: {
-      user: 266450,
-      nice: 1480,
-      sys: 34920,
-      idle: 1072572010,
-      irq: 30
+    <span class="hljs-attr">model</span>: <span class="hljs-string">'Intel(R) Core(TM) i7 CPU         860  @ 2.80GHz'</span>,
+    <span class="hljs-attr">speed</span>: <span class="hljs-number">2926</span>,
+    <span class="hljs-attr">times</span>: {
+      <span class="hljs-attr">user</span>: <span class="hljs-number">256880</span>,
+      <span class="hljs-attr">nice</span>: <span class="hljs-number">0</span>,
+      <span class="hljs-attr">sys</span>: <span class="hljs-number">19430</span>,
+      <span class="hljs-attr">idle</span>: <span class="hljs-number">1070905480</span>,
+      <span class="hljs-attr">irq</span>: <span class="hljs-number">20</span>
     }
   }
-]
-</code></pre>
-<p>Because <code>nice</code> values are Unix-specific, on Windows the <code>nice</code> values of all
-processors are always 0.</p>
-<h2>os.endianness()<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/os.js#L145">[src]</a><span><a class="mark" href="#os_os_endianness" id="os_os_endianness">#</a></span></h2>
+]</code></pre>
+<p><code>nice</code> values are POSIX-only. On Windows, the <code>nice</code> values of all processors
+are always 0.</p>
+<h2><code>os.endianness()</code><span><a class="mark" href="#os_os_endianness" id="os_os_endianness">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.9.4</span>
 </div>
 <ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
-<p>The <code>os.endianness()</code> method returns a string identifying the endianness of the
-CPU <em>for which the Node.js binary was compiled</em>.</p>
-<p>Possible values are:</p>
-<ul>
-<li><code>'BE'</code> for big endian</li>
-<li><code>'LE'</code> for little endian.</li>
-</ul>
-<h2>os.freemem()<span><a class="mark" href="#os_os_freemem" id="os_os_freemem">#</a></span></h2>
+<p>Returns a string identifying the endianness of the CPU for which the Node.js
+binary was compiled.</p>
+<p>Possible values are <code>'BE'</code> for big endian and <code>'LE'</code> for little endian.</p>
+<h2><code>os.freemem()</code><span><a class="mark" href="#os_os_freemem" id="os_os_freemem">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.3.3</span>
 </div>
 <ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
 </ul>
-<p>The <code>os.freemem()</code> method returns the amount of free system memory in bytes as
-an integer.</p>
-<h2>os.getPriority([pid])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/os.js#L239">[src]</a><span><a class="mark" href="#os_os_getpriority_pid" id="os_os_getpriority_pid">#</a></span></h2>
+<p>Returns the amount of free system memory in bytes as an integer.</p>
+<h2><code>os.getPriority([pid])</code><span><a class="mark" href="#os_os_getpriority_pid" id="os_os_getpriority_pid">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v10.10.0</span>
 </div>
@@ -353,56 +307,49 @@ an integer.</p>
 <strong>Default</strong> <code>0</code>.</li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
 </ul>
-<p>The <code>os.getPriority()</code> method returns the scheduling priority for the process
-specified by <code>pid</code>. If <code>pid</code> is not provided, or is <code>0</code>, the priority of the
-current process is returned.</p>
-<h2>os.homedir()<span><a class="mark" href="#os_os_homedir" id="os_os_homedir">#</a></span></h2>
+<p>Returns the scheduling priority for the process specified by <code>pid</code>. If <code>pid</code> is
+not provided or is <code>0</code>, the priority of the current process is returned.</p>
+<h2><code>os.homedir()</code><span><a class="mark" href="#os_os_homedir" id="os_os_homedir">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v2.3.0</span>
 </div>
 <ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
-<p>The <code>os.homedir()</code> method returns the home directory of the current user as a
-string.</p>
-<p><strong>POSIX</strong>:
-Will use the <code>$HOME</code> environment variable if defined. Otherwise, it will use
-the <a href="https://en.wikipedia.org/wiki/User_identifier#Effective_user_ID">effective UID</a> to look up the user's home directory.</p>
-<p><strong>Windows</strong>:
-Will use the <code>USERPROFILE</code> environment variable if defined. Otherwise it
-will be the path to the profile directory of the current user.</p>
-<h2>os.hostname()<span><a class="mark" href="#os_os_hostname" id="os_os_hostname">#</a></span></h2>
+<p>Returns the string path of the current user's home directory.</p>
+<p>On POSIX, it uses the <code>$HOME</code> environment variable if defined. Otherwise it
+uses the <a href="https://en.wikipedia.org/wiki/User_identifier#Effective_user_ID">effective UID</a> to look up the user's home directory.</p>
+<p>On Windows, it uses the <code>USERPROFILE</code> environment variable if defined.
+Otherwise it uses the path to the profile directory of the current user.</p>
+<h2><code>os.hostname()</code><span><a class="mark" href="#os_os_hostname" id="os_os_hostname">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.3.3</span>
 </div>
 <ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
-<p>The <code>os.hostname()</code> method returns the hostname of the operating system as a
-string.</p>
-<h2>os.loadavg()<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/os.js#L88">[src]</a><span><a class="mark" href="#os_os_loadavg" id="os_os_loadavg">#</a></span></h2>
+<p>Returns the host name of the operating system as a string.</p>
+<h2><code>os.loadavg()</code><span><a class="mark" href="#os_os_loadavg" id="os_os_loadavg">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.3.3</span>
 </div>
 <ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number[]></a></li>
 </ul>
-<p>The <code>os.loadavg()</code> method returns an array containing the 1, 5, and 15 minute
-load averages.</p>
-<p>The load average is a measure of system activity, calculated by the operating
-system and expressed as a fractional number. As a rule of thumb, the load
-average should ideally be less than the number of logical CPUs in the system.</p>
-<p>The load average is a Unix-specific concept with no real equivalent on
-Windows platforms. On Windows, the return value is always <code>[0, 0, 0]</code>.</p>
-<h2>os.networkInterfaces()<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/os.js#L194">[src]</a><span><a class="mark" href="#os_os_networkinterfaces" id="os_os_networkinterfaces">#</a></span></h2>
+<p>Returns an array containing the 1, 5, and 15 minute load averages.</p>
+<p>The load average is a measure of system activity calculated by the operating
+system and expressed as a fractional number.</p>
+<p>The load average is a Unix-specific concept. On Windows, the return value is
+always <code>[0, 0, 0]</code>.</p>
+<h2><code>os.networkInterfaces()</code><span><a class="mark" href="#os_os_networkinterfaces" id="os_os_networkinterfaces">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.6.0</span>
 </div>
 <ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></li>
 </ul>
-<p>The <code>os.networkInterfaces()</code> method returns an object containing only network
-interfaces that have been assigned a network address.</p>
+<p>Returns an object containing network interfaces that have been assigned a
+network address.</p>
 <p>Each key on the returned object identifies a network interface. The associated
 value is an array of objects that each describe an assigned network address.</p>
 <p>The properties available on the assigned network address object include:</p>
@@ -421,82 +368,70 @@ to <code>null</code>.</li>
 </ul>
 <!-- eslint-skip -->
 <pre><code class="language-js">{
-  lo: [
+  <span class="hljs-attr">lo</span>: [
     {
-      address: '127.0.0.1',
-      netmask: '255.0.0.0',
-      family: 'IPv4',
-      mac: '00:00:00:00:00:00',
-      internal: true,
-      cidr: '127.0.0.1/8'
+      <span class="hljs-attr">address</span>: <span class="hljs-string">'127.0.0.1'</span>,
+      <span class="hljs-attr">netmask</span>: <span class="hljs-string">'255.0.0.0'</span>,
+      <span class="hljs-attr">family</span>: <span class="hljs-string">'IPv4'</span>,
+      <span class="hljs-attr">mac</span>: <span class="hljs-string">'00:00:00:00:00:00'</span>,
+      <span class="hljs-attr">internal</span>: <span class="hljs-literal">true</span>,
+      <span class="hljs-attr">cidr</span>: <span class="hljs-string">'127.0.0.1/8'</span>
     },
     {
-      address: '::1',
-      netmask: 'ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff',
-      family: 'IPv6',
-      mac: '00:00:00:00:00:00',
-      scopeid: 0,
-      internal: true,
-      cidr: '::1/128'
+      <span class="hljs-attr">address</span>: <span class="hljs-string">'::1'</span>,
+      <span class="hljs-attr">netmask</span>: <span class="hljs-string">'ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff'</span>,
+      <span class="hljs-attr">family</span>: <span class="hljs-string">'IPv6'</span>,
+      <span class="hljs-attr">mac</span>: <span class="hljs-string">'00:00:00:00:00:00'</span>,
+      <span class="hljs-attr">scopeid</span>: <span class="hljs-number">0</span>,
+      <span class="hljs-attr">internal</span>: <span class="hljs-literal">true</span>,
+      <span class="hljs-attr">cidr</span>: <span class="hljs-string">'::1/128'</span>
     }
   ],
-  eth0: [
+  <span class="hljs-attr">eth0</span>: [
     {
-      address: '192.168.1.108',
-      netmask: '255.255.255.0',
-      family: 'IPv4',
-      mac: '01:02:03:0a:0b:0c',
-      internal: false,
-      cidr: '192.168.1.108/24'
+      <span class="hljs-attr">address</span>: <span class="hljs-string">'192.168.1.108'</span>,
+      <span class="hljs-attr">netmask</span>: <span class="hljs-string">'255.255.255.0'</span>,
+      <span class="hljs-attr">family</span>: <span class="hljs-string">'IPv4'</span>,
+      <span class="hljs-attr">mac</span>: <span class="hljs-string">'01:02:03:0a:0b:0c'</span>,
+      <span class="hljs-attr">internal</span>: <span class="hljs-literal">false</span>,
+      <span class="hljs-attr">cidr</span>: <span class="hljs-string">'192.168.1.108/24'</span>
     },
     {
-      address: 'fe80::a00:27ff:fe4e:66a1',
-      netmask: 'ffff:ffff:ffff:ffff::',
-      family: 'IPv6',
-      mac: '01:02:03:0a:0b:0c',
-      scopeid: 1,
-      internal: false,
-      cidr: 'fe80::a00:27ff:fe4e:66a1/64'
+      <span class="hljs-attr">address</span>: <span class="hljs-string">'fe80::a00:27ff:fe4e:66a1'</span>,
+      <span class="hljs-attr">netmask</span>: <span class="hljs-string">'ffff:ffff:ffff:ffff::'</span>,
+      <span class="hljs-attr">family</span>: <span class="hljs-string">'IPv6'</span>,
+      <span class="hljs-attr">mac</span>: <span class="hljs-string">'01:02:03:0a:0b:0c'</span>,
+      <span class="hljs-attr">scopeid</span>: <span class="hljs-number">1</span>,
+      <span class="hljs-attr">internal</span>: <span class="hljs-literal">false</span>,
+      <span class="hljs-attr">cidr</span>: <span class="hljs-string">'fe80::a00:27ff:fe4e:66a1/64'</span>
     }
   ]
-}
-</code></pre>
-<h2>os.platform()<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/os.js#L119">[src]</a><span><a class="mark" href="#os_os_platform" id="os_os_platform">#</a></span></h2>
+}</code></pre>
+<h2><code>os.platform()</code><span><a class="mark" href="#os_os_platform" id="os_os_platform">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.5.0</span>
 </div>
 <ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
-<p>The <code>os.platform()</code> method returns a string identifying the operating system
-platform as set during compile time of Node.js.</p>
-<p>Currently possible values are:</p>
-<ul>
-<li><code>'aix'</code></li>
-<li><code>'darwin'</code></li>
-<li><code>'freebsd'</code></li>
-<li><code>'linux'</code></li>
-<li><code>'openbsd'</code></li>
-<li><code>'sunos'</code></li>
-<li><code>'win32'</code></li>
-</ul>
-<p>Equivalent to <a href="process.html#process_process_platform"><code>process.platform</code></a>.</p>
-<p>The value <code>'android'</code> may also be returned if the Node.js is built on the
-Android operating system. However, Android support in Node.js is considered
-<a href="https://github.com/nodejs/node/blob/master/BUILDING.md#androidandroid-based-devices-eg-firefox-os">to be experimental</a> at this time.</p>
-<h2>os.release()<span><a class="mark" href="#os_os_release" id="os_os_release">#</a></span></h2>
+<p>Returns a string identifying the operating system platform. The value is set
+at compile time. Possible values are <code>'aix'</code>, <code>'darwin'</code>, <code>'freebsd'</code>,
+<code>'linux'</code>, <code>'openbsd'</code>, <code>'sunos'</code>, and <code>'win32'</code>.</p>
+<p>The return value is equivalent to <a href="process.html#process_process_platform"><code>process.platform</code></a>.</p>
+<p>The value <code>'android'</code> may also be returned if Node.js is built on the Android
+operating system. <a href="https://github.com/nodejs/node/blob/master/BUILDING.md#androidandroid-based-devices-eg-firefox-os">Android support is experimental</a>.</p>
+<h2><code>os.release()</code><span><a class="mark" href="#os_os_release" id="os_os_release">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.3.3</span>
 </div>
 <ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
-<p>The <code>os.release()</code> method returns a string identifying the operating system
-release.</p>
+<p>Returns the operating system as a string.</p>
 <p>On POSIX systems, the operating system release is determined by calling
-<a href="https://linux.die.net/man/3/uname"></a><a href="https://linux.die.net/man/3/uname"><code>uname(3)</code></a>. On Windows, <code>GetVersionExW()</code> is used. Please see
+<a href="https://linux.die.net/man/3/uname"></a><a href="https://linux.die.net/man/3/uname"><code>uname(3)</code></a>. On Windows, <code>GetVersionExW()</code> is used. See
 <a href="https://en.wikipedia.org/wiki/Uname#Examples">https://en.wikipedia.org/wiki/Uname#Examples</a> for more information.</p>
-<h2>os.setPriority([pid, ]priority)<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/os.js#L224">[src]</a><span><a class="mark" href="#os_os_setpriority_pid_priority" id="os_os_setpriority_pid_priority">#</a></span></h2>
+<h2><code>os.setPriority([pid, ]priority)</code><span><a class="mark" href="#os_os_setpriority_pid_priority" id="os_os_setpriority_pid_priority">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v10.10.0</span>
 </div>
@@ -505,18 +440,18 @@ release.</p>
 <strong>Default</strong> <code>0</code>.</li>
 <li><code>priority</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> The scheduling priority to assign to the process.</li>
 </ul>
-<p>The <code>os.setPriority()</code> method attempts to set the scheduling priority for the
-process specified by <code>pid</code>. If <code>pid</code> is not provided, or is <code>0</code>, the priority
-of the current process is used.</p>
+<p>Attempts to set the scheduling priority for the process specified by <code>pid</code>. If
+<code>pid</code> is not provided or is <code>0</code>, the process ID of the current process is used.</p>
 <p>The <code>priority</code> input must be an integer between <code>-20</code> (high priority) and <code>19</code>
 (low priority). Due to differences between Unix priority levels and Windows
 priority classes, <code>priority</code> is mapped to one of six priority constants in
 <code>os.constants.priority</code>. When retrieving a process priority level, this range
 mapping may cause the return value to be slightly different on Windows. To avoid
-confusion, it is recommended to set <code>priority</code> to one of the priority constants.</p>
-<p>On Windows setting priority to <code>PRIORITY_HIGHEST</code> requires elevated user,
-otherwise the set priority will be silently reduced to <code>PRIORITY_HIGH</code>.</p>
-<h2>os.tmpdir()<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/os.js#L124">[src]</a><span><a class="mark" href="#os_os_tmpdir" id="os_os_tmpdir">#</a></span></h2>
+confusion, set <code>priority</code> to one of the priority constants.</p>
+<p>On Windows, setting priority to <code>PRIORITY_HIGHEST</code> requires elevated user
+privileges. Otherwise the set priority will be silently reduced to
+<code>PRIORITY_HIGH</code>.</p>
+<h2><code>os.tmpdir()</code><span><a class="mark" href="#os_os_tmpdir" id="os_os_tmpdir">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -531,31 +466,28 @@ otherwise the set priority will be silently reduced to <code>PRIORITY_HIGH</code
 <ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
-<p>The <code>os.tmpdir()</code> method returns a string specifying the operating system's
-default directory for temporary files.</p>
-<h2>os.totalmem()<span><a class="mark" href="#os_os_totalmem" id="os_os_totalmem">#</a></span></h2>
+<p>Returns the operating system's default directory for temporary files as a
+string.</p>
+<h2><code>os.totalmem()</code><span><a class="mark" href="#os_os_totalmem" id="os_os_totalmem">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.3.3</span>
 </div>
 <ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
 </ul>
-<p>The <code>os.totalmem()</code> method returns the total amount of system memory in bytes
-as an integer.</p>
-<h2>os.type()<span><a class="mark" href="#os_os_type" id="os_os_type">#</a></span></h2>
+<p>Returns the total amount of system memory in bytes as an integer.</p>
+<h2><code>os.type()</code><span><a class="mark" href="#os_os_type" id="os_os_type">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.3.3</span>
 </div>
 <ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
-<p>The <code>os.type()</code> method returns a string identifying the operating system name
-as returned by <a href="https://linux.die.net/man/3/uname"></a><a href="https://linux.die.net/man/3/uname"><code>uname(3)</code></a>. For example, <code>'Linux'</code> on Linux, <code>'Darwin'</code> on
-macOS, and <code>'Windows_NT'</code> on Windows.</p>
-<p>Please see <a href="https://en.wikipedia.org/wiki/Uname#Examples">https://en.wikipedia.org/wiki/Uname#Examples</a> for additional
-information about the output of running <a href="https://linux.die.net/man/3/uname"></a><a href="https://linux.die.net/man/3/uname"><code>uname(3)</code></a> on various operating
-systems.</p>
-<h2>os.uptime()<span><a class="mark" href="#os_os_uptime" id="os_os_uptime">#</a></span></h2>
+<p>Returns the operating system name as returned by <a href="https://linux.die.net/man/3/uname"></a><a href="https://linux.die.net/man/3/uname"><code>uname(3)</code></a>. For example, it
+returns <code>'Linux'</code> on Linux, <code>'Darwin'</code> on macOS, and <code>'Windows_NT'</code> on Windows.</p>
+<p>See <a href="https://en.wikipedia.org/wiki/Uname#Examples">https://en.wikipedia.org/wiki/Uname#Examples</a> for additional information
+about the output of running <a href="https://linux.die.net/man/3/uname"></a><a href="https://linux.die.net/man/3/uname"><code>uname(3)</code></a> on various operating systems.</p>
+<h2><code>os.uptime()</code><span><a class="mark" href="#os_os_uptime" id="os_os_uptime">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -570,8 +502,8 @@ systems.</p>
 <ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
 </ul>
-<p>The <code>os.uptime()</code> method returns the system uptime in number of seconds.</p>
-<h2>os.userInfo([options])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/os.js#L254">[src]</a><span><a class="mark" href="#os_os_userinfo_options" id="os_os_userinfo_options">#</a></span></h2>
+<p>Returns the system uptime in number of seconds.</p>
+<h2><code>os.userInfo([options])</code><span><a class="mark" href="#os_os_userinfo_options" id="os_os_userinfo_options">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v6.0.0</span>
 </div>
@@ -586,19 +518,31 @@ values will be <code>Buffer</code> instances. <strong>Default:</strong> <code>'u
 </li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></li>
 </ul>
-<p>The <code>os.userInfo()</code> method returns information about the currently effective
-user — on POSIX platforms, this is typically a subset of the password file. The
-returned object includes the <code>username</code>, <code>uid</code>, <code>gid</code>, <code>shell</code>, and <code>homedir</code>.
-On Windows, the <code>uid</code> and <code>gid</code> fields are <code>-1</code>, and <code>shell</code> is <code>null</code>.</p>
+<p>Returns information about the currently effective user. On POSIX platforms,
+this is typically a subset of the password file. The returned object includes
+the <code>username</code>, <code>uid</code>, <code>gid</code>, <code>shell</code>, and <code>homedir</code>. On Windows, the <code>uid</code> and
+<code>gid</code> fields are <code>-1</code>, and <code>shell</code> is <code>null</code>.</p>
 <p>The value of <code>homedir</code> returned by <code>os.userInfo()</code> is provided by the operating
-system. This differs from the result of <code>os.homedir()</code>, which queries several
+system. This differs from the result of <code>os.homedir()</code>, which queries
 environment variables for the home directory before falling back to the
 operating system response.</p>
 <p>Throws a <a href="errors.html#errors_class_systemerror"><code>SystemError</code></a> if a user has no <code>username</code> or <code>homedir</code>.</p>
-<h2>OS Constants<span><a class="mark" href="#os_os_constants_1" id="os_os_constants_1">#</a></span></h2>
+<h2><code>os.version()</code><span><a class="mark" href="#os_os_version" id="os_os_version">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v13.11.0</span>
+</div>
+<ul>
+<li>Returns <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+</ul>
+<p>Returns a string identifying the kernel version.</p>
+<p>On POSIX systems, the operating system release is determined by calling
+<a href="https://linux.die.net/man/3/uname"></a><a href="https://linux.die.net/man/3/uname"><code>uname(3)</code></a>. On Windows, <code>RtlGetVersion()</code> is used, and if it is not available,
+<code>GetVersionExW()</code> will be used. See
+<a href="https://en.wikipedia.org/wiki/Uname#Examples">https://en.wikipedia.org/wiki/Uname#Examples</a> for more information.</p>
+<h2>OS constants<span><a class="mark" href="#os_os_constants_1" id="os_os_constants_1">#</a></span></h2>
 <p>The following constants are exported by <code>os.constants</code>.</p>
 <p>Not all constants will be available on every operating system.</p>
-<h3>Signal Constants<span><a class="mark" href="#os_signal_constants" id="os_signal_constants">#</a></span></h3>
+<h3>Signal constants<span><a class="mark" href="#os_signal_constants" id="os_signal_constants">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -608,7 +552,7 @@ operating system response.</p>
 </tbody></table>
 </details>
 </div>
-<p>The following signal constants are exported by <code>os.constants.signals</code>:</p>
+<p>The following signal constants are exported by <code>os.constants.signals</code>.</p>
 <table>
   <tbody><tr>
     <th>Constant</th>
@@ -769,9 +713,9 @@ operating system response.</p>
     <td>Synonym for <code>SIGSYS</code></td>
   </tr>
 </tbody></table>
-<h3>Error Constants<span><a class="mark" href="#os_error_constants" id="os_error_constants">#</a></span></h3>
-<p>The following error constants are exported by <code>os.constants.errno</code>:</p>
-<h4>POSIX Error Constants<span><a class="mark" href="#os_posix_error_constants" id="os_posix_error_constants">#</a></span></h4>
+<h3>Error constants<span><a class="mark" href="#os_error_constants" id="os_error_constants">#</a></span></h3>
+<p>The following error constants are exported by <code>os.constants.errno</code>.</p>
+<h4>POSIX error constants<span><a class="mark" href="#os_posix_error_constants" id="os_posix_error_constants">#</a></span></h4>
 <table>
   <tbody><tr>
     <th>Constant</th>
@@ -800,7 +744,7 @@ operating system response.</p>
   </tr>
   <tr>
     <td><code>EAGAIN</code></td>
-    <td>Indicates that there is currently no data available and to try the
+    <td>Indicates that there is no data available and to try the
     operation again later.</td>
   </tr>
   <tr>
@@ -1031,8 +975,8 @@ operating system response.</p>
   </tr>
   <tr>
     <td><code>EOPNOTSUPP</code></td>
-    <td>Indicates that an operation is not supported on the socket. Note that
-    while <code>ENOTSUP</code> and <code>EOPNOTSUPP</code> have the same value
+    <td>Indicates that an operation is not supported on the socket. Although
+    <code>ENOTSUP</code> and <code>EOPNOTSUPP</code> have the same value
     on Linux, according to POSIX.1 these error values should be distinct.)</td>
   </tr>
   <tr>
@@ -1101,8 +1045,8 @@ operating system response.</p>
     <td>Indicates an improper link.
   </td></tr>
 </tbody></table>
-<h4>Windows Specific Error Constants<span><a class="mark" href="#os_windows_specific_error_constants" id="os_windows_specific_error_constants">#</a></span></h4>
-<p>The following error codes are specific to the Windows operating system:</p>
+<h4>Windows-specific error constants<span><a class="mark" href="#os_windows_specific_error_constants" id="os_windows_specific_error_constants">#</a></span></h4>
+<p>The following error codes are specific to the Windows operating system.</p>
 <table>
   <tbody><tr>
     <th>Constant</th>
@@ -1343,7 +1287,7 @@ operating system response.</p>
     <td>Indicates that a database query was refused.</td>
   </tr>
 </tbody></table>
-<h3>dlopen Constants<span><a class="mark" href="#os_dlopen_constants" id="os_dlopen_constants">#</a></span></h3>
+<h3>dlopen constants<span><a class="mark" href="#os_dlopen_constants" id="os_dlopen_constants">#</a></span></h3>
 <p>If available on the operating system, the following constants
 are exported in <code>os.constants.dlopen</code>. See <a href="http://man7.org/linux/man-pages/man3/dlopen.3.html"><code>dlopen(3)</code></a> for detailed
 information.</p>
@@ -1377,12 +1321,12 @@ information.</p>
     symbols from previously loaded libraries.</td>
   </tr>
 </tbody></table>
-<h3>Priority Constants<span><a class="mark" href="#os_priority_constants" id="os_priority_constants">#</a></span></h3>
+<h3>Priority constants<span><a class="mark" href="#os_priority_constants" id="os_priority_constants">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v10.10.0</span>
 </div>
 <p>The following process scheduling constants are exported by
-<code>os.constants.priority</code>:</p>
+<code>os.constants.priority</code>.</p>
 <table>
   <tbody><tr>
     <th>Constant</th>
@@ -1428,7 +1372,7 @@ information.</p>
     <code>-20</code> on all other platforms.</td>
   </tr>
 </tbody></table>
-<h3>libuv Constants<span><a class="mark" href="#os_libuv_constants" id="os_libuv_constants">#</a></span></h3>
+<h3>libuv constants<span><a class="mark" href="#os_libuv_constants" id="os_libuv_constants">#</a></span></h3>
 <table>
   <tbody><tr>
     <th>Constant</th>
@@ -1439,11 +1383,9 @@ information.</p>
     <td></td>
   </tr>
 </tbody></table>
+        <!-- API END -->
       </div>
     </div>
   </div>
-  <script src="assets/sh_main.js"></script>
-  <script src="assets/sh_javascript.min.js"></script>
-  <script>highlight(undefined, undefined, 'pre');</script>
 </body>
 </html>

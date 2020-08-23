@@ -1,11 +1,18 @@
 'use strict';
+
+const {
+  ArrayIsArray,
+} = primordials;
+
 const errors = require('internal/errors');
 const { isIP } = require('internal/net');
+const { validateInt32 } = require('internal/validators');
 const {
   ChannelWrap,
   strerror,
   AI_ADDRCONFIG,
-  AI_V4MAPPED
+  AI_ALL,
+  AI_V4MAPPED,
 } = internalBinding('cares_wrap');
 const IANA_DNS_PORT = 53;
 const IPv6RE = /^\[([^[\]]*)\]/;
@@ -17,10 +24,17 @@ const {
   ERR_INVALID_OPT_VALUE
 } = errors.codes;
 
+function validateTimeout(options) {
+  const { timeout = -1 } = { ...options };
+  validateInt32(timeout, 'options.timeout', -1, 2 ** 31 - 1);
+  return timeout;
+}
+
 // Resolver instances correspond 1:1 to c-ares channels.
 class Resolver {
-  constructor() {
-    this._handle = new ChannelWrap();
+  constructor(options = undefined) {
+    const timeout = validateTimeout(options);
+    this._handle = new ChannelWrap(timeout);
   }
 
   cancel() {
@@ -38,7 +52,7 @@ class Resolver {
   }
 
   setServers(servers) {
-    if (!Array.isArray(servers)) {
+    if (!ArrayIsArray(servers)) {
       throw new ERR_INVALID_ARG_TYPE('servers', 'Array', servers);
     }
 
@@ -52,7 +66,7 @@ class Resolver {
       if (typeof serv !== 'string') {
         throw new ERR_INVALID_ARG_TYPE(`servers[${index}]`, 'string', serv);
       }
-      var ipVersion = isIP(serv);
+      let ipVersion = isIP(serv);
 
       if (ipVersion !== 0)
         return newSet.push([ipVersion, serv, IANA_DNS_PORT]);
@@ -131,10 +145,7 @@ function bindDefaultResolver(target, source) {
 }
 
 function validateHints(hints) {
-  if (hints !== 0 &&
-      hints !== AI_ADDRCONFIG &&
-      hints !== AI_V4MAPPED &&
-      hints !== (AI_ADDRCONFIG | AI_V4MAPPED)) {
+  if ((hints & ~(AI_ADDRCONFIG | AI_ALL | AI_V4MAPPED)) !== 0) {
     throw new ERR_INVALID_OPT_VALUE('hints', hints);
   }
 }
@@ -159,6 +170,7 @@ module.exports = {
   getDefaultResolver,
   setDefaultResolver,
   validateHints,
+  validateTimeout,
   Resolver,
   emitInvalidHostnameWarning,
 };

@@ -21,7 +21,15 @@
 
 'use strict';
 
-const { Object, ObjectPrototype } = primordials;
+const {
+  ArrayIsArray,
+  Error,
+  NumberIsInteger,
+  ObjectAssign,
+  ObjectDefineProperty,
+  ObjectPrototypeHasOwnProperty,
+  Promise,
+} = primordials;
 
 const {
   promisify,
@@ -29,8 +37,12 @@ const {
   getSystemErrorName
 } = require('internal/util');
 const { isArrayBufferView } = require('internal/util/types');
-const deprecate = require('internal/util').deprecate;
-const debug = require('internal/util/debuglog').debuglog('child_process');
+let debug = require('internal/util/debuglog').debuglog(
+  'child_process',
+  (fn) => {
+    debug = fn;
+  }
+);
 const { Buffer } = require('buffer');
 const { Pipe, constants: PipeConstants } = internalBinding('pipe_wrap');
 const {
@@ -56,11 +68,11 @@ function fork(modulePath /* , args, options */) {
   validateString(modulePath, 'modulePath');
 
   // Get options and args arguments.
-  var execArgv;
-  var options = {};
-  var args = [];
-  var pos = 1;
-  if (pos < arguments.length && Array.isArray(arguments[pos])) {
+  let execArgv;
+  let options = {};
+  let args = [];
+  let pos = 1;
+  if (pos < arguments.length && ArrayIsArray(arguments[pos])) {
     args = arguments[pos++];
   }
 
@@ -93,7 +105,7 @@ function fork(modulePath /* , args, options */) {
 
   if (typeof options.stdio === 'string') {
     options.stdio = stdioStringToArray(options.stdio, 'ipc');
-  } else if (!Array.isArray(options.stdio)) {
+  } else if (!ArrayIsArray(options.stdio)) {
     // Use a separate fd=3 for the IPC channel. Inherit stdin, stdout,
     // and stderr from the parent if silent isn't set.
     options.stdio = stdioStringToArray(
@@ -109,17 +121,17 @@ function fork(modulePath /* , args, options */) {
   return spawn(options.execPath, args, options);
 }
 
-function _forkChild(fd) {
+function _forkChild(fd, serializationMode) {
   // set process.send()
   const p = new Pipe(PipeConstants.IPC);
   p.open(fd);
   p.unref();
-  const control = setupChannel(process, p);
+  const control = setupChannel(process, p, serializationMode);
   process.on('newListener', function onNewListener(name) {
-    if (name === 'message' || name === 'disconnect') control.ref();
+    if (name === 'message' || name === 'disconnect') control.refCounted();
   });
   process.on('removeListener', function onRemoveListener(name) {
-    if (name === 'message' || name === 'disconnect') control.unref();
+    if (name === 'message' || name === 'disconnect') control.unrefCounted();
   });
 }
 
@@ -171,7 +183,7 @@ const customPromiseExecFunction = (orig) => {
   };
 };
 
-Object.defineProperty(exec, promisify.custom, {
+ObjectDefineProperty(exec, promisify.custom, {
   enumerable: false,
   value: customPromiseExecFunction(exec)
 });
@@ -183,7 +195,7 @@ function execFile(file /* , args, options, callback */) {
 
   // Parse the optional positional parameters.
   let pos = 1;
-  if (pos < arguments.length && Array.isArray(arguments[pos])) {
+  if (pos < arguments.length && ArrayIsArray(arguments[pos])) {
     args = arguments[pos++];
   } else if (pos < arguments.length && arguments[pos] == null) {
     pos++;
@@ -232,7 +244,7 @@ function execFile(file /* , args, options, callback */) {
     windowsVerbatimArguments: !!options.windowsVerbatimArguments
   });
 
-  var encoding;
+  let encoding;
   const _stdout = [];
   const _stderr = [];
   if (options.encoding !== 'buffer' && Buffer.isEncoding(options.encoding)) {
@@ -240,15 +252,15 @@ function execFile(file /* , args, options, callback */) {
   } else {
     encoding = null;
   }
-  var stdoutLen = 0;
-  var stderrLen = 0;
-  var killed = false;
-  var exited = false;
-  var timeoutId;
+  let stdoutLen = 0;
+  let stderrLen = 0;
+  let killed = false;
+  let exited = false;
+  let timeoutId;
 
-  var ex = null;
+  let ex = null;
 
-  var cmd = file;
+  let cmd = file;
 
   function exithandler(code, signal) {
     if (exited) return;
@@ -262,8 +274,8 @@ function execFile(file /* , args, options, callback */) {
     if (!callback) return;
 
     // merge chunks
-    var stdout;
-    var stderr;
+    let stdout;
+    let stderr;
     if (encoding ||
       (
         child.stdout &&
@@ -390,69 +402,18 @@ function execFile(file /* , args, options, callback */) {
   return child;
 }
 
-Object.defineProperty(execFile, promisify.custom, {
+ObjectDefineProperty(execFile, promisify.custom, {
   enumerable: false,
   value: customPromiseExecFunction(execFile)
 });
-
-const _deprecatedCustomFds = deprecate(
-  function deprecateCustomFds(options) {
-    options.stdio = options.customFds.map(function mapCustomFds(fd) {
-      return fd === -1 ? 'pipe' : fd;
-    });
-  }, 'child_process: options.customFds option is deprecated. ' +
-     'Use options.stdio instead.', 'DEP0006');
-
-function _convertCustomFds(options) {
-  if (options.customFds && !options.stdio) {
-    _deprecatedCustomFds(options);
-  }
-}
-
-function __enclose_io_memfs__node_shebang(file) {
-  const fs = require('fs');
-  const fd = fs.openSync(file, 'r');
-  if (fd < 0) {
-    return false;
-  }
-  var buffer = new Buffer(2);
-  var bytesRead = fs.readSync(fd, buffer, 0, 2, 0);
-  if (2 != bytesRead) {
-    fs.closeSync(fd);
-    return false;
-  }
-  if ('#'.charCodeAt(0) === buffer[0] && '!'.charCodeAt(0) === buffer[1]) {
-    var line = '';
-    var index = 0;
-    do {
-      var bytesRead = fs.readSync(fd, buffer, 0, 1, index);
-      if (1 != bytesRead) {
-        fs.closeSync(fd);
-        return false;
-      }
-      ++index;
-      line += String.fromCharCode(buffer[0]);
-    } while ('\n' !== line[line.length - 1]);
-    var result = line.match(new RegExp("#!/usr/bin/env node(\\n|\\b.*\\n)"));
-    if (null !== result) {
-      fs.closeSync(fd);
-      return result[1];
-    }
-  }
-  fs.closeSync(fd);
-  return false;
-}
 
 function normalizeSpawnArguments(file, args, options) {
   validateString(file, 'file');
 
   if (file.length === 0)
     throw new ERR_INVALID_ARG_VALUE('file', file, 'cannot be empty');
-  // --------- [Enclose.IO Hack start] ---------
-  debug('normalizeSpawnArguments started with', file, args, options);
-  // --------- [Enclose.IO Hack end] ---------
 
-  if (Array.isArray(args)) {
+  if (ArrayIsArray(args)) {
     args = args.slice(0);
   } else if (args == null) {
     args = [];
@@ -513,127 +474,13 @@ function normalizeSpawnArguments(file, args, options) {
   }
 
   // Validate windowsVerbatimArguments, if present.
-  if (options.windowsVerbatimArguments != null &&
-      typeof options.windowsVerbatimArguments !== 'boolean') {
+  let { windowsVerbatimArguments } = options;
+  if (windowsVerbatimArguments != null &&
+      typeof windowsVerbatimArguments !== 'boolean') {
     throw new ERR_INVALID_ARG_TYPE('options.windowsVerbatimArguments',
                                    'boolean',
-                                   options.windowsVerbatimArguments);
+                                   windowsVerbatimArguments);
   }
-
-  // Make a shallow copy so we don't clobber the user's options object.
-  options = { ...options };
-
-  // --------- [Enclose.IO Hack start] ---------
-  // allow executing files within the enclosed package
-  var will_extract = true;
-  var args_extract = function(obj) {
-    if (!will_extract) {
-      return obj;
-    }
-    if (obj && obj.indexOf && 0 === obj.indexOf('/__enclose_io_memfs__')) {
-      var file_extracted = process.__enclose_io_memfs__extract(obj);
-      if (false === file_extracted) {
-        debug('process.__enclose_io_memfs__extract failed with', obj, file_extracted);
-        will_extract = false;
-        return obj;
-      } else {
-        debug('process.__enclose_io_memfs__extract succeeded with', obj, file_extracted);
-        return file_extracted;
-      }
-    } else {
-      return obj;
-    }
-  };
-  
-  if ('node' === file || process.execPath === file) {
-    will_extract = false;
-    file = process.execPath;
-  } else {
-    if (process.platform === 'win32') {
-      if (file && file.indexOf && 1 === file.indexOf(':\\__enclose_io_memfs__')) {
-        file = file.substr(2).replace(/\\/g, '/');
-      } else if (file && file.indexOf && 0 === file.indexOf('\\\\?\\__enclose_io_memfs__')) {
-        file = file.substr(3).replace(/\\/g, '/');
-      } else if (file && file.indexOf && 0 === file.indexOf('\\\\?\\') && 1 === file.substr(4).indexOf(':\\__enclose_io_memfs__')) {
-        file = file.substr(6).replace(/\\/g, '/');
-      }
-    }
-    if (file && file.indexOf && 0 === file.indexOf('/__enclose_io_memfs__')) {
-      // shebang: looking at the two bytes at the start of an executable file
-      var shebang_args = __enclose_io_memfs__node_shebang(file);
-      if (false === shebang_args) {
-        var file_extracted;
-        if (/^win/.test(process.platform)) {
-          file_extracted = process.__enclose_io_memfs__extract(file, 'exe');
-        } else {
-          file_extracted = process.__enclose_io_memfs__extract(file);
-        }
-        if (false === file_extracted) {
-          debug('process.__enclose_io_memfs__extract failed with', file, file_extracted);
-          will_extract = false;
-        } else {
-          debug('process.__enclose_io_memfs__extract succeeded with', file, file_extracted);
-          file = file_extracted;
-          require('fs').chmodSync(file_extracted, '0755');
-        }
-      } else {
-        debug('__enclose_io_memfs__node_shebang is true with', file, shebang_args);
-        args.unshift(file);
-        if ('' !== shebang_args.trim()) {
-          args.unshift(shebang_args.trim());
-        }
-        file = process.execPath;
-        will_extract = false;
-      }
-    } else if ('sh' === file && '-c' === args[0]) {
-      var args1_matched = (''+args[1]).match(/^(\/__enclose_io_memfs__[^\s]+)(\s*)(.*)$/);
-      if (null !== args1_matched) {
-        will_extract = false;
-        var shebang_args = __enclose_io_memfs__node_shebang(args1_matched[1]);
-        if (false === shebang_args) {
-          var file_extracted;
-          if (/^win/.test(process.platform)) {
-            file_extracted = process.__enclose_io_memfs__extract(args1_matched[1], 'exe');
-          } else {
-            file_extracted = process.__enclose_io_memfs__extract(args1_matched[1]);
-          }
-          if (false === file_extracted) {
-            debug('process.__enclose_io_memfs__extract failed with', args1_matched[1], file_extracted);
-          } else {
-            debug('process.__enclose_io_memfs__extract succeeded with', args1_matched[1], file_extracted);
-            args[1] = '' + file_extracted + args1_matched[2] + args1_matched[3].split(' ').map(args_extract).join(' ');
-            require('fs').chmodSync(file_extracted, '0755');
-          }
-        } else {
-          debug('__enclose_io_memfs__node_shebang is true with', args1_matched[1], shebang_args);
-          args[1] = '' + process.execPath + ' ' + shebang_args.trim() + ' ' + args1_matched[1] + args1_matched[2] + args1_matched[3].split(' ').map(args_extract).join(' ');
-        }
-      }
-    }
-
-  }
-
-  args = args.map(args_extract);
-
-  // allow reusing the package itself as an Node.js interpreter
-  var flag_ENCLOSE_IO_USE_ORIGINAL_NODE = false;
-  var command_outer = [file].concat(args).join(' ');
-  var command_regexp_execPath = (process.execPath+'').replace(/[.?*+^$[\]\\(){}|-]/g, "\\$&");
-  var command_regexp_json_execPath = (JSON.stringify(process.execPath)+'').replace(/[.?*+^$[\]\\(){}|-]/g, "\\$&");
-  [
-    new RegExp(`^${command_regexp_execPath}$`),
-    new RegExp(`^${command_regexp_execPath}\\s`),
-    new RegExp(`\\s${command_regexp_execPath}$`),
-    new RegExp(`\\s${command_regexp_execPath}\\s`),
-    new RegExp(`"${command_regexp_execPath}"`),
-    new RegExp(`'${command_regexp_execPath}'`),
-    new RegExp(command_regexp_json_execPath)
-  ].forEach(function(element) {
-    if (command_outer.match(element) !== null) {
-      flag_ENCLOSE_IO_USE_ORIGINAL_NODE = true;
-    }
-  });
-  // --------- [Enclose.IO Hack end] ---------
 
   if (options.shell) {
     const command = [file].concat(args).join(' ');
@@ -646,7 +493,7 @@ function normalizeSpawnArguments(file, args, options) {
       // '/d /s /c' is used only for cmd.exe.
       if (/^(?:.*\\)?cmd(?:\.exe)?$/i.test(file)) {
         args = ['/d', '/s', '/c', `"${command}"`];
-        options.windowsVerbatimArguments = true;
+        windowsVerbatimArguments = true;
       } else {
         args = ['-c', command];
       }
@@ -673,7 +520,7 @@ function normalizeSpawnArguments(file, args, options) {
   // process.env.NODE_V8_COVERAGE always propagates, making it possible to
   // collect coverage for programs that spawn with white-listed environment.
   if (process.env.NODE_V8_COVERAGE &&
-      !ObjectPrototype.hasOwnProperty(options.env || {}, 'NODE_V8_COVERAGE')) {
+      !ObjectPrototypeHasOwnProperty(options.env || {}, 'NODE_V8_COVERAGE')) {
     env.NODE_V8_COVERAGE = process.env.NODE_V8_COVERAGE;
   }
 
@@ -685,65 +532,36 @@ function normalizeSpawnArguments(file, args, options) {
     }
   }
 
-  _convertCustomFds(options);
-
-  // --------- [Enclose.IO Hack start] ---------
-  if (flag_ENCLOSE_IO_USE_ORIGINAL_NODE && undefined === env.ENCLOSE_IO_USE_ITSELF) {
-    envPairs.push('ENCLOSE_IO_USE_ORIGINAL_NODE=1');
-  }
-  if (options.cwd) { // TODO no need to do this for ordinary paths
-    envPairs.push(`ENCLOSE_IO_CHDIR=${options.cwd}`);
-  }
-  debug('normalizeSpawnArguments ends with', {
-    file: file,
-    args: args,
-    options: options,
-    envPairs: envPairs
-  });
-  // --------- [Enclose.IO Hack end] ---------
-
   return {
-    file: file,
-    args: args,
-    options: options,
-    envPairs: envPairs
+    // Make a shallow copy so we don't clobber the user's options object.
+    ...options,
+    args,
+    detached: !!options.detached,
+    envPairs,
+    file,
+    windowsHide: !!options.windowsHide,
+    windowsVerbatimArguments: !!windowsVerbatimArguments
   };
 }
 
 
 function spawn(file, args, options) {
-  const opts = normalizeSpawnArguments(file, args, options);
   const child = new ChildProcess();
 
-  options = opts.options;
-  debug('spawn', opts.args, options);
-
-  child.spawn({
-    file: opts.file,
-    args: opts.args,
-    cwd: options.cwd,
-    windowsHide: !!options.windowsHide,
-    windowsVerbatimArguments: !!options.windowsVerbatimArguments,
-    detached: !!options.detached,
-    envPairs: opts.envPairs,
-    stdio: options.stdio,
-    uid: options.uid,
-    gid: options.gid
-  });
+  options = normalizeSpawnArguments(file, args, options);
+  debug('spawn', options);
+  child.spawn(options);
 
   return child;
 }
 
 function spawnSync(file, args, options) {
-  const opts = normalizeSpawnArguments(file, args, options);
-
-  const defaults = {
+  options = {
     maxBuffer: MAX_BUFFER,
-    ...opts.options
+    ...normalizeSpawnArguments(file, args, options)
   };
-  options = opts.options = defaults;
 
-  debug('spawnSync', opts.args, options);
+  debug('spawnSync', options);
 
   // Validate the timeout, if present.
   validateTimeout(options.timeout);
@@ -751,25 +569,21 @@ function spawnSync(file, args, options) {
   // Validate maxBuffer, if present.
   validateMaxBuffer(options.maxBuffer);
 
-  options.file = opts.file;
-  options.args = opts.args;
-  options.envPairs = opts.envPairs;
-
   // Validate and translate the kill signal, if present.
   options.killSignal = sanitizeKillSignal(options.killSignal);
 
   options.stdio = getValidStdio(options.stdio || 'pipe', true).stdio;
 
   if (options.input) {
-    var stdin = options.stdio[0] = { ...options.stdio[0] };
+    const stdin = options.stdio[0] = { ...options.stdio[0] };
     stdin.input = options.input;
   }
 
   // We may want to pass data in on any given fd, ensure it is a valid buffer
-  for (var i = 0; i < options.stdio.length; i++) {
-    var input = options.stdio[i] && options.stdio[i].input;
+  for (let i = 0; i < options.stdio.length; i++) {
+    const input = options.stdio[i] && options.stdio[i].input;
     if (input != null) {
-      var pipe = options.stdio[i] = { ...options.stdio[i] };
+      const pipe = options.stdio[i] = { ...options.stdio[i] };
       if (isArrayBufferView(input)) {
         pipe.input = input;
       } else if (typeof input === 'string') {
@@ -785,16 +599,16 @@ function spawnSync(file, args, options) {
     }
   }
 
-  return child_process.spawnSync(opts);
+  return child_process.spawnSync(options);
 }
 
 
 function checkExecSyncError(ret, args, cmd) {
-  var err;
+  let err;
   if (ret.error) {
     err = ret.error;
   } else if (ret.status !== 0) {
-    var msg = 'Command failed: ';
+    let msg = 'Command failed: ';
     msg += cmd || args.join(' ');
     if (ret.stderr && ret.stderr.length > 0)
       msg += `\n${ret.stderr.toString()}`;
@@ -802,22 +616,22 @@ function checkExecSyncError(ret, args, cmd) {
     err = new Error(msg);
   }
   if (err) {
-    Object.assign(err, ret);
+    ObjectAssign(err, ret);
   }
   return err;
 }
 
 
 function execFileSync(command, args, options) {
-  const opts = normalizeSpawnArguments(command, args, options);
-  const inheritStderr = !opts.options.stdio;
+  options = normalizeSpawnArguments(command, args, options);
 
-  const ret = spawnSync(opts.file, opts.args.slice(1), opts.options);
+  const inheritStderr = !options.stdio;
+  const ret = spawnSync(options.file, options.args.slice(1), options);
 
   if (inheritStderr && ret.stderr)
     process.stderr.write(ret.stderr);
 
-  const err = checkExecSyncError(ret, opts.args, undefined);
+  const err = checkExecSyncError(ret, options.args, undefined);
 
   if (err)
     throw err;
@@ -845,7 +659,7 @@ function execSync(command, options) {
 
 
 function validateTimeout(timeout) {
-  if (timeout != null && !(Number.isInteger(timeout) && timeout >= 0)) {
+  if (timeout != null && !(NumberIsInteger(timeout) && timeout >= 0)) {
     throw new ERR_OUT_OF_RANGE('timeout', 'an unsigned integer', timeout);
   }
 }

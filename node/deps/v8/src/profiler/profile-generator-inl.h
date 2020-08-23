@@ -7,6 +7,8 @@
 
 #include "src/profiler/profile-generator.h"
 
+#include <memory>
+
 namespace v8 {
 namespace internal {
 
@@ -14,7 +16,7 @@ CodeEntry::CodeEntry(CodeEventListener::LogEventsAndTags tag, const char* name,
                      const char* resource_name, int line_number,
                      int column_number,
                      std::unique_ptr<SourcePositionTable> line_info,
-                     Address instruction_start, bool is_shared_cross_origin)
+                     bool is_shared_cross_origin)
     : bit_field_(TagField::encode(tag) |
                  BuiltinIdField::encode(Builtins::builtin_count) |
                  SharedCrossOriginField::encode(is_shared_cross_origin)),
@@ -24,11 +26,11 @@ CodeEntry::CodeEntry(CodeEventListener::LogEventsAndTags tag, const char* name,
       column_number_(column_number),
       script_id_(v8::UnboundScript::kNoScriptId),
       position_(0),
-      line_info_(std::move(line_info)),
-      instruction_start_(instruction_start) {}
+      line_info_(std::move(line_info)) {}
 
-inline CodeEntry* ProfileGenerator::FindEntry(Address address) {
-  CodeEntry* entry = code_map_.FindEntry(address);
+inline CodeEntry* ProfileGenerator::FindEntry(Address address,
+                                              Address* out_instruction_start) {
+  CodeEntry* entry = code_map_->FindEntry(address, out_instruction_start);
   if (entry) entry->mark_used();
   return entry;
 }
@@ -42,10 +44,6 @@ ProfileNode::ProfileNode(ProfileTree* tree, CodeEntry* entry,
       parent_(parent),
       id_(tree->next_node_id()) {
   tree_->EnqueueNode(this);
-}
-
-inline unsigned ProfileNode::function_id() const {
-  return tree_->GetFunctionId(this);
 }
 
 inline CpuProfileNode::SourceType ProfileNode::source_type() const {

@@ -1,6 +1,11 @@
 'use strict';
 
-const { Math } = primordials;
+const {
+  BigInt,
+  Float32Array,
+  MathFloor,
+  Number,
+} = primordials;
 
 const {
   ERR_BUFFER_OUT_OF_BOUNDS,
@@ -22,6 +27,10 @@ const {
   ucs2Write,
   utf8Write
 } = internalBinding('buffer');
+const {
+  untransferable_object_private_symbol,
+  setHiddenValue,
+} = internalBinding('util');
 
 // Temporary buffers to convert numbers.
 const float32Array = new Float32Array(1);
@@ -61,7 +70,7 @@ function checkInt(value, min, max, buf, offset, byteLength) {
 }
 
 function boundsError(value, length, type) {
-  if (Math.floor(value) !== value) {
+  if (MathFloor(value) !== value) {
     validateNumber(value, type);
     throw new ERR_OUT_OF_RANGE(type || 'offset', 'an integer', value);
   }
@@ -644,7 +653,7 @@ function writeU_Int48LE(buf, value, offset, min, max) {
   value = +value;
   checkInt(value, min, max, buf, offset, 5);
 
-  const newVal = Math.floor(value * 2 ** -32);
+  const newVal = MathFloor(value * 2 ** -32);
   buf[offset++] = value;
   value = value >>> 8;
   buf[offset++] = value;
@@ -669,7 +678,7 @@ function writeU_Int40LE(buf, value, offset, min, max) {
   buf[offset++] = value;
   value = value >>> 8;
   buf[offset++] = value;
-  buf[offset++] = Math.floor(newVal * 2 ** -32);
+  buf[offset++] = MathFloor(newVal * 2 ** -32);
   return offset;
 }
 
@@ -736,7 +745,7 @@ function writeUInt8(value, offset = 0) {
 
 function writeUIntBE(value, offset, byteLength) {
   if (byteLength === 6)
-    return writeU_Int48BE(this, value, offset, 0, 0xffffffffffffff);
+    return writeU_Int48BE(this, value, offset, 0, 0xffffffffffff);
   if (byteLength === 5)
     return writeU_Int40BE(this, value, offset, 0, 0xffffffffff);
   if (byteLength === 3)
@@ -755,7 +764,7 @@ function writeU_Int48BE(buf, value, offset, min, max) {
   value = +value;
   checkInt(value, min, max, buf, offset, 5);
 
-  const newVal = Math.floor(value * 2 ** -32);
+  const newVal = MathFloor(value * 2 ** -32);
   buf[offset++] = (newVal >>> 8);
   buf[offset++] = newVal;
   buf[offset + 3] = value;
@@ -772,7 +781,7 @@ function writeU_Int40BE(buf, value, offset, min, max) {
   value = +value;
   checkInt(value, min, max, buf, offset, 4);
 
-  buf[offset++] = Math.floor(value * 2 ** -32);
+  buf[offset++] = MathFloor(value * 2 ** -32);
   buf[offset + 3] = value;
   value = value >>> 8;
   buf[offset + 2] = value;
@@ -1002,7 +1011,16 @@ function addBufferPrototypeMethods(proto) {
   proto.utf8Write = utf8Write;
 }
 
+// This would better be placed in internal/worker/io.js, but that doesn't work
+// because Buffer needs this and that would introduce a cyclic dependency.
+function markAsUntransferable(obj) {
+  if ((typeof obj !== 'object' && typeof obj !== 'function') || obj === null)
+    return;  // This object is a primitive and therefore already untransferable.
+  setHiddenValue(obj, untransferable_object_private_symbol, true);
+}
+
 module.exports = {
   FastBuffer,
-  addBufferPrototypeMethods
+  addBufferPrototypeMethods,
+  markAsUntransferable,
 };

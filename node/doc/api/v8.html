@@ -3,10 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>V8 | Node.js v12.13.0 Documentation</title>
+  <meta name="nodejs.org:node-version" content="v14.8.0">
+  <title>V8 | Node.js v14.8.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
-  <link rel="stylesheet" href="assets/sh.css">
+  <link rel="stylesheet" href="assets/hljs.css">
   <link rel="canonical" href="https://nodejs.org/api/v8.html">
 </head>
 <body class="alt apidoc" id="api-section-v8">
@@ -18,29 +19,30 @@
         </a>
       </div>
       <ul>
-<li><a href="documentation.html" class="nav-documentation">About these Docs</a></li>
-<li><a href="synopsis.html" class="nav-synopsis">Usage &#x26; Example</a></li>
+<li><a href="documentation.html" class="nav-documentation">About this documentation</a></li>
+<li><a href="synopsis.html" class="nav-synopsis">Usage and example</a></li>
 </ul>
 <div class="line"></div>
 <ul>
-<li><a href="assert.html" class="nav-assert">Assertion Testing</a></li>
-<li><a href="async_hooks.html" class="nav-async_hooks">Async Hooks</a></li>
+<li><a href="assert.html" class="nav-assert">Assertion testing</a></li>
+<li><a href="async_hooks.html" class="nav-async_hooks">Async hooks</a></li>
 <li><a href="buffer.html" class="nav-buffer">Buffer</a></li>
-<li><a href="addons.html" class="nav-addons">C++ Addons</a></li>
-<li><a href="n-api.html" class="nav-n-api">C/C++ Addons - N-API</a></li>
-<li><a href="child_process.html" class="nav-child_process">Child Processes</a></li>
+<li><a href="addons.html" class="nav-addons">C++ addons</a></li>
+<li><a href="n-api.html" class="nav-n-api">C/C++ addons with N-API</a></li>
+<li><a href="embedding.html" class="nav-embedding">C++ embedder API</a></li>
+<li><a href="child_process.html" class="nav-child_process">Child processes</a></li>
 <li><a href="cluster.html" class="nav-cluster">Cluster</a></li>
-<li><a href="cli.html" class="nav-cli">Command Line Options</a></li>
+<li><a href="cli.html" class="nav-cli">Command line options</a></li>
 <li><a href="console.html" class="nav-console">Console</a></li>
 <li><a href="crypto.html" class="nav-crypto">Crypto</a></li>
 <li><a href="debugger.html" class="nav-debugger">Debugger</a></li>
 <li><a href="deprecations.html" class="nav-deprecations">Deprecated APIs</a></li>
 <li><a href="dns.html" class="nav-dns">DNS</a></li>
 <li><a href="domain.html" class="nav-domain">Domain</a></li>
-<li><a href="esm.html" class="nav-esm">ECMAScript Modules</a></li>
+<li><a href="esm.html" class="nav-esm">ECMAScript modules</a></li>
 <li><a href="errors.html" class="nav-errors">Errors</a></li>
 <li><a href="events.html" class="nav-events">Events</a></li>
-<li><a href="fs.html" class="nav-fs">File System</a></li>
+<li><a href="fs.html" class="nav-fs">File system</a></li>
 <li><a href="globals.html" class="nav-globals">Globals</a></li>
 <li><a href="http.html" class="nav-http">HTTP</a></li>
 <li><a href="http2.html" class="nav-http2">HTTP/2</a></li>
@@ -51,37 +53,38 @@
 <li><a href="net.html" class="nav-net">Net</a></li>
 <li><a href="os.html" class="nav-os">OS</a></li>
 <li><a href="path.html" class="nav-path">Path</a></li>
-<li><a href="perf_hooks.html" class="nav-perf_hooks">Performance Hooks</a></li>
+<li><a href="perf_hooks.html" class="nav-perf_hooks">Performance hooks</a></li>
 <li><a href="policy.html" class="nav-policy">Policies</a></li>
 <li><a href="process.html" class="nav-process">Process</a></li>
 <li><a href="punycode.html" class="nav-punycode">Punycode</a></li>
-<li><a href="querystring.html" class="nav-querystring">Query Strings</a></li>
+<li><a href="querystring.html" class="nav-querystring">Query strings</a></li>
 <li><a href="readline.html" class="nav-readline">Readline</a></li>
 <li><a href="repl.html" class="nav-repl">REPL</a></li>
 <li><a href="report.html" class="nav-report">Report</a></li>
 <li><a href="stream.html" class="nav-stream">Stream</a></li>
-<li><a href="string_decoder.html" class="nav-string_decoder">String Decoder</a></li>
+<li><a href="string_decoder.html" class="nav-string_decoder">String decoder</a></li>
 <li><a href="timers.html" class="nav-timers">Timers</a></li>
 <li><a href="tls.html" class="nav-tls">TLS/SSL</a></li>
-<li><a href="tracing.html" class="nav-tracing">Trace Events</a></li>
+<li><a href="tracing.html" class="nav-tracing">Trace events</a></li>
 <li><a href="tty.html" class="nav-tty">TTY</a></li>
-<li><a href="dgram.html" class="nav-dgram">UDP/Datagram</a></li>
+<li><a href="dgram.html" class="nav-dgram">UDP/datagram</a></li>
 <li><a href="url.html" class="nav-url">URL</a></li>
 <li><a href="util.html" class="nav-util">Utilities</a></li>
 <li><a href="v8.html" class="nav-v8 active">V8</a></li>
 <li><a href="vm.html" class="nav-vm">VM</a></li>
-<li><a href="worker_threads.html" class="nav-worker_threads">Worker Threads</a></li>
+<li><a href="wasi.html" class="nav-wasi">WASI</a></li>
+<li><a href="worker_threads.html" class="nav-worker_threads">Worker threads</a></li>
 <li><a href="zlib.html" class="nav-zlib">Zlib</a></li>
 </ul>
 <div class="line"></div>
 <ul>
-<li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">GitHub Repo &#x26; Issue Tracker</a></li>
+<li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">Code repository and issue tracker</a></li>
 </ul>
     </div>
 
     <div id="column1" data-id="v8" class="interior">
       <header>
-        <h1>Node.js v12.13.0 Documentation</h1>
+        <h1>Node.js v14.8.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -96,11 +99,13 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v12.x/api/v8.html">12.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v14.x/api/v8.html">14.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v13.x/api/v8.html">13.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v12.x/api/v8.html">12.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v11.x/api/v8.html">11.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v10.x/api/v8.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/v8.html">9.x</a></li>
-<li><a href="https://nodejs.org/docs/latest-v8.x/api/v8.html">8.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v8.x/api/v8.html">8.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/v8.html">7.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v6.x/api/v8.html">6.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v5.x/api/v8.html">5.x</a></li>
@@ -119,53 +124,53 @@
 <li>
 <p><a href="#v8_v8">V8</a></p>
 <ul>
-<li><a href="#v8_v8_cacheddataversiontag">v8.cachedDataVersionTag()</a></li>
-<li><a href="#v8_v8_getheapspacestatistics">v8.getHeapSpaceStatistics()</a></li>
-<li><a href="#v8_v8_getheapsnapshot">v8.getHeapSnapshot()</a></li>
-<li><a href="#v8_v8_getheapstatistics">v8.getHeapStatistics()</a></li>
-<li><a href="#v8_v8_getheapcodestatistics">v8.getHeapCodeStatistics()</a></li>
-<li><a href="#v8_v8_setflagsfromstring_flags">v8.setFlagsFromString(flags)</a></li>
-<li><a href="#v8_v8_writeheapsnapshot_filename">v8.writeHeapSnapshot([filename])</a></li>
+<li><a href="#v8_v8_cacheddataversiontag"><code>v8.cachedDataVersionTag()</code></a></li>
+<li><a href="#v8_v8_getheapspacestatistics"><code>v8.getHeapSpaceStatistics()</code></a></li>
+<li><a href="#v8_v8_getheapsnapshot"><code>v8.getHeapSnapshot()</code></a></li>
+<li><a href="#v8_v8_getheapstatistics"><code>v8.getHeapStatistics()</code></a></li>
+<li><a href="#v8_v8_getheapcodestatistics"><code>v8.getHeapCodeStatistics()</code></a></li>
+<li><a href="#v8_v8_setflagsfromstring_flags"><code>v8.setFlagsFromString(flags)</code></a></li>
+<li><a href="#v8_v8_writeheapsnapshot_filename"><code>v8.writeHeapSnapshot([filename])</code></a></li>
 <li>
 <p><a href="#v8_serialization_api">Serialization API</a></p>
 <ul>
-<li><a href="#v8_v8_serialize_value">v8.serialize(value)</a></li>
-<li><a href="#v8_v8_deserialize_buffer">v8.deserialize(buffer)</a></li>
+<li><a href="#v8_v8_serialize_value"><code>v8.serialize(value)</code></a></li>
+<li><a href="#v8_v8_deserialize_buffer"><code>v8.deserialize(buffer)</code></a></li>
 <li>
-<p><a href="#v8_class_v8_serializer">class: v8.Serializer</a></p>
+<p><a href="#v8_class_v8_serializer">Class: <code>v8.Serializer</code></a></p>
 <ul>
-<li><a href="#v8_new_serializer">new Serializer()</a></li>
-<li><a href="#v8_serializer_writeheader">serializer.writeHeader()</a></li>
-<li><a href="#v8_serializer_writevalue_value">serializer.writeValue(value)</a></li>
-<li><a href="#v8_serializer_releasebuffer">serializer.releaseBuffer()</a></li>
-<li><a href="#v8_serializer_transferarraybuffer_id_arraybuffer">serializer.transferArrayBuffer(id, arrayBuffer)</a></li>
-<li><a href="#v8_serializer_writeuint32_value">serializer.writeUint32(value)</a></li>
-<li><a href="#v8_serializer_writeuint64_hi_lo">serializer.writeUint64(hi, lo)</a></li>
-<li><a href="#v8_serializer_writedouble_value">serializer.writeDouble(value)</a></li>
-<li><a href="#v8_serializer_writerawbytes_buffer">serializer.writeRawBytes(buffer)</a></li>
-<li><a href="#v8_serializer_writehostobject_object">serializer._writeHostObject(object)</a></li>
-<li><a href="#v8_serializer_getdatacloneerror_message">serializer._getDataCloneError(message)</a></li>
-<li><a href="#v8_serializer_getsharedarraybufferid_sharedarraybuffer">serializer._getSharedArrayBufferId(sharedArrayBuffer)</a></li>
-<li><a href="#v8_serializer_settreatarraybufferviewsashostobjects_flag">serializer._setTreatArrayBufferViewsAsHostObjects(flag)</a></li>
+<li><a href="#v8_new_serializer"><code>new Serializer()</code></a></li>
+<li><a href="#v8_serializer_writeheader"><code>serializer.writeHeader()</code></a></li>
+<li><a href="#v8_serializer_writevalue_value"><code>serializer.writeValue(value)</code></a></li>
+<li><a href="#v8_serializer_releasebuffer"><code>serializer.releaseBuffer()</code></a></li>
+<li><a href="#v8_serializer_transferarraybuffer_id_arraybuffer"><code>serializer.transferArrayBuffer(id, arrayBuffer)</code></a></li>
+<li><a href="#v8_serializer_writeuint32_value"><code>serializer.writeUint32(value)</code></a></li>
+<li><a href="#v8_serializer_writeuint64_hi_lo"><code>serializer.writeUint64(hi, lo)</code></a></li>
+<li><a href="#v8_serializer_writedouble_value"><code>serializer.writeDouble(value)</code></a></li>
+<li><a href="#v8_serializer_writerawbytes_buffer"><code>serializer.writeRawBytes(buffer)</code></a></li>
+<li><a href="#v8_serializer_writehostobject_object"><code>serializer._writeHostObject(object)</code></a></li>
+<li><a href="#v8_serializer_getdatacloneerror_message"><code>serializer._getDataCloneError(message)</code></a></li>
+<li><a href="#v8_serializer_getsharedarraybufferid_sharedarraybuffer"><code>serializer._getSharedArrayBufferId(sharedArrayBuffer)</code></a></li>
+<li><a href="#v8_serializer_settreatarraybufferviewsashostobjects_flag"><code>serializer._setTreatArrayBufferViewsAsHostObjects(flag)</code></a></li>
 </ul>
 </li>
 <li>
-<p><a href="#v8_class_v8_deserializer">class: v8.Deserializer</a></p>
+<p><a href="#v8_class_v8_deserializer">Class: <code>v8.Deserializer</code></a></p>
 <ul>
-<li><a href="#v8_new_deserializer_buffer">new Deserializer(buffer)</a></li>
-<li><a href="#v8_deserializer_readheader">deserializer.readHeader()</a></li>
-<li><a href="#v8_deserializer_readvalue">deserializer.readValue()</a></li>
-<li><a href="#v8_deserializer_transferarraybuffer_id_arraybuffer">deserializer.transferArrayBuffer(id, arrayBuffer)</a></li>
-<li><a href="#v8_deserializer_getwireformatversion">deserializer.getWireFormatVersion()</a></li>
-<li><a href="#v8_deserializer_readuint32">deserializer.readUint32()</a></li>
-<li><a href="#v8_deserializer_readuint64">deserializer.readUint64()</a></li>
-<li><a href="#v8_deserializer_readdouble">deserializer.readDouble()</a></li>
-<li><a href="#v8_deserializer_readrawbytes_length">deserializer.readRawBytes(length)</a></li>
-<li><a href="#v8_deserializer_readhostobject">deserializer._readHostObject()</a></li>
+<li><a href="#v8_new_deserializer_buffer"><code>new Deserializer(buffer)</code></a></li>
+<li><a href="#v8_deserializer_readheader"><code>deserializer.readHeader()</code></a></li>
+<li><a href="#v8_deserializer_readvalue"><code>deserializer.readValue()</code></a></li>
+<li><a href="#v8_deserializer_transferarraybuffer_id_arraybuffer"><code>deserializer.transferArrayBuffer(id, arrayBuffer)</code></a></li>
+<li><a href="#v8_deserializer_getwireformatversion"><code>deserializer.getWireFormatVersion()</code></a></li>
+<li><a href="#v8_deserializer_readuint32"><code>deserializer.readUint32()</code></a></li>
+<li><a href="#v8_deserializer_readuint64"><code>deserializer.readUint64()</code></a></li>
+<li><a href="#v8_deserializer_readdouble"><code>deserializer.readDouble()</code></a></li>
+<li><a href="#v8_deserializer_readrawbytes_length"><code>deserializer.readRawBytes(length)</code></a></li>
+<li><a href="#v8_deserializer_readhostobject"><code>deserializer._readHostObject()</code></a></li>
 </ul>
 </li>
-<li><a href="#v8_class_v8_defaultserializer">class: v8.DefaultSerializer</a></li>
-<li><a href="#v8_class_v8_defaultdeserializer">class: v8.DefaultDeserializer</a></li>
+<li><a href="#v8_class_v8_defaultserializer">Class: <code>v8.DefaultSerializer</code></a></li>
+<li><a href="#v8_class_v8_defaultdeserializer">Class: <code>v8.DefaultDeserializer</code></a></li>
 </ul>
 </li>
 </ul>
@@ -176,12 +181,12 @@
       <div id="apicontent">
         <h1>V8<span><a class="mark" href="#v8_v8" id="v8_v8">#</a></span></h1>
 
+<p><strong>Source Code:</strong> <a href="https://github.com/nodejs/node/blob/v14.8.0/lib/v8.js">lib/v8.js</a></p>
 <p>The <code>v8</code> module exposes APIs that are specific to the version of <a href="https://developers.google.com/v8/">V8</a>
 built into the Node.js binary. It can be accessed using:</p>
-<pre><code class="language-js">const v8 = require('v8');
-</code></pre>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> v8 = <span class="hljs-built_in">require</span>(<span class="hljs-string">'v8'</span>);</code></pre>
 <p>The APIs and implementation are subject to change at any time.</p>
-<h2>v8.cachedDataVersionTag()<span><a class="mark" href="#v8_v8_cacheddataversiontag" id="v8_v8_cacheddataversiontag">#</a></span></h2>
+<h2><code>v8.cachedDataVersionTag()</code><span><a class="mark" href="#v8_v8_cacheddataversiontag" id="v8_v8_cacheddataversiontag">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
 </div>
@@ -190,9 +195,9 @@ built into the Node.js binary. It can be accessed using:</p>
 </ul>
 <p>Returns an integer representing a "version tag" derived from the V8 version,
 command line flags and detected CPU features. This is useful for determining
-whether a <a href="vm.html#vm_constructor_new_vm_script_code_options"><code>vm.Script</code></a> <code>cachedData</code> buffer is compatible with this instance
+whether a <a href="vm.html#vm_new_vm_script_code_options"><code>vm.Script</code></a> <code>cachedData</code> buffer is compatible with this instance
 of V8.</p>
-<h2>v8.getHeapSpaceStatistics()<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/v8.js#L162">[src]</a><span><a class="mark" href="#v8_v8_getheapspacestatistics" id="v8_v8_getheapspacestatistics">#</a></span></h2>
+<h2><code>v8.getHeapSpaceStatistics()</code><span><a class="mark" href="#v8_v8_getheapspacestatistics" id="v8_v8_getheapspacestatistics">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -210,7 +215,7 @@ of V8.</p>
 <p>Returns statistics about the V8 heap spaces, i.e. the segments which make up
 the V8 heap. Neither the ordering of heap spaces, nor the availability of a
 heap space can be guaranteed as the statistics are provided via the V8
-<a href="https://v8docs.nodesource.com/node-10.6/d5/dda/classv8_1_1_isolate.html#ac673576f24fdc7a33378f8f57e1d13a4"><code>GetHeapSpaceStatistics</code></a> function and may change from one V8 version to the
+<a href="https://v8docs.nodesource.com/node-13.2/d5/dda/classv8_1_1_isolate.html#ac673576f24fdc7a33378f8f57e1d13a4"><code>GetHeapSpaceStatistics</code></a> function and may change from one V8 version to the
 next.</p>
 <p>The value returned is an array of objects containing the following properties:</p>
 <ul>
@@ -222,43 +227,42 @@ next.</p>
 </ul>
 <pre><code class="language-json">[
   {
-    "space_name": "new_space",
-    "space_size": 2063872,
-    "space_used_size": 951112,
-    "space_available_size": 80824,
-    "physical_space_size": 2063872
+    <span class="hljs-attr">"space_name"</span>: <span class="hljs-string">"new_space"</span>,
+    <span class="hljs-attr">"space_size"</span>: <span class="hljs-number">2063872</span>,
+    <span class="hljs-attr">"space_used_size"</span>: <span class="hljs-number">951112</span>,
+    <span class="hljs-attr">"space_available_size"</span>: <span class="hljs-number">80824</span>,
+    <span class="hljs-attr">"physical_space_size"</span>: <span class="hljs-number">2063872</span>
   },
   {
-    "space_name": "old_space",
-    "space_size": 3090560,
-    "space_used_size": 2493792,
-    "space_available_size": 0,
-    "physical_space_size": 3090560
+    <span class="hljs-attr">"space_name"</span>: <span class="hljs-string">"old_space"</span>,
+    <span class="hljs-attr">"space_size"</span>: <span class="hljs-number">3090560</span>,
+    <span class="hljs-attr">"space_used_size"</span>: <span class="hljs-number">2493792</span>,
+    <span class="hljs-attr">"space_available_size"</span>: <span class="hljs-number">0</span>,
+    <span class="hljs-attr">"physical_space_size"</span>: <span class="hljs-number">3090560</span>
   },
   {
-    "space_name": "code_space",
-    "space_size": 1260160,
-    "space_used_size": 644256,
-    "space_available_size": 960,
-    "physical_space_size": 1260160
+    <span class="hljs-attr">"space_name"</span>: <span class="hljs-string">"code_space"</span>,
+    <span class="hljs-attr">"space_size"</span>: <span class="hljs-number">1260160</span>,
+    <span class="hljs-attr">"space_used_size"</span>: <span class="hljs-number">644256</span>,
+    <span class="hljs-attr">"space_available_size"</span>: <span class="hljs-number">960</span>,
+    <span class="hljs-attr">"physical_space_size"</span>: <span class="hljs-number">1260160</span>
   },
   {
-    "space_name": "map_space",
-    "space_size": 1094160,
-    "space_used_size": 201608,
-    "space_available_size": 0,
-    "physical_space_size": 1094160
+    <span class="hljs-attr">"space_name"</span>: <span class="hljs-string">"map_space"</span>,
+    <span class="hljs-attr">"space_size"</span>: <span class="hljs-number">1094160</span>,
+    <span class="hljs-attr">"space_used_size"</span>: <span class="hljs-number">201608</span>,
+    <span class="hljs-attr">"space_available_size"</span>: <span class="hljs-number">0</span>,
+    <span class="hljs-attr">"physical_space_size"</span>: <span class="hljs-number">1094160</span>
   },
   {
-    "space_name": "large_object_space",
-    "space_size": 0,
-    "space_used_size": 0,
-    "space_available_size": 1490980608,
-    "physical_space_size": 0
+    <span class="hljs-attr">"space_name"</span>: <span class="hljs-string">"large_object_space"</span>,
+    <span class="hljs-attr">"space_size"</span>: <span class="hljs-number">0</span>,
+    <span class="hljs-attr">"space_used_size"</span>: <span class="hljs-number">0</span>,
+    <span class="hljs-attr">"space_available_size"</span>: <span class="hljs-number">1490980608</span>,
+    <span class="hljs-attr">"physical_space_size"</span>: <span class="hljs-number">0</span>
   }
-]
-</code></pre>
-<h2>v8.getHeapSnapshot()<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/v8.js#L76">[src]</a><span><a class="mark" href="#v8_v8_getheapsnapshot" id="v8_v8_getheapsnapshot">#</a></span></h2>
+]</code></pre>
+<h2><code>v8.getHeapSnapshot()</code><span><a class="mark" href="#v8_v8_getheapsnapshot" id="v8_v8_getheapsnapshot">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v11.13.0</span>
 </div>
@@ -270,10 +274,9 @@ Stream that may be used to read the JSON serialized representation.
 This JSON stream format is intended to be used with tools such as
 Chrome DevTools. The JSON schema is undocumented and specific to the
 V8 engine, and may change from one version of V8 to the next.</p>
-<pre><code class="language-js">const stream = v8.getHeapSnapshot();
-stream.pipe(process.stdout);
-</code></pre>
-<h2>v8.getHeapStatistics()<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/v8.js#L142">[src]</a><span><a class="mark" href="#v8_v8_getheapstatistics" id="v8_v8_getheapstatistics">#</a></span></h2>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> stream = v8.getHeapSnapshot();
+stream.pipe(process.stdout);</code></pre>
+<h2><code>v8.getHeapStatistics()</code><span><a class="mark" href="#v8_v8_getheapstatistics" id="v8_v8_getheapstatistics">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -317,20 +320,19 @@ of contexts that were detached and not yet garbage collected. This number
 being non-zero indicates a potential memory leak.</p>
 <!-- eslint-skip -->
 <pre><code class="language-js">{
-  total_heap_size: 7326976,
-  total_heap_size_executable: 4194304,
-  total_physical_size: 7326976,
-  total_available_size: 1152656,
-  used_heap_size: 3476208,
-  heap_size_limit: 1535115264,
-  malloced_memory: 16384,
-  peak_malloced_memory: 1127496,
-  does_zap_garbage: 0,
-  number_of_native_contexts: 1,
-  number_of_detached_contexts: 0
-}
-</code></pre>
-<h2>v8.getHeapCodeStatistics()<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/v8.js#L181">[src]</a><span><a class="mark" href="#v8_v8_getheapcodestatistics" id="v8_v8_getheapcodestatistics">#</a></span></h2>
+  <span class="hljs-attr">total_heap_size</span>: <span class="hljs-number">7326976</span>,
+  <span class="hljs-attr">total_heap_size_executable</span>: <span class="hljs-number">4194304</span>,
+  <span class="hljs-attr">total_physical_size</span>: <span class="hljs-number">7326976</span>,
+  <span class="hljs-attr">total_available_size</span>: <span class="hljs-number">1152656</span>,
+  <span class="hljs-attr">used_heap_size</span>: <span class="hljs-number">3476208</span>,
+  <span class="hljs-attr">heap_size_limit</span>: <span class="hljs-number">1535115264</span>,
+  <span class="hljs-attr">malloced_memory</span>: <span class="hljs-number">16384</span>,
+  <span class="hljs-attr">peak_malloced_memory</span>: <span class="hljs-number">1127496</span>,
+  <span class="hljs-attr">does_zap_garbage</span>: <span class="hljs-number">0</span>,
+  <span class="hljs-attr">number_of_native_contexts</span>: <span class="hljs-number">1</span>,
+  <span class="hljs-attr">number_of_detached_contexts</span>: <span class="hljs-number">0</span>
+}</code></pre>
+<h2><code>v8.getHeapCodeStatistics()</code><span><a class="mark" href="#v8_v8_getheapcodestatistics" id="v8_v8_getheapcodestatistics">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v12.8.0</span>
 </div>
@@ -345,12 +347,11 @@ being non-zero indicates a potential memory leak.</p>
 </ul>
 <!-- eslint-skip -->
 <pre><code class="language-js">{
-  code_and_metadata_size: 212208,
-  bytecode_and_metadata_size: 161368,
-  external_script_source_size: 1410794
-}
-</code></pre>
-<h2>v8.setFlagsFromString(flags)<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/v8.js#L137">[src]</a><span><a class="mark" href="#v8_v8_setflagsfromstring_flags" id="v8_v8_setflagsfromstring_flags">#</a></span></h2>
+  <span class="hljs-attr">code_and_metadata_size</span>: <span class="hljs-number">212208</span>,
+  <span class="hljs-attr">bytecode_and_metadata_size</span>: <span class="hljs-number">161368</span>,
+  <span class="hljs-attr">external_script_source_size</span>: <span class="hljs-number">1410794</span>
+}</code></pre>
+<h2><code>v8.setFlagsFromString(flags)</code><span><a class="mark" href="#v8_v8_setflagsfromstring_flags" id="v8_v8_setflagsfromstring_flags">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v1.0.0</span>
 </div>
@@ -364,12 +365,11 @@ crashes and data loss; or it may simply do nothing.</p>
 <p>The V8 options available for a version of Node.js may be determined by running
 <code>node --v8-options</code>.</p>
 <p>Usage:</p>
-<pre><code class="language-js">// Print GC events to stdout for one minute.
-const v8 = require('v8');
-v8.setFlagsFromString('--trace_gc');
-setTimeout(() => { v8.setFlagsFromString('--notrace_gc'); }, 60e3);
-</code></pre>
-<h2>v8.writeHeapSnapshot([filename])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/v8.js#L43">[src]</a><span><a class="mark" href="#v8_v8_writeheapsnapshot_filename" id="v8_v8_writeheapsnapshot_filename">#</a></span></h2>
+<pre><code class="language-js"><span class="hljs-comment">// Print GC events to stdout for one minute.</span>
+<span class="hljs-keyword">const</span> v8 = <span class="hljs-built_in">require</span>(<span class="hljs-string">'v8'</span>);
+v8.setFlagsFromString(<span class="hljs-string">'--trace_gc'</span>);
+setTimeout(<span class="hljs-function"><span class="hljs-params">()</span> =></span> { v8.setFlagsFromString(<span class="hljs-string">'--notrace_gc'</span>); }, <span class="hljs-number">60e3</span>);</code></pre>
+<h2><code>v8.writeHeapSnapshot([filename])</code><span><a class="mark" href="#v8_v8_writeheapsnapshot_filename" id="v8_v8_writeheapsnapshot_filename">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v11.13.0</span>
 </div>
@@ -387,44 +387,41 @@ file. This file is intended to be used with tools such as Chrome
 DevTools. The JSON schema is undocumented and specific to the V8
 engine, and may change from one version of V8 to the next.</p>
 <p>A heap snapshot is specific to a single V8 isolate. When using
-<a href="worker_threads.html">Worker Threads</a>, a heap snapshot generated from the main thread will
+<a href="worker_threads.html">worker threads</a>, a heap snapshot generated from the main thread will
 not contain any information about the workers, and vice versa.</p>
-<pre><code class="language-js">const { writeHeapSnapshot } = require('v8');
-const {
+<pre><code class="language-js"><span class="hljs-keyword">const</span> { writeHeapSnapshot } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'v8'</span>);
+<span class="hljs-keyword">const</span> {
   Worker,
   isMainThread,
   parentPort
-} = require('worker_threads');
+} = <span class="hljs-built_in">require</span>(<span class="hljs-string">'worker_threads'</span>);
 
-if (isMainThread) {
-  const worker = new Worker(__filename);
+<span class="hljs-keyword">if</span> (isMainThread) {
+  <span class="hljs-keyword">const</span> worker = <span class="hljs-keyword">new</span> Worker(__filename);
 
-  worker.once('message', (filename) => {
-    console.log(`worker heapdump: ${filename}`);
-    // Now get a heapdump for the main thread.
-    console.log(`main thread heapdump: ${writeHeapSnapshot()}`);
+  worker.once(<span class="hljs-string">'message'</span>, (filename) => {
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`worker heapdump: <span class="hljs-subst">${filename}</span>`</span>);
+    <span class="hljs-comment">// Now get a heapdump for the main thread.</span>
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`main thread heapdump: <span class="hljs-subst">${writeHeapSnapshot()}</span>`</span>);
   });
 
-  // Tell the worker to create a heapdump.
-  worker.postMessage('heapdump');
-} else {
-  parentPort.once('message', (message) => {
-    if (message === 'heapdump') {
-      // Generate a heapdump for the worker
-      // and return the filename to the parent.
+  <span class="hljs-comment">// Tell the worker to create a heapdump.</span>
+  worker.postMessage(<span class="hljs-string">'heapdump'</span>);
+} <span class="hljs-keyword">else</span> {
+  parentPort.once(<span class="hljs-string">'message'</span>, (message) => {
+    <span class="hljs-keyword">if</span> (message === <span class="hljs-string">'heapdump'</span>) {
+      <span class="hljs-comment">// Generate a heapdump for the worker</span>
+      <span class="hljs-comment">// and return the filename to the parent.</span>
       parentPort.postMessage(writeHeapSnapshot());
     }
   });
-}
-</code></pre>
+}</code></pre>
 <h2>Serialization API<span><a class="mark" href="#v8_serialization_api" id="v8_serialization_api">#</a></span></h2>
-<p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
 <p>The serialization API provides means of serializing JavaScript values in a way
-that is compatible with the <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm">HTML structured clone algorithm</a>.
-The format is backward-compatible (i.e. safe to store to disk).</p>
-<p>This API is under development, and changes (including incompatible
-changes to the API or wire format) may occur until this warning is removed.</p>
-<h3>v8.serialize(value)<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/v8.js#L280">[src]</a><span><a class="mark" href="#v8_v8_serialize_value" id="v8_v8_serialize_value">#</a></span></h3>
+that is compatible with the <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm">HTML structured clone algorithm</a>.</p>
+<p>The format is backward-compatible (i.e. safe to store to disk).
+Equal JavaScript values may result in different serialized output.</p>
+<h3><code>v8.serialize(value)</code><span><a class="mark" href="#v8_v8_serialize_value" id="v8_v8_serialize_value">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
 </div>
@@ -433,7 +430,7 @@ changes to the API or wire format) may occur until this warning is removed.</p>
 <li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a></li>
 </ul>
 <p>Uses a <a href="#v8_class_v8_defaultserializer"><code>DefaultSerializer</code></a> to serialize <code>value</code> into a buffer.</p>
-<h3>v8.deserialize(buffer)<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/v8.js#L287">[src]</a><span><a class="mark" href="#v8_v8_deserialize_buffer" id="v8_v8_deserialize_buffer">#</a></span></h3>
+<h3><code>v8.deserialize(buffer)</code><span><a class="mark" href="#v8_v8_deserialize_buffer" id="v8_v8_deserialize_buffer">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
 </div>
@@ -442,29 +439,29 @@ changes to the API or wire format) may occur until this warning is removed.</p>
 </ul>
 <p>Uses a <a href="#v8_class_v8_defaultdeserializer"><code>DefaultDeserializer</code></a> with default options to read a JS value
 from a buffer.</p>
-<h3>class: v8.Serializer<span><a class="mark" href="#v8_class_v8_serializer" id="v8_class_v8_serializer">#</a></span></h3>
+<h3>Class: <code>v8.Serializer</code><span><a class="mark" href="#v8_class_v8_serializer" id="v8_class_v8_serializer">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
 </div>
-<h4>new Serializer()<span><a class="mark" href="#v8_new_serializer" id="v8_new_serializer">#</a></span></h4>
+<h4><code>new Serializer()</code><span><a class="mark" href="#v8_new_serializer" id="v8_new_serializer">#</a></span></h4>
 <p>Creates a new <code>Serializer</code> object.</p>
-<h4>serializer.writeHeader()<span><a class="mark" href="#v8_serializer_writeheader" id="v8_serializer_writeheader">#</a></span></h4>
+<h4><code>serializer.writeHeader()</code><span><a class="mark" href="#v8_serializer_writeheader" id="v8_serializer_writeheader">#</a></span></h4>
 <p>Writes out a header, which includes the serialization format version.</p>
-<h4>serializer.writeValue(value)<span><a class="mark" href="#v8_serializer_writevalue_value" id="v8_serializer_writevalue_value">#</a></span></h4>
+<h4><code>serializer.writeValue(value)</code><span><a class="mark" href="#v8_serializer_writevalue_value" id="v8_serializer_writevalue_value">#</a></span></h4>
 <ul>
 <li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types" class="type">&#x3C;any></a></li>
 </ul>
 <p>Serializes a JavaScript value and adds the serialized representation to the
 internal buffer.</p>
 <p>This throws an error if <code>value</code> cannot be serialized.</p>
-<h4>serializer.releaseBuffer()<span><a class="mark" href="#v8_serializer_releasebuffer" id="v8_serializer_releasebuffer">#</a></span></h4>
+<h4><code>serializer.releaseBuffer()</code><span><a class="mark" href="#v8_serializer_releasebuffer" id="v8_serializer_releasebuffer">#</a></span></h4>
 <ul>
 <li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a></li>
 </ul>
 <p>Returns the stored internal buffer. This serializer should not be used once
 the buffer is released. Calling this method results in undefined behavior
 if a previous write has failed.</p>
-<h4>serializer.transferArrayBuffer(id, arrayBuffer)<span><a class="mark" href="#v8_serializer_transferarraybuffer_id_arraybuffer" id="v8_serializer_transferarraybuffer_id_arraybuffer">#</a></span></h4>
+<h4><code>serializer.transferArrayBuffer(id, arrayBuffer)</code><span><a class="mark" href="#v8_serializer_transferarraybuffer_id_arraybuffer" id="v8_serializer_transferarraybuffer_id_arraybuffer">#</a></span></h4>
 <ul>
 <li><code>id</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> A 32-bit unsigned integer.</li>
 <li><code>arrayBuffer</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&#x3C;ArrayBuffer></a> An <code>ArrayBuffer</code> instance.</li>
@@ -472,33 +469,33 @@ if a previous write has failed.</p>
 <p>Marks an <code>ArrayBuffer</code> as having its contents transferred out of band.
 Pass the corresponding <code>ArrayBuffer</code> in the deserializing context to
 <a href="#v8_deserializer_transferarraybuffer_id_arraybuffer"><code>deserializer.transferArrayBuffer()</code></a>.</p>
-<h4>serializer.writeUint32(value)<span><a class="mark" href="#v8_serializer_writeuint32_value" id="v8_serializer_writeuint32_value">#</a></span></h4>
+<h4><code>serializer.writeUint32(value)</code><span><a class="mark" href="#v8_serializer_writeuint32_value" id="v8_serializer_writeuint32_value">#</a></span></h4>
 <ul>
 <li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
 </ul>
 <p>Write a raw 32-bit unsigned integer.
 For use inside of a custom <a href="#v8_serializer_writehostobject_object"><code>serializer._writeHostObject()</code></a>.</p>
-<h4>serializer.writeUint64(hi, lo)<span><a class="mark" href="#v8_serializer_writeuint64_hi_lo" id="v8_serializer_writeuint64_hi_lo">#</a></span></h4>
+<h4><code>serializer.writeUint64(hi, lo)</code><span><a class="mark" href="#v8_serializer_writeuint64_hi_lo" id="v8_serializer_writeuint64_hi_lo">#</a></span></h4>
 <ul>
 <li><code>hi</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
 <li><code>lo</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
 </ul>
 <p>Write a raw 64-bit unsigned integer, split into high and low 32-bit parts.
 For use inside of a custom <a href="#v8_serializer_writehostobject_object"><code>serializer._writeHostObject()</code></a>.</p>
-<h4>serializer.writeDouble(value)<span><a class="mark" href="#v8_serializer_writedouble_value" id="v8_serializer_writedouble_value">#</a></span></h4>
+<h4><code>serializer.writeDouble(value)</code><span><a class="mark" href="#v8_serializer_writedouble_value" id="v8_serializer_writedouble_value">#</a></span></h4>
 <ul>
 <li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
 </ul>
 <p>Write a JS <code>number</code> value.
 For use inside of a custom <a href="#v8_serializer_writehostobject_object"><code>serializer._writeHostObject()</code></a>.</p>
-<h4>serializer.writeRawBytes(buffer)<span><a class="mark" href="#v8_serializer_writerawbytes_buffer" id="v8_serializer_writerawbytes_buffer">#</a></span></h4>
+<h4><code>serializer.writeRawBytes(buffer)</code><span><a class="mark" href="#v8_serializer_writerawbytes_buffer" id="v8_serializer_writerawbytes_buffer">#</a></span></h4>
 <ul>
 <li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a></li>
 </ul>
 <p>Write raw bytes into the serializer’s internal buffer. The deserializer
 will require a way to compute the length of the buffer.
 For use inside of a custom <a href="#v8_serializer_writehostobject_object"><code>serializer._writeHostObject()</code></a>.</p>
-<h4>serializer._writeHostObject(object)<span><a class="mark" href="#v8_serializer_writehostobject_object" id="v8_serializer_writehostobject_object">#</a></span></h4>
+<h4><code>serializer._writeHostObject(object)</code><span><a class="mark" href="#v8_serializer_writehostobject_object" id="v8_serializer_writehostobject_object">#</a></span></h4>
 <ul>
 <li><code>object</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></li>
 </ul>
@@ -507,7 +504,7 @@ by native C++ bindings. If it is not possible to serialize <code>object</code>, 
 exception should be thrown.</p>
 <p>This method is not present on the <code>Serializer</code> class itself but can be provided
 by subclasses.</p>
-<h4>serializer._getDataCloneError(message)<span><a class="mark" href="#v8_serializer_getdatacloneerror_message" id="v8_serializer_getdatacloneerror_message">#</a></span></h4>
+<h4><code>serializer._getDataCloneError(message)</code><span><a class="mark" href="#v8_serializer_getdatacloneerror_message" id="v8_serializer_getdatacloneerror_message">#</a></span></h4>
 <ul>
 <li><code>message</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
@@ -515,7 +512,7 @@ by subclasses.</p>
 object can not be cloned.</p>
 <p>This method defaults to the <a href="errors.html#errors_class_error"><code>Error</code></a> constructor and can be overridden on
 subclasses.</p>
-<h4>serializer._getSharedArrayBufferId(sharedArrayBuffer)<span><a class="mark" href="#v8_serializer_getsharedarraybufferid_sharedarraybuffer" id="v8_serializer_getsharedarraybufferid_sharedarraybuffer">#</a></span></h4>
+<h4><code>serializer._getSharedArrayBufferId(sharedArrayBuffer)</code><span><a class="mark" href="#v8_serializer_getsharedarraybufferid_sharedarraybuffer" id="v8_serializer_getsharedarraybufferid_sharedarraybuffer">#</a></span></h4>
 <ul>
 <li><code>sharedArrayBuffer</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SharedArrayBuffer" class="type">&#x3C;SharedArrayBuffer></a></li>
 </ul>
@@ -527,29 +524,29 @@ serialized. When deserializing, this ID will be passed to
 <p>If the object cannot be serialized, an exception should be thrown.</p>
 <p>This method is not present on the <code>Serializer</code> class itself but can be provided
 by subclasses.</p>
-<h4>serializer._setTreatArrayBufferViewsAsHostObjects(flag)<span><a class="mark" href="#v8_serializer_settreatarraybufferviewsashostobjects_flag" id="v8_serializer_settreatarraybufferviewsashostobjects_flag">#</a></span></h4>
+<h4><code>serializer._setTreatArrayBufferViewsAsHostObjects(flag)</code><span><a class="mark" href="#v8_serializer_settreatarraybufferviewsashostobjects_flag" id="v8_serializer_settreatarraybufferviewsashostobjects_flag">#</a></span></h4>
 <ul>
 <li><code>flag</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> <strong>Default:</strong> <code>false</code></li>
 </ul>
 <p>Indicate whether to treat <code>TypedArray</code> and <code>DataView</code> objects as
 host objects, i.e. pass them to <a href="#v8_serializer_writehostobject_object"><code>serializer._writeHostObject()</code></a>.</p>
-<h3>class: v8.Deserializer<span><a class="mark" href="#v8_class_v8_deserializer" id="v8_class_v8_deserializer">#</a></span></h3>
+<h3>Class: <code>v8.Deserializer</code><span><a class="mark" href="#v8_class_v8_deserializer" id="v8_class_v8_deserializer">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
 </div>
-<h4>new Deserializer(buffer)<span><a class="mark" href="#v8_new_deserializer_buffer" id="v8_new_deserializer_buffer">#</a></span></h4>
+<h4><code>new Deserializer(buffer)</code><span><a class="mark" href="#v8_new_deserializer_buffer" id="v8_new_deserializer_buffer">#</a></span></h4>
 <ul>
 <li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a> A buffer returned by
 <a href="#v8_serializer_releasebuffer"><code>serializer.releaseBuffer()</code></a>.</li>
 </ul>
 <p>Creates a new <code>Deserializer</code> object.</p>
-<h4>deserializer.readHeader()<span><a class="mark" href="#v8_deserializer_readheader" id="v8_deserializer_readheader">#</a></span></h4>
+<h4><code>deserializer.readHeader()</code><span><a class="mark" href="#v8_deserializer_readheader" id="v8_deserializer_readheader">#</a></span></h4>
 <p>Reads and validates a header (including the format version).
 May, for example, reject an invalid or unsupported wire format. In that case,
 an <code>Error</code> is thrown.</p>
-<h4>deserializer.readValue()<span><a class="mark" href="#v8_deserializer_readvalue" id="v8_deserializer_readvalue">#</a></span></h4>
+<h4><code>deserializer.readValue()</code><span><a class="mark" href="#v8_deserializer_readvalue" id="v8_deserializer_readvalue">#</a></span></h4>
 <p>Deserializes a JavaScript value from the buffer and returns it.</p>
-<h4>deserializer.transferArrayBuffer(id, arrayBuffer)<span><a class="mark" href="#v8_deserializer_transferarraybuffer_id_arraybuffer" id="v8_deserializer_transferarraybuffer_id_arraybuffer">#</a></span></h4>
+<h4><code>deserializer.transferArrayBuffer(id, arrayBuffer)</code><span><a class="mark" href="#v8_deserializer_transferarraybuffer_id_arraybuffer" id="v8_deserializer_transferarraybuffer_id_arraybuffer">#</a></span></h4>
 <ul>
 <li><code>id</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> A 32-bit unsigned integer.</li>
 <li><code>arrayBuffer</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&#x3C;ArrayBuffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SharedArrayBuffer" class="type">&#x3C;SharedArrayBuffer></a> An <code>ArrayBuffer</code> instance.</li>
@@ -558,33 +555,33 @@ an <code>Error</code> is thrown.</p>
 Pass the corresponding <code>ArrayBuffer</code> in the serializing context to
 <a href="#v8_serializer_transferarraybuffer_id_arraybuffer"><code>serializer.transferArrayBuffer()</code></a> (or return the <code>id</code> from
 <a href="#v8_serializer_getsharedarraybufferid_sharedarraybuffer"><code>serializer._getSharedArrayBufferId()</code></a> in the case of <code>SharedArrayBuffer</code>s).</p>
-<h4>deserializer.getWireFormatVersion()<span><a class="mark" href="#v8_deserializer_getwireformatversion" id="v8_deserializer_getwireformatversion">#</a></span></h4>
+<h4><code>deserializer.getWireFormatVersion()</code><span><a class="mark" href="#v8_deserializer_getwireformatversion" id="v8_deserializer_getwireformatversion">#</a></span></h4>
 <ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
 </ul>
 <p>Reads the underlying wire format version. Likely mostly to be useful to
 legacy code reading old wire format versions. May not be called before
 <code>.readHeader()</code>.</p>
-<h4>deserializer.readUint32()<span><a class="mark" href="#v8_deserializer_readuint32" id="v8_deserializer_readuint32">#</a></span></h4>
+<h4><code>deserializer.readUint32()</code><span><a class="mark" href="#v8_deserializer_readuint32" id="v8_deserializer_readuint32">#</a></span></h4>
 <ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
 </ul>
 <p>Read a raw 32-bit unsigned integer and return it.
 For use inside of a custom <a href="#v8_deserializer_readhostobject"><code>deserializer._readHostObject()</code></a>.</p>
-<h4>deserializer.readUint64()<span><a class="mark" href="#v8_deserializer_readuint64" id="v8_deserializer_readuint64">#</a></span></h4>
+<h4><code>deserializer.readUint64()</code><span><a class="mark" href="#v8_deserializer_readuint64" id="v8_deserializer_readuint64">#</a></span></h4>
 <ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer[]></a></li>
 </ul>
 <p>Read a raw 64-bit unsigned integer and return it as an array <code>[hi, lo]</code>
 with two 32-bit unsigned integer entries.
 For use inside of a custom <a href="#v8_deserializer_readhostobject"><code>deserializer._readHostObject()</code></a>.</p>
-<h4>deserializer.readDouble()<span><a class="mark" href="#v8_deserializer_readdouble" id="v8_deserializer_readdouble">#</a></span></h4>
+<h4><code>deserializer.readDouble()</code><span><a class="mark" href="#v8_deserializer_readdouble" id="v8_deserializer_readdouble">#</a></span></h4>
 <ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
 </ul>
 <p>Read a JS <code>number</code> value.
 For use inside of a custom <a href="#v8_deserializer_readhostobject"><code>deserializer._readHostObject()</code></a>.</p>
-<h4>deserializer.readRawBytes(length)<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/v8.js#L197">[src]</a><span><a class="mark" href="#v8_deserializer_readrawbytes_length" id="v8_deserializer_readrawbytes_length">#</a></span></h4>
+<h4><code>deserializer.readRawBytes(length)</code><span><a class="mark" href="#v8_deserializer_readrawbytes_length" id="v8_deserializer_readrawbytes_length">#</a></span></h4>
 <ul>
 <li><code>length</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
 <li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a></li>
@@ -593,30 +590,28 @@ For use inside of a custom <a href="#v8_deserializer_readhostobject"><code>deser
 must correspond to the length of the buffer that was passed to
 <a href="#v8_serializer_writerawbytes_buffer"><code>serializer.writeRawBytes()</code></a>.
 For use inside of a custom <a href="#v8_deserializer_readhostobject"><code>deserializer._readHostObject()</code></a>.</p>
-<h4>deserializer._readHostObject()<span><a class="mark" href="#v8_deserializer_readhostobject" id="v8_deserializer_readhostobject">#</a></span></h4>
+<h4><code>deserializer._readHostObject()</code><span><a class="mark" href="#v8_deserializer_readhostobject" id="v8_deserializer_readhostobject">#</a></span></h4>
 <p>This method is called to read some kind of host object, i.e. an object that is
 created by native C++ bindings. If it is not possible to deserialize the data,
 a suitable exception should be thrown.</p>
 <p>This method is not present on the <code>Deserializer</code> class itself but can be
 provided by subclasses.</p>
-<h3>class: v8.DefaultSerializer<span><a class="mark" href="#v8_class_v8_defaultserializer" id="v8_class_v8_defaultserializer">#</a></span></h3>
+<h3>Class: <code>v8.DefaultSerializer</code><span><a class="mark" href="#v8_class_v8_defaultserializer" id="v8_class_v8_defaultserializer">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
 </div>
 <p>A subclass of <a href="#v8_class_v8_serializer"><code>Serializer</code></a> that serializes <code>TypedArray</code>
 (in particular <a href="buffer.html"><code>Buffer</code></a>) and <code>DataView</code> objects as host objects, and only
 stores the part of their underlying <code>ArrayBuffer</code>s that they are referring to.</p>
-<h3>class: v8.DefaultDeserializer<span><a class="mark" href="#v8_class_v8_defaultdeserializer" id="v8_class_v8_defaultdeserializer">#</a></span></h3>
+<h3>Class: <code>v8.DefaultDeserializer</code><span><a class="mark" href="#v8_class_v8_defaultdeserializer" id="v8_class_v8_defaultdeserializer">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
 </div>
 <p>A subclass of <a href="#v8_class_v8_deserializer"><code>Deserializer</code></a> corresponding to the format written by
 <a href="#v8_class_v8_defaultserializer"><code>DefaultSerializer</code></a>.</p>
+        <!-- API END -->
       </div>
     </div>
   </div>
-  <script src="assets/sh_main.js"></script>
-  <script src="assets/sh_javascript.min.js"></script>
-  <script>highlight(undefined, undefined, 'pre');</script>
 </body>
 </html>

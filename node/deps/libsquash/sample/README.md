@@ -3,5 +3,5 @@ File system calls on paths starting with `/__enclose_io_memfs__` are redirected 
 while others are kept with the original system calls.
 
 Code of this sample are effectively used by
-[Node.js Compiler](https://github.com/pmq20/node-compiler)
-and [Ruby Compiler](https://github.com/pmq20/ruby-compiler).
+[Node.js Packer](https://github.com/pmq20/node-packer)
+and [Ruby Packer](https://github.com/pmq20/ruby-packer).

@@ -27,11 +27,12 @@ class BreakIterator;
 namespace v8 {
 namespace internal {
 
-class JSV8BreakIterator : public JSObject {
+class JSV8BreakIterator
+    : public TorqueGeneratedJSV8BreakIterator<JSV8BreakIterator, JSObject> {
  public:
   V8_WARN_UNUSED_RESULT static MaybeHandle<JSV8BreakIterator> New(
       Isolate* isolate, Handle<Map> map, Handle<Object> input_locales,
-      Handle<Object> input_options);
+      Handle<Object> input_options, const char* service);
 
   static Handle<JSObject> ResolvedOptions(
       Isolate* isolate, Handle<JSV8BreakIterator> break_iterator);
@@ -51,33 +52,12 @@ class JSV8BreakIterator : public JSObject {
   static String BreakType(Isolate* isolate,
                           Handle<JSV8BreakIterator> break_iterator);
 
-  enum class Type { CHARACTER, WORD, SENTENCE, LINE };
-  inline void set_type(Type type);
-  inline Type type() const;
-
-  Handle<String> TypeAsString() const;
-
-  DECL_CAST(JSV8BreakIterator)
   DECL_PRINTER(JSV8BreakIterator)
-  DECL_VERIFIER(JSV8BreakIterator)
 
-  DECL_ACCESSORS(locale, String)
   DECL_ACCESSORS(break_iterator, Managed<icu::BreakIterator>)
   DECL_ACCESSORS(unicode_string, Managed<icu::UnicodeString>)
-  DECL_ACCESSORS(bound_adopt_text, Object)
-  DECL_ACCESSORS(bound_first, Object)
-  DECL_ACCESSORS(bound_next, Object)
-  DECL_ACCESSORS(bound_current, Object)
-  DECL_ACCESSORS(bound_break_type, Object)
 
-  // Layout description.
-  DEFINE_FIELD_OFFSET_CONSTANTS(JSObject::kHeaderSize,
-                                TORQUE_GENERATED_JSV8BREAK_ITERATOR_FIELDS)
-
- private:
-  DECL_INT_ACCESSORS(raw_type)
-
-  OBJECT_CONSTRUCTORS(JSV8BreakIterator, JSObject);
+  TQ_OBJECT_CONSTRUCTORS(JSV8BreakIterator)
 };
 
 }  // namespace internal

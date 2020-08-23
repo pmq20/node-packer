@@ -9,12 +9,17 @@ group("v8_run_gcmole") {
 
   data = [
     "gccause.lua",
+    "GCMOLE.gn",
     "gcmole.lua",
+    "gcmole-test.cc",
     "gcmole-tools/",
     "parallel.py",
     "run-gcmole.py",
+    "suspects.whitelist",
+    "test-expectations.txt",
 
     # The following contains all relevant source and build files.
+    "../debug_helper/debug-helper.h",
     "../../BUILD.gn",
     "../../base/",
     "../../include/",
@@ -26,6 +31,7 @@ group("v8_run_gcmole") {
     "../../third_party/icu/source/",
     "../../third_party/wasm-api/wasm.h",
     "../../third_party/wasm-api/wasm.hh",
+    "../../third_party/zlib/",
     "../../third_party/inspector_protocol/",
     "$target_gen_dir/../../",
     "$target_gen_dir/../../torque-generated/",

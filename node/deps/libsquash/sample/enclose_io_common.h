@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2017 Minqi Pan <pmq2001@gmail.com>
- *                    Shengyuan Liu <sounder.liu@gmail.com>
+ * Copyright (c) 2017 - 2020 Minqi Pan <pmq2001@gmail.com>
+ *                           Shengyuan Liu <sounder.liu@gmail.com>
  *
  * This file is part of libsquash, distributed under the MIT License
  * For full terms see the included LICENSE file
@@ -24,6 +24,11 @@
 #include <fcntl.h>
 #include <stdarg.h>
 #include <assert.h>
+#include <limits.h> /* PATH_MAX */
+
+#ifdef __linux__
+#include <linux/limits.h> /* PATH_MAX */
+#endif
 
 #ifdef _WIN32
 #include <direct.h>
@@ -39,7 +44,6 @@
 
 extern sqfs *enclose_io_fs;
 extern sqfs_path enclose_io_cwd;
-extern const uint8_t enclose_io_memfs[];
 
 #define ENCLOSE_IO_PP_NARG(...) \
     ENCLOSE_IO_PP_NARG_(__VA_ARGS__,ENCLOSE_IO_PP_RSEQ_N())
@@ -147,6 +151,7 @@ char *enclose_io_getwd(char *buf);
 int enclose_io_stat(const char *path, struct stat *buf);
 int enclose_io_fstat(int fildes, struct stat *buf);
 int enclose_io_open(int nargs, const char *pathname, int flags, ...);
+int enclose_io_openat(int fd, int nargs, const char *pathname, int flags, ...);
 int enclose_io_close(int fildes);
 ssize_t enclose_io_read(int fildes, void *buf, size_t nbyte);
 off_t enclose_io_lseek(int fildes, off_t offset, int whence);
@@ -155,6 +160,7 @@ off_t enclose_io_lseek(int fildes, off_t offset, int whence);
 
 #include "enclose_io_winapi.h"
 
+short enclose_io_if_w(const wchar_t* path);
 int enclose_io__open(const char *pathname, int flags);
 int enclose_io__wopen(const wchar_t *pathname, int flags, int mode);
 int enclose_io__wmkdir(wchar_t* pathname);
@@ -319,17 +325,31 @@ EncloseIOSetCurrentDirectoryW(
 	LPCWSTR lpPathName
 );
 
-
 DWORD
 EncloseIOGetCurrentDirectoryW(
 	DWORD nBufferLength,
 	LPWSTR lpBuffer
 );
 
-#else
+DWORD
+EncloseIOGetFullPathNameW(
+	LPCWSTR lpFileName,
+	DWORD nBufferLength,
+	LPWSTR lpBuffer,
+	LPWSTR* lpFilePart
+);
+
+BOOL
+EncloseIOGetFileInformationByHandle(
+	HANDLE hFile,
+	LPBY_HANDLE_FILE_INFORMATION lpFileInformation
+);
+
+#else // ifdef _WIN32
 int enclose_io_lstat(const char *path, struct stat *buf);
 ssize_t enclose_io_readlink(const char *path, char *buf, size_t bufsize);
 DIR * enclose_io_opendir(const char *filename);
+DIR * enclose_io_fdopendir(int fd);
 int enclose_io_closedir(DIR *dirp);
 struct SQUASH_DIRENT * enclose_io_readdir(DIR *dirp);
 long enclose_io_telldir(DIR *dirp);
@@ -344,7 +364,8 @@ ssize_t enclose_io_readv(int d, const struct iovec *iov, int iovcnt);
 void* enclose_io_dlopen(const char* path, int mode);
 int enclose_io_access(const char *path, int mode);
 int enclose_io_mkdir(const char *path, mode_t mode);
+int enclose_io_execv(const char *path, char *const argv[]);
 
-#endif // !_WIN32
+#endif // ifdef _WIN32
 
 #endif

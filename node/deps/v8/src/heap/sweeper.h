@@ -6,6 +6,7 @@
 #define V8_HEAP_SWEEPER_H_
 
 #include <deque>
+#include <map>
 #include <vector>
 
 #include "src/base/platform/semaphore.h"
@@ -15,9 +16,11 @@
 namespace v8 {
 namespace internal {
 
+class InvalidatedSlotsCleanup;
 class MajorNonAtomicMarkingState;
 class Page;
 class PagedSpace;
+class Space;
 
 enum FreeSpaceTreatmentMode { IGNORE_FREE_SPACE, ZAP_FREE_SPACE };
 
@@ -26,6 +29,7 @@ class Sweeper {
   using IterabilityList = std::vector<Page*>;
   using SweepingList = std::vector<Page*>;
   using SweptList = std::vector<Page*>;
+  using FreeRangesMap = std::map<uint32_t, uint32_t>;
 
   // Pauses the sweeper tasks or completes sweeping.
   class PauseOrCompleteScope final {
@@ -70,12 +74,8 @@ class Sweeper {
   };
 
   enum FreeListRebuildingMode { REBUILD_FREE_LIST, IGNORE_FREE_LIST };
-  enum ClearOldToNewSlotsMode {
-    DO_NOT_CLEAR,
-    CLEAR_REGULAR_SLOTS,
-    CLEAR_TYPED_SLOTS
-  };
   enum AddPageMode { REGULAR, READD_TEMPORARY_REMOVED_PAGE };
+  enum class FreeSpaceMayContainInvalidatedSlots { kYes, kNo };
 
   Sweeper(Heap* heap, MajorNonAtomicMarkingState* marking_state);
 
@@ -83,14 +83,22 @@ class Sweeper {
 
   void AddPage(AllocationSpace space, Page* page, AddPageMode mode);
 
-  int ParallelSweepSpace(AllocationSpace identity, int required_freed_bytes,
-                         int max_pages = 0);
-  int ParallelSweepPage(Page* page, AllocationSpace identity);
+  int ParallelSweepSpace(
+      AllocationSpace identity, int required_freed_bytes, int max_pages = 0,
+      FreeSpaceMayContainInvalidatedSlots invalidated_slots_in_free_space =
+          FreeSpaceMayContainInvalidatedSlots::kNo);
+  int ParallelSweepPage(
+      Page* page, AllocationSpace identity,
+      FreeSpaceMayContainInvalidatedSlots invalidated_slots_in_free_space =
+          FreeSpaceMayContainInvalidatedSlots::kNo);
 
   void ScheduleIncrementalSweepingTask();
 
-  int RawSweep(Page* p, FreeListRebuildingMode free_list_mode,
-               FreeSpaceTreatmentMode free_space_mode);
+  int RawSweep(
+      Page* p, FreeListRebuildingMode free_list_mode,
+      FreeSpaceTreatmentMode free_space_mode,
+      FreeSpaceMayContainInvalidatedSlots invalidated_slots_in_free_space,
+      const base::MutexGuard& page_guard);
 
   // After calling this function sweeping is considered to be in progress
   // and the main thread can sweep lazily, but the background sweeper tasks
@@ -102,11 +110,10 @@ class Sweeper {
 
   Page* GetSweptPageSafe(PagedSpace* space);
 
-  void EnsurePageIsIterable(Page* page);
-
   void AddPageForIterability(Page* page);
   void StartIterabilityTasks();
   void EnsureIterabilityCompleted();
+  void MergeOldToNewRememberedSetsForSweptPages();
 
  private:
   class IncrementalSweeperTask;
@@ -123,6 +130,33 @@ class Sweeper {
     callback(CODE_SPACE);
     callback(MAP_SPACE);
   }
+
+  // Helper function for RawSweep. Depending on the FreeListRebuildingMode and
+  // FreeSpaceTreatmentMode this function may add the free memory to a free
+  // list, make the memory iterable, clear it, and return the free memory to
+  // the operating system.
+  size_t FreeAndProcessFreedMemory(Address free_start, Address free_end,
+                                   Page* page, Space* space,
+                                   bool non_empty_typed_slots,
+                                   FreeListRebuildingMode free_list_mode,
+                                   FreeSpaceTreatmentMode free_space_mode);
+
+  // Helper function for RawSweep. Handle remembered set entries in the freed
+  // memory which require clearing.
+  void CleanupRememberedSetEntriesForFreedMemory(
+      Address free_start, Address free_end, Page* page,
+      bool non_empty_typed_slots, FreeRangesMap* free_ranges_map,
+      InvalidatedSlotsCleanup* old_to_new_cleanup);
+
+  // Helper function for RawSweep. Clears invalid typed slots in the given free
+  // ranges.
+  void CleanupInvalidTypedSlotsOfFreeRanges(
+      Page* page, const FreeRangesMap& free_ranges_map);
+
+  // Helper function for RawSweep. Clears the mark bits and ensures consistency
+  // of live bytes.
+  void ClearMarkBitsAndHandleLivenessStatistics(
+      Page* page, size_t live_bytes, FreeListRebuildingMode free_list_mode);
 
   // Can only be called on the main thread when no tasks are running.
   bool IsDoneSweeping() const {
@@ -144,8 +178,6 @@ class Sweeper {
   Page* GetSweepingPageSafe(AllocationSpace space);
 
   void PrepareToBeSweptPage(AllocationSpace space, Page* page);
-
-  void SweepOrWaitUntilSweepingCompleted(Page* page);
 
   void MakeIterable(Page* page);
 
@@ -172,7 +204,9 @@ class Sweeper {
   SweptList swept_list_[kNumberOfSweepingSpaces];
   SweepingList sweeping_list_[kNumberOfSweepingSpaces];
   bool incremental_sweeper_pending_;
-  bool sweeping_in_progress_;
+  // Main thread can finalize sweeping, while background threads allocation slow
+  // path checks this flag to see whether it could support concurrent sweeping.
+  std::atomic<bool> sweeping_in_progress_;
   // Counter is actively maintained by the concurrent tasks to avoid querying
   // the semaphore for maintaining a task counter on the main thread.
   std::atomic<intptr_t> num_sweeping_tasks_;

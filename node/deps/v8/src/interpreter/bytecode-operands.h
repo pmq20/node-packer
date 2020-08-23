@@ -5,8 +5,8 @@
 #ifndef V8_INTERPRETER_BYTECODE_OPERANDS_H_
 #define V8_INTERPRETER_BYTECODE_OPERANDS_H_
 
+#include "src/base/bounds.h"
 #include "src/common/globals.h"
-#include "src/utils/utils.h"
 
 namespace v8 {
 namespace internal {
@@ -37,7 +37,7 @@ namespace interpreter {
   V(Flag8, OperandTypeInfo::kFixedUnsignedByte)       \
   V(IntrinsicId, OperandTypeInfo::kFixedUnsignedByte) \
   V(RuntimeId, OperandTypeInfo::kFixedUnsignedShort)  \
-  V(NativeContextIndex, OperandTypeInfo::kScalableUnsignedByte)
+  V(NativeContextIndex, OperandTypeInfo::kFixedUnsignedByte)
 
 // Carefully ordered for operand type range checks below.
 #define NON_REGISTER_OPERAND_TYPE_LIST(V)       \
@@ -149,7 +149,7 @@ class BytecodeOperands : public AllStatic {
 #undef OPERAND_SCALE_COUNT
 
   static constexpr int OperandScaleAsIndex(OperandScale operand_scale) {
-#ifdef V8_CAN_HAVE_DCHECK_IN_CONSTEXPR
+#if V8_HAS_CXX14_CONSTEXPR
 #ifdef DEBUG
     int result = static_cast<int>(operand_scale) >> 1;
     switch (operand_scale) {
@@ -182,13 +182,14 @@ class BytecodeOperands : public AllStatic {
 
   // Returns true if |operand_type| is a scalable signed byte.
   static constexpr bool IsScalableSignedByte(OperandType operand_type) {
-    return IsInRange(operand_type, OperandType::kImm,
-                     OperandType::kRegOutTriple);
+    return base::IsInRange(operand_type, OperandType::kImm,
+                           OperandType::kRegOutTriple);
   }
 
   // Returns true if |operand_type| is a scalable unsigned byte.
   static constexpr bool IsScalableUnsignedByte(OperandType operand_type) {
-    return IsInRange(operand_type, OperandType::kIdx, OperandType::kRegCount);
+    return base::IsInRange(operand_type, OperandType::kIdx,
+                           OperandType::kRegCount);
   }
 };
 

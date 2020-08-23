@@ -4,7 +4,6 @@
 // This file needs to be compatible with C compilers.
 #include <stddef.h>   // NOLINT(modernize-deprecated-headers)
 #include <stdbool.h>  // NOLINT(modernize-deprecated-headers)
-#include "js_native_api_types.h"
 
 // Use INT_MAX, this should only be consumed by the pre-processor anyway.
 #define NAPI_VERSION_EXPERIMENTAL 2147483647
@@ -18,15 +17,20 @@
 // functions available in a new version of N-API that is not yet ported in all
 // LTS versions, they can set NAPI_VERSION knowing that they have specifically
 // depended on that version.
-#define NAPI_VERSION 5
+#define NAPI_VERSION 6
 #endif
 #endif
+
+#include "js_native_api_types.h"
 
 // If you need __declspec(dllimport), either include <node_api.h> instead, or
 // define NAPI_EXTERN as __declspec(dllimport) on the compiler's command line.
 #ifndef NAPI_EXTERN
   #ifdef _WIN32
     #define NAPI_EXTERN __declspec(dllexport)
+  #elif defined(__wasm32__)
+    #define NAPI_EXTERN __attribute__((visibility("default")))                \
+                        __attribute__((__import_module__("napi")))
   #else
     #define NAPI_EXTERN __attribute__((visibility("default")))
   #endif
@@ -440,7 +444,7 @@ NAPI_EXTERN napi_status napi_reject_deferred(napi_env env,
                                              napi_deferred deferred,
                                              napi_value rejection);
 NAPI_EXTERN napi_status napi_is_promise(napi_env env,
-                                        napi_value promise,
+                                        napi_value value,
                                         bool* is_promise);
 
 // Running a script
@@ -478,7 +482,7 @@ NAPI_EXTERN napi_status napi_add_finalizer(napi_env env,
 
 #endif  // NAPI_VERSION >= 5
 
-#ifdef NAPI_EXPERIMENTAL
+#if NAPI_VERSION >= 6
 
 // BigInt
 NAPI_EXTERN napi_status napi_create_bigint_int64(napi_env env,
@@ -506,6 +510,15 @@ NAPI_EXTERN napi_status napi_get_value_bigint_words(napi_env env,
                                                     size_t* word_count,
                                                     uint64_t* words);
 
+// Object
+NAPI_EXTERN napi_status
+napi_get_all_property_names(napi_env env,
+                            napi_value object,
+                            napi_key_collection_mode key_mode,
+                            napi_key_filter key_filter,
+                            napi_key_conversion key_conversion,
+                            napi_value* result);
+
 // Instance data
 NAPI_EXTERN napi_status napi_set_instance_data(napi_env env,
                                                void* data,
@@ -514,6 +527,26 @@ NAPI_EXTERN napi_status napi_set_instance_data(napi_env env,
 
 NAPI_EXTERN napi_status napi_get_instance_data(napi_env env,
                                                void** data);
+#endif  // NAPI_VERSION >= 6
+
+#ifdef NAPI_EXPERIMENTAL
+// ArrayBuffer detaching
+NAPI_EXTERN napi_status napi_detach_arraybuffer(napi_env env,
+                                                napi_value arraybuffer);
+
+NAPI_EXTERN napi_status napi_is_detached_arraybuffer(napi_env env,
+                                                     napi_value value,
+                                                     bool* result);
+// Type tagging
+NAPI_EXTERN napi_status napi_type_tag_object(napi_env env,
+                                             napi_value value,
+                                             const napi_type_tag* type_tag);
+
+NAPI_EXTERN napi_status
+napi_check_object_type_tag(napi_env env,
+                           napi_value value,
+                           const napi_type_tag* type_tag,
+                           bool* result);
 #endif  // NAPI_EXPERIMENTAL
 
 EXTERN_C_END

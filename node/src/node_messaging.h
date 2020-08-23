@@ -5,7 +5,6 @@
 
 #include "env.h"
 #include "node_mutex.h"
-#include "sharedarraybuffer_metadata.h"
 #include <list>
 
 namespace node {
@@ -15,6 +14,29 @@ class MessagePortData;
 class MessagePort;
 
 typedef MaybeStackBuffer<v8::Local<v8::Value>, 8> TransferList;
+
+// Used to represent the in-flight structure of an object that is being
+// transfered or cloned using postMessage().
+class TransferData : public MemoryRetainer {
+ public:
+  // Deserialize this object on the receiving end after a .postMessage() call.
+  // - `context` may not be the same as `env->context()`. This method should
+  //    not produce JS objects coming from Contexts other than `context`.
+  // - `self` is a unique_ptr for the object that this is being called on.
+  // - The return value is treated like a `Maybe`, i.e. if `nullptr` is
+  //   returned, any further deserialization of the message is stopped and
+  //   control is returned to the event loop or JS as soon as possible.
+  virtual BaseObjectPtr<BaseObject> Deserialize(
+      Environment* env,
+      v8::Local<v8::Context> context,
+      std::unique_ptr<TransferData> self) = 0;
+  // FinalizeTransferWrite() is the counterpart to
+  // BaseObject::FinalizeTransferRead(). It is called right after the transfer
+  // data was created, and defaults to doing nothing. After this function,
+  // this object should not hold any more Isolate-specific data.
+  virtual v8::Maybe<bool> FinalizeTransferWrite(
+      v8::Local<v8::Context> context, v8::ValueSerializer* serializer);
+};
 
 // Represents a single communication message.
 class Message : public MemoryRetainer {
@@ -52,19 +74,20 @@ class Message : public MemoryRetainer {
 
   // Internal method of Message that is called when a new SharedArrayBuffer
   // object is encountered in the incoming value's structure.
-  void AddSharedArrayBuffer(const SharedArrayBufferMetadataReference& ref);
+  void AddSharedArrayBuffer(std::shared_ptr<v8::BackingStore> backing_store);
   // Internal method of Message that is called once serialization finishes
   // and that transfers ownership of `data` to this message.
-  void AddMessagePort(std::unique_ptr<MessagePortData>&& data);
+  void AddTransferable(std::unique_ptr<TransferData>&& data);
   // Internal method of Message that is called when a new WebAssembly.Module
   // object is encountered in the incoming value's structure.
-  uint32_t AddWASMModule(v8::WasmModuleObject::TransferrableModule&& mod);
+  uint32_t AddWASMModule(v8::CompiledWasmModule&& mod);
 
-  // The MessagePorts that will be transferred, as recorded by Serialize().
+  // The host objects that will be transferred, as recorded by Serialize()
+  // (e.g. MessagePorts).
   // Used for warning user about posting the target MessagePort to itself,
   // which will as a side effect destroy the communication channel.
-  const std::vector<std::unique_ptr<MessagePortData>>& message_ports() const {
-    return message_ports_;
+  const std::vector<std::unique_ptr<TransferData>>& transferables() const {
+    return transferables_;
   }
 
   void MemoryInfo(MemoryTracker* tracker) const override;
@@ -74,17 +97,17 @@ class Message : public MemoryRetainer {
 
  private:
   MallocedBuffer<char> main_message_buf_;
-  std::vector<MallocedBuffer<char>> array_buffer_contents_;
-  std::vector<SharedArrayBufferMetadataReference> shared_array_buffers_;
-  std::vector<std::unique_ptr<MessagePortData>> message_ports_;
-  std::vector<v8::WasmModuleObject::TransferrableModule> wasm_modules_;
+  std::vector<std::shared_ptr<v8::BackingStore>> array_buffers_;
+  std::vector<std::shared_ptr<v8::BackingStore>> shared_array_buffers_;
+  std::vector<std::unique_ptr<TransferData>> transferables_;
+  std::vector<v8::CompiledWasmModule> wasm_modules_;
 
   friend class MessagePort;
 };
 
 // This contains all data for a `MessagePort` instance that is not tied to
 // a specific Environment/Isolate/event loop, for easier transfer between those.
-class MessagePortData : public MemoryRetainer {
+class MessagePortData : public TransferData {
  public:
   explicit MessagePortData(MessagePort* owner);
   ~MessagePortData() override;
@@ -109,6 +132,10 @@ class MessagePortData : public MemoryRetainer {
   void Disentangle();
 
   void MemoryInfo(MemoryTracker* tracker) const override;
+  BaseObjectPtr<BaseObject> Deserialize(
+      Environment* env,
+      v8::Local<v8::Context> context,
+      std::unique_ptr<TransferData> self) override;
 
   SET_MEMORY_INFO_NAME(MessagePortData)
   SET_SELF_SIZE(MessagePortData)
@@ -132,12 +159,16 @@ class MessagePortData : public MemoryRetainer {
 // the uv_async_t handle that is used to notify the current event loop of
 // new incoming messages.
 class MessagePort : public HandleWrap {
- public:
+ private:
   // Create a new MessagePort. The `context` argument specifies the Context
   // instance that is used for creating the values emitted from this port.
+  // This is called by MessagePort::New(), which is the public API used for
+  // creating MessagePort instances.
   MessagePort(Environment* env,
               v8::Local<v8::Context> context,
               v8::Local<v8::Object> wrap);
+
+ public:
   ~MessagePort() override;
 
   // Create a new message port instance, optionally over an existing
@@ -192,10 +223,10 @@ class MessagePort : public HandleWrap {
   // NULL pointer to the C++ MessagePort object is also detached.
   inline bool IsDetached() const;
 
-  void MemoryInfo(MemoryTracker* tracker) const override {
-    tracker->TrackField("data", data_);
-  }
+  TransferMode GetTransferMode() const override;
+  std::unique_ptr<TransferData> TransferForMessaging() override;
 
+  void MemoryInfo(MemoryTracker* tracker) const override;
   SET_MEMORY_INFO_NAME(MessagePort)
   SET_SELF_SIZE(MessagePort)
 
@@ -209,8 +240,55 @@ class MessagePort : public HandleWrap {
   std::unique_ptr<MessagePortData> data_ = nullptr;
   bool receiving_messages_ = false;
   uv_async_t async_;
+  v8::Global<v8::Function> emit_message_fn_;
 
   friend class MessagePortData;
+};
+
+// Provide a base class from which JS classes that should be transferable or
+// cloneable by postMesssage() can inherit.
+// See e.g. FileHandle in internal/fs/promises.js for an example.
+class JSTransferable : public BaseObject {
+ public:
+  JSTransferable(Environment* env, v8::Local<v8::Object> obj);
+  static void New(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+  TransferMode GetTransferMode() const override;
+  std::unique_ptr<TransferData> TransferForMessaging() override;
+  std::unique_ptr<TransferData> CloneForMessaging() const override;
+  v8::Maybe<std::vector<BaseObjectPtr<BaseObject>>>
+      NestedTransferables() const override;
+  v8::Maybe<bool> FinalizeTransferRead(
+      v8::Local<v8::Context> context,
+      v8::ValueDeserializer* deserializer) override;
+
+  SET_NO_MEMORY_INFO()
+  SET_MEMORY_INFO_NAME(JSTransferable)
+  SET_SELF_SIZE(JSTransferable)
+
+ private:
+  std::unique_ptr<TransferData> TransferOrClone(TransferMode mode) const;
+
+  class Data : public TransferData {
+   public:
+    Data(std::string&& deserialize_info, v8::Global<v8::Value>&& data);
+
+    BaseObjectPtr<BaseObject> Deserialize(
+        Environment* env,
+        v8::Local<v8::Context> context,
+        std::unique_ptr<TransferData> self) override;
+    v8::Maybe<bool> FinalizeTransferWrite(
+        v8::Local<v8::Context> context,
+        v8::ValueSerializer* serializer) override;
+
+    SET_NO_MEMORY_INFO()
+    SET_MEMORY_INFO_NAME(JSTransferableTransferData)
+    SET_SELF_SIZE(Data)
+
+   private:
+    std::string deserialize_info_;
+    v8::Global<v8::Value> data_;
+  };
 };
 
 v8::Local<v8::FunctionTemplate> GetMessagePortConstructorTemplate(

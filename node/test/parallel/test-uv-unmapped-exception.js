@@ -19,6 +19,7 @@ const { uvException, uvExceptionWithHostPort } = require('internal/errors');
   assert.strictEqual(exception.message,
                      'listen UNKNOWN: unknown error 127.0.0.1:80');
   assert.strictEqual(exception.code, 'UNKNOWN');
+  assert.strictEqual(exception.errno, 100);
   assert.strictEqual(exception.syscall, 'listen');
   assert.strictEqual(exception.address, '127.0.0.1');
   assert.strictEqual(exception.port, 80);

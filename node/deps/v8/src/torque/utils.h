@@ -6,10 +6,10 @@
 #define V8_TORQUE_UTILS_H_
 
 #include <ostream>
+#include <queue>
 #include <streambuf>
 #include <string>
 #include <unordered_set>
-#include <vector>
 
 #include "src/base/functional.h"
 #include "src/base/optional.h"
@@ -38,6 +38,13 @@ struct TorqueMessage {
 
 DECLARE_CONTEXTUAL_VARIABLE(TorqueMessages, std::vector<TorqueMessage>);
 
+template <class... Args>
+std::string ToString(Args&&... args) {
+  std::stringstream stream;
+  USE((stream << std::forward<Args>(args))...);
+  return stream.str();
+}
+
 class V8_EXPORT_PRIVATE MessageBuilder {
  public:
   MessageBuilder(const std::string& message, TorqueMessage::Kind kind);
@@ -59,6 +66,7 @@ class V8_EXPORT_PRIVATE MessageBuilder {
   void Report() const;
 
   TorqueMessage message_;
+  std::vector<TorqueMessage> extra_messages_;
 };
 
 // Used for throwing exceptions. Retrieve TorqueMessage from the contextual
@@ -67,9 +75,7 @@ struct TorqueAbortCompilation {};
 
 template <class... Args>
 static MessageBuilder Message(TorqueMessage::Kind kind, Args&&... args) {
-  std::stringstream stream;
-  USE((stream << std::forward<Args>(args))...);
-  return MessageBuilder(stream.str(), kind);
+  return MessageBuilder(ToString(std::forward<Args>(args)...), kind);
 }
 
 template <class... Args>
@@ -112,51 +118,67 @@ class Deduplicator {
   std::unordered_set<T, base::hash<T>> storage_;
 };
 
+template <class T>
+T& DereferenceIfPointer(T* x) {
+  return *x;
+}
+template <class T>
+T&& DereferenceIfPointer(T&& x) {
+  return std::forward<T>(x);
+}
+
+template <class T, class L>
+struct ListPrintAdaptor {
+  const T& list;
+  const std::string& separator;
+  L transformer;
+
+  friend std::ostream& operator<<(std::ostream& os, const ListPrintAdaptor& l) {
+    bool first = true;
+    for (auto& e : l.list) {
+      if (first) {
+        first = false;
+      } else {
+        os << l.separator;
+      }
+      os << DereferenceIfPointer(l.transformer(e));
+    }
+    return os;
+  }
+};
+
+template <class T>
+auto PrintList(const T& list, const std::string& separator = ", ") {
+  using ElementType = decltype(*list.begin());
+  auto id = [](ElementType el) { return el; };
+  return ListPrintAdaptor<T, decltype(id)>{list, separator, id};
+}
+
+template <class T, class L>
+auto PrintList(const T& list, const std::string& separator, L&& transformer) {
+  return ListPrintAdaptor<T, L&&>{list, separator,
+                                  std::forward<L>(transformer)};
+}
+
 template <class C, class T>
-void PrintCommaSeparatedList(std::ostream& os, const T& list, C transform) {
-  bool first = true;
-  for (auto& e : list) {
-    if (first) {
-      first = false;
-    } else {
-      os << ", ";
-    }
-    os << transform(e);
-  }
+void PrintCommaSeparatedList(std::ostream& os, const T& list, C&& transform) {
+  os << PrintList(list, ", ", std::forward<C>(transform));
 }
 
-template <class T,
-          typename std::enable_if<
-              std::is_pointer<typename T::value_type>::value, int>::type = 0>
+template <class T>
 void PrintCommaSeparatedList(std::ostream& os, const T& list) {
-  bool first = true;
-  for (auto& e : list) {
-    if (first) {
-      first = false;
-    } else {
-      os << ", ";
-    }
-    os << *e;
-  }
-}
-
-template <class T,
-          typename std::enable_if<
-              !std::is_pointer<typename T::value_type>::value, int>::type = 0>
-void PrintCommaSeparatedList(std::ostream& os, const T& list) {
-  bool first = true;
-  for (auto& e : list) {
-    if (first) {
-      first = false;
-    } else {
-      os << ", ";
-    }
-    os << e;
-  }
+  os << PrintList(list, ", ");
 }
 
 struct BottomOffset {
   size_t offset;
+  BottomOffset(std::nullptr_t zero = 0)  // NOLINT(runtime/explicit)
+      : offset(0) {}
+  explicit BottomOffset(std::size_t offset) : offset(offset) {}
+  BottomOffset& operator=(std::size_t offset) {
+    this->offset = offset;
+    return *this;
+  }
   BottomOffset& operator++() {
     ++offset;
     return *this;
@@ -292,24 +314,12 @@ T* CheckNotNull(T* x) {
 }
 
 template <class T>
-inline std::ostream& operator<<(std::ostream& os, Stack<T>& t) {
+inline std::ostream& operator<<(std::ostream& os, const Stack<T>& t) {
   os << "Stack{";
   PrintCommaSeparatedList(os, t);
   os << "}";
   return os;
 }
-class ToString {
- public:
-  template <class T>
-  ToString& operator<<(T&& x) {
-    s_ << std::forward<T>(x);
-    return *this;
-  }
-  operator std::string() { return s_.str(); }
-
- private:
-  std::stringstream s_;
-};
 
 static const char* const kBaseNamespaceName = "base";
 static const char* const kTestNamespaceName = "test";
@@ -330,7 +340,7 @@ void EraseIf(Container* container, F f) {
 
 class NullStreambuf : public std::streambuf {
  public:
-  virtual int overflow(int c) {
+  int overflow(int c) override {
     setp(buffer_, buffer_ + sizeof(buffer_));
     return (c == traits_type::eof()) ? '\0' : c;
   }
@@ -355,6 +365,165 @@ inline bool StringEndsWith(const std::string& s, const std::string& suffix) {
   if (s.size() < suffix.size()) return false;
   return s.substr(s.size() - suffix.size()) == suffix;
 }
+
+class IfDefScope {
+ public:
+  IfDefScope(std::ostream& os, std::string d);
+  ~IfDefScope();
+
+ private:
+  IfDefScope(const IfDefScope&) = delete;
+  IfDefScope& operator=(const IfDefScope&) = delete;
+  std::ostream& os_;
+  std::string d_;
+};
+
+class NamespaceScope {
+ public:
+  NamespaceScope(std::ostream& os,
+                 std::initializer_list<std::string> namespaces);
+  ~NamespaceScope();
+
+ private:
+  NamespaceScope(const NamespaceScope&) = delete;
+  NamespaceScope& operator=(const NamespaceScope&) = delete;
+  std::ostream& os_;
+  std::vector<std::string> d_;
+};
+
+class IncludeGuardScope {
+ public:
+  IncludeGuardScope(std::ostream& os, std::string file_name);
+  ~IncludeGuardScope();
+
+ private:
+  IncludeGuardScope(const IncludeGuardScope&) = delete;
+  IncludeGuardScope& operator=(const IncludeGuardScope&) = delete;
+  std::ostream& os_;
+  std::string d_;
+};
+
+class IncludeObjectMacrosScope {
+ public:
+  explicit IncludeObjectMacrosScope(std::ostream& os);
+  ~IncludeObjectMacrosScope();
+
+ private:
+  IncludeObjectMacrosScope(const IncludeObjectMacrosScope&) = delete;
+  IncludeObjectMacrosScope& operator=(const IncludeObjectMacrosScope&) = delete;
+  std::ostream& os_;
+};
+
+// A value of ResidueClass is a congruence class of integers modulo a power
+// of 2.
+// In contrast to common modulo arithmetic, we also allow addition and
+// multiplication of congruence classes with different modulus. In this case, we
+// do an abstract-interpretation style approximation to produce an as small as
+// possible congruence class. ResidueClass is used to represent partial
+// knowledge about offsets and sizes to validate alignment constraints.
+// ResidueClass(x,m) = {y \in Z | x == y mod 2^m} = {x+k2^m | k \in Z} where Z
+// is the set of all integers.
+// Notation: 2^x is 2 to the power of x.
+class ResidueClass {
+ public:
+  ResidueClass(size_t value, size_t modulus_log_2 =
+                                 kMaxModulusLog2)  // NOLINT(runtime/explicit)
+      : value_(value),
+        modulus_log_2_(std::min(modulus_log_2, kMaxModulusLog2)) {
+    if (modulus_log_2_ < kMaxModulusLog2) {
+      value_ %= size_t{1} << modulus_log_2_;
+    }
+  }
+
+  // 0 modulo 1, in other words, the class of all integers.
+  static ResidueClass Unknown() { return ResidueClass{0, 0}; }
+
+  // If the modulus corresponds to the size of size_t, it represents a concrete
+  // value.
+  base::Optional<size_t> SingleValue() const {
+    if (modulus_log_2_ == kMaxModulusLog2) return value_;
+    return base::nullopt;
+  }
+
+  friend ResidueClass operator+(const ResidueClass& a, const ResidueClass& b) {
+    return ResidueClass{a.value_ + b.value_,
+                        std::min(a.modulus_log_2_, b.modulus_log_2_)};
+  }
+
+  // Reasoning for the choice of the new modulus:
+  // {x+k2^a | k \in Z} * {y+l2^b | l \in Z}
+  // = {xy + xl2^b + yk2^a + kl2^(a+b)| k,l \in Z},
+  // which is a subset of {xy + k2^c | k \in Z}
+  // if 2^c is a common divisor of x2^b, y2^a and hence also of 2^(a+b) since
+  // x<2^a and y<2^b.
+  // So we use the gcd of x2^b and y2^a as the new modulus.
+  friend ResidueClass operator*(const ResidueClass& a, const ResidueClass& b) {
+    return ResidueClass{a.value_ * b.value_,
+                        std::min(a.modulus_log_2_ + b.AlignmentLog2(),
+                                 b.modulus_log_2_ + a.AlignmentLog2())};
+  }
+
+  friend std::ostream& operator<<(std::ostream& os, const ResidueClass& a);
+
+  ResidueClass& operator+=(const ResidueClass& other) {
+    *this = *this + other;
+    return *this;
+  }
+
+  ResidueClass& operator*=(const ResidueClass& other) {
+    *this = *this * other;
+    return *this;
+  }
+
+  // 2^AlignmentLog2() is the larget power of 2 that divides all elements of the
+  // congruence class.
+  size_t AlignmentLog2() const;
+  size_t Alignment() const {
+    DCHECK_LT(AlignmentLog2(), kMaxModulusLog2);
+    return size_t{1} << AlignmentLog2();
+  }
+
+ private:
+  // The value is the representative of the congruence class. It's always
+  // smaller than 2^modulus_log_2_.
+  size_t value_;
+  // Base 2 logarithm of the modulus.
+  size_t modulus_log_2_;
+
+  // size_t values are modulo 2^kMaxModulusLog2, so we don't consider larger
+  // modulus.
+  static const size_t kMaxModulusLog2 = 8 * sizeof(size_t);
+};
+
+template <typename T>
+class Worklist {
+ public:
+  bool IsEmpty() const {
+    DCHECK_EQ(queue_.size(), contained_.size());
+    return queue_.empty();
+  }
+
+  bool Enqueue(T value) {
+    if (contained_.find(value) != contained_.end()) return false;
+    queue_.push(value);
+    contained_.insert(value);
+    DCHECK_EQ(queue_.size(), contained_.size());
+    return true;
+  }
+
+  T Dequeue() {
+    DCHECK(!IsEmpty());
+    T value = queue_.front();
+    queue_.pop();
+    contained_.erase(value);
+    DCHECK_EQ(queue_.size(), contained_.size());
+    return value;
+  }
+
+ private:
+  std::queue<T> queue_;
+  std::unordered_set<T> contained_;
+};
 
 }  // namespace torque
 }  // namespace internal

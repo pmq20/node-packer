@@ -20,6 +20,7 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "node_buffer.h"
+#include "allocated_buffer-inl.h"
 #include "node.h"
 #include "node_errors.h"
 #include "node_internals.h"
@@ -28,7 +29,6 @@
 #include "string_bytes.h"
 #include "string_search.h"
 #include "util-inl.h"
-#include "v8-profiler.h"
 #include "v8.h"
 
 #include <cstring>
@@ -48,12 +48,13 @@ namespace node {
 namespace Buffer {
 
 using v8::ArrayBuffer;
-using v8::ArrayBufferCreationMode;
 using v8::ArrayBufferView;
+using v8::BackingStore;
 using v8::Context;
 using v8::EscapableHandleScope;
 using v8::FunctionCallbackInfo;
 using v8::Global;
+using v8::HandleScope;
 using v8::Int32;
 using v8::Integer;
 using v8::Isolate;
@@ -62,88 +63,137 @@ using v8::Local;
 using v8::Maybe;
 using v8::MaybeLocal;
 using v8::Nothing;
+using v8::Number;
 using v8::Object;
 using v8::String;
 using v8::Uint32;
 using v8::Uint32Array;
 using v8::Uint8Array;
 using v8::Value;
-using v8::WeakCallbackInfo;
 
 namespace {
 
 class CallbackInfo {
  public:
-  static inline void Free(char* data, void* hint);
-  static inline CallbackInfo* New(Isolate* isolate,
-                                  Local<ArrayBuffer> object,
-                                  FreeCallback callback,
-                                  char* data,
-                                  void* hint = nullptr);
+  static inline Local<ArrayBuffer> CreateTrackedArrayBuffer(
+      Environment* env,
+      char* data,
+      size_t length,
+      FreeCallback callback,
+      void* hint);
 
   CallbackInfo(const CallbackInfo&) = delete;
   CallbackInfo& operator=(const CallbackInfo&) = delete;
 
  private:
-  static void WeakCallback(const WeakCallbackInfo<CallbackInfo>&);
-  inline void WeakCallback(Isolate* isolate);
-  inline CallbackInfo(Isolate* isolate,
-                      Local<ArrayBuffer> object,
+  static void CleanupHook(void* data);
+  inline void OnBackingStoreFree();
+  inline void CallAndResetCallback();
+  inline CallbackInfo(Environment* env,
                       FreeCallback callback,
                       char* data,
                       void* hint);
   Global<ArrayBuffer> persistent_;
-  FreeCallback const callback_;
+  Mutex mutex_;  // Protects callback_.
+  FreeCallback callback_;
   char* const data_;
   void* const hint_;
+  Environment* const env_;
 };
 
 
-void CallbackInfo::Free(char* data, void*) {
-  ::free(data);
+Local<ArrayBuffer> CallbackInfo::CreateTrackedArrayBuffer(
+    Environment* env,
+    char* data,
+    size_t length,
+    FreeCallback callback,
+    void* hint) {
+  CHECK_NOT_NULL(callback);
+  CHECK_IMPLIES(data == nullptr, length == 0);
+
+  CallbackInfo* self = new CallbackInfo(env, callback, data, hint);
+  std::unique_ptr<BackingStore> bs =
+      ArrayBuffer::NewBackingStore(data, length, [](void*, size_t, void* arg) {
+        static_cast<CallbackInfo*>(arg)->OnBackingStoreFree();
+      }, self);
+  Local<ArrayBuffer> ab = ArrayBuffer::New(env->isolate(), std::move(bs));
+
+  // V8 simply ignores the BackingStore deleter callback if data == nullptr,
+  // but our API contract requires it being called.
+  if (data == nullptr) {
+    ab->Detach();
+    self->OnBackingStoreFree();  // This calls `callback` asynchronously.
+  } else {
+    // Store the ArrayBuffer so that we can detach it later.
+    self->persistent_.Reset(env->isolate(), ab);
+    self->persistent_.SetWeak();
+  }
+
+  return ab;
 }
 
 
-CallbackInfo* CallbackInfo::New(Isolate* isolate,
-                                Local<ArrayBuffer> object,
-                                FreeCallback callback,
-                                char* data,
-                                void* hint) {
-  return new CallbackInfo(isolate, object, callback, data, hint);
-}
-
-
-CallbackInfo::CallbackInfo(Isolate* isolate,
-                           Local<ArrayBuffer> object,
+CallbackInfo::CallbackInfo(Environment* env,
                            FreeCallback callback,
                            char* data,
                            void* hint)
-    : persistent_(isolate, object),
-      callback_(callback),
+    : callback_(callback),
       data_(data),
-      hint_(hint) {
-  ArrayBuffer::Contents obj_c = object->GetContents();
-  CHECK_EQ(data_, static_cast<char*>(obj_c.Data()));
-  if (object->ByteLength() != 0)
-    CHECK_NOT_NULL(data_);
-
-  persistent_.SetWeak(this, WeakCallback, v8::WeakCallbackType::kParameter);
-  isolate->AdjustAmountOfExternalAllocatedMemory(sizeof(*this));
+      hint_(hint),
+      env_(env) {
+  env->AddCleanupHook(CleanupHook, this);
+  env->isolate()->AdjustAmountOfExternalAllocatedMemory(sizeof(*this));
 }
 
+void CallbackInfo::CleanupHook(void* data) {
+  CallbackInfo* self = static_cast<CallbackInfo*>(data);
 
-void CallbackInfo::WeakCallback(
-    const WeakCallbackInfo<CallbackInfo>& data) {
-  CallbackInfo* self = data.GetParameter();
-  self->WeakCallback(data.GetIsolate());
-  delete self;
+  {
+    HandleScope handle_scope(self->env_->isolate());
+    Local<ArrayBuffer> ab = self->persistent_.Get(self->env_->isolate());
+    if (!ab.IsEmpty() && ab->IsDetachable()) {
+      ab->Detach();
+      self->persistent_.Reset();
+    }
+  }
+
+  // Call the callback in this case, but don't delete `this` yet because the
+  // BackingStore deleter callback will do so later.
+  self->CallAndResetCallback();
 }
 
+void CallbackInfo::CallAndResetCallback() {
+  FreeCallback callback;
+  {
+    Mutex::ScopedLock lock(mutex_);
+    callback = callback_;
+    callback_ = nullptr;
+  }
+  if (callback != nullptr) {
+    // Clean up all Environment-related state and run the callback.
+    env_->RemoveCleanupHook(CleanupHook, this);
+    int64_t change_in_bytes = -static_cast<int64_t>(sizeof(*this));
+    env_->isolate()->AdjustAmountOfExternalAllocatedMemory(change_in_bytes);
 
-void CallbackInfo::WeakCallback(Isolate* isolate) {
-  callback_(data_, hint_);
-  int64_t change_in_bytes = -static_cast<int64_t>(sizeof(*this));
-  isolate->AdjustAmountOfExternalAllocatedMemory(change_in_bytes);
+    callback(data_, hint_);
+  }
+}
+
+void CallbackInfo::OnBackingStoreFree() {
+  // This method should always release the memory for `this`.
+  std::unique_ptr<CallbackInfo> self { this };
+  Mutex::ScopedLock lock(mutex_);
+  // If callback_ == nullptr, that means that the callback has already run from
+  // the cleanup hook, and there is nothing left to do here besides to clean
+  // up the memory involved. In particular, the underlying `Environment` may
+  // be gone at this point, so don’t attempt to call SetImmediateThreadsafe().
+  if (callback_ == nullptr) return;
+
+  env_->SetImmediateThreadsafe([self = std::move(self)](Environment* env) {
+    CHECK_EQ(self->env_, env);  // Consistency check.
+
+    self->CallAndResetCallback();
+  });
 }
 
 
@@ -192,16 +242,13 @@ bool HasInstance(Local<Object> obj) {
 char* Data(Local<Value> val) {
   CHECK(val->IsArrayBufferView());
   Local<ArrayBufferView> ui = val.As<ArrayBufferView>();
-  ArrayBuffer::Contents ab_c = ui->Buffer()->GetContents();
-  return static_cast<char*>(ab_c.Data()) + ui->ByteOffset();
+  return static_cast<char*>(ui->Buffer()->GetBackingStore()->Data()) +
+      ui->ByteOffset();
 }
 
 
 char* Data(Local<Object> obj) {
-  CHECK(obj->IsArrayBufferView());
-  Local<ArrayBufferView> ui = obj.As<ArrayBufferView>();
-  ArrayBuffer::Contents ab_c = ui->Buffer()->GetContents();
-  return static_cast<char*>(ab_c.Data()) + ui->ByteOffset();
+  return Data(obj.As<Value>());
 }
 
 
@@ -219,10 +266,10 @@ size_t Length(Local<Object> obj) {
 }
 
 
-inline MaybeLocal<Uint8Array> New(Environment* env,
-                                  Local<ArrayBuffer> ab,
-                                  size_t byte_offset,
-                                  size_t length) {
+MaybeLocal<Uint8Array> New(Environment* env,
+                           Local<ArrayBuffer> ab,
+                           size_t byte_offset,
+                           size_t length) {
   CHECK(!env->buffer_prototype_object().IsEmpty());
   Local<Uint8Array> ui = Uint8Array::New(ab, byte_offset, length);
   Maybe<bool> mb =
@@ -230,6 +277,18 @@ inline MaybeLocal<Uint8Array> New(Environment* env,
   if (mb.IsNothing())
     return MaybeLocal<Uint8Array>();
   return ui;
+}
+
+MaybeLocal<Uint8Array> New(Isolate* isolate,
+                           Local<ArrayBuffer> ab,
+                           size_t byte_offset,
+                           size_t length) {
+  Environment* env = Environment::GetCurrent(isolate);
+  if (env == nullptr) {
+    THROW_ERR_BUFFER_CONTEXT_NOT_AVAILABLE(isolate);
+    return MaybeLocal<Uint8Array>();
+  }
+  return New(env, ab, byte_offset, length);
 }
 
 
@@ -290,16 +349,8 @@ MaybeLocal<Object> New(Environment* env, size_t length) {
     return Local<Object>();
   }
 
-  AllocatedBuffer ret(env);
-  if (length > 0) {
-    ret = env->AllocateManaged(length, false);
-    if (ret.data() == nullptr) {
-      THROW_ERR_MEMORY_ALLOCATION_FAILED(env);
-      return Local<Object>();
-    }
-  }
-
-  return scope.EscapeMaybe(ret.ToBuffer());
+  return scope.EscapeMaybe(
+      AllocatedBuffer::AllocateManaged(env, length).ToBuffer());
 }
 
 
@@ -326,14 +377,8 @@ MaybeLocal<Object> Copy(Environment* env, const char* data, size_t length) {
     return Local<Object>();
   }
 
-  AllocatedBuffer ret(env);
+  AllocatedBuffer ret = AllocatedBuffer::AllocateManaged(env, length);
   if (length > 0) {
-    CHECK_NOT_NULL(data);
-    ret = env->AllocateManaged(length, false);
-    if (ret.data() == nullptr) {
-      THROW_ERR_MEMORY_ALLOCATION_FAILED(env);
-      return Local<Object>();
-    }
     memcpy(ret.data(), data, length);
   }
 
@@ -353,10 +398,8 @@ MaybeLocal<Object> New(Isolate* isolate,
     THROW_ERR_BUFFER_CONTEXT_NOT_AVAILABLE(isolate);
     return MaybeLocal<Object>();
   }
-  Local<Object> obj;
-  if (Buffer::New(env, data, length, callback, hint).ToLocal(&obj))
-    return handle_scope.Escape(obj);
-  return Local<Object>();
+  return handle_scope.EscapeMaybe(
+      Buffer::New(env, data, length, callback, hint));
 }
 
 
@@ -373,10 +416,14 @@ MaybeLocal<Object> New(Environment* env,
     return Local<Object>();
   }
 
-  Local<ArrayBuffer> ab = ArrayBuffer::New(env->isolate(), data, length);
+  Local<ArrayBuffer> ab =
+      CallbackInfo::CreateTrackedArrayBuffer(env, data, length, callback, hint);
+  if (ab->SetPrivate(env->context(),
+                     env->untransferable_object_private_symbol(),
+                     True(env->isolate())).IsNothing()) {
+    return Local<Object>();
+  }
   MaybeLocal<Uint8Array> ui = Buffer::New(env, ab, 0, length);
-
-  CallbackInfo::New(env->isolate(), ab, callback, data, hint);
 
   if (ui.IsEmpty())
     return MaybeLocal<Object>();
@@ -395,43 +442,23 @@ MaybeLocal<Object> New(Isolate* isolate, char* data, size_t length) {
     return MaybeLocal<Object>();
   }
   Local<Object> obj;
-  if (Buffer::New(env, data, length, true).ToLocal(&obj))
+  if (Buffer::New(env, data, length).ToLocal(&obj))
     return handle_scope.Escape(obj);
   return Local<Object>();
 }
 
-// Warning: If this call comes through the public node_buffer.h API,
-// the contract for this function is that `data` is allocated with malloc()
+// The contract for this function is that `data` is allocated with malloc()
 // and not necessarily isolate's ArrayBuffer::Allocator.
 MaybeLocal<Object> New(Environment* env,
                        char* data,
-                       size_t length,
-                       bool uses_malloc) {
+                       size_t length) {
   if (length > 0) {
     CHECK_NOT_NULL(data);
     CHECK(length <= kMaxLength);
   }
 
-  if (uses_malloc) {
-    if (!env->isolate_data()->uses_node_allocator()) {
-      // We don't know for sure that the allocator is malloc()-based, so we need
-      // to fall back to the FreeCallback variant.
-      auto free_callback = [](char* data, void* hint) { free(data); };
-      return New(env, data, length, free_callback, nullptr);
-    } else {
-      // This is malloc()-based, so we can acquire it into our own
-      // ArrayBufferAllocator.
-      CHECK_NOT_NULL(env->isolate_data()->node_allocator());
-      env->isolate_data()->node_allocator()->RegisterPointer(data, length);
-    }
-  }
-
-  Local<ArrayBuffer> ab =
-      ArrayBuffer::New(env->isolate(),
-                       data,
-                       length,
-                       ArrayBufferCreationMode::kInternalized);
-  return Buffer::New(env, ab, 0, length).FromMaybe(Local<Object>());
+  auto free_callback = [](char* data, void* hint) { free(data); };
+  return New(env, data, length, free_callback, nullptr);
 }
 
 namespace {
@@ -528,10 +555,11 @@ void Fill(const FunctionCallbackInfo<Value>& args) {
   THROW_AND_RETURN_UNLESS_BUFFER(env, args[0]);
   SPREAD_BUFFER_ARG(args[0], ts_obj);
 
-  uint32_t start;
-  if (!args[2]->Uint32Value(ctx).To(&start)) return;
-  uint32_t end;
-  if (!args[3]->Uint32Value(ctx).To(&end)) return;
+  size_t start;
+  THROW_AND_RETURN_IF_OOB(ParseArrayIndex(env, args[2], 0, &start));
+  size_t end;
+  THROW_AND_RETURN_IF_OOB(ParseArrayIndex(env, args[3], 0, &end));
+
   size_t fill_length = end - start;
   Local<String> str_obj;
   size_t str_length;
@@ -840,7 +868,7 @@ void IndexOfString(const FunctionCallbackInfo<Value>& args) {
 
     if (IsBigEndian()) {
       StringBytes::InlineDecoder decoder;
-      if (decoder.Decode(env, needle, args[3], UCS2).IsNothing()) return;
+      if (decoder.Decode(env, needle, enc).IsNothing()) return;
       const uint16_t* decoded_string =
           reinterpret_cast<const uint16_t*>(decoder.out());
 
@@ -1036,7 +1064,7 @@ static void EncodeUtf8String(const FunctionCallbackInfo<Value>& args) {
 
   Local<String> str = args[0].As<String>();
   size_t length = str->Utf8Length(isolate);
-  AllocatedBuffer buf = env->AllocateManaged(length);
+  AllocatedBuffer buf = AllocatedBuffer::AllocateManaged(env, length);
   str->WriteUtf8(isolate,
                  buf.data(),
                  -1,  // We are certain that `data` is sufficiently large
@@ -1060,13 +1088,13 @@ static void EncodeInto(const FunctionCallbackInfo<Value>& args) {
   Local<Uint8Array> dest = args[1].As<Uint8Array>();
   Local<ArrayBuffer> buf = dest->Buffer();
   char* write_result =
-      static_cast<char*>(buf->GetContents().Data()) + dest->ByteOffset();
+      static_cast<char*>(buf->GetBackingStore()->Data()) + dest->ByteOffset();
   size_t dest_length = dest->ByteLength();
 
   // results = [ read, written ]
   Local<Uint32Array> result_arr = args[2].As<Uint32Array>();
   uint32_t* results = reinterpret_cast<uint32_t*>(
-      static_cast<char*>(result_arr->Buffer()->GetContents().Data()) +
+      static_cast<char*>(result_arr->Buffer()->GetBackingStore()->Data()) +
       result_arr->ByteOffset());
 
   int nchars;
@@ -1117,7 +1145,7 @@ void Initialize(Local<Object> target,
 
   target->Set(env->context(),
               FIXED_ONE_BYTE_STRING(env->isolate(), "kMaxLength"),
-              Integer::NewFromUnsigned(env->isolate(), kMaxLength)).Check();
+              Number::New(env->isolate(), kMaxLength)).Check();
 
   target->Set(env->context(),
               FIXED_ONE_BYTE_STRING(env->isolate(), "kStringMaxLength"),
@@ -1142,8 +1170,17 @@ void Initialize(Local<Object> target,
   if (NodeArrayBufferAllocator* allocator =
           env->isolate_data()->node_allocator()) {
     uint32_t* zero_fill_field = allocator->zero_fill_field();
-    Local<ArrayBuffer> array_buffer = ArrayBuffer::New(
-        env->isolate(), zero_fill_field, sizeof(*zero_fill_field));
+    std::unique_ptr<BackingStore> backing =
+      ArrayBuffer::NewBackingStore(zero_fill_field,
+                                   sizeof(*zero_fill_field),
+                                   [](void*, size_t, void*){},
+                                   nullptr);
+    Local<ArrayBuffer> array_buffer =
+        ArrayBuffer::New(env->isolate(), std::move(backing));
+    array_buffer->SetPrivate(
+        env->context(),
+        env->untransferable_object_private_symbol(),
+        True(env->isolate())).Check();
     CHECK(target
               ->Set(env->context(),
                     FIXED_ONE_BYTE_STRING(env->isolate(), "zeroFill"),

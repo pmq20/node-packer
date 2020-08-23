@@ -55,19 +55,9 @@ namespace internal {
      51)                                                                       \
   HR(wasm_wasm_max_mem_pages_count, V8.WasmMaxMemPagesCount.wasm, 1, 2 << 16,  \
      51)                                                                       \
-  HR(wasm_decode_asm_module_peak_memory_bytes,                                 \
-     V8.WasmDecodeModulePeakMemoryBytes.asm, 1, GB, 51)                        \
-  HR(wasm_decode_wasm_module_peak_memory_bytes,                                \
-     V8.WasmDecodeModulePeakMemoryBytes.wasm, 1, GB, 51)                       \
-  HR(asm_wasm_translation_peak_memory_bytes,                                   \
-     V8.AsmWasmTranslationPeakMemoryBytes, 1, GB, 51)                          \
   HR(wasm_compile_function_peak_memory_bytes,                                  \
      V8.WasmCompileFunctionPeakMemoryBytes, 1, GB, 51)                         \
   HR(asm_module_size_bytes, V8.AsmModuleSizeBytes, 1, GB, 51)                  \
-  HR(asm_wasm_translation_throughput, V8.AsmWasmTranslationThroughput, 1, 100, \
-     20)                                                                       \
-  HR(wasm_lazy_compilation_throughput, V8.WasmLazyCompilationThroughput, 1,    \
-     10000, 50)                                                                \
   HR(compile_script_cache_behaviour, V8.CompileScript.CacheBehaviour, 0, 20,   \
      21)                                                                       \
   HR(wasm_memory_allocation_result, V8.WasmMemoryAllocationResult, 0, 3, 4)    \
@@ -81,8 +71,6 @@ namespace internal {
   /* code size per module after top-tier compilation */                        \
   HR(wasm_module_code_size_mb_after_top_tier, V8.WasmModuleCodeSizeTopTierMiB, \
      0, 1024, 64)                                                              \
-  /* freed code size per module, collected on GC */                            \
-  HR(wasm_module_freed_code_size_mb, V8.WasmModuleCodeSizeFreed, 0, 1024, 64)  \
   /* percent of freed code size per module, collected on GC */                 \
   HR(wasm_module_freed_code_size_percent, V8.WasmModuleCodeSizePercentFreed,   \
      0, 100, 32)                                                               \
@@ -91,10 +79,17 @@ namespace internal {
      V8.WasmModuleNumberOfCodeGCsTriggered, 1, 128, 20)                        \
   /* number of code spaces reserved per wasm module */                         \
   HR(wasm_module_num_code_spaces, V8.WasmModuleNumberOfCodeSpaces, 1, 128, 20) \
+  /* number of live modules per isolate */                                     \
+  HR(wasm_modules_per_isolate, V8.WasmModulesPerIsolate, 1, 1024, 30)          \
+  /* number of live modules per engine (i.e. whole process) */                 \
+  HR(wasm_modules_per_engine, V8.WasmModulesPerEngine, 1, 1024, 30)            \
   /* bailout reason if Liftoff failed, or {kSuccess} (per function) */         \
   HR(liftoff_bailout_reasons, V8.LiftoffBailoutReasons, 0, 20, 21)             \
   /* Ticks observed in a single Turbofan compilation, in 1K */                 \
-  HR(turbofan_ticks, V8.TurboFan1KTicks, 0, 100000, 200)
+  HR(turbofan_ticks, V8.TurboFan1KTicks, 0, 100000, 200)                       \
+  /* Backtracks observed in a single regexp interpreter execution */           \
+  /* The maximum of 100M backtracks takes roughly 2 seconds on my machine. */  \
+  HR(regexp_backtracks, V8.RegExpBacktracks, 1, 100000000, 50)
 
 #define HISTOGRAM_TIMER_LIST(HT)                                               \
   /* Timer histograms, not thread safe: HT(name, caption, max, unit) */        \
@@ -121,12 +116,7 @@ namespace internal {
   /* Total compilation time incl. caching/parsing */                           \
   HT(compile_script, V8.CompileScriptMicroSeconds, 1000000, MICROSECOND)       \
   /* Total JavaScript execution time (including callbacks and runtime calls */ \
-  HT(execute, V8.Execute, 1000000, MICROSECOND)                                \
-  /* Asm/Wasm */                                                               \
-  HT(asm_wasm_translation_time, V8.AsmWasmTranslationMicroSeconds, 1000000,    \
-     MICROSECOND)                                                              \
-  HT(wasm_lazy_compilation_time, V8.WasmLazyCompilationMicroSeconds, 1000000,  \
-     MICROSECOND)
+  HT(execute, V8.Execute, 1000000, MICROSECOND)
 
 #define TIMED_HISTOGRAM_LIST(HT)                                               \
   /* Timer histograms, thread safe: HT(name, caption, max, unit) */            \
@@ -137,6 +127,8 @@ namespace internal {
   HT(gc_finalize, V8.GCFinalizeMC, 10000, MILLISECOND)                         \
   HT(gc_finalize_background, V8.GCFinalizeMCBackground, 10000, MILLISECOND)    \
   HT(gc_finalize_foreground, V8.GCFinalizeMCForeground, 10000, MILLISECOND)    \
+  HT(gc_finalize_measure_memory, V8.GCFinalizeMCMeasureMemory, 10000,          \
+     MILLISECOND)                                                              \
   HT(gc_finalize_reduce_memory, V8.GCFinalizeMCReduceMemory, 10000,            \
      MILLISECOND)                                                              \
   HT(gc_finalize_reduce_memory_background,                                     \
@@ -146,6 +138,8 @@ namespace internal {
   HT(gc_scavenger, V8.GCScavenger, 10000, MILLISECOND)                         \
   HT(gc_scavenger_background, V8.GCScavengerBackground, 10000, MILLISECOND)    \
   HT(gc_scavenger_foreground, V8.GCScavengerForeground, 10000, MILLISECOND)    \
+  HT(measure_memory_delay_ms, V8.MeasureMemoryDelayMilliseconds, 100000,       \
+     MILLISECOND)                                                              \
   /* TurboFan timers. */                                                       \
   HT(turbofan_optimize_prepare, V8.TurboFanOptimizePrepare, 1000000,           \
      MICROSECOND)                                                              \
@@ -172,14 +166,6 @@ namespace internal {
   HT(turbofan_osr_total_time,                                                  \
      V8.TurboFanOptimizeForOnStackReplacementTotalTime, 10000000, MICROSECOND) \
   /* Wasm timers. */                                                           \
-  HT(wasm_decode_asm_module_time, V8.WasmDecodeModuleMicroSeconds.asm,         \
-     1000000, MICROSECOND)                                                     \
-  HT(wasm_decode_wasm_module_time, V8.WasmDecodeModuleMicroSeconds.wasm,       \
-     1000000, MICROSECOND)                                                     \
-  HT(wasm_decode_asm_function_time, V8.WasmDecodeFunctionMicroSeconds.asm,     \
-     1000000, MICROSECOND)                                                     \
-  HT(wasm_decode_wasm_function_time, V8.WasmDecodeFunctionMicroSeconds.wasm,   \
-     1000000, MICROSECOND)                                                     \
   HT(wasm_compile_asm_module_time, V8.WasmCompileModuleMicroSeconds.asm,       \
      10000000, MICROSECOND)                                                    \
   HT(wasm_compile_wasm_module_time, V8.WasmCompileModuleMicroSeconds.wasm,     \
@@ -188,6 +174,8 @@ namespace internal {
      V8.WasmCompileModuleAsyncMicroSeconds, 100000000, MICROSECOND)            \
   HT(wasm_streaming_compile_wasm_module_time,                                  \
      V8.WasmCompileModuleStreamingMicroSeconds, 100000000, MICROSECOND)        \
+  HT(wasm_streaming_finish_wasm_module_time,                                   \
+     V8.WasmFinishModuleStreamingMicroSeconds, 100000000, MICROSECOND)         \
   HT(wasm_tier_up_module_time, V8.WasmTierUpModuleMicroSeconds, 100000000,     \
      MICROSECOND)                                                              \
   HT(wasm_compile_asm_function_time, V8.WasmCompileFunctionMicroSeconds.asm,   \
@@ -200,7 +188,6 @@ namespace internal {
      V8.WasmInstantiateModuleMicroSeconds.wasm, 10000000, MICROSECOND)         \
   HT(wasm_instantiate_asm_module_time,                                         \
      V8.WasmInstantiateModuleMicroSeconds.asm, 10000000, MICROSECOND)          \
-  HT(wasm_code_gc_time, V8.WasmCodeGCTime, 1000000, MICROSECOND)               \
   /* Total compilation time incl. caching/parsing for various cache states. */ \
   HT(compile_script_with_produce_cache,                                        \
      V8.CompileScriptMicroSeconds.ProduceCache, 1000000, MICROSECOND)          \
@@ -219,6 +206,8 @@ namespace internal {
      MICROSECOND)                                                              \
   HT(compile_script_no_cache_because_cache_too_cold,                           \
      V8.CompileScriptMicroSeconds.NoCache.CacheTooCold, 1000000, MICROSECOND)  \
+  HT(compile_script_streaming_finalization,                                    \
+     V8.CompileScriptMicroSeconds.StreamingFinalization, 1000000, MICROSECOND) \
   HT(compile_script_on_background,                                             \
      V8.CompileScriptMicroSeconds.BackgroundThread, 1000000, MICROSECOND)      \
   HT(compile_function_on_background,                                           \
@@ -252,8 +241,6 @@ namespace internal {
 #define STATS_COUNTER_LIST_1(SC)                                   \
   /* Global Handle Count*/                                         \
   SC(global_handles, V8.GlobalHandles)                             \
-  /* OS Memory allocated */                                        \
-  SC(memory_allocated, V8.OsMemoryAllocated)                       \
   SC(maps_normalized, V8.MapsNormalized)                           \
   SC(maps_created, V8.MapsCreated)                                 \
   SC(elements_transitions, V8.ObjectElementsTransitions)           \
@@ -279,7 +266,7 @@ namespace internal {
   SC(total_compile_size, V8.TotalCompileSize)                      \
   /* Number of contexts created from scratch. */                   \
   SC(contexts_created_from_scratch, V8.ContextsCreatedFromScratch) \
-  /* Number of contexts created by partial snapshot. */            \
+  /* Number of contexts created by context snapshot. */            \
   SC(contexts_created_by_snapshot, V8.ContextsCreatedBySnapshot)   \
   /* Number of code objects found from pc. */                      \
   SC(pc_to_code, V8.PcToCode)                                      \

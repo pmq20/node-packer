@@ -1,4 +1,3 @@
-// Flags: --experimental-modules
 'use strict';
 const common = require('../common');
 const assert = require('assert');
@@ -28,12 +27,13 @@ try {
   require('../fixtures/es-modules/package-type-module/index.js');
   assert.fail('Expected CJS to fail loading from type: module package.');
 } catch (e) {
-  assert(e.toString().match(/Error \[ERR_REQUIRE_ESM\]: Must use import to load ES Module:/));
+  assert.strictEqual(e.name, 'Error');
+  assert.strictEqual(e.code, 'ERR_REQUIRE_ESM');
+  assert(e.toString().match(/Must use import to load ES Module/g));
+  assert(e.message.match(/Must use import to load ES Module/g));
 }
 
 function expect(opt = '', inputFile, want, wantsError = false) {
-  // TODO: Remove when --experimental-modules is unflagged
-  opt = `--experimental-modules ${opt}`;
   const argv = [inputFile];
   const opts = {
     env: Object.assign({}, process.env, { NODE_OPTIONS: opt }),

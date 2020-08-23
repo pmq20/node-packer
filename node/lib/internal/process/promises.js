@@ -1,6 +1,10 @@
 'use strict';
 
-const { Object } = primordials;
+const {
+  Error,
+  ObjectDefineProperty,
+  WeakMap,
+} = primordials;
 
 const {
   tickInfo,
@@ -26,22 +30,37 @@ const pendingUnhandledRejections = [];
 const asyncHandledRejections = [];
 let lastPromiseId = 0;
 
-// --unhandled-rejection=none:
+// --unhandled-rejections=none:
 // Emit 'unhandledRejection', but do not emit any warning.
 const kIgnoreUnhandledRejections = 0;
-// --unhandled-rejection=warn:
+
+// --unhandled-rejections=warn:
 // Emit 'unhandledRejection', then emit 'UnhandledPromiseRejectionWarning'.
 const kAlwaysWarnUnhandledRejections = 1;
-// --unhandled-rejection=strict:
+
+// --unhandled-rejections=strict:
 // Emit 'uncaughtException'. If it's not handled, print the error to stderr
 // and exit the process.
 // Otherwise, emit 'unhandledRejection'. If 'unhandledRejection' is not
 // handled, emit 'UnhandledPromiseRejectionWarning'.
-const kThrowUnhandledRejections = 2;
-// --unhandled-rejection is unset:
-// Emit 'unhandledRejection', if it's handled, emit
+const kStrictUnhandledRejections = 2;
+
+// --unhandled-rejections=throw:
+// Emit 'unhandledRejection', if it's unhandled, emit
+// 'uncaughtException'. If it's not handled, print the error to stderr
+// and exit the process.
+const kThrowUnhandledRejections = 3;
+
+// --unhandled-rejections=warn-with-error-code:
+// Emit 'unhandledRejection', if it's unhandled, emit
+// 'UnhandledPromiseRejectionWarning', then set process exit code to 1.
+
+const kWarnWithErrorCodeUnhandledRejections = 4;
+
+// --unhandled-rejections is unset:
+// Emit 'unhandledRejection', if it's unhandled, emit
 // 'UnhandledPromiseRejectionWarning', then emit deprecation warning.
-const kDefaultUnhandledRejections = 3;
+const kDefaultUnhandledRejections = 5;
 
 let unhandledRejectionsMode;
 
@@ -61,7 +80,11 @@ function getUnhandledRejectionsMode() {
     case 'warn':
       return kAlwaysWarnUnhandledRejections;
     case 'strict':
+      return kStrictUnhandledRejections;
+    case 'throw':
       return kThrowUnhandledRejections;
+    case 'warn-with-error-code':
+      return kWarnWithErrorCodeUnhandledRejections;
     default:
       return kDefaultUnhandledRejections;
   }
@@ -123,7 +146,8 @@ function handledRejection(promise) {
       return;
     }
   }
-  setHasRejectionToWarn(false);
+  if (maybeUnhandledPromises.size === 0 && asyncHandledRejections.length === 0)
+    setHasRejectionToWarn(false);
 }
 
 const unhandledRejectionErrName = 'UnhandledPromiseRejectionWarning';
@@ -133,6 +157,9 @@ function emitUnhandledRejectionWarning(uid, reason) {
     'Unhandled promise rejection. This error originated either by ' +
       'throwing inside of an async function without a catch block, ' +
       'or by rejecting a promise which was not handled with .catch(). ' +
+      'To terminate the node process on unhandled promise ' +
+      'rejection, use the CLI flag `--unhandled-rejections=strict` (see ' +
+      'https://nodejs.org/api/cli.html#cli_unhandled_rejections_mode). ' +
       `(rejection id: ${uid})`
   );
   try {
@@ -180,7 +207,7 @@ function processPromiseRejections() {
     promiseInfo.warned = true;
     const { reason, uid } = promiseInfo;
     switch (unhandledRejectionsMode) {
-      case kThrowUnhandledRejections: {
+      case kStrictUnhandledRejections: {
         const err = reason instanceof Error ?
           reason : generateUnhandledRejectionError(reason);
         triggerUncaughtException(err, true /* fromPromise */);
@@ -195,6 +222,23 @@ function processPromiseRejections() {
       case kAlwaysWarnUnhandledRejections: {
         process.emit('unhandledRejection', reason, promise);
         emitUnhandledRejectionWarning(uid, reason);
+        break;
+      }
+      case kThrowUnhandledRejections: {
+        const handled = process.emit('unhandledRejection', reason, promise);
+        if (!handled) {
+          const err = reason instanceof Error ?
+            reason : generateUnhandledRejectionError(reason);
+          triggerUncaughtException(err, true /* fromPromise */);
+        }
+        break;
+      }
+      case kWarnWithErrorCodeUnhandledRejections: {
+        const handled = process.emit('unhandledRejection', reason, promise);
+        if (!handled) {
+          emitUnhandledRejectionWarning(uid, reason);
+          process.exitCode = 1;
+        }
         break;
       }
       case kDefaultUnhandledRejections: {
@@ -222,7 +266,7 @@ function getErrorWithoutStack(name, message) {
   // eslint-disable-next-line no-restricted-syntax
   const err = new Error(message);
   Error.stackTraceLimit = tmp;
-  Object.defineProperty(err, 'name', {
+  ObjectDefineProperty(err, 'name', {
     value: name,
     enumerable: false,
     writable: true,

@@ -20,6 +20,7 @@ session.on('Debugger.paused', () => {
 session.connect();
 session.post('Debugger.enable');
 console.log('Ready');
+console.log('Ready');
 `;
 
 async function setupSession(node) {
@@ -48,6 +49,10 @@ async function testSuspend(sessionA, sessionB) {
 
   await sessionA.waitForNotification('Runtime.consoleAPICalled',
                                      'Console output');
+  // NOTE(mmarchini): Remove second console.log when
+  // https://bugs.chromium.org/p/v8/issues/detail?id=10287 is fixed.
+  await sessionA.waitForNotification('Runtime.consoleAPICalled',
+                                     'Console output');
   sessionA.send({ 'method': 'Debugger.pause' });
   return Promise.all([
     sessionA.waitForNotification('Debugger.paused', 'SessionA paused'),
@@ -69,4 +74,4 @@ async function runTest() {
   return child.expectShutdown();
 }
 
-runTest();
+runTest().then(common.mustCall());

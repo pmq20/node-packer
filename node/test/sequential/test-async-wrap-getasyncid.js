@@ -8,7 +8,7 @@ const fs = require('fs');
 const v8 = require('v8');
 const fsPromises = fs.promises;
 const net = require('net');
-const providers = Object.assign({}, internalBinding('async_wrap').Providers);
+const providers = { ...internalBinding('async_wrap').Providers };
 const fixtures = require('../common/fixtures');
 const tmpdir = require('../common/tmpdir');
 const { getSystemErrorName } = require('util');
@@ -45,12 +45,15 @@ const { getSystemErrorName } = require('util');
     delete providers.STREAMPIPE;
     delete providers.MESSAGEPORT;
     delete providers.WORKER;
+    delete providers.JSUDPWRAP;
     if (!common.isMainThread)
       delete providers.INSPECTORJSBINDING;
     delete providers.KEYPAIRGENREQUEST;
     delete providers.HTTPCLIENTREQUEST;
     delete providers.HTTPINCOMINGMESSAGE;
     delete providers.ELDHISTOGRAM;
+    delete providers.SIGINTWATCHDOG;
+    delete providers.WORKERHEAPSNAPSHOT;
 
     const objKeys = Object.keys(providers);
     if (objKeys.length > 0)

@@ -4,6 +4,8 @@
 
 > Stability: 2 - Stable
 
+<!-- source_link=lib/timers.js -->
+
 The `timer` module exposes a global API for scheduling functions to
 be called at some future period of time. Because the timer functions are
 globals, there is no need to call `require('timers')` to use the API.
@@ -12,7 +14,7 @@ The timer functions within Node.js implement a similar API as the timers API
 provided by Web Browsers but use a different internal implementation that is
 built around the Node.js [Event Loop][].
 
-## Class: Immediate
+## Class: `Immediate`
 
 This object is created internally and is returned from [`setImmediate()`][]. It
 can be passed to [`clearImmediate()`][] in order to cancel the scheduled
@@ -23,7 +25,7 @@ running as long as the immediate is active. The `Immediate` object returned by
 [`setImmediate()`][] exports both `immediate.ref()` and `immediate.unref()`
 functions that can be used to control this default behavior.
 
-### immediate.hasRef()
+### `immediate.hasRef()`
 <!-- YAML
 added: v11.0.0
 -->
@@ -32,7 +34,7 @@ added: v11.0.0
 
 If true, the `Immediate` object will keep the Node.js event loop active.
 
-### immediate.ref()
+### `immediate.ref()`
 <!-- YAML
 added: v9.7.0
 -->
@@ -46,7 +48,7 @@ effect.
 By default, all `Immediate` objects are "ref'ed", making it normally unnecessary
 to call `immediate.ref()` unless `immediate.unref()` had been called previously.
 
-### immediate.unref()
+### `immediate.unref()`
 <!-- YAML
 added: v9.7.0
 -->
@@ -58,7 +60,7 @@ loop to remain active. If there is no other activity keeping the event loop
 running, the process may exit before the `Immediate` object's callback is
 invoked. Calling `immediate.unref()` multiple times will have no effect.
 
-## Class: Timeout
+## Class: `Timeout`
 
 This object is created internally and is returned from [`setTimeout()`][] and
 [`setInterval()`][]. It can be passed to either [`clearTimeout()`][] or
@@ -70,7 +72,7 @@ timer is active. Each of the `Timeout` objects returned by these functions
 export both `timeout.ref()` and `timeout.unref()` functions that can be used to
 control this default behavior.
 
-### timeout.hasRef()
+### `timeout.hasRef()`
 <!-- YAML
 added: v11.0.0
 -->
@@ -79,7 +81,7 @@ added: v11.0.0
 
 If true, the `Timeout` object will keep the Node.js event loop active.
 
-### timeout.ref()
+### `timeout.ref()`
 <!-- YAML
 added: v0.9.1
 -->
@@ -92,7 +94,7 @@ When called, requests that the Node.js event loop *not* exit so long as the
 By default, all `Timeout` objects are "ref'ed", making it normally unnecessary
 to call `timeout.ref()` unless `timeout.unref()` had been called previously.
 
-### timeout.refresh()
+### `timeout.refresh()`
 <!-- YAML
 added: v10.2.0
 -->
@@ -107,7 +109,7 @@ JavaScript object.
 Using this on a timer that has already called its callback will reactivate the
 timer.
 
-### timeout.unref()
+### `timeout.unref()`
 <!-- YAML
 added: v0.9.1
 -->
@@ -123,14 +125,14 @@ Calling `timeout.unref()` creates an internal timer that will wake the Node.js
 event loop. Creating too many of these can adversely impact performance
 of the Node.js application.
 
-## Scheduling Timers
+## Scheduling timers
 
 A timer in Node.js is an internal construct that calls a given function after
 a certain period of time. When a timer's function is called varies depending on
 which method was used to create the timer and what other work the Node.js
 event loop is doing.
 
-### setImmediate(callback\[, ...args\])
+### `setImmediate(callback[, ...args])`
 <!-- YAML
 added: v0.9.1
 -->
@@ -172,7 +174,7 @@ async function timerExample() {
 timerExample();
 ```
 
-### setInterval(callback, delay\[, ...args\])
+### `setInterval(callback, delay[, ...args])`
 <!-- YAML
 added: v0.0.1
 -->
@@ -190,7 +192,7 @@ set to `1`. Non-integer delays are truncated to an integer.
 
 If `callback` is not a function, a [`TypeError`][] will be thrown.
 
-### setTimeout(callback, delay\[, ...args\])
+### `setTimeout(callback, delay[, ...args])`
 <!-- YAML
 added: v0.0.1
 -->
@@ -226,7 +228,7 @@ setTimeoutPromise(40, 'foobar').then((value) => {
 });
 ```
 
-## Cancelling Timers
+## Cancelling timers
 
 The [`setImmediate()`][], [`setInterval()`][], and [`setTimeout()`][] methods
 each return objects that represent the scheduled timers. These can be used to
@@ -235,7 +237,7 @@ cancel the timer and prevent it from triggering.
 It is not possible to cancel timers that were created using the promisified
 variants of [`setImmediate()`][], [`setTimeout()`][].
 
-### clearImmediate(immediate)
+### `clearImmediate(immediate)`
 <!-- YAML
 added: v0.9.1
 -->
@@ -245,7 +247,7 @@ added: v0.9.1
 
 Cancels an `Immediate` object created by [`setImmediate()`][].
 
-### clearInterval(timeout)
+### `clearInterval(timeout)`
 <!-- YAML
 added: v0.0.1
 -->
@@ -254,7 +256,7 @@ added: v0.0.1
 
 Cancels a `Timeout` object created by [`setInterval()`][].
 
-### clearTimeout(timeout)
+### `clearTimeout(timeout)`
 <!-- YAML
 added: v0.0.1
 -->

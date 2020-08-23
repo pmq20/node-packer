@@ -5,6 +5,8 @@
 #ifndef V8_COMPILER_BACKEND_CODE_GENERATOR_H_
 #define V8_COMPILER_BACKEND_CODE_GENERATOR_H_
 
+#include <memory>
+
 #include "src/base/optional.h"
 #include "src/codegen/macro-assembler.h"
 #include "src/codegen/safepoint-table.h"
@@ -49,15 +51,19 @@ class InstructionOperandIterator {
   size_t pos_;
 };
 
-enum class DeoptimizationLiteralKind { kObject, kNumber, kString };
+enum class DeoptimizationLiteralKind { kObject, kNumber, kString, kInvalid };
 
 // Either a non-null Handle<Object>, a double or a StringConstantBase.
 class DeoptimizationLiteral {
  public:
-  DeoptimizationLiteral() : object_(), number_(0), string_(nullptr) {}
+  DeoptimizationLiteral()
+      : kind_(DeoptimizationLiteralKind::kInvalid),
+        object_(),
+        number_(0),
+        string_(nullptr) {}
   explicit DeoptimizationLiteral(Handle<Object> object)
       : kind_(DeoptimizationLiteralKind::kObject), object_(object) {
-    DCHECK(!object_.is_null());
+    CHECK(!object_.is_null());
   }
   explicit DeoptimizationLiteral(double number)
       : kind_(DeoptimizationLiteralKind::kNumber), number_(number) {}
@@ -75,7 +81,14 @@ class DeoptimizationLiteral {
 
   Handle<Object> Reify(Isolate* isolate) const;
 
-  DeoptimizationLiteralKind kind() const { return kind_; }
+  void Validate() const {
+    CHECK_NE(kind_, DeoptimizationLiteralKind::kInvalid);
+  }
+
+  DeoptimizationLiteralKind kind() const {
+    Validate();
+    return kind_;
+  }
 
  private:
   DeoptimizationLiteralKind kind_;
@@ -85,18 +98,36 @@ class DeoptimizationLiteral {
   const StringConstantBase* string_ = nullptr;
 };
 
+// These structs hold pc offsets for generated instructions and is only used
+// when tracing for turbolizer is enabled.
+struct TurbolizerCodeOffsetsInfo {
+  int code_start_register_check = -1;
+  int deopt_check = -1;
+  int init_poison = -1;
+  int blocks_start = -1;
+  int out_of_line_code = -1;
+  int deoptimization_exits = -1;
+  int pools = -1;
+  int jump_tables = -1;
+};
+
+struct TurbolizerInstructionStartInfo {
+  int gap_pc_offset = -1;
+  int arch_instr_pc_offset = -1;
+  int condition_pc_offset = -1;
+};
+
 // Generates native code for a sequence of instructions.
 class V8_EXPORT_PRIVATE CodeGenerator final : public GapResolver::Assembler {
  public:
-  explicit CodeGenerator(Zone* codegen_zone, Frame* frame, Linkage* linkage,
-                         InstructionSequence* instructions,
-                         OptimizedCompilationInfo* info, Isolate* isolate,
-                         base::Optional<OsrHelper> osr_helper,
-                         int start_source_position,
-                         JumpOptimizationInfo* jump_opt,
-                         PoisoningMitigationLevel poisoning_level,
-                         const AssemblerOptions& options, int32_t builtin_index,
-                         std::unique_ptr<AssemblerBuffer> = {});
+  explicit CodeGenerator(
+      Zone* codegen_zone, Frame* frame, Linkage* linkage,
+      InstructionSequence* instructions, OptimizedCompilationInfo* info,
+      Isolate* isolate, base::Optional<OsrHelper> osr_helper,
+      int start_source_position, JumpOptimizationInfo* jump_opt,
+      PoisoningMitigationLevel poisoning_level, const AssemblerOptions& options,
+      int32_t builtin_index, size_t max_unoptimized_frame_height,
+      size_t max_pushed_argument_count, std::unique_ptr<AssemblerBuffer> = {});
 
   // Generate native code. After calling AssembleCode, call FinalizeCode to
   // produce the actual code object. If an error occurs during either phase,
@@ -105,8 +136,7 @@ class V8_EXPORT_PRIVATE CodeGenerator final : public GapResolver::Assembler {
   MaybeHandle<Code> FinalizeCode();
 
   OwnedVector<byte> GetSourcePositionTable();
-  OwnedVector<trap_handler::ProtectedInstructionData>
-  GetProtectedInstructions();
+  OwnedVector<byte> GetProtectedInstructionsData();
 
   InstructionSequence* instructions() const { return instructions_; }
   FrameAccessState* frame_access_state() const { return frame_access_state_; }
@@ -139,9 +169,24 @@ class V8_EXPORT_PRIVATE CodeGenerator final : public GapResolver::Assembler {
   size_t GetHandlerTableOffset() const { return handler_table_offset_; }
 
   const ZoneVector<int>& block_starts() const { return block_starts_; }
-  const ZoneVector<int>& instr_starts() const { return instr_starts_; }
+  const ZoneVector<TurbolizerInstructionStartInfo>& instr_starts() const {
+    return instr_starts_;
+  }
+
+  const TurbolizerCodeOffsetsInfo& offsets_info() const {
+    return offsets_info_;
+  }
 
   static constexpr int kBinarySearchSwitchMinimalCases = 4;
+
+  // Returns true if an offset should be applied to the given stack check. There
+  // are two reasons that this could happen:
+  // 1. The optimized frame is smaller than the corresponding deoptimized frames
+  //    and an offset must be applied in order to be able to deopt safely.
+  // 2. The current function pushes a large number of arguments to the stack.
+  //    These are not accounted for by the initial frame setup.
+  bool ShouldApplyOffsetToStackCheck(Instruction* instr, uint32_t* offset);
+  uint32_t GetStackCheckOffset();
 
  private:
   GapResolver* resolver() { return &resolver_; }
@@ -182,7 +227,7 @@ class V8_EXPORT_PRIVATE CodeGenerator final : public GapResolver::Assembler {
   void GenerateSpeculationPoisonFromCodeStartRegister();
 
   // Assemble code for the specified instruction.
-  CodeGenResult AssembleInstruction(Instruction* instr,
+  CodeGenResult AssembleInstruction(int instruction_index,
                                     const InstructionBlock* block);
   void AssembleGaps(Instruction* instr);
 
@@ -199,8 +244,7 @@ class V8_EXPORT_PRIVATE CodeGenerator final : public GapResolver::Assembler {
   // Determines how to call helper stubs depending on the code kind.
   StubCallMode DetermineStubCallMode() const;
 
-  CodeGenResult AssembleDeoptimizerCall(int deoptimization_id,
-                                        SourcePosition pos);
+  CodeGenResult AssembleDeoptimizerCall(DeoptimizationExit* exit);
 
   // ===========================================================================
   // ============= Architecture-specific code generation methods. ==============
@@ -219,7 +263,6 @@ class V8_EXPORT_PRIVATE CodeGenerator final : public GapResolver::Assembler {
                                            std::pair<int32_t, Label*>* begin,
                                            std::pair<int32_t, Label*>* end);
   void AssembleArchBinarySearchSwitch(Instruction* instr);
-  void AssembleArchLookupSwitch(Instruction* instr);
   void AssembleArchTableSwitch(Instruction* instr);
 
   // Generates code that checks whether the {kJavaScriptCallCodeStartRegister}
@@ -342,11 +385,9 @@ class V8_EXPORT_PRIVATE CodeGenerator final : public GapResolver::Assembler {
   int DefineDeoptimizationLiteral(DeoptimizationLiteral literal);
   DeoptimizationEntry const& GetDeoptimizationEntry(Instruction* instr,
                                                     size_t frame_state_offset);
-  DeoptimizeKind GetDeoptimizationKind(int deoptimization_id) const;
-  DeoptimizeReason GetDeoptimizationReason(int deoptimization_id) const;
-  int BuildTranslation(Instruction* instr, int pc_offset,
-                       size_t frame_state_offset,
-                       OutputFrameStateCombine state_combine);
+  DeoptimizationExit* BuildTranslation(Instruction* instr, int pc_offset,
+                                       size_t frame_state_offset,
+                                       OutputFrameStateCombine state_combine);
   void BuildTranslationForFrameStateDescriptor(
       FrameStateDescriptor* descriptor, InstructionOperandIterator* iter,
       Translation* translation, OutputFrameStateCombine state_combine);
@@ -361,34 +402,11 @@ class V8_EXPORT_PRIVATE CodeGenerator final : public GapResolver::Assembler {
                                 InstructionOperand* op, MachineType type);
   void MarkLazyDeoptSite();
 
+  void PrepareForDeoptimizationExits(int deopt_count);
   DeoptimizationExit* AddDeoptimizationExit(Instruction* instr,
                                             size_t frame_state_offset);
 
   // ===========================================================================
-
-  class DeoptimizationState final : public ZoneObject {
-   public:
-    DeoptimizationState(BailoutId bailout_id, int translation_id, int pc_offset,
-                        DeoptimizeKind kind, DeoptimizeReason reason)
-        : bailout_id_(bailout_id),
-          translation_id_(translation_id),
-          pc_offset_(pc_offset),
-          kind_(kind),
-          reason_(reason) {}
-
-    BailoutId bailout_id() const { return bailout_id_; }
-    int translation_id() const { return translation_id_; }
-    int pc_offset() const { return pc_offset_; }
-    DeoptimizeKind kind() const { return kind_; }
-    DeoptimizeReason reason() const { return reason_; }
-
-   private:
-    BailoutId bailout_id_;
-    int translation_id_;
-    int pc_offset_;
-    DeoptimizeKind kind_;
-    DeoptimizeReason reason_;
-  };
 
   struct HandlerInfo {
     Label* handler;
@@ -414,13 +432,21 @@ class V8_EXPORT_PRIVATE CodeGenerator final : public GapResolver::Assembler {
   GapResolver resolver_;
   SafepointTableBuilder safepoints_;
   ZoneVector<HandlerInfo> handlers_;
+  int next_deoptimization_id_ = 0;
+  int deopt_exit_start_offset_ = 0;
+  int non_lazy_deopt_count_ = 0;
   ZoneDeque<DeoptimizationExit*> deoptimization_exits_;
-  ZoneDeque<DeoptimizationState*> deoptimization_states_;
   ZoneDeque<DeoptimizationLiteral> deoptimization_literals_;
   size_t inlined_function_count_ = 0;
   TranslationBuffer translations_;
   int handler_table_offset_ = 0;
   int last_lazy_deopt_pc_ = 0;
+
+  // The maximal combined height of all frames produced upon deoptimization, and
+  // the maximal number of pushed arguments for function calls. Applied as an
+  // offset to the first stack check of an optimized function.
+  const size_t max_unoptimized_frame_height_;
+  const size_t max_pushed_argument_count_;
 
   // kArchCallCFunction could be reached either:
   //   kArchCallCFunction;
@@ -444,7 +470,8 @@ class V8_EXPORT_PRIVATE CodeGenerator final : public GapResolver::Assembler {
   CodeGenResult result_;
   PoisoningMitigationLevel poisoning_level_;
   ZoneVector<int> block_starts_;
-  ZoneVector<int> instr_starts_;
+  TurbolizerCodeOffsetsInfo offsets_info_;
+  ZoneVector<TurbolizerInstructionStartInfo> instr_starts_;
 };
 
 }  // namespace compiler

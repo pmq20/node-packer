@@ -8,6 +8,7 @@
 #include "src/api/api.h"
 #include "src/handles/handles-inl.h"
 #include "src/objects/foreign-inl.h"
+#include "src/objects/js-weak-refs.h"
 #include "src/objects/objects-inl.h"
 #include "src/objects/stack-frame-info.h"
 
@@ -16,14 +17,14 @@ namespace v8 {
 template <typename T>
 inline T ToCData(v8::internal::Object obj) {
   STATIC_ASSERT(sizeof(T) == sizeof(v8::internal::Address));
-  if (obj == v8::internal::Smi::kZero) return nullptr;
+  if (obj == v8::internal::Smi::zero()) return nullptr;
   return reinterpret_cast<T>(
       v8::internal::Foreign::cast(obj).foreign_address());
 }
 
 template <>
 inline v8::internal::Address ToCData(v8::internal::Object obj) {
-  if (obj == v8::internal::Smi::kZero) return v8::internal::kNullAddress;
+  if (obj == v8::internal::Smi::zero()) return v8::internal::kNullAddress;
   return v8::internal::Foreign::cast(obj).foreign_address();
 }
 
@@ -31,7 +32,7 @@ template <typename T>
 inline v8::internal::Handle<v8::internal::Object> FromCData(
     v8::internal::Isolate* isolate, T obj) {
   STATIC_ASSERT(sizeof(T) == sizeof(v8::internal::Address));
-  if (obj == nullptr) return handle(v8::internal::Smi::kZero, isolate);
+  if (obj == nullptr) return handle(v8::internal::Smi::zero(), isolate);
   return isolate->factory()->NewForeign(
       reinterpret_cast<v8::internal::Address>(obj));
 }
@@ -40,7 +41,7 @@ template <>
 inline v8::internal::Handle<v8::internal::Object> FromCData(
     v8::internal::Isolate* isolate, v8::internal::Address obj) {
   if (obj == v8::internal::kNullAddress) {
-    return handle(v8::internal::Smi::kZero, isolate);
+    return handle(v8::internal::Smi::zero(), isolate);
   }
   return isolate->factory()->NewForeign(obj);
 }
@@ -65,6 +66,7 @@ inline Local<To> Utils::Convert(v8::internal::Handle<From> obj) {
     return Convert<v8::internal::JSTypedArray, v8::Type##Array>(obj); \
   }
 
+MAKE_TO_LOCAL(ToLocal, AccessorPair, debug::AccessorPair)
 MAKE_TO_LOCAL(ToLocal, Context, Context)
 MAKE_TO_LOCAL(ToLocal, Object, Value)
 MAKE_TO_LOCAL(ToLocal, Module, Module)
@@ -84,6 +86,7 @@ MAKE_TO_LOCAL(ToLocal, JSArrayBufferView, ArrayBufferView)
 MAKE_TO_LOCAL(ToLocal, JSDataView, DataView)
 MAKE_TO_LOCAL(ToLocal, JSTypedArray, TypedArray)
 MAKE_TO_LOCAL(ToLocalShared, JSArrayBuffer, SharedArrayBuffer)
+MAKE_TO_LOCAL(ToLocal, JSFinalizationRegistry, FinalizationGroup)
 
 TYPED_ARRAYS(MAKE_TO_LOCAL_TYPED_ARRAY)
 

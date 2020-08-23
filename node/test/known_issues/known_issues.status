@@ -5,13 +5,15 @@ prefix known_issues
 # sample-test                        : SKIP
 
 [true] # This section applies to all platforms
+# This issue is unfixable with the current implementations of V8 and
+# Node.js. Changes to make this fixable are unlikely to happen in the
+# foreseeable future. The test itself is flaky and skipped.  It
+# serves as a demonstration of the issue only.
+test-vm-timeout-escape-queuemicrotask: SKIP
 
 [$system==win32]
 
 [$system==linux]
-# https://github.com/nodejs/node/pull/23743
-# https://github.com/nodejs/node/issues/3020
-test-vm-timeout-escape-promise: PASS,FLAKY
 
 [$system==macos]
 
@@ -22,3 +24,8 @@ test-vm-timeout-escape-promise: PASS,FLAKY
 [$system==aix]
 
 [$arch==arm]
+# The Raspberry Pis are too slow to run this test.
+# See https://github.com/nodejs/build/issues/2227#issuecomment-608334574
+test-crypto-authenticated-stream: SKIP
+# The bug being checked is that the test never exits.
+test-fs-open-no-close: TIMEOUT

@@ -2,35 +2,48 @@
 
 <!-- TOC -->
 
+* [Triagers](#triagers)
 * [Collaborators](#collaborators)
-  * [Collaborator Activities](#collaborator-activities)
-* [Technical Steering Committee](#technical-steering-committee)
-  * [TSC Meetings](#tsc-meetings)
-* [Collaborator Nominations](#collaborator-nominations)
+  * [Collaborator activities](#collaborator-activities)
+* [Technical steering committee](#technical-steering-committee)
+  * [TSC meetings](#tsc-meetings)
+* [Collaborator nominations](#collaborator-nominations)
   * [Onboarding](#onboarding)
-* [Consensus Seeking Process](#consensus-seeking-process)
+* [Consensus seeking process](#consensus-seeking-process)
 
 <!-- /TOC -->
+
+## Triagers
+
+Triagers assess newly-opened issues in the nodejs/node and nodejs/help
+repositories. There is no GitHub team for triagers at the moment.
+
+Triagers have:
+* ability to label issues
+* ability to comment, close, and reopen issues
+
+See:
+
+* [A guide for triagers](./doc/guides/contributing/issues.md#triaging-a-bug-report)
 
 ## Collaborators
 
 Node.js Core Collaborators maintain the [nodejs/node][] GitHub repository.
-The GitHub team for Node.js Core Collaborators is @nodejs/collaborators. Their
-privileges include but are not limited to:
+The GitHub team for Node.js Core Collaborators is @nodejs/collaborators.
+Collaborators have:
 
 * Commit access to the [nodejs/node][] repository
 * Access to the Node.js continuous integration (CI) jobs
 
 Both Collaborators and non-Collaborators may propose changes to the Node.js
 source code. The mechanism to propose such a change is a GitHub pull request.
-Collaborators are responsible for reviewing and merging (_landing_)
-pull requests.
+Collaborators review and merge (_land_) pull requests.
 
-At least two Collaborators must approve a pull request before the pull request
-can land. (One Collaborator approval is enough if the pull request has been open
-for more than 7 days.) Approving a pull request indicates that the Collaborator
-accepts responsibility for the change. Approval must be from Collaborators who
-are not authors of the change.
+Two Collaborators must approve a pull request before the pull request can land.
+(One Collaborator approval is enough if the pull request has been open for more
+than 7 days.) Approving a pull request indicates that the Collaborator accepts
+responsibility for the change. Approval must be from Collaborators who are not
+authors of the change.
 
 If a Collaborator opposes a proposed change, then the change cannot land. The
 exception is if the TSC votes to approve the change despite the opposition.
@@ -39,12 +52,10 @@ result in Collaborators removing their opposition.
 
 See:
 
-* [Current list of Collaborators](./README.md#current-project-team-members)
-* [A guide for Collaborators](./COLLABORATOR_GUIDE.md)
+* [List of Collaborators](./README.md#current-project-team-members)
+* [A guide for Collaborators](./doc/guides/collaborator-guide.md)
 
-### Collaborator Activities
-
-Typical activities of a Collaborator include:
+### Collaborator activities
 
 * Helping users and novice contributors
 * Contributing code and documentation changes that improve the project
@@ -71,9 +82,9 @@ The current list of TSC members is in
 [the project README](./README.md#current-project-team-members).
 
 The [TSC Charter][] governs the operations of the TSC. All changes to the
-Charter need approval by the Node.js Board of Directors.
+Charter need approval by the OpenJS Foundation Board of Directors.
 
-### TSC Meetings
+### TSC meetings
 
 The TSC meets in a voice conference call. Each year, the TSC elects a chair to
 run the meetings. The TSC streams its meetings for public viewing on YouTube or
@@ -107,7 +118,7 @@ the issue tracker is:
   and no TSC opposition.
 * If there is an extended impasse, a TSC member may make a motion for a vote.
 
-## Collaborator Nominations
+## Collaborator nominations
 
 Existing Collaborators can nominate someone to become a Collaborator. Nominees
 should have significant and valuable contributions across the Node.js
@@ -124,7 +135,7 @@ Provide a summary of the nominee's contributions. For example:
   * Use the link `https://github.com/nodejs/node/issues?q=commenter:GITHUB_ID`
 * Reviews on pull requests in the [nodejs/node][] repository
   * Use the link `https://github.com/nodejs/node/pulls?q=reviewed-by:GITHUB_ID`
-* Help provided to end users and novice contributors
+* Help provided to end-users and novice contributors
 * Pull requests and issues opened throughout the Node.js organization
   * Use the link  `https://github.com/search?q=author:GITHUB_ID+org:nodejs`
 * Comments on pull requests and issues throughout the Node.js organization
@@ -144,18 +155,17 @@ frictionless as possible. Use the [Collaborators discussion page][] to request
 feedback from other Collaborators in private. A nominator may also work with the
 nominee to improve their contribution profile.
 
-It is possible that Collaborators will overlook someone with valuable
-contributions. In that case, the contributor may open an issue or contact a
-Collaborator to request a nomination.
+Collaborators might overlook someone with valuable contributions. In that case,
+the contributor may open an issue or contact a Collaborator to request a
+nomination.
 
 ### Onboarding
 
 After the nomination passes, a TSC member onboards the new Collaborator. See
-[the onboarding guide](./doc/onboarding.md) on details of the onboarding
-process. In general, the onboarding should occur within a month after the
-nomination passes.
+[the onboarding guide](./onboarding.md) for details of the onboarding
+process.
 
-## Consensus Seeking Process
+## Consensus seeking process
 
 The TSC follows a [Consensus Seeking][] decision-making model per the
 [TSC Charter][].

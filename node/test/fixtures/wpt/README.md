@@ -14,9 +14,10 @@ Last update:
 - encoding: https://github.com/web-platform-tests/wpt/tree/5059d2c777/encoding
 - url: https://github.com/web-platform-tests/wpt/tree/418f7fabeb/url
 - resources: https://github.com/web-platform-tests/wpt/tree/e1fddfbf80/resources
-- interfaces: https://github.com/web-platform-tests/wpt/tree/712c9f275e/interfaces
+- interfaces: https://github.com/web-platform-tests/wpt/tree/8ada332aea/interfaces
 - html/webappapis/microtask-queuing: https://github.com/web-platform-tests/wpt/tree/0c3bed38df/html/webappapis/microtask-queuing
 - html/webappapis/timers: https://github.com/web-platform-tests/wpt/tree/ddfe9c089b/html/webappapis/timers
+- hr-time: https://github.com/web-platform-tests/wpt/tree/a5d1774ecf/hr-time
 
 [Web Platform Tests]: https://github.com/web-platform-tests/wpt
 [`git node wpt`]: https://github.com/nodejs/node-core-utils/blob/master/docs/git-node.md#git-node-wpt

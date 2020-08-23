@@ -49,6 +49,7 @@
 # for py2/py3 compatibility
 from __future__ import print_function
 
+import io
 import re
 import sys
 
@@ -156,17 +157,17 @@ consts_misc = [
         'value': 'DICTIONARY_ELEMENTS' },
 
     { 'name': 'bit_field2_elements_kind_mask',
-        'value': 'Map::ElementsKindBits::kMask' },
+        'value': 'Map::Bits2::ElementsKindBits::kMask' },
     { 'name': 'bit_field2_elements_kind_shift',
-        'value': 'Map::ElementsKindBits::kShift' },
+        'value': 'Map::Bits2::ElementsKindBits::kShift' },
     { 'name': 'bit_field3_is_dictionary_map_shift',
-        'value': 'Map::IsDictionaryMapBit::kShift' },
+        'value': 'Map::Bits3::IsDictionaryMapBit::kShift' },
     { 'name': 'bit_field3_number_of_own_descriptors_mask',
-        'value': 'Map::NumberOfOwnDescriptorsBits::kMask' },
+        'value': 'Map::Bits3::NumberOfOwnDescriptorsBits::kMask' },
     { 'name': 'bit_field3_number_of_own_descriptors_shift',
-        'value': 'Map::NumberOfOwnDescriptorsBits::kShift' },
+        'value': 'Map::Bits3::NumberOfOwnDescriptorsBits::kShift' },
     { 'name': 'class_Map__instance_descriptors_offset',
-       'value': 'Map::kInstanceDescriptorsOffset' },
+        'value': 'Map::kInstanceDescriptorsOffset' },
 
     { 'name': 'off_fp_context_or_frame_type',
         'value': 'CommonFrameConstants::kContextOrFrameTypeOffset'},
@@ -175,9 +176,9 @@ consts_misc = [
     { 'name': 'off_fp_constant_pool',
         'value': 'StandardFrameConstants::kConstantPoolOffset' },
     { 'name': 'off_fp_function',
-        'value': 'JavaScriptFrameConstants::kFunctionOffset' },
+        'value': 'StandardFrameConstants::kFunctionOffset' },
     { 'name': 'off_fp_args',
-        'value': 'JavaScriptFrameConstants::kLastParameterOffset' },
+        'value': 'StandardFrameConstants::kFixedFrameSizeAboveFp' },
 
     { 'name': 'scopeinfo_idx_nparams',
         'value': 'ScopeInfo::kParameterCount' },
@@ -193,12 +194,8 @@ consts_misc = [
 
     { 'name': 'context_idx_scope_info',
         'value': 'Context::SCOPE_INFO_INDEX' },
-    { 'name': 'context_idx_native',
-        'value': 'Context::NATIVE_CONTEXT_INDEX' },
     { 'name': 'context_idx_prev',
         'value': 'Context::PREVIOUS_INDEX' },
-    { 'name': 'context_idx_ext',
-        'value': 'Context::EXTENSION_INDEX' },
     { 'name': 'context_min_slots',
         'value': 'Context::MIN_CONTEXT_SLOTS' },
     { 'name': 'native_context_embedder_data_offset',
@@ -229,15 +226,6 @@ consts_misc = [
 
     { 'name': 'class_SharedFunctionInfo__function_data__Object',
         'value': 'SharedFunctionInfo::kFunctionDataOffset' },
-
-    { 'name': 'class_ConsString__first_offset__int',
-        'value': 'ConsString::kFirstOffset' },
-    { 'name': 'class_ConsString__second_offset__int',
-        'value': 'ConsString::kSecondOffset' },
-    { 'name': 'class_SlicedString__offset_offset__int',
-        'value': 'SlicedString::kOffsetOffset' },
-    { 'name': 'class_ThinString__actual_offset__int',
-        'value': 'ThinString::kActualOffset' },
 ];
 
 #
@@ -259,6 +247,8 @@ extras_accessors = [
     'JSArrayBuffer, byte_length, size_t, kByteLengthOffset',
     'JSArrayBufferView, byte_length, size_t, kByteLengthOffset',
     'JSArrayBufferView, byte_offset, size_t, kByteOffsetOffset',
+    'JSDate, value, Object, kValueOffset',
+    'JSRegExp, source, Object, kSourceOffset',
     'JSTypedArray, external_pointer, uintptr_t, kExternalPointerOffset',
     'JSTypedArray, length, Object, kLengthOffset',
     'Map, instance_size_in_words, char, kInstanceSizeInWordsOffset',
@@ -283,6 +273,13 @@ extras_accessors = [
     'Code, instruction_start, uintptr_t, kHeaderSize',
     'Code, instruction_size, int, kInstructionSizeOffset',
     'String, length, int32_t, kLengthOffset',
+    'DescriptorArray, header_size, uintptr_t, kHeaderSize',
+    'ConsString, first, String, kFirstOffset',
+    'ConsString, second, String, kSecondOffset',
+    'SlicedString, offset, SMI, kOffsetOffset',
+    'ThinString, actual, String, kActualOffset',
+    'Symbol, name, Object, kDescriptionOffset',
+    'FixedArrayBase, length, SMI, kLengthOffset',
 ];
 
 #
@@ -293,7 +290,8 @@ extras_accessors = [
 expected_classes = [
     'ConsString', 'FixedArray', 'HeapNumber', 'JSArray', 'JSFunction',
     'JSObject', 'JSRegExp', 'JSPrimitiveWrapper', 'Map', 'Oddball', 'Script',
-    'SeqOneByteString', 'SharedFunctionInfo', 'ScopeInfo', 'JSPromise'
+    'SeqOneByteString', 'SharedFunctionInfo', 'ScopeInfo', 'JSPromise',
+    'DescriptorArray'
 ];
 
 
@@ -380,10 +378,14 @@ def load_objects():
 
 
 def load_objects_from_file(objfilename, checktypes):
-        objfile = open(objfilename, 'r');
+        objfile = io.open(objfilename, 'r', encoding='utf-8');
         in_insttype = False;
+        in_torque_insttype = False
+        in_torque_fulldef = False
 
         typestr = '';
+        torque_typestr = ''
+        torque_fulldefstr = ''
         uncommented_file = ''
 
         #
@@ -397,15 +399,39 @@ def load_objects_from_file(objfilename, checktypes):
                         in_insttype = True;
                         continue;
 
+                if (line.startswith('#define TORQUE_ASSIGNED_INSTANCE_TYPE_LIST')):
+                        in_torque_insttype = True
+                        continue
+
+                if (line.startswith('#define TORQUE_INSTANCE_CHECKERS_SINGLE_FULLY_DEFINED')):
+                        in_torque_fulldef = True
+                        continue
+
                 if (in_insttype and line.startswith('};')):
                         in_insttype = False;
                         continue;
+
+                if (in_torque_insttype and (not line or line.isspace())):
+                          in_torque_insttype = False
+                          continue
+
+                if (in_torque_fulldef and (not line or line.isspace())):
+                          in_torque_fulldef = False
+                          continue
 
                 line = re.sub('//.*', '', line.strip());
 
                 if (in_insttype):
                         typestr += line;
                         continue;
+
+                if (in_torque_insttype):
+                        torque_typestr += line
+                        continue
+
+                if (in_torque_fulldef):
+                        torque_fulldefstr += line
+                        continue
 
                 uncommented_file += '\n' + line
 
@@ -434,7 +460,21 @@ def load_objects_from_file(objfilename, checktypes):
         entries = typestr.split(',');
         for entry in entries:
                 types[re.sub('\s*=.*', '', entry).lstrip()] = True;
-
+        entries = torque_typestr.split('\\')
+        for entry in entries:
+                types[re.sub(r' *V\(|\) *', '', entry)] = True
+        entries = torque_fulldefstr.split('\\')
+        for entry in entries:
+                entry = entry.strip()
+                if not entry:
+                    continue
+                idx = entry.find('(');
+                rest = entry[idx + 1: len(entry) - 1];
+                args = re.split('\s*,\s*', rest);
+                typename = args[0]
+                typeconst = args[1]
+                types[typeconst] = True
+                typeclasses[typeconst] = typename
         #
         # Infer class names for each type based on a systematic transformation.
         # For example, "JS_FUNCTION_TYPE" becomes "JSFunction".  We find the
@@ -443,10 +483,7 @@ def load_objects_from_file(objfilename, checktypes):
         # way around.
         #
         for type in types:
-                #
-                # REGEXP behaves like REG_EXP, as in JS_REGEXP_TYPE => JSRegExp.
-                #
-                usetype = re.sub('_REGEXP_', '_REG_EXP_', type);
+                usetype = type
 
                 #
                 # Remove the "_TYPE" suffix and then convert to camel case,
@@ -540,25 +577,24 @@ def parse_field(call):
 
         consts = [];
 
-        if (kind == 'ACCESSORS' or kind == 'ACCESSORS2' or
-            kind == 'ACCESSORS_GCSAFE'):
-                klass = args[0];
-                field = args[1];
-                dtype = args[2].replace('<', '_').replace('>', '_')
-                offset = args[3];
-
-                return ({
-                    'name': 'class_%s__%s__%s' % (klass, field, dtype),
-                    'value': '%s::%s' % (klass, offset)
-                });
-
-        assert(kind == 'SMI_ACCESSORS' or kind == 'ACCESSORS_TO_SMI');
         klass = args[0];
         field = args[1];
-        offset = args[2];
+        dtype = None
+        offset = None
+        if kind.startswith('WEAK_ACCESSORS'):
+                dtype = 'weak'
+                offset = args[2];
+        elif not (kind.startswith('SMI_ACCESSORS') or kind.startswith('ACCESSORS_TO_SMI')):
+                dtype = args[2].replace('<', '_').replace('>', '_')
+                offset = args[3];
+        else:
+                offset = args[2];
+                dtype = 'SMI'
 
+
+        assert(offset is not None and dtype is not None);
         return ({
-            'name': 'class_%s__%s__%s' % (klass, field, 'SMI'),
+            'name': 'class_%s__%s__%s' % (klass, field, dtype),
             'value': '%s::%s' % (klass, offset)
         });
 
@@ -575,7 +611,7 @@ def load_fields():
 
 
 def load_fields_from_file(filename):
-        inlfile = open(filename, 'r');
+        inlfile = io.open(filename, 'r', encoding='utf-8');
 
         #
         # Each class's fields and the corresponding offsets are described in the
@@ -585,7 +621,10 @@ def load_fields_from_file(filename):
         # call parse_field() to pick apart the invocation.
         #
         prefixes = [ 'ACCESSORS', 'ACCESSORS2', 'ACCESSORS_GCSAFE',
-                     'SMI_ACCESSORS', 'ACCESSORS_TO_SMI' ];
+                     'SMI_ACCESSORS', 'ACCESSORS_TO_SMI',
+                     'SYNCHRONIZED_ACCESSORS', 'WEAK_ACCESSORS' ];
+        prefixes += ([ prefix + "_CHECKED" for prefix in prefixes ] +
+                     [ prefix + "_CHECKED2" for prefix in prefixes ])
         current = '';
         opens = 0;
 

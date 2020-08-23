@@ -41,6 +41,7 @@
 #define V8_CODEGEN_PPC_ASSEMBLER_PPC_H_
 
 #include <stdio.h>
+#include <memory>
 #include <vector>
 
 #include "src/codegen/assembler.h"
@@ -229,10 +230,6 @@ class Assembler : public AssemblerBase {
     return link(L) - pc_offset();
   }
 
-  // Puts a labels target address at the given position.
-  // The high 8 bits are set to zero.
-  void label_at_put(Label* L, int at_offset);
-
   V8_INLINE static bool IsConstantPoolLoadStart(
       Address pc, ConstantPoolEntry::Access* access = nullptr);
   V8_INLINE static bool IsConstantPoolLoadEnd(
@@ -256,6 +253,18 @@ class Assembler : public AssemblerBase {
   V8_INLINE static void set_target_address_at(
       Address pc, Address constant_pool, Address target,
       ICacheFlushMode icache_flush_mode = FLUSH_ICACHE_IF_NEEDED);
+
+  // Read/Modify the code target address in the branch/call instruction at pc.
+  inline static Tagged_t target_compressed_address_at(Address pc,
+                                                      Address constant_pool);
+  inline static void set_target_compressed_address_at(
+      Address pc, Address constant_pool, Tagged_t target,
+      ICacheFlushMode icache_flush_mode = FLUSH_ICACHE_IF_NEEDED);
+
+  inline Handle<Object> code_target_object_handle_at(Address pc,
+                                                     Address constant_pool);
+  inline Handle<HeapObject> compressed_embedded_object_handle_at(
+      Address pc, Address constant_pool);
 
   // This sets the branch destination.
   // This is for calls and branches within generated code.
@@ -436,6 +445,20 @@ class Assembler : public AssemblerBase {
 
   PPC_XX3_OPCODE_LIST(DECLARE_PPC_XX3_INSTRUCTIONS)
 #undef DECLARE_PPC_XX3_INSTRUCTIONS
+
+#define DECLARE_PPC_VX_INSTRUCTIONS_A_FORM(name, instr_name, instr_value) \
+  inline void name(const DoubleRegister rt, const DoubleRegister rb,      \
+                   const Operand& imm) {                                  \
+    vx_form(instr_name, rt, rb, imm);                                     \
+  }
+
+  inline void vx_form(Instr instr, DoubleRegister rt, DoubleRegister rb,
+                      const Operand& imm) {
+    emit(instr | rt.code() * B21 | imm.immediate() * B16 | rb.code() * B11);
+  }
+
+  PPC_VX_OPCODE_A_FORM_LIST(DECLARE_PPC_VX_INSTRUCTIONS_A_FORM)
+#undef DECLARE_PPC_VX_INSTRUCTIONS_A_FORM
 
   RegList* GetScratchRegisterList() { return &scratch_register_list_; }
   // ---------------------------------------------------------------------------
@@ -839,8 +862,6 @@ class Assembler : public AssemblerBase {
   void mtfprwa(DoubleRegister dst, Register src);
 #endif
 
-  void function_descriptor();
-
   // Exception-generating instructions and debugging support
   void stop(Condition cond = al, int32_t code = kDefaultStopCode,
             CRegister cr = cr7);
@@ -925,6 +946,15 @@ class Assembler : public AssemblerBase {
              const DoubleRegister frc, const DoubleRegister frb,
              RCBit rc = LeaveRC);
 
+  // Vector instructions
+  void mfvsrd(const Register ra, const DoubleRegister r);
+  void mfvsrwz(const Register ra, const DoubleRegister r);
+  void mtvsrd(const DoubleRegister rt, const Register ra);
+  void vor(const DoubleRegister rt, const DoubleRegister ra,
+           const DoubleRegister rb);
+  void vsro(const DoubleRegister rt, const DoubleRegister ra,
+            const DoubleRegister rb);
+
   // Pseudo instructions
 
   // Different nop operations are used by the code generator to detect certain
@@ -946,9 +976,9 @@ class Assembler : public AssemblerBase {
 
   void push(Register src) {
 #if V8_TARGET_ARCH_PPC64
-    stdu(src, MemOperand(sp, -kPointerSize));
+    stdu(src, MemOperand(sp, -kSystemPointerSize));
 #else
-    stwu(src, MemOperand(sp, -kPointerSize));
+    stwu(src, MemOperand(sp, -kSystemPointerSize));
 #endif
   }
 
@@ -958,10 +988,10 @@ class Assembler : public AssemblerBase {
 #else
     lwz(dst, MemOperand(sp));
 #endif
-    addi(sp, sp, Operand(kPointerSize));
+    addi(sp, sp, Operand(kSystemPointerSize));
   }
 
-  void pop() { addi(sp, sp, Operand(kPointerSize)); }
+  void pop() { addi(sp, sp, Operand(kSystemPointerSize)); }
 
   // Jump unconditionally to given label.
   void jmp(Label* L) { b(L); }
@@ -1159,6 +1189,7 @@ class Assembler : public AssemblerBase {
   // not have to check for overflow. The same is true for writes of large
   // relocation info entries.
   static constexpr int kGap = 32;
+  STATIC_ASSERT(AssemblerBase::kMinimalBufferSize >= 2 * kGap);
 
   RelocInfoWriter reloc_info_writer;
 

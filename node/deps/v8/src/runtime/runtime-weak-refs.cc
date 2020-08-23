@@ -1,27 +1,28 @@
-// Copyright 2018 the V8 project authors. All rights reserved.
+// Copyright 2020 the V8 project authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "include/v8.h"
-#include "src/api/api.h"
-#include "src/execution/arguments-inl.h"
-#include "src/execution/execution.h"
-#include "src/handles/handles-inl.h"
-#include "src/logging/counters.h"
-#include "src/objects/js-weak-refs-inl.h"
-#include "src/objects/objects-inl.h"
 #include "src/runtime/runtime-utils.h"
+
+#include "src/execution/arguments-inl.h"
+#include "src/objects/js-weak-refs-inl.h"
 
 namespace v8 {
 namespace internal {
 
-RUNTIME_FUNCTION(Runtime_FinalizationGroupCleanupJob) {
+RUNTIME_FUNCTION(Runtime_ShrinkFinalizationRegistryUnregisterTokenMap) {
   HandleScope scope(isolate);
-  CONVERT_ARG_HANDLE_CHECKED(JSFinalizationGroup, finalization_group, 0);
-  finalization_group->set_scheduled_for_cleanup(false);
+  DCHECK_EQ(1, args.length());
+  CONVERT_ARG_HANDLE_CHECKED(JSFinalizationRegistry, finalization_registry, 0);
 
-  Handle<Object> cleanup(finalization_group->cleanup(), isolate);
-  JSFinalizationGroup::Cleanup(isolate, finalization_group, cleanup);
+  if (!finalization_registry->key_map().IsUndefined(isolate)) {
+    Handle<SimpleNumberDictionary> key_map =
+        handle(SimpleNumberDictionary::cast(finalization_registry->key_map()),
+               isolate);
+    key_map = SimpleNumberDictionary::Shrink(isolate, key_map);
+    finalization_registry->set_key_map(*key_map);
+  }
+
   return ReadOnlyRoots(isolate).undefined_value();
 }
 

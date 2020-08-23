@@ -43,7 +43,6 @@
 
 namespace node {
 
-using v8::Array;
 using v8::ArrayBuffer;
 using v8::Context;
 using v8::Function;
@@ -56,7 +55,6 @@ using v8::Integer;
 using v8::Local;
 using v8::Object;
 using v8::String;
-using v8::Uint32;
 using v8::Uint32Array;
 using v8::Value;
 
@@ -111,7 +109,12 @@ enum node_zlib_mode {
 
 struct CompressionError {
   CompressionError(const char* message, const char* code, int err)
-    : message(message), code(code), err(err) {}
+      : message(message),
+        code(code),
+        err(err) {
+    CHECK_NOT_NULL(message);
+  }
+
   CompressionError() = default;
 
   const char* message = nullptr;
@@ -136,8 +139,8 @@ class ZlibContext : public MemoryRetainer {
   CompressionError ResetStream();
 
   // Zlib-specific:
-  CompressionError Init(int level, int window_bits, int mem_level, int strategy,
-                        std::vector<unsigned char>&& dictionary);
+  void Init(int level, int window_bits, int mem_level, int strategy,
+            std::vector<unsigned char>&& dictionary);
   void SetAllocationFunctions(alloc_func alloc, free_func free, void* opaque);
   CompressionError SetParams(int level, int strategy);
 
@@ -154,7 +157,10 @@ class ZlibContext : public MemoryRetainer {
  private:
   CompressionError ErrorForMessage(const char* message) const;
   CompressionError SetDictionary();
+  bool InitZlib();
 
+  Mutex mutex_;  // Protects zlib_init_done_.
+  bool zlib_init_done_ = false;
   int err_ = 0;
   int flush_ = 0;
   int level_ = 0;
@@ -348,7 +354,7 @@ class CompressionStream : public AsyncWrap, public ThreadPoolWork {
 
     if (!async) {
       // sync version
-      env()->PrintSyncTrace();
+      AsyncWrap::env()->PrintSyncTrace();
       DoThreadPoolWork();
       if (CheckError()) {
         UpdateWriteResult();
@@ -386,7 +392,7 @@ class CompressionStream : public AsyncWrap, public ThreadPoolWork {
   // v8 land!
   void AfterThreadPoolWork(int status) override {
     AllocScope alloc_scope(this);
-    OnScopeLeave on_scope_leave([&]() { Unref(); });
+    auto on_scope_leave = OnScopeLeave([&]() { Unref(); });
 
     write_in_progress_ = false;
 
@@ -397,8 +403,9 @@ class CompressionStream : public AsyncWrap, public ThreadPoolWork {
 
     CHECK_EQ(status, 0);
 
-    HandleScope handle_scope(env()->isolate());
-    Context::Scope context_scope(env()->context());
+    Environment* env = AsyncWrap::env();
+    HandleScope handle_scope(env->isolate());
+    Context::Scope context_scope(env->context());
 
     if (!CheckError())
       return;
@@ -406,7 +413,7 @@ class CompressionStream : public AsyncWrap, public ThreadPoolWork {
     UpdateWriteResult();
 
     // call the write() cb
-    Local<Function> cb = PersistentToLocal::Default(env()->isolate(),
+    Local<Function> cb = PersistentToLocal::Default(env->isolate(),
                                                     write_js_callback_);
     MakeCallback(cb, 0, nullptr);
 
@@ -416,16 +423,17 @@ class CompressionStream : public AsyncWrap, public ThreadPoolWork {
 
   // TODO(addaleax): Switch to modern error system (node_errors.h).
   void EmitError(const CompressionError& err) {
+    Environment* env = AsyncWrap::env();
     // If you hit this assertion, you forgot to enter the v8::Context first.
-    CHECK_EQ(env()->context(), env()->isolate()->GetCurrentContext());
+    CHECK_EQ(env->context(), env->isolate()->GetCurrentContext());
 
-    HandleScope scope(env()->isolate());
+    HandleScope scope(env->isolate());
     Local<Value> args[3] = {
-      OneByteString(env()->isolate(), err.message),
-      Integer::New(env()->isolate(), err.err),
-      OneByteString(env()->isolate(), err.code)
+      OneByteString(env->isolate(), err.message),
+      Integer::New(env->isolate(), err.err),
+      OneByteString(env->isolate(), err.code)
     };
-    MakeCallback(env()->onerror_string(), arraysize(args), args);
+    MakeCallback(env->onerror_string(), arraysize(args), args);
 
     // no hope of rescue.
     write_in_progress_ = false;
@@ -454,7 +462,7 @@ class CompressionStream : public AsyncWrap, public ThreadPoolWork {
 
   void InitStream(uint32_t* write_result, Local<Function> write_js_callback) {
     write_result_ = write_result;
-    write_js_callback_.Reset(env()->isolate(), write_js_callback);
+    write_js_callback_.Reset(AsyncWrap::env()->isolate(), write_js_callback);
     init_done_ = true;
   }
 
@@ -500,7 +508,7 @@ class CompressionStream : public AsyncWrap, public ThreadPoolWork {
     if (report == 0) return;
     CHECK_IMPLIES(report < 0, zlib_memory_ >= static_cast<size_t>(-report));
     zlib_memory_ += report;
-    env()->isolate()->AdjustAmountOfExternalAllocatedMemory(report);
+    AsyncWrap::env()->isolate()->AdjustAmountOfExternalAllocatedMemory(report);
   }
 
   struct AllocScope {
@@ -590,7 +598,8 @@ class ZlibStream : public CompressionStream<ZlibContext> {
     CHECK(args[4]->IsUint32Array());
     Local<Uint32Array> array = args[4].As<Uint32Array>();
     Local<ArrayBuffer> ab = array->Buffer();
-    uint32_t* write_result = static_cast<uint32_t*>(ab->GetContents().Data());
+    uint32_t* write_result = static_cast<uint32_t*>(
+        ab->GetBackingStore()->Data());
 
     CHECK(args[5]->IsFunction());
     Local<Function> write_js_callback = args[5].As<Function>();
@@ -609,13 +618,8 @@ class ZlibStream : public CompressionStream<ZlibContext> {
     AllocScope alloc_scope(wrap);
     wrap->context()->SetAllocationFunctions(
         AllocForZlib, FreeForZlib, static_cast<CompressionStream*>(wrap));
-    const CompressionError err =
-        wrap->context()->Init(level, window_bits, mem_level, strategy,
-                              std::move(dictionary));
-    if (err.IsError())
-      wrap->EmitError(err);
-
-    return args.GetReturnValue().Set(!err.IsError());
+    wrap->context()->Init(level, window_bits, mem_level, strategy,
+                          std::move(dictionary));
   }
 
   static void Params(const FunctionCallbackInfo<Value>& args) {
@@ -718,6 +722,15 @@ using BrotliEncoderStream = BrotliCompressionStream<BrotliEncoderContext>;
 using BrotliDecoderStream = BrotliCompressionStream<BrotliDecoderContext>;
 
 void ZlibContext::Close() {
+  {
+    Mutex::ScopedLock lock(mutex_);
+    if (!zlib_init_done_) {
+      dictionary_.clear();
+      mode_ = NONE;
+      return;
+    }
+  }
+
   CHECK_LE(mode_, UNZIP);
 
   int status = Z_OK;
@@ -736,6 +749,11 @@ void ZlibContext::Close() {
 
 
 void ZlibContext::DoThreadPoolWork() {
+  bool first_init_call = InitZlib();
+  if (first_init_call && err_ != Z_OK) {
+    return;
+  }
+
   const Bytef* next_expected_header_byte = nullptr;
 
   // If the avail_out is left at 0, then it means that it ran out
@@ -891,6 +909,11 @@ CompressionError ZlibContext::GetErrorInfo() const {
 
 
 CompressionError ZlibContext::ResetStream() {
+  bool first_init_call = InitZlib();
+  if (first_init_call && err_ != Z_OK) {
+    return ErrorForMessage("Failed to init stream before reset");
+  }
+
   err_ = Z_OK;
 
   switch (mode_) {
@@ -924,7 +947,7 @@ void ZlibContext::SetAllocationFunctions(alloc_func alloc,
 }
 
 
-CompressionError ZlibContext::Init(
+void ZlibContext::Init(
     int level, int window_bits, int mem_level, int strategy,
     std::vector<unsigned char>&& dictionary) {
   if (!((window_bits == 0) &&
@@ -968,6 +991,15 @@ CompressionError ZlibContext::Init(
     window_bits_ *= -1;
   }
 
+  dictionary_ = std::move(dictionary);
+}
+
+bool ZlibContext::InitZlib() {
+  Mutex::ScopedLock lock(mutex_);
+  if (zlib_init_done_) {
+    return false;
+  }
+
   switch (mode_) {
     case DEFLATE:
     case GZIP:
@@ -989,15 +1021,15 @@ CompressionError ZlibContext::Init(
       UNREACHABLE();
   }
 
-  dictionary_ = std::move(dictionary);
-
   if (err_ != Z_OK) {
     dictionary_.clear();
     mode_ = NONE;
-    return ErrorForMessage(nullptr);
+    return true;
   }
 
-  return SetDictionary();
+  SetDictionary();
+  zlib_init_done_ = true;
+  return true;
 }
 
 
@@ -1034,6 +1066,11 @@ CompressionError ZlibContext::SetDictionary() {
 
 
 CompressionError ZlibContext::SetParams(int level, int strategy) {
+  bool first_init_call = InitZlib();
+  if (first_init_call && err_ != Z_OK) {
+    return ErrorForMessage("Failed to init stream before set parameters");
+  }
+
   err_ = Z_OK;
 
   switch (mode_) {
@@ -1213,7 +1250,8 @@ struct MakeClass {
   static void Make(Environment* env, Local<Object> target, const char* name) {
     Local<FunctionTemplate> z = env->NewFunctionTemplate(Stream::New);
 
-    z->InstanceTemplate()->SetInternalFieldCount(1);
+    z->InstanceTemplate()->SetInternalFieldCount(
+        Stream::kInternalFieldCount);
     z->Inherit(AsyncWrap::GetConstructorTemplate(env));
 
     env->SetProtoMethod(z, "write", Stream::template Write<true>);

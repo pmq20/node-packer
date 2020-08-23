@@ -13,7 +13,8 @@ async function simple() {
   const foo = new SourceTextModule('export default 5;');
   await foo.link(common.mustNotCall());
 
-  const bar = new SourceTextModule('import five from "foo"; five');
+  globalThis.fiveResult = undefined;
+  const bar = new SourceTextModule('import five from "foo"; fiveResult = five');
 
   assert.deepStrictEqual(bar.dependencySpecifiers, ['foo']);
 
@@ -23,7 +24,9 @@ async function simple() {
     return foo;
   }));
 
-  assert.strictEqual((await bar.evaluate()).result, 5);
+  await bar.evaluate();
+  assert.strictEqual(globalThis.fiveResult, 5);
+  delete globalThis.fiveResult;
 }
 
 async function depth() {
@@ -97,11 +100,11 @@ async function circular2() {
     `,
     './a.mjs': `
       export * from './b.mjs';
-      export var fromA;
+      export let fromA;
     `,
     './b.mjs': `
       export * from './a.mjs';
-      export var fromB;
+      export let fromB;
     `
   };
   const moduleMap = new Map();

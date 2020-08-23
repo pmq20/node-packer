@@ -94,8 +94,7 @@ class SerializedCodeData : public SerializedData {
   // [3] flag hash
   // [4] number of reservation size entries
   // [5] payload length
-  // [6] payload checksum part A
-  // [7] payload checksum part B
+  // [6] payload checksum
   // ...  reservations
   // ...  code stub keys
   // ...  serialized payload
@@ -105,17 +104,12 @@ class SerializedCodeData : public SerializedData {
   static const uint32_t kNumReservationsOffset = kFlagHashOffset + kUInt32Size;
   static const uint32_t kPayloadLengthOffset =
       kNumReservationsOffset + kUInt32Size;
-  static const uint32_t kChecksumPartAOffset =
-      kPayloadLengthOffset + kUInt32Size;
-  static const uint32_t kChecksumPartBOffset =
-      kChecksumPartAOffset + kUInt32Size;
-  static const uint32_t kUnalignedHeaderSize =
-      kChecksumPartBOffset + kUInt32Size;
+  static const uint32_t kChecksumOffset = kPayloadLengthOffset + kUInt32Size;
+  static const uint32_t kUnalignedHeaderSize = kChecksumOffset + kUInt32Size;
   static const uint32_t kHeaderSize = POINTER_SIZE_ALIGN(kUnalignedHeaderSize);
 
   // Used when consuming.
-  static SerializedCodeData FromCachedData(Isolate* isolate,
-                                           ScriptData* cached_data,
+  static SerializedCodeData FromCachedData(ScriptData* cached_data,
                                            uint32_t expected_source_hash,
                                            SanityCheckResult* rejection_result);
 
@@ -141,8 +135,7 @@ class SerializedCodeData : public SerializedData {
     return Vector<const byte>(data_ + kHeaderSize, size_ - kHeaderSize);
   }
 
-  SanityCheckResult SanityCheck(Isolate* isolate,
-                                uint32_t expected_source_hash) const;
+  SanityCheckResult SanityCheck(uint32_t expected_source_hash) const;
 };
 
 }  // namespace internal

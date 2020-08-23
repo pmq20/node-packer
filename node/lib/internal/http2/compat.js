@@ -1,6 +1,15 @@
 'use strict';
 
-const { Object, ObjectPrototype, Reflect } = primordials;
+const {
+  ArrayIsArray,
+  Boolean,
+  ObjectAssign,
+  ObjectCreate,
+  ObjectKeys,
+  ObjectPrototypeHasOwnProperty,
+  ReflectGetPrototypeOf,
+  Symbol,
+} = primordials;
 
 const assert = require('internal/assert');
 const Stream = require('stream');
@@ -31,7 +40,8 @@ const {
     ERR_HTTP2_STATUS_INVALID,
     ERR_INVALID_ARG_VALUE,
     ERR_INVALID_CALLBACK,
-    ERR_INVALID_HTTP_TOKEN
+    ERR_INVALID_HTTP_TOKEN,
+    ERR_STREAM_WRITE_AFTER_END
   },
   hideStackFrames
 } = require('internal/errors');
@@ -120,7 +130,7 @@ function onStreamData(chunk) {
 function onStreamTrailers(trailers, flags, rawTrailers) {
   const request = this[kRequest];
   if (request !== undefined) {
-    Object.assign(request[kTrailers], trailers);
+    ObjectAssign(request[kTrailers], trailers);
     request[kRawTrailers].push(...rawTrailers);
   }
 }
@@ -206,8 +216,8 @@ const proxySocketHandler = {
   },
   getPrototypeOf(stream) {
     if (stream.session !== undefined)
-      return Reflect.getPrototypeOf(stream.session[kSocket]);
-    return Reflect.getPrototypeOf(stream);
+      return ReflectGetPrototypeOf(stream.session[kSocket]);
+    return ReflectGetPrototypeOf(stream);
   },
   set(stream, prop, value) {
     switch (prop) {
@@ -272,11 +282,14 @@ function onStreamTimeout(kind) {
 
 class Http2ServerRequest extends Readable {
   constructor(stream, headers, options, rawHeaders) {
-    super(options);
+    super({ autoDestroy: false, ...options });
     this[kState] = {
       closed: false,
       didRead: false,
     };
+    // Headers in HTTP/1 are not initialized using Object.create(null) which,
+    // although preferable, would simply break too much code. Ergo header
+    // initialization using Object.create(null) in HTTP/2 is intentional.
     this[kHeaders] = headers;
     this[kRawHeaders] = rawHeaders;
     this[kTrailers] = {};
@@ -392,9 +405,9 @@ class Http2ServerRequest extends Readable {
   }
 
   setTimeout(msecs, callback) {
-    if (this[kState].closed)
-      return;
-    this[kStream].setTimeout(msecs, callback);
+    if (!this[kState].closed)
+      this[kStream].setTimeout(msecs, callback);
+    return this;
   }
 }
 
@@ -430,12 +443,13 @@ class Http2ServerResponse extends Stream {
     this[kState] = {
       closed: false,
       ending: false,
+      destroyed: false,
       headRequest: false,
       sendDate: true,
       statusCode: HTTP_STATUS_OK,
     };
-    this[kHeaders] = Object.create(null);
-    this[kTrailers] = Object.create(null);
+    this[kHeaders] = ObjectCreate(null);
+    this[kTrailers] = ObjectCreate(null);
     this[kStream] = stream;
     stream[kProxySocket] = null;
     stream[kResponse] = this;
@@ -460,10 +474,8 @@ class Http2ServerResponse extends Stream {
   }
 
   get finished() {
-    const stream = this[kStream];
-    return stream.destroyed ||
-           stream._writableState.ended ||
-           this[kState].closed;
+    const state = this[kState];
+    return state.ending;
   }
 
   get socket() {
@@ -503,6 +515,22 @@ class Http2ServerResponse extends Stream {
     return this[kState].statusCode;
   }
 
+  get writableCorked() {
+    return this[kStream].writableCorked;
+  }
+
+  get writableHighWaterMark() {
+    return this[kStream].writableHighWaterMark;
+  }
+
+  get writableFinished() {
+    return this[kStream].writableFinished;
+  }
+
+  get writableLength() {
+    return this[kStream].writableLength;
+  }
+
   set statusCode(code) {
     code |= 0;
     if (code >= 100 && code < 200)
@@ -520,9 +548,9 @@ class Http2ServerResponse extends Stream {
   }
 
   addTrailers(headers) {
-    const keys = Object.keys(headers);
+    const keys = ObjectKeys(headers);
     let key = '';
-    for (var i = 0; i < keys.length; i++) {
+    for (let i = 0; i < keys.length; i++) {
       key = keys[i];
       this.setTrailer(key, headers[key]);
     }
@@ -535,17 +563,18 @@ class Http2ServerResponse extends Stream {
   }
 
   getHeaderNames() {
-    return Object.keys(this[kHeaders]);
+    return ObjectKeys(this[kHeaders]);
   }
 
   getHeaders() {
-    return { ...this[kHeaders] };
+    const headers = ObjectCreate(null);
+    return ObjectAssign(headers, this[kHeaders]);
   }
 
   hasHeader(name) {
     validateString(name, 'name');
     name = name.trim().toLowerCase();
-    return ObjectPrototype.hasOwnProperty(this[kHeaders], name);
+    return ObjectPrototypeHasOwnProperty(this[kHeaders], name);
   }
 
   removeHeader(name) {
@@ -606,14 +635,14 @@ class Http2ServerResponse extends Stream {
     if (headers === undefined && typeof statusMessage === 'object')
       headers = statusMessage;
 
-    var i;
-    if (Array.isArray(headers)) {
+    let i;
+    if (ArrayIsArray(headers)) {
       for (i = 0; i < headers.length; i++) {
         const header = headers[i];
         this[kSetHeader](header[0], header[1]);
       }
     } else if (typeof headers === 'object') {
-      const keys = Object.keys(headers);
+      const keys = ObjectKeys(headers);
       let key = '';
       for (i = 0; i < keys.length; i++) {
         key = keys[i];
@@ -627,35 +656,47 @@ class Http2ServerResponse extends Stream {
     return this;
   }
 
+  cork() {
+    this[kStream].cork();
+  }
+
+  uncork() {
+    this[kStream].uncork();
+  }
+
   write(chunk, encoding, cb) {
+    const state = this[kState];
+
     if (typeof encoding === 'function') {
       cb = encoding;
       encoding = 'utf8';
     }
 
-    if (this[kState].closed) {
-      const err = new ERR_HTTP2_INVALID_STREAM();
+    let err;
+    if (state.ending) {
+      err = new ERR_STREAM_WRITE_AFTER_END();
+    } else if (state.closed) {
+      err = new ERR_HTTP2_INVALID_STREAM();
+    } else if (state.destroyed) {
+      return false;
+    }
+
+    if (err) {
       if (typeof cb === 'function')
         process.nextTick(cb, err);
-      else
-        throw err;
-      return;
+      this.destroy(err);
+      return false;
     }
 
     const stream = this[kStream];
     if (!stream.headersSent)
-      this.writeHead(this[kState].statusCode);
+      this.writeHead(state.statusCode);
     return stream.write(chunk, encoding, cb);
   }
 
   end(chunk, encoding, cb) {
     const stream = this[kStream];
     const state = this[kState];
-
-    if ((state.closed || state.ending) &&
-        state.headRequest === stream.headRequest) {
-      return this;
-    }
 
     if (typeof chunk === 'function') {
       cb = chunk;
@@ -665,15 +706,22 @@ class Http2ServerResponse extends Stream {
       encoding = 'utf8';
     }
 
+    if ((state.closed || state.ending) &&
+        state.headRequest === stream.headRequest) {
+      if (typeof cb === 'function') {
+        process.nextTick(cb);
+      }
+      return this;
+    }
+
     if (chunk !== null && chunk !== undefined)
       this.write(chunk, encoding);
 
-    const isFinished = this.finished;
     state.headRequest = stream.headRequest;
     state.ending = true;
 
     if (typeof cb === 'function') {
-      if (isFinished)
+      if (stream.writableEnded)
         this.once('finish', cb);
       else
         stream.once('finish', cb);
@@ -682,7 +730,7 @@ class Http2ServerResponse extends Stream {
     if (!stream.headersSent)
       this.writeHead(this[kState].statusCode);
 
-    if (isFinished)
+    if (this[kState].closed || stream.destroyed)
       onStreamCloseResponse.call(stream);
     else
       stream.end();
@@ -691,8 +739,10 @@ class Http2ServerResponse extends Stream {
   }
 
   destroy(err) {
-    if (this[kState].closed)
+    if (this[kState].destroyed)
       return;
+
+    this[kState].destroyed = true;
     this[kStream].destroy(err);
   }
 

@@ -21,13 +21,19 @@
 
 'use strict';
 
-const { Object } = primordials;
+const {
+  ObjectDefineProperty,
+} = primordials;
 
 const httpAgent = require('_http_agent');
 const { ClientRequest } = require('_http_client');
 const { methods } = require('_http_common');
 const { IncomingMessage } = require('_http_incoming');
-const { OutgoingMessage } = require('_http_outgoing');
+const {
+  validateHeaderName,
+  validateHeaderValue,
+  OutgoingMessage
+} = require('_http_outgoing');
 const {
   _connectionListener,
   STATUS_CODES,
@@ -61,11 +67,13 @@ module.exports = {
   Server,
   ServerResponse,
   createServer,
+  validateHeaderName,
+  validateHeaderValue,
   get,
   request
 };
 
-Object.defineProperty(module.exports, 'maxHeaderSize', {
+ObjectDefineProperty(module.exports, 'maxHeaderSize', {
   configurable: true,
   enumerable: true,
   get() {
@@ -78,7 +86,7 @@ Object.defineProperty(module.exports, 'maxHeaderSize', {
   }
 });
 
-Object.defineProperty(module.exports, 'globalAgent', {
+ObjectDefineProperty(module.exports, 'globalAgent', {
   configurable: true,
   enumerable: true,
   get() {

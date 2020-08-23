@@ -15,7 +15,7 @@ const jsPrimitives = {
 
 const jsGlobalObjectsUrl = `${jsDocPrefix}Reference/Global_Objects/`;
 const jsGlobalTypes = [
-  'Array', 'ArrayBuffer', 'ArrayBufferView', 'DataView', 'Date', 'Error',
+  'Array', 'ArrayBuffer', 'DataView', 'Date', 'Error',
   'EvalError', 'Function', 'Map', 'Object', 'Promise', 'RangeError',
   'ReferenceError', 'RegExp', 'Set', 'SharedArrayBuffer', 'SyntaxError',
   'TypeError', 'TypedArray', 'URIError', 'Uint8Array',
@@ -26,9 +26,16 @@ const customTypesMap = {
 
   'this': `${jsDocPrefix}Reference/Operators/this`,
 
+  'ArrayBufferView':
+    'https://developer.mozilla.org/en-US/docs/Web/API/ArrayBufferView',
+
   'AsyncIterator': 'https://tc39.github.io/ecma262/#sec-asynciterator-interface',
 
+  'AsyncIterable': 'https://tc39.github.io/ecma262/#sec-asynciterable-interface',
+
   'bigint': `${jsDocPrefix}Reference/Global_Objects/BigInt`,
+  'WebAssembly.Instance':
+    `${jsDocPrefix}Reference/Global_Objects/WebAssembly/Instance`,
 
   'Iterable':
     `${jsDocPrefix}Reference/Iteration_protocols#The_iterable_protocol`,
@@ -70,6 +77,9 @@ const customTypesMap = {
   'import.meta': 'esm.html#esm_import_meta',
 
   'EventEmitter': 'events.html#events_class_eventemitter',
+  'EventTarget': 'events.html#events_class_eventtarget',
+  'Event': 'events.html#events_class_event',
+  'EventListener': 'events.html#events_event_listener',
 
   'FileHandle': 'fs.html#fs_class_filehandle',
   'fs.Dir': 'fs.html#fs_class_fs_dir',
@@ -77,6 +87,7 @@ const customTypesMap = {
   'fs.FSWatcher': 'fs.html#fs_class_fs_fswatcher',
   'fs.ReadStream': 'fs.html#fs_class_fs_readstream',
   'fs.Stats': 'fs.html#fs_class_fs_stats',
+  'fs.StatWatcher': 'fs.html#fs_class_fs_statwatcher',
   'fs.WriteStream': 'fs.html#fs_class_fs_writestream',
 
   'http.Agent': 'http.html#http_class_http_agent',
@@ -101,11 +112,18 @@ const customTypesMap = {
   'https.Server': 'https.html#https_class_https_server',
 
   'module': 'modules.html#modules_the_module_object',
+
+  'module.SourceMap':
+    'modules.html#modules_class_module_sourcemap',
+
   'require': 'modules.html#modules_require_id',
 
   'Handle': 'net.html#net_server_listen_handle_backlog_callback',
   'net.Server': 'net.html#net_class_net_server',
   'net.Socket': 'net.html#net_class_net_socket',
+
+  'NodeEventTarget':
+    'events.html#events_class_nodeeventtarget_extends_eventtarget',
 
   'os.constants.dlopen': 'os.html#os_dlopen_constants',
 
@@ -114,7 +132,7 @@ const customTypesMap = {
   'PerformanceNodeTiming':
     'perf_hooks.html#perf_hooks_class_performancenodetiming_extends_performanceentry', // eslint-disable-line max-len
   'PerformanceObserver':
-    'perf_hooks.html#perf_hooks_class_performanceobserver',
+    'perf_hooks.html#perf_hooks_class_perf_hooks_performanceobserver',
   'PerformanceObserverEntryList':
     'perf_hooks.html#perf_hooks_class_performanceobserverentrylist',
 
@@ -141,6 +159,7 @@ const customTypesMap = {
   'URL': 'url.html#url_the_whatwg_url_api',
   'URLSearchParams': 'url.html#url_class_urlsearchparams',
 
+  'vm.Module': 'vm.html#vm_class_vm_module',
   'vm.SourceTextModule': 'vm.html#vm_class_vm_sourcetextmodule',
 
   'MessagePort': 'worker_threads.html#worker_threads_class_messageport',

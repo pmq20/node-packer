@@ -163,7 +163,6 @@ void JsonPrintInlinedFunctionInfo(
 void JsonPrintAllSourceWithPositions(std::ostream& os,
                                      OptimizedCompilationInfo* info,
                                      Isolate* isolate) {
-  AllowDeferredHandleDereference allow_deference_for_print_code;
   os << "\"sources\" : {";
   Handle<Script> script =
       (info->shared_info().is_null() ||
@@ -749,9 +748,11 @@ void GraphC1Visualizer::PrintLiveRange(const LiveRange* range, const char* type,
         os_ << " \"" << Register::from_code(op.register_code()) << "\"";
       } else if (op.IsDoubleRegister()) {
         os_ << " \"" << DoubleRegister::from_code(op.register_code()) << "\"";
-      } else {
-        DCHECK(op.IsFloatRegister());
+      } else if (op.IsFloatRegister()) {
         os_ << " \"" << FloatRegister::from_code(op.register_code()) << "\"";
+      } else {
+        DCHECK(op.IsSimd128Register());
+        os_ << " \"" << Simd128Register::from_code(op.register_code()) << "\"";
       }
     } else if (range->spilled()) {
       const TopLevelLiveRange* top = range->TopLevel();
@@ -1055,15 +1056,9 @@ std::ostream& operator<<(std::ostream& os, const InstructionOperandAsJSON& o) {
       }
       break;
     }
-    case InstructionOperand::EXPLICIT:
     case InstructionOperand::ALLOCATED: {
       const LocationOperand* allocated = LocationOperand::cast(op);
-      os << "\"type\": ";
-      if (allocated->IsExplicit()) {
-        os << "\"explicit\", ";
-      } else {
-        os << "\"allocated\", ";
-      }
+      os << "\"type\": \"allocated\", ";
       os << "\"text\": \"";
       if (op->IsStackSlot()) {
         os << "stack:" << allocated->index();

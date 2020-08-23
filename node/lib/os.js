@@ -21,11 +21,13 @@
 
 'use strict';
 
-const { Object } = primordials;
+const {
+  ObjectDefineProperties,
+  SymbolToPrimitive,
+} = primordials;
 
 const { safeGetenv } = internalBinding('credentials');
 const constants = internalBinding('constants').os;
-const { deprecate } = require('internal/util');
 const isWindows = process.platform === 'win32';
 
 const {
@@ -43,9 +45,8 @@ const {
   getHostname: _getHostname,
   getInterfaceAddresses: _getInterfaceAddresses,
   getLoadAvg,
-  getOSRelease: _getOSRelease,
-  getOSType: _getOSType,
   getPriority: _getPriority,
+  getOSInformation: _getOSInformation,
   getTotalMem,
   getUserInfo,
   getUptime,
@@ -64,24 +65,29 @@ function getCheckedFunction(fn) {
   });
 }
 
+const [
+  type,
+  version,
+  release
+] = _getOSInformation();
+
 const getHomeDirectory = getCheckedFunction(_getHomeDirectory);
 const getHostname = getCheckedFunction(_getHostname);
 const getInterfaceAddresses = getCheckedFunction(_getInterfaceAddresses);
-const getOSRelease = getCheckedFunction(_getOSRelease);
-const getOSType = getCheckedFunction(_getOSType);
+const getOSRelease = () => release;
+const getOSType = () => type;
+const getOSVersion = () => version;
 
-getFreeMem[Symbol.toPrimitive] = () => getFreeMem();
-getHostname[Symbol.toPrimitive] = () => getHostname();
-getHomeDirectory[Symbol.toPrimitive] = () => getHomeDirectory();
-getOSRelease[Symbol.toPrimitive] = () => getOSRelease();
-getOSType[Symbol.toPrimitive] = () => getOSType();
-getTotalMem[Symbol.toPrimitive] = () => getTotalMem();
-getUptime[Symbol.toPrimitive] = () => getUptime();
+getFreeMem[SymbolToPrimitive] = () => getFreeMem();
+getHostname[SymbolToPrimitive] = () => getHostname();
+getOSVersion[SymbolToPrimitive] = () => getOSVersion();
+getOSType[SymbolToPrimitive] = () => getOSType();
+getOSRelease[SymbolToPrimitive] = () => getOSRelease();
+getHomeDirectory[SymbolToPrimitive] = () => getHomeDirectory();
+getTotalMem[SymbolToPrimitive] = () => getTotalMem();
+getUptime[SymbolToPrimitive] = () => getUptime();
 
 const kEndianness = isBigEndian ? 'BE' : 'LE';
-
-const tmpDirDeprecationMsg =
-  'os.tmpDir() is deprecated. Use os.tmpdir() instead.';
 
 const avgValues = new Float64Array(3);
 
@@ -114,12 +120,12 @@ function cpus() {
 function arch() {
   return process.arch;
 }
-arch[Symbol.toPrimitive] = () => process.arch;
+arch[SymbolToPrimitive] = () => process.arch;
 
 function platform() {
   return process.platform;
 }
-platform[Symbol.toPrimitive] = () => process.platform;
+platform[SymbolToPrimitive] = () => process.platform;
 
 function tmpdir() {
   var path;
@@ -140,12 +146,12 @@ function tmpdir() {
 
   return path;
 }
-tmpdir[Symbol.toPrimitive] = () => tmpdir();
+tmpdir[SymbolToPrimitive] = () => tmpdir();
 
 function endianness() {
   return kEndianness;
 }
-endianness[Symbol.toPrimitive] = () => kEndianness;
+endianness[SymbolToPrimitive] = () => kEndianness;
 
 // Returns the number of ones in the binary representation of the decimal
 // number.
@@ -282,12 +288,10 @@ module.exports = {
   type: getOSType,
   userInfo,
   uptime: getUptime,
-
-  // Deprecated APIs
-  tmpDir: deprecate(tmpdir, tmpDirDeprecationMsg, 'DEP0022')
+  version: getOSVersion
 };
 
-Object.defineProperties(module.exports, {
+ObjectDefineProperties(module.exports, {
   constants: {
     configurable: false,
     enumerable: true,

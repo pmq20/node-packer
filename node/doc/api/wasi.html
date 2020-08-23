@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <meta name="nodejs.org:node-version" content="v14.8.0">
+  <title>WebAssembly System Interface (WASI) | Node.js v14.8.0 Documentation</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="assets/hljs.css">
+  <link rel="canonical" href="https://nodejs.org/api/wasi.html">
+</head>
+<body class="alt apidoc" id="api-section-wasi">
+  <div id="content" class="clearfix">
+    <div id="column2" class="interior">
+      <div id="intro" class="interior">
+        <a href="/" title="Go back to the home page">
+          Node.js
+        </a>
+      </div>
+      <ul>
+<li><a href="documentation.html" class="nav-documentation">About this documentation</a></li>
+<li><a href="synopsis.html" class="nav-synopsis">Usage and example</a></li>
+</ul>
+<div class="line"></div>
+<ul>
+<li><a href="assert.html" class="nav-assert">Assertion testing</a></li>
+<li><a href="async_hooks.html" class="nav-async_hooks">Async hooks</a></li>
+<li><a href="buffer.html" class="nav-buffer">Buffer</a></li>
+<li><a href="addons.html" class="nav-addons">C++ addons</a></li>
+<li><a href="n-api.html" class="nav-n-api">C/C++ addons with N-API</a></li>
+<li><a href="embedding.html" class="nav-embedding">C++ embedder API</a></li>
+<li><a href="child_process.html" class="nav-child_process">Child processes</a></li>
+<li><a href="cluster.html" class="nav-cluster">Cluster</a></li>
+<li><a href="cli.html" class="nav-cli">Command line options</a></li>
+<li><a href="console.html" class="nav-console">Console</a></li>
+<li><a href="crypto.html" class="nav-crypto">Crypto</a></li>
+<li><a href="debugger.html" class="nav-debugger">Debugger</a></li>
+<li><a href="deprecations.html" class="nav-deprecations">Deprecated APIs</a></li>
+<li><a href="dns.html" class="nav-dns">DNS</a></li>
+<li><a href="domain.html" class="nav-domain">Domain</a></li>
+<li><a href="esm.html" class="nav-esm">ECMAScript modules</a></li>
+<li><a href="errors.html" class="nav-errors">Errors</a></li>
+<li><a href="events.html" class="nav-events">Events</a></li>
+<li><a href="fs.html" class="nav-fs">File system</a></li>
+<li><a href="globals.html" class="nav-globals">Globals</a></li>
+<li><a href="http.html" class="nav-http">HTTP</a></li>
+<li><a href="http2.html" class="nav-http2">HTTP/2</a></li>
+<li><a href="https.html" class="nav-https">HTTPS</a></li>
+<li><a href="inspector.html" class="nav-inspector">Inspector</a></li>
+<li><a href="intl.html" class="nav-intl">Internationalization</a></li>
+<li><a href="modules.html" class="nav-modules">Modules</a></li>
+<li><a href="net.html" class="nav-net">Net</a></li>
+<li><a href="os.html" class="nav-os">OS</a></li>
+<li><a href="path.html" class="nav-path">Path</a></li>
+<li><a href="perf_hooks.html" class="nav-perf_hooks">Performance hooks</a></li>
+<li><a href="policy.html" class="nav-policy">Policies</a></li>
+<li><a href="process.html" class="nav-process">Process</a></li>
+<li><a href="punycode.html" class="nav-punycode">Punycode</a></li>
+<li><a href="querystring.html" class="nav-querystring">Query strings</a></li>
+<li><a href="readline.html" class="nav-readline">Readline</a></li>
+<li><a href="repl.html" class="nav-repl">REPL</a></li>
+<li><a href="report.html" class="nav-report">Report</a></li>
+<li><a href="stream.html" class="nav-stream">Stream</a></li>
+<li><a href="string_decoder.html" class="nav-string_decoder">String decoder</a></li>
+<li><a href="timers.html" class="nav-timers">Timers</a></li>
+<li><a href="tls.html" class="nav-tls">TLS/SSL</a></li>
+<li><a href="tracing.html" class="nav-tracing">Trace events</a></li>
+<li><a href="tty.html" class="nav-tty">TTY</a></li>
+<li><a href="dgram.html" class="nav-dgram">UDP/datagram</a></li>
+<li><a href="url.html" class="nav-url">URL</a></li>
+<li><a href="util.html" class="nav-util">Utilities</a></li>
+<li><a href="v8.html" class="nav-v8">V8</a></li>
+<li><a href="vm.html" class="nav-vm">VM</a></li>
+<li><a href="wasi.html" class="nav-wasi active">WASI</a></li>
+<li><a href="worker_threads.html" class="nav-worker_threads">Worker threads</a></li>
+<li><a href="zlib.html" class="nav-zlib">Zlib</a></li>
+</ul>
+<div class="line"></div>
+<ul>
+<li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">Code repository and issue tracker</a></li>
+</ul>
+    </div>
+
+    <div id="column1" data-id="wasi" class="interior">
+      <header>
+        <h1>Node.js v14.8.0 Documentation</h1>
+        <div id="gtoc">
+          <ul>
+            <li>
+              <a href="index.html" name="toc">Index</a>
+            </li>
+            <li>
+              <a href="all.html">View on single page</a>
+            </li>
+            <li>
+              <a href="wasi.json">View as JSON</a>
+            </li>
+            
+    <li class="version-picker">
+      <a href="#">View another version <span>&#x25bc;</span></a>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v14.x/api/wasi.html">14.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v13.x/api/wasi.html">13.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v12.x/api/wasi.html">12.x <b>LTS</b></a></li></ol>
+    </li>
+  
+            <li class="edit_on_github"><a href="https://github.com/nodejs/node/edit/master/doc/api/wasi.md"><span class="github_icon"><svg height="16" width="16" viewBox="0 0 16.1 16.1" fill="currentColor"><path d="M8 0a8 8 0 0 0-2.5 15.6c.4 0 .5-.2.5-.4v-1.5c-2 .4-2.5-.5-2.7-1 0-.1-.5-.9-.8-1-.3-.2-.7-.6 0-.6.6 0 1 .6 1.2.8.7 1.2 1.9 1 2.4.7 0-.5.2-.9.5-1-1.8-.3-3.7-1-3.7-4 0-.9.3-1.6.8-2.2 0-.2-.3-1 .1-2 0 0 .7-.3 2.2.7a7.4 7.4 0 0 1 4 0c1.5-1 2.2-.8 2.2-.8.5 1.1.2 2 .1 2.1.5.6.8 1.3.8 2.2 0 3-1.9 3.7-3.6 4 .3.2.5.7.5 1.4v2.2c0 .2.1.5.5.4A8 8 0 0 0 16 8a8 8 0 0 0-8-8z"/></svg></span>Edit on GitHub</a></li>
+          </ul>
+        </div>
+        <hr>
+      </header>
+
+      <div id="toc">
+        <h2>Table of Contents</h2>
+        <ul>
+<li>
+<p><span class="stability_1"><a href="#wasi_webassembly_system_interface_wasi">WebAssembly System Interface (WASI)</a></span></p>
+<ul>
+<li>
+<p><a href="#wasi_class_wasi">Class: <code>WASI</code></a></p>
+<ul>
+<li><a href="#wasi_new_wasi_options"><code>new WASI([options])</code></a></li>
+<li><a href="#wasi_wasi_start_instance"><code>wasi.start(instance)</code></a></li>
+<li><a href="#wasi_wasi_initialize_instance"><code>wasi.initialize(instance)</code></a></li>
+<li><a href="#wasi_wasi_wasiimport"><code>wasi.wasiImport</code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+      </div>
+
+      <div id="apicontent">
+        <h1>WebAssembly System Interface (WASI)<span><a class="mark" href="#wasi_webassembly_system_interface_wasi" id="wasi_webassembly_system_interface_wasi">#</a></span></h1>
+
+<p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
+<p><strong>Source Code:</strong> <a href="https://github.com/nodejs/node/blob/v14.8.0/lib/wasi.js">lib/wasi.js</a></p>
+<p>The WASI API provides an implementation of the <a href="https://wasi.dev/">WebAssembly System Interface</a>
+specification. WASI gives sandboxed WebAssembly applications access to the
+underlying operating system via a collection of POSIX-like functions.</p>
+<pre><code class="language-js"><span class="hljs-meta">'use strict'</span>;
+<span class="hljs-keyword">const</span> fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'fs'</span>);
+<span class="hljs-keyword">const</span> { WASI } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'wasi'</span>);
+<span class="hljs-keyword">const</span> wasi = <span class="hljs-keyword">new</span> WASI({
+  <span class="hljs-attr">args</span>: process.argv,
+  <span class="hljs-attr">env</span>: process.env,
+  <span class="hljs-attr">preopens</span>: {
+    <span class="hljs-string">'/sandbox'</span>: <span class="hljs-string">'/some/real/path/that/wasm/can/access'</span>
+  }
+});
+<span class="hljs-keyword">const</span> importObject = { <span class="hljs-attr">wasi_snapshot_preview1</span>: wasi.wasiImport };
+
+<span class="hljs-function">(<span class="hljs-params"><span class="hljs-keyword">async</span> (</span>) =></span> {
+  <span class="hljs-keyword">const</span> wasm = <span class="hljs-keyword">await</span> WebAssembly.compile(fs.readFileSync(<span class="hljs-string">'./demo.wasm'</span>));
+  <span class="hljs-keyword">const</span> instance = <span class="hljs-keyword">await</span> WebAssembly.instantiate(wasm, importObject);
+
+  wasi.start(instance);
+})();</code></pre>
+<p>To run the above example, create a new WebAssembly text format file named
+<code>demo.wat</code>:</p>
+<pre><code class="language-text">(module
+    ;; Import the required fd_write WASI function which will write the given io vectors to stdout
+    ;; The function signature for fd_write is:
+    ;; (File Descriptor, *iovs, iovs_len, nwritten) -> Returns number of bytes written
+    (import "wasi_snapshot_preview1" "fd_write" (func $fd_write (param i32 i32 i32 i32) (result i32)))
+
+    (memory 1)
+    (export "memory" (memory 0))
+
+    ;; Write 'hello world\n' to memory at an offset of 8 bytes
+    ;; Note the trailing newline which is required for the text to appear
+    (data (i32.const 8) "hello world\n")
+
+    (func $main (export "_start")
+        ;; Creating a new io vector within linear memory
+        (i32.store (i32.const 0) (i32.const 8))  ;; iov.iov_base - This is a pointer to the start of the 'hello world\n' string
+        (i32.store (i32.const 4) (i32.const 12))  ;; iov.iov_len - The length of the 'hello world\n' string
+
+        (call $fd_write
+            (i32.const 1) ;; file_descriptor - 1 for stdout
+            (i32.const 0) ;; *iovs - The pointer to the iov array, which is stored at memory location 0
+            (i32.const 1) ;; iovs_len - We're printing 1 string stored in an iov - so one.
+            (i32.const 20) ;; nwritten - A place in memory to store the number of bytes written
+        )
+        drop ;; Discard the number of bytes written from the top of the stack
+    )
+)</code></pre>
+<p>Use <a href="https://github.com/WebAssembly/wabt">wabt</a> to compile <code>.wat</code> to <code>.wasm</code></p>
+<pre><code class="language-console"><span class="hljs-meta">$</span><span class="bash"> wat2wasm demo.wat</span></code></pre>
+<p>The <code>--experimental-wasi-unstable-preview1</code> and <code>--experimental-wasm-bigint</code>
+CLI arguments are needed for this example to run.</p>
+<h2>Class: <code>WASI</code><span><a class="mark" href="#wasi_class_wasi" id="wasi_class_wasi">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v13.3.0, v12.16.0</span>
+</div>
+<p>The <code>WASI</code> class provides the WASI system call API and additional convenience
+methods for working with WASI-based applications. Each <code>WASI</code> instance
+represents a distinct sandbox environment. For security purposes, each <code>WASI</code>
+instance must have its command line arguments, environment variables, and
+sandbox directory structure configured explicitly.</p>
+<h3><code>new WASI([options])</code><span><a class="mark" href="#wasi_new_wasi_options" id="wasi_new_wasi_options">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v13.3.0, v12.16.0</span>
+</div>
+<ul>
+<li>
+<p><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
+<ul>
+<li><code>args</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&#x3C;Array></a> An array of strings that the WebAssembly application will
+see as command line arguments. The first argument is the virtual path to the
+WASI command itself. <strong>Default:</strong> <code>[]</code>.</li>
+<li><code>env</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> An object similar to <code>process.env</code> that the WebAssembly
+application will see as its environment. <strong>Default:</strong> <code>{}</code>.</li>
+<li><code>preopens</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> This object represents the WebAssembly application's
+sandbox directory structure. The string keys of <code>preopens</code> are treated as
+directories within the sandbox. The corresponding values in <code>preopens</code> are
+the real paths to those directories on the host machine.</li>
+<li><code>returnOnExit</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> By default, WASI applications terminate the Node.js
+process via the <code>__wasi_proc_exit()</code> function. Setting this option to <code>true</code>
+causes <code>wasi.start()</code> to return the exit code rather than terminate the
+process. <strong>Default:</strong> <code>false</code>.</li>
+<li><code>stdin</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> The file descriptor used as standard input in the
+WebAssembly application. <strong>Default:</strong> <code>0</code>.</li>
+<li><code>stdout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> The file descriptor used as standard output in the
+WebAssembly application. <strong>Default:</strong> <code>1</code>.</li>
+<li><code>stderr</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> The file descriptor used as standard error in the
+WebAssembly application. <strong>Default:</strong> <code>2</code>.</li>
+</ul>
+</li>
+</ul>
+<h3><code>wasi.start(instance)</code><span><a class="mark" href="#wasi_wasi_start_instance" id="wasi_wasi_start_instance">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v13.3.0, v12.16.0</span>
+</div>
+<ul>
+<li><code>instance</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WebAssembly/Instance" class="type">&#x3C;WebAssembly.Instance></a></li>
+</ul>
+<p>Attempt to begin execution of <code>instance</code> as a WASI command by invoking its
+<code>_start()</code> export. If <code>instance</code> does not contain a <code>_start()</code> export, or if
+<code>instance</code> contains an <code>_initialize()</code> export, then an exception is thrown.</p>
+<p><code>start()</code> requires that <code>instance</code> exports a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WebAssembly/Memory"><code>WebAssembly.Memory</code></a> named
+<code>memory</code>. If <code>instance</code> does not have a <code>memory</code> export an exception is thrown.</p>
+<p>If <code>start()</code> is called more than once, an exception is thrown.</p>
+<h3><code>wasi.initialize(instance)</code><span><a class="mark" href="#wasi_wasi_initialize_instance" id="wasi_wasi_initialize_instance">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v14.6.0</span>
+</div>
+<ul>
+<li><code>instance</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WebAssembly/Instance" class="type">&#x3C;WebAssembly.Instance></a></li>
+</ul>
+<p>Attempt to initialize <code>instance</code> as a WASI reactor by invoking its
+<code>_initialize()</code> export, if it is present. If <code>instance</code> contains a <code>_start()</code>
+export, then an exception is thrown.</p>
+<p><code>initialize()</code> requires that <code>instance</code> exports a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WebAssembly/Memory"><code>WebAssembly.Memory</code></a> named
+<code>memory</code>. If <code>instance</code> does not have a <code>memory</code> export an exception is thrown.</p>
+<p>If <code>initialize()</code> is called more than once, an exception is thrown.</p>
+<h3><code>wasi.wasiImport</code><span><a class="mark" href="#wasi_wasi_wasiimport" id="wasi_wasi_wasiimport">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v13.3.0, v12.16.0</span>
+</div>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></li>
+</ul>
+<p><code>wasiImport</code> is an object that implements the WASI system call API. This object
+should be passed as the <code>wasi_snapshot_preview1</code> import during the instantiation
+of a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WebAssembly/Instance"><code>WebAssembly.Instance</code></a>.</p>
+        <!-- API END -->
+      </div>
+    </div>
+  </div>
+</body>
+</html>

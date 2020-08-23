@@ -8,6 +8,7 @@
 #include <deque>
 #include <list>
 #include <map>
+#include <memory>
 #include <vector>
 
 #include "src/base/optional.h"
@@ -24,6 +25,10 @@
 #if defined(V8_OS_WIN) && defined(mvn)
 #undef mvn
 #endif
+
+#if defined(V8_OS_WIN)
+#include "src/diagnostics/unwinding-info-win64.h"
+#endif  // V8_OS_WIN
 
 namespace v8 {
 namespace internal {
@@ -101,6 +106,9 @@ class Operand {
   // which helps in the encoding of instructions that use the stack pointer.
   inline Operand ToExtendedRegister() const;
 
+  // Returns new Operand adapted for using with W registers.
+  inline Operand ToW() const;
+
   inline Immediate immediate() const;
   inline int64_t ImmediateValue() const;
   inline RelocInfo::Mode ImmediateRMode() const;
@@ -146,20 +154,6 @@ class MemOperand {
   inline bool IsPreIndex() const;
   inline bool IsPostIndex() const;
 
-  // For offset modes, return the offset as an Operand. This helper cannot
-  // handle indexed modes.
-  inline Operand OffsetAsOperand() const;
-
-  enum PairResult {
-    kNotPair,  // Can't use a pair instruction.
-    kPairAB,   // Can use a pair instruction (operandA has lower address).
-    kPairBA    // Can use a pair instruction (operandB has lower address).
-  };
-  // Check if two MemOperand are consistent for stp/ldp use.
-  static PairResult AreConsistentForPair(const MemOperand& operandA,
-                                         const MemOperand& operandB,
-                                         int access_size_log2 = kXRegSizeLog2);
-
  private:
   Register base_;
   Register regoffset_;
@@ -185,9 +179,9 @@ class V8_EXPORT_PRIVATE Assembler : public AssemblerBase {
   explicit Assembler(const AssemblerOptions&,
                      std::unique_ptr<AssemblerBuffer> = {});
 
-  virtual ~Assembler();
+  ~Assembler() override;
 
-  virtual void AbortedCodeGeneration();
+  void AbortedCodeGeneration() override;
 
   // System functions ---------------------------------------------------------
   // Start generating code from the beginning of the buffer, discarding any code
@@ -371,7 +365,7 @@ class V8_EXPORT_PRIVATE Assembler : public AssemblerBase {
   // Instruction set functions ------------------------------------------------
 
   // Branch / Jump instructions.
-  // For branches offsets are scaled, i.e. they in instrcutions not in bytes.
+  // For branches offsets are scaled, i.e. in instructions not in bytes.
   // Branch to register.
   void br(const Register& xn);
 
@@ -786,6 +780,22 @@ class V8_EXPORT_PRIVATE Assembler : public AssemblerBase {
   void clz(const Register& rd, const Register& rn);
   void cls(const Register& rd, const Register& rn);
 
+  // Pointer Authentication Code for Instruction address, using key A, with
+  // address in x17 and modifier in x16 [Armv8.3].
+  void pacia1716();
+
+  // Pointer Authentication Code for Instruction address, using key A, with
+  // address in LR and modifier in SP [Armv8.3].
+  void paciasp();
+
+  // Authenticate Instruction address, using key A, with address in x17 and
+  // modifier in x16 [Armv8.3].
+  void autia1716();
+
+  // Authenticate Instruction address, using key A, with address in LR and
+  // modifier in SP [Armv8.3].
+  void autiasp();
+
   // Memory instructions.
 
   // Load integer or FP register.
@@ -929,7 +939,10 @@ class V8_EXPORT_PRIVATE Assembler : public AssemblerBase {
   // Conditional speculation barrier.
   void csdb();
 
-  // Alias for system instructions.
+  // Branch target identification.
+  void bti(BranchTargetIdentifier id);
+
+  // No-op.
   void nop() { hint(NOP); }
 
   // Different nop operations are used by the code generator to detect certain
@@ -2400,6 +2413,14 @@ class V8_EXPORT_PRIVATE Assembler : public AssemblerBase {
     DISALLOW_IMPLICIT_CONSTRUCTORS(BlockPoolsScope);
   };
 
+#if defined(V8_OS_WIN)
+  win64_unwindinfo::XdataEncoder* GetXdataEncoder() {
+    return xdata_encoder_.get();
+  }
+
+  win64_unwindinfo::BuiltinUnwindInfo GetUnwindInfo() const;
+#endif
+
  protected:
   inline const Register& AppropriateZeroRegFor(const CPURegister& reg) const;
 
@@ -2606,7 +2627,8 @@ class V8_EXPORT_PRIVATE Assembler : public AssemblerBase {
   // not have to check for overflow. The same is true for writes of large
   // relocation info entries, and debug strings encoded in the instruction
   // stream.
-  static constexpr int kGap = 128;
+  static constexpr int kGap = 64;
+  STATIC_ASSERT(AssemblerBase::kMinimalBufferSize >= 2 * kGap);
 
  public:
 #ifdef DEBUG
@@ -2669,6 +2691,10 @@ class V8_EXPORT_PRIVATE Assembler : public AssemblerBase {
   // It is maintained to the closest unresolved branch limit minus the maximum
   // veneer margin (or kMaxInt if there are no unresolved branches).
   int next_veneer_pool_check_;
+
+#if defined(V8_OS_WIN)
+  std::unique_ptr<win64_unwindinfo::XdataEncoder> xdata_encoder_;
+#endif
 
  private:
   // Avoid overflows for displacements etc.

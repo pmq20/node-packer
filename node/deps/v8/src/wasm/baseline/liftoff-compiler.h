@@ -16,8 +16,9 @@ class Counters;
 namespace wasm {
 
 struct CompilationEnv;
+class DebugSideTable;
 struct FunctionBody;
-struct WasmFeatures;
+class WasmFeatures;
 
 // Note: If this list changes, also the histogram "V8.LiftoffBailoutReasons"
 // on the chromium side needs to be updated.
@@ -44,6 +45,7 @@ enum LiftoffBailoutReason : int8_t {
   kAtomics = 10,
   kBulkMemory = 11,
   kNonTrappingFloatToInt = 12,
+  kGC = 13,
   // A little gap, for forward compatibility.
   // Any other reason (use rarely; introduce new reasons if this spikes).
   kOtherReason = 20,
@@ -51,9 +53,14 @@ enum LiftoffBailoutReason : int8_t {
   kNumBailoutReasons
 };
 
-WasmCompilationResult ExecuteLiftoffCompilation(
+V8_EXPORT_PRIVATE WasmCompilationResult ExecuteLiftoffCompilation(
     AccountingAllocator*, CompilationEnv*, const FunctionBody&, int func_index,
-    Counters*, WasmFeatures* detected_features);
+    ForDebugging, Counters*, WasmFeatures* detected_features,
+    Vector<int> breakpoints = {}, std::unique_ptr<DebugSideTable>* = nullptr,
+    Vector<int> extra_source_pos = {});
+
+V8_EXPORT_PRIVATE std::unique_ptr<DebugSideTable> GenerateLiftoffDebugSideTable(
+    AccountingAllocator*, CompilationEnv*, const FunctionBody&);
 
 }  // namespace wasm
 }  // namespace internal

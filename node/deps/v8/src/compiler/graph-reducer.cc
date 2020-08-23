@@ -94,7 +94,8 @@ Reduction GraphReducer::Reduce(Node* const node) {
         // all the other reducers for this node, as now there may be more
         // opportunities for reduction.
         if (FLAG_trace_turbo_reduction) {
-          StdoutStream{} << "- In-place update of " << *node << " by reducer "
+          AllowHandleDereference allow_deref;
+          StdoutStream{} << "- In-place update of #" << *node << " by reducer "
                          << (*i)->reducer_name() << std::endl;
         }
         skip = i;
@@ -103,7 +104,8 @@ Reduction GraphReducer::Reduce(Node* const node) {
       } else {
         // {node} was replaced by another node.
         if (FLAG_trace_turbo_reduction) {
-          StdoutStream{} << "- Replacement of " << *node << " with "
+          AllowHandleDereference allow_deref;
+          StdoutStream{} << "- Replacement of #" << *node << " with #"
                          << *(reduction.replacement()) << " by reducer "
                          << (*i)->reducer_name() << std::endl;
         }
@@ -159,6 +161,11 @@ void GraphReducer::ReduceTop() {
   // Check if the reduction is an in-place update of the {node}.
   Node* const replacement = reduction.replacement();
   if (replacement == node) {
+    for (Node* const user : node->uses()) {
+      DCHECK_IMPLIES(user == node, state_.Get(node) != State::kVisited);
+      Revisit(user);
+    }
+
     // In-place update of {node}, may need to recurse on an input.
     Node::Inputs node_inputs = node->inputs();
     for (int i = 0; i < node_inputs.count(); ++i) {
@@ -176,12 +183,6 @@ void GraphReducer::ReduceTop() {
   // Check if we have a new replacement.
   if (replacement != node) {
     Replace(node, replacement, max_id);
-  } else {
-    // Revisit all uses of the node.
-    for (Node* const user : node->uses()) {
-      // Don't revisit this node if it refers to itself.
-      if (user != node) Revisit(user);
-    }
   }
 }
 

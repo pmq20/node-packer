@@ -1,5 +1,3 @@
-#define NODE_WANT_INTERNALS 1
-
 #include "node_binding.h"
 #include "node_errors.h"
 #include <atomic>
@@ -17,12 +15,6 @@
 #define NODE_BUILTIN_ICU_MODULES(V) V(icu)
 #else
 #define NODE_BUILTIN_ICU_MODULES(V)
-#endif
-
-#if NODE_REPORT
-#define NODE_BUILTIN_REPORT_MODULES(V) V(report)
-#else
-#define NODE_BUILTIN_REPORT_MODULES(V)
 #endif
 
 #if HAVE_INSPECTOR
@@ -50,7 +42,6 @@
   V(config)                                                                    \
   V(contextify)                                                                \
   V(credentials)                                                               \
-  V(domain)                                                                    \
   V(errors)                                                                    \
   V(fs)                                                                        \
   V(fs_dir)                                                                    \
@@ -58,9 +49,9 @@
   V(heap_utils)                                                                \
   V(http2)                                                                     \
   V(http_parser)                                                               \
-  V(http_parser_llhttp)                                                        \
   V(inspector)                                                                 \
   V(js_stream)                                                                 \
+  V(js_udp_wrap)                                                               \
   V(messaging)                                                                 \
   V(module_wrap)                                                               \
   V(native_module)                                                             \
@@ -70,6 +61,7 @@
   V(pipe_wrap)                                                                 \
   V(process_wrap)                                                              \
   V(process_methods)                                                           \
+  V(report)                                                                    \
   V(serdes)                                                                    \
   V(signal_wrap)                                                               \
   V(spawn_sync)                                                                \
@@ -88,14 +80,15 @@
   V(util)                                                                      \
   V(uv)                                                                        \
   V(v8)                                                                        \
+  V(wasi)                                                                      \
   V(worker)                                                                    \
+  V(watchdog)                                                                  \
   V(zlib)
 
 #define NODE_BUILTIN_MODULES(V)                                                \
   NODE_BUILTIN_STANDARD_MODULES(V)                                             \
   NODE_BUILTIN_OPENSSL_MODULES(V)                                              \
   NODE_BUILTIN_ICU_MODULES(V)                                                  \
-  NODE_BUILTIN_REPORT_MODULES(V)                                               \
   NODE_BUILTIN_PROFILER_MODULES(V)                                             \
   NODE_BUILTIN_DTRACE_MODULES(V)
 
@@ -134,14 +127,16 @@ struct dl_wrap {
   };
 
   struct equal {
-    bool operator()(const dl_wrap* a, const dl_wrap* b) const {
+    bool operator()(const dl_wrap* a,
+                    const dl_wrap* b) const {
       return a->st_dev == b->st_dev && a->st_ino == b->st_ino;
     }
   };
 };
 
 static Mutex dlhandles_mutex;
-static std::unordered_set<dl_wrap*, dl_wrap::hash, dl_wrap::equal> dlhandles;
+static std::unordered_set<dl_wrap*, dl_wrap::hash, dl_wrap::equal>
+    dlhandles;
 static thread_local std::string dlerror_storage;
 
 char* wrapped_dlerror() {
@@ -153,7 +148,7 @@ void* wrapped_dlopen(const char* filename, int flags) {
   Mutex::ScopedLock lock(dlhandles_mutex);
 
   uv_fs_t req;
-  OnScopeLeave cleanup([&]() { uv_fs_req_cleanup(&req); });
+  auto cleanup = OnScopeLeave([&]() { uv_fs_req_cleanup(&req); });
   int rc = uv_fs_stat(nullptr, &req, filename, nullptr);
 
   if (rc != 0) {
@@ -161,7 +156,11 @@ void* wrapped_dlopen(const char* filename, int flags) {
     return nullptr;
   }
 
-  dl_wrap search = {req.statbuf.st_dev, req.statbuf.st_ino, 0, nullptr};
+  dl_wrap search = {
+    req.statbuf.st_dev,
+    req.statbuf.st_ino,
+    0, nullptr
+  };
 
   auto it = dlhandles.find(&search);
   if (it != dlhandles.end()) {
@@ -217,25 +216,23 @@ void* wrapped_dlsym(void* handle, const char* symbol) {
 #ifdef __linux__
 static bool libc_may_be_musl() {
   static std::atomic_bool retval;  // Cache the return value.
-  static std::atomic_bool has_cached_retval{false};
+  static std::atomic_bool has_cached_retval { false };
   if (has_cached_retval) return retval;
   retval = dlsym(RTLD_DEFAULT, "gnu_get_libc_version") == nullptr;
   has_cached_retval = true;
   return retval;
 }
-#else   // __linux__
-static bool libc_may_be_musl() {
-  return false;
-}
+#else  // __linux__
+static bool libc_may_be_musl() { return false; }
 #endif  // __linux__
 
 namespace node {
 
 using v8::Context;
 using v8::Exception;
+using v8::Function;
 using v8::FunctionCallbackInfo;
 using v8::Local;
-using v8::NewStringType;
 using v8::Object;
 using v8::String;
 using v8::Value;
@@ -302,7 +299,8 @@ static struct global_handle_map_t {
     if (it == map_.end()) return;
     CHECK_GE(it->second.refcount, 1);
     if (--it->second.refcount == 0) {
-      if (it->second.wants_delete_module) delete it->second.module;
+      if (it->second.wants_delete_module)
+        delete it->second.module;
       map_.erase(handle);
     }
   }
@@ -342,7 +340,8 @@ void DLib::Close() {
 
   int err = dlclose(handle_);
   if (err == 0) {
-    if (has_entry_in_global_handle_map_) global_handle_map.erase(handle_);
+    if (has_entry_in_global_handle_map_)
+      global_handle_map.erase(handle_);
   }
   handle_ = nullptr;
 }
@@ -364,7 +363,8 @@ bool DLib::Open() {
 
 void DLib::Close() {
   if (handle_ == nullptr) return;
-  if (has_entry_in_global_handle_map_) global_handle_map.erase(handle_);
+  if (has_entry_in_global_handle_map_)
+    global_handle_map.erase(handle_);
   uv_dlclose(&lib_);
   handle_ = nullptr;
 }
@@ -480,7 +480,12 @@ void DLOpen(const FunctionCallbackInfo<Value>& args) {
         mp = dlib->GetSavedModuleFromGlobalHandleMap();
         if (mp == nullptr || mp->nm_context_register_func == nullptr) {
           dlib->Close();
-          env->ThrowError("Module did not self-register.");
+          char errmsg[1024];
+          snprintf(errmsg,
+                   sizeof(errmsg),
+                   "Module did not self-register: '%s'.",
+                   *filename);
+          env->ThrowError(errmsg);
           return false;
         }
       }
@@ -548,18 +553,14 @@ inline struct node_module* FindModule(struct node_module* list,
   return mp;
 }
 
-node_module* get_internal_module(const char* name) {
-  return FindModule(modlist_internal, name, NM_F_INTERNAL);
-}
-node_module* get_linked_module(const char* name) {
-  return FindModule(modlist_linked, name, NM_F_LINKED);
-}
-
 static Local<Object> InitModule(Environment* env,
                                 node_module* mod,
                                 Local<String> module) {
-  Local<Object> exports = Object::New(env->isolate());
   // Internal bindings don't have a "module" object, only exports.
+  Local<Function> ctor = env->binding_data_ctor_template()
+                             ->GetFunction(env->context())
+                             .ToLocalChecked();
+  Local<Object> exports = ctor->NewInstance(env->context()).ToLocalChecked();
   CHECK_NULL(mod->nm_register_func);
   CHECK_NOT_NULL(mod->nm_context_register_func);
   Local<Value> unused = Undefined(env->isolate());
@@ -582,7 +583,7 @@ void GetInternalBinding(const FunctionCallbackInfo<Value>& args) {
   node::Utf8Value module_v(env->isolate(), module);
   Local<Object> exports;
 
-  node_module* mod = get_internal_module(*module_v);
+  node_module* mod = FindModule(modlist_internal, *module_v, NM_F_INTERNAL);
   if (mod != nullptr) {
     exports = InitModule(env, mod, module);
   } else if (!strcmp(*module_v, "constants")) {
@@ -615,7 +616,20 @@ void GetLinkedBinding(const FunctionCallbackInfo<Value>& args) {
   Local<String> module_name = args[0].As<String>();
 
   node::Utf8Value module_name_v(env->isolate(), module_name);
-  node_module* mod = get_linked_module(*module_name_v);
+  const char* name = *module_name_v;
+  node_module* mod = nullptr;
+
+  // Iterate from here to the nearest non-Worker Environment to see if there's
+  // a linked binding defined locally rather than through the global list.
+  Environment* cur_env = env;
+  while (mod == nullptr && cur_env != nullptr) {
+    Mutex::ScopedLock lock(cur_env->extra_linked_bindings_mutex());
+    mod = FindModule(cur_env->extra_linked_bindings_head(), name, NM_F_LINKED);
+    cur_env = cur_env->worker_parent_env();
+  }
+
+  if (mod == nullptr)
+    mod = FindModule(modlist_linked, name, NM_F_LINKED);
 
   if (mod == nullptr) {
     char errmsg[1024];
@@ -629,8 +643,7 @@ void GetLinkedBinding(const FunctionCallbackInfo<Value>& args) {
   Local<Object> module = Object::New(env->isolate());
   Local<Object> exports = Object::New(env->isolate());
   Local<String> exports_prop =
-      String::NewFromUtf8(env->isolate(), "exports", NewStringType::kNormal)
-          .ToLocalChecked();
+      String::NewFromUtf8Literal(env->isolate(), "exports");
   module->Set(env->context(), exports_prop, exports).Check();
 
   if (mod->nm_context_register_func != nullptr) {

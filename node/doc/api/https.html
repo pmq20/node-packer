@@ -3,10 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>HTTPS | Node.js v12.13.0 Documentation</title>
+  <meta name="nodejs.org:node-version" content="v14.8.0">
+  <title>HTTPS | Node.js v14.8.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
-  <link rel="stylesheet" href="assets/sh.css">
+  <link rel="stylesheet" href="assets/hljs.css">
   <link rel="canonical" href="https://nodejs.org/api/https.html">
 </head>
 <body class="alt apidoc" id="api-section-https">
@@ -18,29 +19,30 @@
         </a>
       </div>
       <ul>
-<li><a href="documentation.html" class="nav-documentation">About these Docs</a></li>
-<li><a href="synopsis.html" class="nav-synopsis">Usage &#x26; Example</a></li>
+<li><a href="documentation.html" class="nav-documentation">About this documentation</a></li>
+<li><a href="synopsis.html" class="nav-synopsis">Usage and example</a></li>
 </ul>
 <div class="line"></div>
 <ul>
-<li><a href="assert.html" class="nav-assert">Assertion Testing</a></li>
-<li><a href="async_hooks.html" class="nav-async_hooks">Async Hooks</a></li>
+<li><a href="assert.html" class="nav-assert">Assertion testing</a></li>
+<li><a href="async_hooks.html" class="nav-async_hooks">Async hooks</a></li>
 <li><a href="buffer.html" class="nav-buffer">Buffer</a></li>
-<li><a href="addons.html" class="nav-addons">C++ Addons</a></li>
-<li><a href="n-api.html" class="nav-n-api">C/C++ Addons - N-API</a></li>
-<li><a href="child_process.html" class="nav-child_process">Child Processes</a></li>
+<li><a href="addons.html" class="nav-addons">C++ addons</a></li>
+<li><a href="n-api.html" class="nav-n-api">C/C++ addons with N-API</a></li>
+<li><a href="embedding.html" class="nav-embedding">C++ embedder API</a></li>
+<li><a href="child_process.html" class="nav-child_process">Child processes</a></li>
 <li><a href="cluster.html" class="nav-cluster">Cluster</a></li>
-<li><a href="cli.html" class="nav-cli">Command Line Options</a></li>
+<li><a href="cli.html" class="nav-cli">Command line options</a></li>
 <li><a href="console.html" class="nav-console">Console</a></li>
 <li><a href="crypto.html" class="nav-crypto">Crypto</a></li>
 <li><a href="debugger.html" class="nav-debugger">Debugger</a></li>
 <li><a href="deprecations.html" class="nav-deprecations">Deprecated APIs</a></li>
 <li><a href="dns.html" class="nav-dns">DNS</a></li>
 <li><a href="domain.html" class="nav-domain">Domain</a></li>
-<li><a href="esm.html" class="nav-esm">ECMAScript Modules</a></li>
+<li><a href="esm.html" class="nav-esm">ECMAScript modules</a></li>
 <li><a href="errors.html" class="nav-errors">Errors</a></li>
 <li><a href="events.html" class="nav-events">Events</a></li>
-<li><a href="fs.html" class="nav-fs">File System</a></li>
+<li><a href="fs.html" class="nav-fs">File system</a></li>
 <li><a href="globals.html" class="nav-globals">Globals</a></li>
 <li><a href="http.html" class="nav-http">HTTP</a></li>
 <li><a href="http2.html" class="nav-http2">HTTP/2</a></li>
@@ -51,37 +53,38 @@
 <li><a href="net.html" class="nav-net">Net</a></li>
 <li><a href="os.html" class="nav-os">OS</a></li>
 <li><a href="path.html" class="nav-path">Path</a></li>
-<li><a href="perf_hooks.html" class="nav-perf_hooks">Performance Hooks</a></li>
+<li><a href="perf_hooks.html" class="nav-perf_hooks">Performance hooks</a></li>
 <li><a href="policy.html" class="nav-policy">Policies</a></li>
 <li><a href="process.html" class="nav-process">Process</a></li>
 <li><a href="punycode.html" class="nav-punycode">Punycode</a></li>
-<li><a href="querystring.html" class="nav-querystring">Query Strings</a></li>
+<li><a href="querystring.html" class="nav-querystring">Query strings</a></li>
 <li><a href="readline.html" class="nav-readline">Readline</a></li>
 <li><a href="repl.html" class="nav-repl">REPL</a></li>
 <li><a href="report.html" class="nav-report">Report</a></li>
 <li><a href="stream.html" class="nav-stream">Stream</a></li>
-<li><a href="string_decoder.html" class="nav-string_decoder">String Decoder</a></li>
+<li><a href="string_decoder.html" class="nav-string_decoder">String decoder</a></li>
 <li><a href="timers.html" class="nav-timers">Timers</a></li>
 <li><a href="tls.html" class="nav-tls">TLS/SSL</a></li>
-<li><a href="tracing.html" class="nav-tracing">Trace Events</a></li>
+<li><a href="tracing.html" class="nav-tracing">Trace events</a></li>
 <li><a href="tty.html" class="nav-tty">TTY</a></li>
-<li><a href="dgram.html" class="nav-dgram">UDP/Datagram</a></li>
+<li><a href="dgram.html" class="nav-dgram">UDP/datagram</a></li>
 <li><a href="url.html" class="nav-url">URL</a></li>
 <li><a href="util.html" class="nav-util">Utilities</a></li>
 <li><a href="v8.html" class="nav-v8">V8</a></li>
 <li><a href="vm.html" class="nav-vm">VM</a></li>
-<li><a href="worker_threads.html" class="nav-worker_threads">Worker Threads</a></li>
+<li><a href="wasi.html" class="nav-wasi">WASI</a></li>
+<li><a href="worker_threads.html" class="nav-worker_threads">Worker threads</a></li>
 <li><a href="zlib.html" class="nav-zlib">Zlib</a></li>
 </ul>
 <div class="line"></div>
 <ul>
-<li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">GitHub Repo &#x26; Issue Tracker</a></li>
+<li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">Code repository and issue tracker</a></li>
 </ul>
     </div>
 
     <div id="column1" data-id="https" class="interior">
       <header>
-        <h1>Node.js v12.13.0 Documentation</h1>
+        <h1>Node.js v14.8.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -96,11 +99,13 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v12.x/api/https.html">12.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v14.x/api/https.html">14.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v13.x/api/https.html">13.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v12.x/api/https.html">12.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v11.x/api/https.html">11.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v10.x/api/https.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/https.html">9.x</a></li>
-<li><a href="https://nodejs.org/docs/latest-v8.x/api/https.html">8.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v8.x/api/https.html">8.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/https.html">7.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v6.x/api/https.html">6.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v5.x/api/https.html">5.x</a></li>
@@ -122,29 +127,34 @@
 <p><span class="stability_2"><a href="#https_https">HTTPS</a></span></p>
 <ul>
 <li>
-<p><a href="#https_class_https_agent">Class: https.Agent</a></p>
+<p><a href="#https_class_https_agent">Class: <code>https.Agent</code></a></p>
 <ul>
-<li><a href="#https_new_agent_options">new Agent([options])</a></li>
+<li>
+<p><a href="#https_new_agent_options"><code>new Agent([options])</code></a></p>
+<ul>
+<li><a href="#https_event_keylog">Event: <code>'keylog'</code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li>
-<p><a href="#https_class_https_server">Class: https.Server</a></p>
+<p><a href="#https_class_https_server">Class: <code>https.Server</code></a></p>
 <ul>
-<li><a href="#https_server_close_callback">server.close([callback])</a></li>
-<li><a href="#https_server_headerstimeout">server.headersTimeout</a></li>
-<li><a href="#https_server_listen">server.listen()</a></li>
-<li><a href="#https_server_maxheaderscount">server.maxHeadersCount</a></li>
-<li><a href="#https_server_settimeout_msecs_callback">server.setTimeout([msecs][, callback])</a></li>
-<li><a href="#https_server_timeout">server.timeout</a></li>
-<li><a href="#https_server_keepalivetimeout">server.keepAliveTimeout</a></li>
+<li><a href="#https_server_close_callback"><code>server.close([callback])</code></a></li>
+<li><a href="#https_server_headerstimeout"><code>server.headersTimeout</code></a></li>
+<li><a href="#https_server_listen"><code>server.listen()</code></a></li>
+<li><a href="#https_server_maxheaderscount"><code>server.maxHeadersCount</code></a></li>
+<li><a href="#https_server_settimeout_msecs_callback"><code>server.setTimeout([msecs][, callback])</code></a></li>
+<li><a href="#https_server_timeout"><code>server.timeout</code></a></li>
+<li><a href="#https_server_keepalivetimeout"><code>server.keepAliveTimeout</code></a></li>
 </ul>
 </li>
-<li><a href="#https_https_createserver_options_requestlistener">https.createServer([options][, requestListener])</a></li>
-<li><a href="#https_https_get_options_callback">https.get(options[, callback])</a></li>
-<li><a href="#https_https_get_url_options_callback">https.get(url[, options][, callback])</a></li>
-<li><a href="#https_https_globalagent">https.globalAgent</a></li>
-<li><a href="#https_https_request_options_callback">https.request(options[, callback])</a></li>
-<li><a href="#https_https_request_url_options_callback">https.request(url[, options][, callback])</a></li>
+<li><a href="#https_https_createserver_options_requestlistener"><code>https.createServer([options][, requestListener])</code></a></li>
+<li><a href="#https_https_get_options_callback"><code>https.get(options[, callback])</code></a></li>
+<li><a href="#https_https_get_url_options_callback"><code>https.get(url[, options][, callback])</code></a></li>
+<li><a href="#https_https_globalagent"><code>https.globalAgent</code></a></li>
+<li><a href="#https_https_request_options_callback"><code>https.request(options[, callback])</code></a></li>
+<li><a href="#https_https_request_url_options_callback"><code>https.request(url[, options][, callback])</code></a></li>
 </ul>
 </li>
 </ul>
@@ -154,9 +164,10 @@
         <h1>HTTPS<span><a class="mark" href="#https_https" id="https_https">#</a></span></h1>
 
 <p></p><div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p></p>
+<p><strong>Source Code:</strong> <a href="https://github.com/nodejs/node/blob/v14.8.0/lib/https.js">lib/https.js</a></p>
 <p>HTTPS is the HTTP protocol over TLS/SSL. In Node.js this is implemented as a
 separate module.</p>
-<h2>Class: https.Agent<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/https.js#L144">[src]</a><span><a class="mark" href="#https_class_https_agent" id="https_class_https_agent">#</a></span></h2>
+<h2>Class: <code>https.Agent</code><span><a class="mark" href="#https_class_https_agent" id="https_class_https_agent">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -172,7 +183,7 @@ separate module.</p>
 </div>
 <p>An <a href="#https_class_https_agent"><code>Agent</code></a> object for HTTPS similar to <a href="http.html#http_class_http_agent"><code>http.Agent</code></a>. See
 <a href="#https_https_request_options_callback"><code>https.request()</code></a> for more information.</p>
-<h3>new Agent([options])<span><a class="mark" href="#https_new_agent_options" id="https_new_agent_options">#</a></span></h3>
+<h3><code>new Agent([options])</code><span><a class="mark" href="#https_new_agent_options" id="https_new_agent_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -195,7 +206,7 @@ Use <code>0</code> to disable TLS session caching. <strong>Default:</strong> <co
 <p><code>servername</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> the value of
 <a href="https://en.wikipedia.org/wiki/Server_Name_Indication">Server Name Indication extension</a> to be sent to the server. Use
 empty string <code>''</code> to disable sending the extension.
-<strong>Default:</strong> hostname of the target server, unless the target server
+<strong>Default:</strong> host name of the target server, unless the target server
 is specified using an IP address, in which case the default is <code>''</code> (no
 extension).</p>
 <p>See <a href="tls.html#tls_session_resumption"><code>Session Resumption</code></a> for information about TLS session reuse.</p>
@@ -203,7 +214,27 @@ extension).</p>
 </ul>
 </li>
 </ul>
-<h2>Class: https.Server<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/https.js#L46">[src]</a><span><a class="mark" href="#https_class_https_server" id="https_class_https_server">#</a></span></h2>
+<h4>Event: <code>'keylog'</code><span><a class="mark" href="#https_event_keylog" id="https_event_keylog">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v13.2.0, v12.16.0</span>
+</div>
+<ul>
+<li><code>line</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> Line of ASCII text, in NSS <code>SSLKEYLOGFILE</code> format.</li>
+<li><code>tlsSocket</code> <a href="tls.html#tls_class_tls_tlssocket" class="type">&#x3C;tls.TLSSocket></a> The <code>tls.TLSSocket</code> instance on which it was
+generated.</li>
+</ul>
+<p>The <code>keylog</code> event is emitted when key material is generated or received by a
+connection managed by this agent (typically before handshake has completed, but
+not necessarily). This keying material can be stored for debugging, as it
+allows captured TLS traffic to be decrypted. It may be emitted multiple times
+for each socket.</p>
+<p>A typical use case is to append received lines to a common text file, which is
+later used by software (such as Wireshark) to decrypt the traffic:</p>
+<pre><code class="language-js"><span class="hljs-comment">// ...</span>
+https.globalAgent.on(<span class="hljs-string">'keylog'</span>, (line, tlsSocket) => {
+  fs.appendFileSync(<span class="hljs-string">'/tmp/ssl-keys.log'</span>, line, { <span class="hljs-attr">mode</span>: <span class="hljs-number">0o600</span> });
+});</code></pre>
+<h2>Class: <code>https.Server</code><span><a class="mark" href="#https_class_https_server" id="https_class_https_server">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.3.4</span>
 </div>
@@ -211,7 +242,7 @@ extension).</p>
 <li>Extends: <a href="tls.html#tls_class_tls_server" class="type">&#x3C;tls.Server></a></li>
 </ul>
 <p>See <a href="http.html#http_class_http_server"><code>http.Server</code></a> for more information.</p>
-<h3>server.close([callback])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/net.js#L1587">[src]</a><span><a class="mark" href="#https_server_close_callback" id="https_server_close_callback">#</a></span></h3>
+<h3><code>server.close([callback])</code><span><a class="mark" href="#https_server_close_callback" id="https_server_close_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.90</span>
 </div>
@@ -220,23 +251,23 @@ extension).</p>
 <li>Returns: <a href="https.html#https_class_https_server" class="type">&#x3C;https.Server></a></li>
 </ul>
 <p>See <a href="http.html#http_server_close_callback"><code>server.close()</code></a> from the HTTP module for details.</p>
-<h3>server.headersTimeout<span><a class="mark" href="#https_server_headerstimeout" id="https_server_headerstimeout">#</a></span></h3>
+<h3><code>server.headersTimeout</code><span><a class="mark" href="#https_server_headerstimeout" id="https_server_headerstimeout">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v11.3.0</span>
 </div>
 <ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> <strong>Default:</strong> <code>40000</code></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> <strong>Default:</strong> <code>60000</code></li>
 </ul>
 <p>See <a href="http.html#http_server_headerstimeout"><code>http.Server#headersTimeout</code></a>.</p>
-<h3>server.listen()<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/net.js#L1380">[src]</a><span><a class="mark" href="#https_server_listen" id="https_server_listen">#</a></span></h3>
+<h3><code>server.listen()</code><span><a class="mark" href="#https_server_listen" id="https_server_listen">#</a></span></h3>
 <p>Starts the HTTPS server listening for encrypted connections.
 This method is identical to <a href="net.html#net_server_listen"><code>server.listen()</code></a> from <a href="net.html#net_class_net_server"><code>net.Server</code></a>.</p>
-<h3>server.maxHeadersCount<span><a class="mark" href="#https_server_maxheaderscount" id="https_server_maxheaderscount">#</a></span></h3>
+<h3><code>server.maxHeadersCount</code><span><a class="mark" href="#https_server_maxheaderscount" id="https_server_maxheaderscount">#</a></span></h3>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> <strong>Default:</strong> <code>2000</code></li>
 </ul>
 <p>See <a href="http.html#http_server_maxheaderscount"><code>http.Server#maxHeadersCount</code></a>.</p>
-<h3>server.setTimeout([msecs][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/_http_server.js#L348">[src]</a><span><a class="mark" href="#https_server_settimeout_msecs_callback" id="https_server_settimeout_msecs_callback">#</a></span></h3>
+<h3><code>server.setTimeout([msecs][, callback])</code><span><a class="mark" href="#https_server_settimeout_msecs_callback" id="https_server_settimeout_msecs_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.2</span>
 </div>
@@ -246,15 +277,23 @@ This method is identical to <a href="net.html#net_server_listen"><code>server.li
 <li>Returns: <a href="https.html#https_class_https_server" class="type">&#x3C;https.Server></a></li>
 </ul>
 <p>See <a href="http.html#http_server_settimeout_msecs_callback"><code>http.Server#setTimeout()</code></a>.</p>
-<h3>server.timeout<span><a class="mark" href="#https_server_timeout" id="https_server_timeout">#</a></span></h3>
+<h3><code>server.timeout</code><span><a class="mark" href="#https_server_timeout" id="https_server_timeout">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.11.2</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v13.0.0</td>
+<td><p>The default timeout changed from 120s to 0 (no timeout).</p></td></tr>
+<tr><td>v0.11.2</td>
+<td><p><span>Added in: v0.11.2</span></p></td></tr>
+</tbody></table>
+</details>
 </div>
 <ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> <strong>Default:</strong> <code>120000</code> (2 minutes)</li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> <strong>Default:</strong> 0 (no timeout)</li>
 </ul>
 <p>See <a href="http.html#http_server_timeout"><code>http.Server#timeout</code></a>.</p>
-<h3>server.keepAliveTimeout<span><a class="mark" href="#https_server_keepalivetimeout" id="https_server_keepalivetimeout">#</a></span></h3>
+<h3><code>server.keepAliveTimeout</code><span><a class="mark" href="#https_server_keepalivetimeout" id="https_server_keepalivetimeout">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
 </div>
@@ -262,7 +301,7 @@ This method is identical to <a href="net.html#net_server_listen"><code>server.li
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> <strong>Default:</strong> <code>5000</code> (5 seconds)</li>
 </ul>
 <p>See <a href="http.html#http_server_keepalivetimeout"><code>http.Server#keepAliveTimeout</code></a>.</p>
-<h2>https.createServer([options][, requestListener])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/https.js#L88">[src]</a><span><a class="mark" href="#https_https_createserver_options_requestlistener" id="https_https_createserver_options_requestlistener">#</a></span></h2>
+<h2><code>https.createServer([options][, requestListener])</code><span><a class="mark" href="#https_https_createserver_options_requestlistener" id="https_https_createserver_options_requestlistener">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.3.4</span>
 </div>
@@ -272,36 +311,34 @@ This method is identical to <a href="net.html#net_server_listen"><code>server.li
 <li><code>requestListener</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> A listener to be added to the <code>'request'</code> event.</li>
 <li>Returns: <a href="https.html#https_class_https_server" class="type">&#x3C;https.Server></a></li>
 </ul>
-<pre><code class="language-js">// curl -k https://localhost:8000/
-const https = require('https');
-const fs = require('fs');
+<pre><code class="language-js"><span class="hljs-comment">// curl -k https://localhost:8000/</span>
+<span class="hljs-keyword">const</span> https = <span class="hljs-built_in">require</span>(<span class="hljs-string">'https'</span>);
+<span class="hljs-keyword">const</span> fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'fs'</span>);
 
-const options = {
-  key: fs.readFileSync('test/fixtures/keys/agent2-key.pem'),
-  cert: fs.readFileSync('test/fixtures/keys/agent2-cert.pem')
+<span class="hljs-keyword">const</span> options = {
+  <span class="hljs-attr">key</span>: fs.readFileSync(<span class="hljs-string">'test/fixtures/keys/agent2-key.pem'</span>),
+  <span class="hljs-attr">cert</span>: fs.readFileSync(<span class="hljs-string">'test/fixtures/keys/agent2-cert.pem'</span>)
 };
 
 https.createServer(options, (req, res) => {
-  res.writeHead(200);
-  res.end('hello world\n');
-}).listen(8000);
-</code></pre>
+  res.writeHead(<span class="hljs-number">200</span>);
+  res.end(<span class="hljs-string">'hello world\n'</span>);
+}).listen(<span class="hljs-number">8000</span>);</code></pre>
 <p>Or</p>
-<pre><code class="language-js">const https = require('https');
-const fs = require('fs');
+<pre><code class="language-js"><span class="hljs-keyword">const</span> https = <span class="hljs-built_in">require</span>(<span class="hljs-string">'https'</span>);
+<span class="hljs-keyword">const</span> fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'fs'</span>);
 
-const options = {
-  pfx: fs.readFileSync('test/fixtures/test_cert.pfx'),
-  passphrase: 'sample'
+<span class="hljs-keyword">const</span> options = {
+  <span class="hljs-attr">pfx</span>: fs.readFileSync(<span class="hljs-string">'test/fixtures/test_cert.pfx'</span>),
+  <span class="hljs-attr">passphrase</span>: <span class="hljs-string">'sample'</span>
 };
 
 https.createServer(options, (req, res) => {
-  res.writeHead(200);
-  res.end('hello world\n');
-}).listen(8000);
-</code></pre>
-<h2>https.get(options[, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/https.js#L312">[src]</a><span><a class="mark" href="#https_https_get_options_callback" id="https_https_get_options_callback">#</a></span></h2>
-<h2>https.get(url[, options][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/https.js#L312">[src]</a><span><a class="mark" href="#https_https_get_url_options_callback" id="https_https_get_url_options_callback">#</a></span></h2>
+  res.writeHead(<span class="hljs-number">200</span>);
+  res.end(<span class="hljs-string">'hello world\n'</span>);
+}).listen(<span class="hljs-number">8000</span>);</code></pre>
+<h2><code>https.get(options[, callback])</code><span><a class="mark" href="#https_https_get_options_callback" id="https_https_get_options_callback">#</a></span></h2>
+<h2><code>https.get(url[, options][, callback])</code><span><a class="mark" href="#https_https_get_url_options_callback" id="https_https_get_url_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -323,33 +360,34 @@ https.createServer(options, (req, res) => {
 </ul>
 <p>Like <a href="http.html#http_http_get_options_callback"><code>http.get()</code></a> but for HTTPS.</p>
 <p><code>options</code> can be an object, a string, or a <a href="url.html#url_the_whatwg_url_api"><code>URL</code></a> object. If <code>options</code> is a
-string, it is automatically parsed with <a href="url.html#url_constructor_new_url_input_base"><code>new URL()</code></a>. If it is a <a href="url.html#url_the_whatwg_url_api"><code>URL</code></a>
+string, it is automatically parsed with <a href="url.html#url_new_url_input_base"><code>new URL()</code></a>. If it is a <a href="url.html#url_the_whatwg_url_api"><code>URL</code></a>
 object, it will be automatically converted to an ordinary <code>options</code> object.</p>
-<pre><code class="language-js">const https = require('https');
+<pre><code class="language-js"><span class="hljs-keyword">const</span> https = <span class="hljs-built_in">require</span>(<span class="hljs-string">'https'</span>);
 
-https.get('https://encrypted.google.com/', (res) => {
-  console.log('statusCode:', res.statusCode);
-  console.log('headers:', res.headers);
+https.get(<span class="hljs-string">'https://encrypted.google.com/'</span>, (res) => {
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'statusCode:'</span>, res.statusCode);
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'headers:'</span>, res.headers);
 
-  res.on('data', (d) => {
+  res.on(<span class="hljs-string">'data'</span>, (d) => {
     process.stdout.write(d);
   });
 
-}).on('error', (e) => {
-  console.error(e);
-});
-</code></pre>
-<h2>https.globalAgent<span><a class="mark" href="#https_https_globalagent" id="https_https_globalagent">#</a></span></h2>
+}).on(<span class="hljs-string">'error'</span>, (e) => {
+  <span class="hljs-built_in">console</span>.error(e);
+});</code></pre>
+<h2><code>https.globalAgent</code><span><a class="mark" href="#https_https_globalagent" id="https_https_globalagent">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.5.9</span>
 </div>
 <p>Global instance of <a href="#https_class_https_agent"><code>https.Agent</code></a> for all HTTPS client requests.</p>
-<h2>https.request(options[, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/https.js#L276">[src]</a><span><a class="mark" href="#https_https_request_options_callback" id="https_https_request_options_callback">#</a></span></h2>
-<h2>https.request(url[, options][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/https.js#L276">[src]</a><span><a class="mark" href="#https_https_request_url_options_callback" id="https_https_request_url_options_callback">#</a></span></h2>
+<h2><code>https.request(options[, callback])</code><span><a class="mark" href="#https_https_request_options_callback" id="https_https_request_options_callback">#</a></span></h2>
+<h2><code>https.request(url[, options][, callback])</code><span><a class="mark" href="#https_https_request_url_options_callback" id="https_https_request_url_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v14.1.0</td>
+<td><p>The <code>highWaterMark</code> option is accepted now.</p></td></tr>
 <tr><td>v10.9.0</td>
 <td><p>The <code>url</code> parameter can now be passed along with a separate <code>options</code> object.</p></td></tr>
 <tr><td>v9.3.0</td>
@@ -378,144 +416,140 @@ https.get('https://encrypted.google.com/', (res) => {
 <p>The following additional <code>options</code> from <a href="tls.html#tls_tls_connect_options_callback"><code>tls.connect()</code></a> are also accepted:
 <code>ca</code>, <code>cert</code>, <code>ciphers</code>, <code>clientCertEngine</code>, <code>crl</code>, <code>dhparam</code>, <code>ecdhCurve</code>,
 <code>honorCipherOrder</code>, <code>key</code>, <code>passphrase</code>, <code>pfx</code>, <code>rejectUnauthorized</code>,
-<code>secureOptions</code>, <code>secureProtocol</code>, <code>servername</code>, <code>sessionIdContext</code>.</p>
+<code>secureOptions</code>, <code>secureProtocol</code>, <code>servername</code>, <code>sessionIdContext</code>,
+<code>highWaterMark</code>.</p>
 <p><code>options</code> can be an object, a string, or a <a href="url.html#url_the_whatwg_url_api"><code>URL</code></a> object. If <code>options</code> is a
-string, it is automatically parsed with <a href="url.html#url_constructor_new_url_input_base"><code>new URL()</code></a>. If it is a <a href="url.html#url_the_whatwg_url_api"><code>URL</code></a>
+string, it is automatically parsed with <a href="url.html#url_new_url_input_base"><code>new URL()</code></a>. If it is a <a href="url.html#url_the_whatwg_url_api"><code>URL</code></a>
 object, it will be automatically converted to an ordinary <code>options</code> object.</p>
-<pre><code class="language-js">const https = require('https');
+<pre><code class="language-js"><span class="hljs-keyword">const</span> https = <span class="hljs-built_in">require</span>(<span class="hljs-string">'https'</span>);
 
-const options = {
-  hostname: 'encrypted.google.com',
-  port: 443,
-  path: '/',
-  method: 'GET'
+<span class="hljs-keyword">const</span> options = {
+  <span class="hljs-attr">hostname</span>: <span class="hljs-string">'encrypted.google.com'</span>,
+  <span class="hljs-attr">port</span>: <span class="hljs-number">443</span>,
+  <span class="hljs-attr">path</span>: <span class="hljs-string">'/'</span>,
+  <span class="hljs-attr">method</span>: <span class="hljs-string">'GET'</span>
 };
 
-const req = https.request(options, (res) => {
-  console.log('statusCode:', res.statusCode);
-  console.log('headers:', res.headers);
+<span class="hljs-keyword">const</span> req = https.request(options, (res) => {
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'statusCode:'</span>, res.statusCode);
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'headers:'</span>, res.headers);
 
-  res.on('data', (d) => {
+  res.on(<span class="hljs-string">'data'</span>, (d) => {
     process.stdout.write(d);
   });
 });
 
-req.on('error', (e) => {
-  console.error(e);
+req.on(<span class="hljs-string">'error'</span>, (e) => {
+  <span class="hljs-built_in">console</span>.error(e);
 });
-req.end();
-</code></pre>
+req.end();</code></pre>
 <p>Example using options from <a href="tls.html#tls_tls_connect_options_callback"><code>tls.connect()</code></a>:</p>
-<pre><code class="language-js">const options = {
-  hostname: 'encrypted.google.com',
-  port: 443,
-  path: '/',
-  method: 'GET',
-  key: fs.readFileSync('test/fixtures/keys/agent2-key.pem'),
-  cert: fs.readFileSync('test/fixtures/keys/agent2-cert.pem')
+<pre><code class="language-js"><span class="hljs-keyword">const</span> options = {
+  <span class="hljs-attr">hostname</span>: <span class="hljs-string">'encrypted.google.com'</span>,
+  <span class="hljs-attr">port</span>: <span class="hljs-number">443</span>,
+  <span class="hljs-attr">path</span>: <span class="hljs-string">'/'</span>,
+  <span class="hljs-attr">method</span>: <span class="hljs-string">'GET'</span>,
+  <span class="hljs-attr">key</span>: fs.readFileSync(<span class="hljs-string">'test/fixtures/keys/agent2-key.pem'</span>),
+  <span class="hljs-attr">cert</span>: fs.readFileSync(<span class="hljs-string">'test/fixtures/keys/agent2-cert.pem'</span>)
 };
-options.agent = new https.Agent(options);
+options.agent = <span class="hljs-keyword">new</span> https.Agent(options);
 
-const req = https.request(options, (res) => {
-  // ...
-});
-</code></pre>
+<span class="hljs-keyword">const</span> req = https.request(options, (res) => {
+  <span class="hljs-comment">// ...</span>
+});</code></pre>
 <p>Alternatively, opt out of connection pooling by not using an <a href="#https_class_https_agent"><code>Agent</code></a>.</p>
-<pre><code class="language-js">const options = {
-  hostname: 'encrypted.google.com',
-  port: 443,
-  path: '/',
-  method: 'GET',
-  key: fs.readFileSync('test/fixtures/keys/agent2-key.pem'),
-  cert: fs.readFileSync('test/fixtures/keys/agent2-cert.pem'),
-  agent: false
+<pre><code class="language-js"><span class="hljs-keyword">const</span> options = {
+  <span class="hljs-attr">hostname</span>: <span class="hljs-string">'encrypted.google.com'</span>,
+  <span class="hljs-attr">port</span>: <span class="hljs-number">443</span>,
+  <span class="hljs-attr">path</span>: <span class="hljs-string">'/'</span>,
+  <span class="hljs-attr">method</span>: <span class="hljs-string">'GET'</span>,
+  <span class="hljs-attr">key</span>: fs.readFileSync(<span class="hljs-string">'test/fixtures/keys/agent2-key.pem'</span>),
+  <span class="hljs-attr">cert</span>: fs.readFileSync(<span class="hljs-string">'test/fixtures/keys/agent2-cert.pem'</span>),
+  <span class="hljs-attr">agent</span>: <span class="hljs-literal">false</span>
 };
 
-const req = https.request(options, (res) => {
-  // ...
-});
-</code></pre>
+<span class="hljs-keyword">const</span> req = https.request(options, (res) => {
+  <span class="hljs-comment">// ...</span>
+});</code></pre>
 <p>Example using a <a href="url.html#url_the_whatwg_url_api"><code>URL</code></a> as <code>options</code>:</p>
-<pre><code class="language-js">const options = new URL('https://abc:xyz@example.com');
+<pre><code class="language-js"><span class="hljs-keyword">const</span> options = <span class="hljs-keyword">new</span> URL(<span class="hljs-string">'https://abc:xyz@example.com'</span>);
 
-const req = https.request(options, (res) => {
-  // ...
-});
-</code></pre>
+<span class="hljs-keyword">const</span> req = https.request(options, (res) => {
+  <span class="hljs-comment">// ...</span>
+});</code></pre>
 <p>Example pinning on certificate fingerprint, or the public key (similar to
 <code>pin-sha256</code>):</p>
-<pre><code class="language-js">const tls = require('tls');
-const https = require('https');
-const crypto = require('crypto');
+<pre><code class="language-js"><span class="hljs-keyword">const</span> tls = <span class="hljs-built_in">require</span>(<span class="hljs-string">'tls'</span>);
+<span class="hljs-keyword">const</span> https = <span class="hljs-built_in">require</span>(<span class="hljs-string">'https'</span>);
+<span class="hljs-keyword">const</span> crypto = <span class="hljs-built_in">require</span>(<span class="hljs-string">'crypto'</span>);
 
-function sha256(s) {
-  return crypto.createHash('sha256').update(s).digest('base64');
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">sha256</span>(<span class="hljs-params">s</span>) </span>{
+  <span class="hljs-keyword">return</span> crypto.createHash(<span class="hljs-string">'sha256'</span>).update(s).digest(<span class="hljs-string">'base64'</span>);
 }
-const options = {
-  hostname: 'github.com',
-  port: 443,
-  path: '/',
-  method: 'GET',
-  checkServerIdentity: function(host, cert) {
-    // Make sure the certificate is issued to the host we are connected to
-    const err = tls.checkServerIdentity(host, cert);
-    if (err) {
-      return err;
+<span class="hljs-keyword">const</span> options = {
+  <span class="hljs-attr">hostname</span>: <span class="hljs-string">'github.com'</span>,
+  <span class="hljs-attr">port</span>: <span class="hljs-number">443</span>,
+  <span class="hljs-attr">path</span>: <span class="hljs-string">'/'</span>,
+  <span class="hljs-attr">method</span>: <span class="hljs-string">'GET'</span>,
+  <span class="hljs-attr">checkServerIdentity</span>: <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">host, cert</span>) </span>{
+    <span class="hljs-comment">// Make sure the certificate is issued to the host we are connected to</span>
+    <span class="hljs-keyword">const</span> err = tls.checkServerIdentity(host, cert);
+    <span class="hljs-keyword">if</span> (err) {
+      <span class="hljs-keyword">return</span> err;
     }
 
-    // Pin the public key, similar to HPKP pin-sha25 pinning
-    const pubkey256 = 'pL1+qb9HTMRZJmuC/bB/ZI9d302BYrrqiVuRyW+DGrU=';
-    if (sha256(cert.pubkey) !== pubkey256) {
-      const msg = 'Certificate verification error: ' +
-        `The public key of '${cert.subject.CN}' ` +
-        'does not match our pinned fingerprint';
-      return new Error(msg);
+    <span class="hljs-comment">// Pin the public key, similar to HPKP pin-sha25 pinning</span>
+    <span class="hljs-keyword">const</span> pubkey256 = <span class="hljs-string">'pL1+qb9HTMRZJmuC/bB/ZI9d302BYrrqiVuRyW+DGrU='</span>;
+    <span class="hljs-keyword">if</span> (sha256(cert.pubkey) !== pubkey256) {
+      <span class="hljs-keyword">const</span> msg = <span class="hljs-string">'Certificate verification error: '</span> +
+        <span class="hljs-string">`The public key of '<span class="hljs-subst">${cert.subject.CN}</span>' `</span> +
+        <span class="hljs-string">'does not match our pinned fingerprint'</span>;
+      <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(msg);
     }
 
-    // Pin the exact certificate, rather then the pub key
-    const cert256 = '25:FE:39:32:D9:63:8C:8A:FC:A1:9A:29:87:' +
-      'D8:3E:4C:1D:98:DB:71:E4:1A:48:03:98:EA:22:6A:BD:8B:93:16';
-    if (cert.fingerprint256 !== cert256) {
-      const msg = 'Certificate verification error: ' +
-        `The certificate of '${cert.subject.CN}' ` +
-        'does not match our pinned fingerprint';
-      return new Error(msg);
+    <span class="hljs-comment">// Pin the exact certificate, rather than the pub key</span>
+    <span class="hljs-keyword">const</span> cert256 = <span class="hljs-string">'25:FE:39:32:D9:63:8C:8A:FC:A1:9A:29:87:'</span> +
+      <span class="hljs-string">'D8:3E:4C:1D:98:DB:71:E4:1A:48:03:98:EA:22:6A:BD:8B:93:16'</span>;
+    <span class="hljs-keyword">if</span> (cert.fingerprint256 !== cert256) {
+      <span class="hljs-keyword">const</span> msg = <span class="hljs-string">'Certificate verification error: '</span> +
+        <span class="hljs-string">`The certificate of '<span class="hljs-subst">${cert.subject.CN}</span>' `</span> +
+        <span class="hljs-string">'does not match our pinned fingerprint'</span>;
+      <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(msg);
     }
 
-    // This loop is informational only.
-    // Print the certificate and public key fingerprints of all certs in the
-    // chain. Its common to pin the public key of the issuer on the public
-    // internet, while pinning the public key of the service in sensitive
-    // environments.
-    do {
-      console.log('Subject Common Name:', cert.subject.CN);
-      console.log('  Certificate SHA256 fingerprint:', cert.fingerprint256);
+    <span class="hljs-comment">// This loop is informational only.</span>
+    <span class="hljs-comment">// Print the certificate and public key fingerprints of all certs in the</span>
+    <span class="hljs-comment">// chain. Its common to pin the public key of the issuer on the public</span>
+    <span class="hljs-comment">// internet, while pinning the public key of the service in sensitive</span>
+    <span class="hljs-comment">// environments.</span>
+    <span class="hljs-keyword">do</span> {
+      <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'Subject Common Name:'</span>, cert.subject.CN);
+      <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'  Certificate SHA256 fingerprint:'</span>, cert.fingerprint256);
 
-      hash = crypto.createHash('sha256');
-      console.log('  Public key ping-sha256:', sha256(cert.pubkey));
+      hash = crypto.createHash(<span class="hljs-string">'sha256'</span>);
+      <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'  Public key ping-sha256:'</span>, sha256(cert.pubkey));
 
       lastprint256 = cert.fingerprint256;
       cert = cert.issuerCertificate;
-    } while (cert.fingerprint256 !== lastprint256);
+    } <span class="hljs-keyword">while</span> (cert.fingerprint256 !== lastprint256);
 
   },
 };
 
-options.agent = new https.Agent(options);
-const req = https.request(options, (res) => {
-  console.log('All OK. Server matched our pinned cert or public key');
-  console.log('statusCode:', res.statusCode);
-  // Print the HPKP values
-  console.log('headers:', res.headers['public-key-pins']);
+options.agent = <span class="hljs-keyword">new</span> https.Agent(options);
+<span class="hljs-keyword">const</span> req = https.request(options, (res) => {
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'All OK. Server matched our pinned cert or public key'</span>);
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'statusCode:'</span>, res.statusCode);
+  <span class="hljs-comment">// Print the HPKP values</span>
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'headers:'</span>, res.headers[<span class="hljs-string">'public-key-pins'</span>]);
 
-  res.on('data', (d) => {});
+  res.on(<span class="hljs-string">'data'</span>, (d) => {});
 });
 
-req.on('error', (e) => {
-  console.error(e.message);
+req.on(<span class="hljs-string">'error'</span>, (e) => {
+  <span class="hljs-built_in">console</span>.error(e.message);
 });
-req.end();
-</code></pre>
+req.end();</code></pre>
 <p>Outputs for example:</p>
 <pre><code class="language-text">Subject Common Name: github.com
   Certificate SHA256 fingerprint: 25:FE:39:32:D9:63:8C:8A:FC:A1:9A:29:87:D8:3E:4C:1D:98:DB:71:E4:1A:48:03:98:EA:22:6A:BD:8B:93:16
@@ -528,13 +562,10 @@ Subject Common Name: DigiCert High Assurance EV Root CA
   Public key ping-sha256: WoiWRyIOVNa9ihaBciRSC7XHjliYS9VwUGOIud4PB18=
 All OK. Server matched our pinned cert or public key
 statusCode: 200
-headers: max-age=0; pin-sha256="WoiWRyIOVNa9ihaBciRSC7XHjliYS9VwUGOIud4PB18="; pin-sha256="RRM1dGqnDFsCJXBTHky16vi1obOlCgFFn/yOhI/y+ho="; pin-sha256="k2v657xBsOVe1PQRwOsHsw3bsGT2VzIqz5K+59sNQws="; pin-sha256="K87oWBWM9UZfyddvDfoxL+8lpNyoUB2ptGtn0fv6G2Q="; pin-sha256="IQBnNBEiFuhj+8x6X8XLgh01V9Ic5/V3IRQLNFFc7v4="; pin-sha256="iie1VXtL7HzAMF+/PVPR9xzT80kQxdZeJ+zduCB3uj0="; pin-sha256="LvRiGEjRqfzurezaWuj8Wie2gyHMrW5Q06LspMnox7A="; includeSubDomains
-</code></pre>
+headers: max-age=0; pin-sha256="WoiWRyIOVNa9ihaBciRSC7XHjliYS9VwUGOIud4PB18="; pin-sha256="RRM1dGqnDFsCJXBTHky16vi1obOlCgFFn/yOhI/y+ho="; pin-sha256="k2v657xBsOVe1PQRwOsHsw3bsGT2VzIqz5K+59sNQws="; pin-sha256="K87oWBWM9UZfyddvDfoxL+8lpNyoUB2ptGtn0fv6G2Q="; pin-sha256="IQBnNBEiFuhj+8x6X8XLgh01V9Ic5/V3IRQLNFFc7v4="; pin-sha256="iie1VXtL7HzAMF+/PVPR9xzT80kQxdZeJ+zduCB3uj0="; pin-sha256="LvRiGEjRqfzurezaWuj8Wie2gyHMrW5Q06LspMnox7A="; includeSubDomains</code></pre>
+        <!-- API END -->
       </div>
     </div>
   </div>
-  <script src="assets/sh_main.js"></script>
-  <script src="assets/sh_javascript.min.js"></script>
-  <script>highlight(undefined, undefined, 'pre');</script>
 </body>
 </html>

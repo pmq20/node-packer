@@ -8,10 +8,12 @@
 #include "env-inl.h"
 #include "node.h"
 #include "node_metadata.h"
+#include "node_platform.h"
 #include "node_options.h"
 #include "tracing/node_trace_writer.h"
 #include "tracing/trace_event.h"
 #include "tracing/traced_value.h"
+#include "util.h"
 
 namespace node {
 
@@ -21,12 +23,12 @@ class NodeTraceStateObserver
     : public v8::TracingController::TraceStateObserver {
  public:
   inline void OnTraceEnabled() override {
-    char name_buffer[512];
-    if (uv_get_process_title(name_buffer, sizeof(name_buffer)) == 0) {
+    std::string title = GetProcessTitle("");
+    if (!title.empty()) {
       // Only emit the metadata event if the title can be retrieved
       // successfully. Ignore it otherwise.
       TRACE_EVENT_METADATA1(
-          "__metadata", "process_name", "name", TRACE_STR_COPY(name_buffer));
+          "__metadata", "process_name", "name", TRACE_STR_COPY(title.c_str()));
     }
     TRACE_EVENT_METADATA1("__metadata",
                           "version",
@@ -79,8 +81,12 @@ class NodeTraceStateObserver
 };
 
 struct V8Platform {
+  bool initialized_ = false;
+
 #if NODE_USE_V8_PLATFORM
   inline void Initialize(int thread_pool_size) {
+    CHECK(!initialized_);
+    initialized_ = true;
     tracing_agent_ = std::make_unique<tracing::Agent>();
     node::tracing::TraceEventHelper::SetAgent(tracing_agent_.get());
     node::tracing::TracingController* controller =
@@ -99,6 +105,10 @@ struct V8Platform {
   }
 
   inline void Dispose() {
+    if (!initialized_)
+      return;
+    initialized_ = false;
+
     StopTracingAgent();
     platform_->Shutdown();
     delete platform_;
@@ -111,10 +121,6 @@ struct V8Platform {
 
   inline void DrainVMTasks(v8::Isolate* isolate) {
     platform_->DrainTasks(isolate);
-  }
-
-  inline void CancelVMTasks(v8::Isolate* isolate) {
-    platform_->CancelPendingDelayedTasks(isolate);
   }
 
   inline void StartTracingAgent() {
@@ -150,7 +156,6 @@ struct V8Platform {
   inline void Initialize(int thread_pool_size) {}
   inline void Dispose() {}
   inline void DrainVMTasks(v8::Isolate* isolate) {}
-  inline void CancelVMTasks(v8::Isolate* isolate) {}
   inline void StartTracingAgent() {
     if (!per_process::cli_options->trace_event_categories.empty()) {
       fprintf(stderr,

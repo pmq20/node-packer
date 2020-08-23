@@ -31,13 +31,10 @@ const bench = common.createBenchmark(main, {
   argument: ['true', 'false-primitive', 'false-object'],
   n: [1e5]
 }, {
-  flags: ['--expose-internals']
+  flags: ['--expose-internals', '--no-warnings']
 });
 
 function main({ type, argument, version, n }) {
-  // For testing, if supplied with an empty type, default to ArrayBufferView.
-  type = type || 'ArrayBufferView';
-
   const util = common.binding('util');
   const types = require('internal/util/types');
 

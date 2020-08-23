@@ -9,9 +9,9 @@ const bench = common.createBenchmark(main, {
 });
 
 function runSwapManual(n) {
-  var x, y, r;
+  let x, y, r;
   bench.start();
-  for (var i = 0; i < n; i++) {
+  for (let i = 0; i < n; i++) {
     x = 1, y = 2;
     r = x;
     x = y;
@@ -23,9 +23,9 @@ function runSwapManual(n) {
 }
 
 function runSwapDestructured(n) {
-  var x, y;
+  let x, y;
   bench.start();
-  for (var i = 0; i < n; i++) {
+  for (let i = 0; i < n; i++) {
     x = 1, y = 2;
     [x, y] = [y, x];
     assert.strictEqual(x, 2);
@@ -36,8 +36,6 @@ function runSwapDestructured(n) {
 
 function main({ n, method }) {
   switch (method) {
-    case '':
-      // Empty string falls through to next line as default, mostly for tests.
     case 'swap':
       runSwapManual(n);
       break;

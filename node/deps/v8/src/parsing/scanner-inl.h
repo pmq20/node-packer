@@ -8,6 +8,7 @@
 #include "src/parsing/keywords-gen.h"
 #include "src/parsing/scanner.h"
 #include "src/strings/char-predicates-inl.h"
+#include "src/utils/utils.h"
 
 namespace v8 {
 namespace internal {
@@ -354,7 +355,6 @@ V8_INLINE Token::Value Scanner::ScanSingleToken() {
         case Token::RBRACE:
         case Token::LBRACK:
         case Token::RBRACK:
-        case Token::CONDITIONAL:
         case Token::COLON:
         case Token::SEMICOLON:
         case Token::COMMA:
@@ -362,6 +362,18 @@ V8_INLINE Token::Value Scanner::ScanSingleToken() {
         case Token::ILLEGAL:
           // One character tokens.
           return Select(token);
+
+        case Token::CONDITIONAL:
+          // ? ?. ?? ??=
+          Advance();
+          if (c0_ == '.') {
+            Advance();
+            if (!IsDecimalDigit(c0_)) return Token::QUESTION_PERIOD;
+            PushBack('.');
+          } else if (c0_ == '?') {
+            return Select('=', Token::ASSIGN_NULLISH, Token::NULLISH);
+          }
+          return Token::CONDITIONAL;
 
         case Token::STRING:
           return ScanString();
@@ -459,16 +471,16 @@ V8_INLINE Token::Value Scanner::ScanSingleToken() {
           return Token::DIV;
 
         case Token::BIT_AND:
-          // & && &=
+          // & && &= &&=
           Advance();
-          if (c0_ == '&') return Select(Token::AND);
+          if (c0_ == '&') return Select('=', Token::ASSIGN_AND, Token::AND);
           if (c0_ == '=') return Select(Token::ASSIGN_BIT_AND);
           return Token::BIT_AND;
 
         case Token::BIT_OR:
-          // | || |=
+          // | || |= ||=
           Advance();
-          if (c0_ == '|') return Select(Token::OR);
+          if (c0_ == '|') return Select('=', Token::ASSIGN_OR, Token::OR);
           if (c0_ == '=') return Select(Token::ASSIGN_BIT_OR);
           return Token::BIT_OR;
 
@@ -494,6 +506,10 @@ V8_INLINE Token::Value Scanner::ScanSingleToken() {
           return ScanTemplateSpan();
 
         case Token::PRIVATE_NAME:
+          if (source_pos() == 0 && Peek() == '!') {
+            token = SkipSingleLineComment();
+            continue;
+          }
           return ScanPrivateName();
 
         case Token::WHITESPACE:

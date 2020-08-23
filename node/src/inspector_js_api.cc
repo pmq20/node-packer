@@ -12,7 +12,6 @@ namespace node {
 namespace inspector {
 namespace {
 
-using v8::Boolean;
 using v8::Context;
 using v8::Function;
 using v8::FunctionCallbackInfo;
@@ -84,7 +83,7 @@ class JSBindingsConnection : public AsyncWrap {
 
    private:
     Environment* env_;
-    JSBindingsConnection* connection_;
+    BaseObjectPtr<JSBindingsConnection> connection_;
   };
 
   JSBindingsConnection(Environment* env,
@@ -105,7 +104,8 @@ class JSBindingsConnection : public AsyncWrap {
     Local<String> class_name = ConnectionType::GetClassName(env);
     Local<FunctionTemplate> tmpl =
         env->NewFunctionTemplate(JSBindingsConnection::New);
-    tmpl->InstanceTemplate()->SetInternalFieldCount(1);
+    tmpl->InstanceTemplate()->SetInternalFieldCount(
+        JSBindingsConnection::kInternalFieldCount);
     tmpl->SetClassName(class_name);
     tmpl->Inherit(AsyncWrap::GetConstructorTemplate(env));
     env->SetProtoMethod(tmpl, "dispatch", JSBindingsConnection::Dispatch);
@@ -278,12 +278,14 @@ void Open(const FunctionCallbackInfo<Value>& args) {
 
   if (args.Length() > 0 && args[0]->IsUint32()) {
     uint32_t port = args[0].As<Uint32>()->Value();
-    agent->host_port()->set_port(static_cast<int>(port));
+    ExclusiveAccess<HostPort>::Scoped host_port(agent->host_port());
+    host_port->set_port(static_cast<int>(port));
   }
 
   if (args.Length() > 1 && args[1]->IsString()) {
     Utf8Value host(env->isolate(), args[1].As<String>());
-    agent->host_port()->set_host(*host);
+    ExclusiveAccess<HostPort>::Scoped host_port(agent->host_port());
+    host_port->set_host(*host);
   }
 
   agent->StartIoThread();

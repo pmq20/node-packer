@@ -13,6 +13,7 @@ const bench = common.createBenchmark(main, {
   type: ['utf', 'asc', 'buf'],
   dur: [5]
 }, {
+  test: { len: 1024 },
   flags: [ '--expose-internals', '--no-warnings' ]
 });
 
@@ -26,7 +27,7 @@ function main({ dur, len, type }) {
   const PORT = common.PORT;
 
   const serverHandle = new TCP(TCPConstants.SERVER);
-  var err = serverHandle.bind('127.0.0.1', PORT);
+  let err = serverHandle.bind('127.0.0.1', PORT);
   if (err)
     fail(err, 'bind');
 
@@ -38,7 +39,7 @@ function main({ dur, len, type }) {
     if (err)
       fail(err, 'connect');
 
-    var chunk;
+    let chunk;
     switch (type) {
       case 'buf':
         chunk = Buffer.alloc(len, 'x');
@@ -62,7 +63,7 @@ function main({ dur, len, type }) {
       const writeReq = new WriteWrap();
       writeReq.async = false;
       writeReq.oncomplete = afterWrite;
-      var err;
+      let err;
       switch (type) {
         case 'buf':
           err = clientHandle.writeBuffer(writeReq, chunk);
@@ -108,7 +109,7 @@ function main({ dur, len, type }) {
       fail(err, 'connect');
 
     connectReq.oncomplete = function() {
-      var bytes = 0;
+      let bytes = 0;
       clientHandle.onread = function(buffer) {
         // We're not expecting to ever get an EOF from the client.
         // Just lots of data forever.

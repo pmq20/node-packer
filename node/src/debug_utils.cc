@@ -1,14 +1,18 @@
-#define NODE_WANT_INTERNALS 1
-#include "debug_utils.h"
+#include "debug_utils-inl.h"  // NOLINT(build/include)
 #include "env-inl.h"
-#include "util-inl.h"
+#include "node_internals.h"
 
 #ifdef __POSIX__
 #if defined(__linux__)
 #include <features.h>
 #endif
 
-#if defined(__linux__) && !defined(__GLIBC__) || defined(__UCLIBC__) ||        \
+#ifdef __ANDROID__
+#include <android/log.h>
+#endif
+
+#if defined(__linux__) && !defined(__GLIBC__) || \
+    defined(__UCLIBC__) || \
     defined(_AIX)
 #define HAVE_EXECINFO_H 0
 #else
@@ -19,18 +23,18 @@
 #include <cxxabi.h>
 #include <dlfcn.h>
 #include <execinfo.h>
-#include <sys/mman.h>
 #include <unistd.h>
+#include <sys/mman.h>
 #include <cstdio>
 #endif
 
 #endif  // __POSIX__
 
-#if defined(__linux__) || defined(__sun) || defined(__FreeBSD__) ||            \
-    defined(__OpenBSD__)
+#if defined(__linux__) || defined(__sun) || \
+    defined(__FreeBSD__) || defined(__OpenBSD__) || \
+    defined(__DragonFly__)
 #include <link.h>
-#endif  // (__linux__) || defined(__sun) ||
-        // (__FreeBSD__) || defined(__OpenBSD__)
+#endif
 
 #ifdef __APPLE__
 #include <mach-o/dyld.h>  // _dyld_get_image_name()
@@ -50,18 +54,50 @@
 #endif  // _WIN32
 
 namespace node {
+namespace per_process {
+EnabledDebugList enabled_debug_list;
+}
+
+void EnabledDebugList::Parse(Environment* env) {
+  std::string cats;
+  credentials::SafeGetenv("NODE_DEBUG_NATIVE", &cats, env);
+  Parse(cats, true);
+}
+
+void EnabledDebugList::Parse(const std::string& cats, bool enabled) {
+  std::string debug_categories = cats;
+  while (!debug_categories.empty()) {
+    std::string::size_type comma_pos = debug_categories.find(',');
+    std::string wanted = ToLower(debug_categories.substr(0, comma_pos));
+
+#define V(name)                                                                \
+  {                                                                            \
+    static const std::string available_category = ToLower(#name);              \
+    if (available_category.find(wanted) != std::string::npos)                  \
+      set_enabled(DebugCategory::name, enabled);                               \
+  }
+
+    DEBUG_CATEGORY_NAMES(V)
+#undef V
+
+    if (comma_pos == std::string::npos) break;
+    // Use everything after the `,` as the list for the next iteration.
+    debug_categories = debug_categories.substr(comma_pos + 1);
+  }
+}
 
 #ifdef __POSIX__
 #if HAVE_EXECINFO_H
 class PosixSymbolDebuggingContext final : public NativeSymbolDebuggingContext {
  public:
-  PosixSymbolDebuggingContext() : pagesize_(getpagesize()) {}
+  PosixSymbolDebuggingContext() : pagesize_(getpagesize()) { }
 
   SymbolInfo LookupSymbol(void* address) override {
     Dl_info info;
     const bool have_info = dladdr(address, &info);
     SymbolInfo ret;
-    if (!have_info) return ret;
+    if (!have_info)
+      return ret;
 
     if (info.dli_sname != nullptr) {
       if (char* demangled =
@@ -96,16 +132,14 @@ class PosixSymbolDebuggingContext final : public NativeSymbolDebuggingContext {
 
 std::unique_ptr<NativeSymbolDebuggingContext>
 NativeSymbolDebuggingContext::New() {
-  return std::unique_ptr<NativeSymbolDebuggingContext>(
-      new PosixSymbolDebuggingContext());
+  return std::make_unique<PosixSymbolDebuggingContext>();
 }
 
 #else  // HAVE_EXECINFO_H
 
 std::unique_ptr<NativeSymbolDebuggingContext>
 NativeSymbolDebuggingContext::New() {
-  return std::unique_ptr<NativeSymbolDebuggingContext>(
-      new NativeSymbolDebuggingContext());
+  return std::make_unique<NativeSymbolDebuggingContext>();
 }
 
 #endif  // HAVE_EXECINFO_H
@@ -119,12 +153,13 @@ class Win32SymbolDebuggingContext final : public NativeSymbolDebuggingContext {
     USE(SymInitialize(current_process_, nullptr, true));
   }
 
-  ~Win32SymbolDebuggingContext() override { USE(SymCleanup(current_process_)); }
+  ~Win32SymbolDebuggingContext() override {
+    USE(SymCleanup(current_process_));
+  }
 
   using NameAndDisplacement = std::pair<std::string, DWORD64>;
   NameAndDisplacement WrappedSymFromAddr(DWORD64 dwAddress) const {
-    // Refs:
-    // https://docs.microsoft.com/en-us/windows/desktop/Debug/retrieving-symbol-information-by-address
+    // Refs: https://docs.microsoft.com/en-us/windows/desktop/Debug/retrieving-symbol-information-by-address
     // Patches:
     // Use `fprintf(stderr, ` instead of `printf`
     // `sym.filename = pSymbol->Name` on success
@@ -156,8 +191,7 @@ class Win32SymbolDebuggingContext final : public NativeSymbolDebuggingContext {
   SymbolInfo WrappedGetLine(DWORD64 dwAddress) const {
     SymbolInfo sym{};
 
-    // Refs:
-    // https://docs.microsoft.com/en-us/windows/desktop/Debug/retrieving-symbol-information-by-address
+    // Refs: https://docs.microsoft.com/en-us/windows/desktop/Debug/retrieving-symbol-information-by-address
     // Patches:
     // Use `fprintf(stderr, ` instead of `printf`.
     // Assign values to `sym` on success.
@@ -172,8 +206,8 @@ class Win32SymbolDebuggingContext final : public NativeSymbolDebuggingContext {
     line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
     // Patch: made into arg - dwAddress = 0x1000000;
 
-    if (SymGetLineFromAddr64(
-            current_process_, dwAddress, &dwDisplacement, &line)) {
+    if (SymGetLineFromAddr64(current_process_, dwAddress,
+                             &dwDisplacement, &line)) {
       // SymGetLineFromAddr64 returned success
       sym.filename = line.FileName;
       sym.line = line.LineNumber;
@@ -191,14 +225,13 @@ class Win32SymbolDebuggingContext final : public NativeSymbolDebuggingContext {
 
   // Fills the SymbolInfo::name of the io/out argument `sym`
   std::string WrappedUnDecorateSymbolName(const char* name) const {
-    // Refs:
-    // https://docs.microsoft.com/en-us/windows/desktop/Debug/retrieving-undecorated-symbol-names
+    // Refs: https://docs.microsoft.com/en-us/windows/desktop/Debug/retrieving-undecorated-symbol-names
     // Patches:
     // Use `fprintf(stderr, ` instead of `printf`.
     // return `szUndName` instead of `printf` on success
     char szUndName[MAX_SYM_NAME];
-    if (UnDecorateSymbolName(
-            name, szUndName, sizeof(szUndName), UNDNAME_COMPLETE)) {
+    if (UnDecorateSymbolName(name, szUndName, sizeof(szUndName),
+                             UNDNAME_COMPLETE)) {
       // UnDecorateSymbolName returned success
       return szUndName;
     } else {
@@ -236,9 +269,10 @@ class Win32SymbolDebuggingContext final : public NativeSymbolDebuggingContext {
 
   Win32SymbolDebuggingContext(const Win32SymbolDebuggingContext&) = delete;
   Win32SymbolDebuggingContext(Win32SymbolDebuggingContext&&) = delete;
-  Win32SymbolDebuggingContext operator=(const Win32SymbolDebuggingContext&) =
-      delete;
-  Win32SymbolDebuggingContext operator=(Win32SymbolDebuggingContext&&) = delete;
+  Win32SymbolDebuggingContext operator=(const Win32SymbolDebuggingContext&)
+    = delete;
+  Win32SymbolDebuggingContext operator=(Win32SymbolDebuggingContext&&)
+    = delete;
 
  private:
   HANDLE current_process_;
@@ -292,59 +326,53 @@ void PrintLibuvHandleInformation(uv_loop_t* loop, FILE* stream) {
   struct Info {
     std::unique_ptr<NativeSymbolDebuggingContext> ctx;
     FILE* stream;
+    size_t num_handles;
   };
 
-  Info info{NativeSymbolDebuggingContext::New(), stream};
+  Info info { NativeSymbolDebuggingContext::New(), stream, 0 };
 
-  fprintf(stream,
-          "uv loop at [%p] has %d active handles\n",
-          loop,
-          loop->active_handles);
+  fprintf(stream, "uv loop at [%p] has open handles:\n", loop);
 
-  uv_walk(loop,
-          [](uv_handle_t* handle, void* arg) {
-            Info* info = static_cast<Info*>(arg);
-            NativeSymbolDebuggingContext* sym_ctx = info->ctx.get();
-            FILE* stream = info->stream;
+  uv_walk(loop, [](uv_handle_t* handle, void* arg) {
+    Info* info = static_cast<Info*>(arg);
+    NativeSymbolDebuggingContext* sym_ctx = info->ctx.get();
+    FILE* stream = info->stream;
+    info->num_handles++;
 
-            fprintf(
-                stream, "[%p] %s\n", handle, uv_handle_type_name(handle->type));
+    fprintf(stream, "[%p] %s%s\n", handle, uv_handle_type_name(handle->type),
+            uv_is_active(handle) ? " (active)" : "");
 
-            void* close_cb = reinterpret_cast<void*>(handle->close_cb);
-            fprintf(stream,
-                    "\tClose callback: %p %s\n",
-                    close_cb,
-                    sym_ctx->LookupSymbol(close_cb).Display().c_str());
+    void* close_cb = reinterpret_cast<void*>(handle->close_cb);
+    fprintf(stream, "\tClose callback: %p %s\n",
+        close_cb, sym_ctx->LookupSymbol(close_cb).Display().c_str());
 
-            fprintf(stream,
-                    "\tData: %p %s\n",
-                    handle->data,
-                    sym_ctx->LookupSymbol(handle->data).Display().c_str());
+    fprintf(stream, "\tData: %p %s\n",
+        handle->data, sym_ctx->LookupSymbol(handle->data).Display().c_str());
 
-            // We are also interested in the first field of what `handle->data`
-            // points to, because for C++ code that is usually the virtual table
-            // pointer and gives us information about the exact kind of object
-            // we're looking at.
-            void* first_field = nullptr;
-            // `handle->data` might be any value, including `nullptr`, or
-            // something cast from a completely different type; therefore, check
-            // that it’s dereferencable first.
-            if (sym_ctx->IsMapped(handle->data))
-              first_field = *reinterpret_cast<void**>(handle->data);
+    // We are also interested in the first field of what `handle->data`
+    // points to, because for C++ code that is usually the virtual table pointer
+    // and gives us information about the exact kind of object we're looking at.
+    void* first_field = nullptr;
+    // `handle->data` might be any value, including `nullptr`, or something
+    // cast from a completely different type; therefore, check that it’s
+    // dereferencable first.
+    if (sym_ctx->IsMapped(handle->data))
+      first_field = *reinterpret_cast<void**>(handle->data);
 
-            if (first_field != nullptr) {
-              fprintf(stream,
-                      "\t(First field): %p %s\n",
-                      first_field,
-                      sym_ctx->LookupSymbol(first_field).Display().c_str());
-            }
-          },
-          &info);
+    if (first_field != nullptr) {
+      fprintf(stream, "\t(First field): %p %s\n",
+          first_field, sym_ctx->LookupSymbol(first_field).Display().c_str());
+    }
+  }, &info);
+
+  fprintf(stream, "uv loop at [%p] has %zu open handles in total\n",
+          loop, info.num_handles);
 }
 
 std::vector<std::string> NativeSymbolDebuggingContext::GetLoadedLibraries() {
   std::vector<std::string> list;
-#if defined(__linux__) || defined(__FreeBSD__) || defined(__OpenBSD__)
+#if defined(__linux__) || defined(__FreeBSD__) || \
+    defined(__OpenBSD__) || defined(__DragonFly__)
   dl_iterate_phdr(
       [](struct dl_phdr_info* info, size_t size, void* data) {
         auto list = static_cast<std::vector<std::string>*>(data);
@@ -379,8 +407,8 @@ std::vector<std::string> NativeSymbolDebuggingContext::GetLoadedLibraries() {
     do {
       std::ostringstream str;
       cur_info = reinterpret_cast<ld_info*>(buf);
-      char* member_name =
-          cur_info->ldinfo_filename + strlen(cur_info->ldinfo_filename) + 1;
+      char* member_name = cur_info->ldinfo_filename +
+          strlen(cur_info->ldinfo_filename) + 1;
       if (*member_name != '\0') {
         str << cur_info->ldinfo_filename << "(" << member_name << ")";
         list.push_back(str.str());
@@ -402,10 +430,8 @@ std::vector<std::string> NativeSymbolDebuggingContext::GetLoadedLibraries() {
 
 #elif _WIN32
   // Windows implementation - get a handle to the process.
-  HANDLE process_handle =
-      OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,
-                  FALSE,
-                  GetCurrentProcessId());
+  HANDLE process_handle = OpenProcess(PROCESS_QUERY_INFORMATION|PROCESS_VM_READ,
+                                      FALSE, GetCurrentProcessId());
   if (process_handle == nullptr) {
     // Cannot proceed, return an empty list.
     return list;
@@ -443,6 +469,44 @@ std::vector<std::string> NativeSymbolDebuggingContext::GetLoadedLibraries() {
   CloseHandle(process_handle);
 #endif
   return list;
+}
+
+void FWrite(FILE* file, const std::string& str) {
+  auto simple_fwrite = [&]() {
+    // The return value is ignored because there's no good way to handle it.
+    fwrite(str.data(), str.size(), 1, file);
+  };
+
+  if (file != stderr && file != stdout) {
+    simple_fwrite();
+    return;
+  }
+#ifdef _WIN32
+  HANDLE handle =
+      GetStdHandle(file == stdout ? STD_OUTPUT_HANDLE : STD_ERROR_HANDLE);
+
+  // Check if stderr is something other than a tty/console
+  if (handle == INVALID_HANDLE_VALUE || handle == nullptr ||
+      uv_guess_handle(_fileno(file)) != UV_TTY) {
+    simple_fwrite();
+    return;
+  }
+
+  // Get required wide buffer size
+  int n = MultiByteToWideChar(CP_UTF8, 0, str.data(), str.size(), nullptr, 0);
+
+  std::vector<wchar_t> wbuf(n);
+  MultiByteToWideChar(CP_UTF8, 0, str.data(), str.size(), wbuf.data(), n);
+
+  WriteConsoleW(handle, wbuf.data(), n, nullptr, nullptr);
+  return;
+#elif defined(__ANDROID__)
+  if (file == stderr) {
+    __android_log_print(ANDROID_LOG_ERROR, "nodejs", "%s", str.data());
+    return;
+  }
+#endif
+  simple_fwrite();
 }
 
 }  // namespace node

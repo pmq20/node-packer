@@ -74,6 +74,7 @@ class V8_EXPORT_PRIVATE BasicBlock final
   BasicBlock* PredecessorAt(size_t index) { return predecessors_[index]; }
   void ClearPredecessors() { predecessors_.clear(); }
   void AddPredecessor(BasicBlock* predecessor);
+  void RemovePredecessor(size_t index);
 
   // Successors.
   BasicBlockVector& successors() { return successors_; }
@@ -114,6 +115,11 @@ class V8_EXPORT_PRIVATE BasicBlock final
     nodes_.insert(insertion_point, insertion_start, insertion_end);
   }
 
+  // Trim basic block to end at {new_end}.
+  void TrimNodes(iterator new_end);
+
+  void ResetRPOInfo();
+
   // Accessors.
   Control control() const { return control_; }
   void set_control(Control control);
@@ -147,6 +153,8 @@ class V8_EXPORT_PRIVATE BasicBlock final
 
   int32_t rpo_number() const { return rpo_number_; }
   void set_rpo_number(int32_t rpo_number);
+
+  NodeVector* nodes() { return &nodes_; }
 
   // Loop membership helpers.
   inline bool IsLoopHeader() const { return loop_end_ != nullptr; }
@@ -200,6 +208,7 @@ class V8_EXPORT_PRIVATE Schedule final : public NON_EXPORTED_BASE(ZoneObject) {
 
   bool IsScheduled(Node* node);
   BasicBlock* GetBlockById(BasicBlock::Id block_id);
+  void ClearBlockById(BasicBlock::Id block_id);
 
   size_t BasicBlockCount() const { return all_blocks_.size(); }
   size_t RpoBlockCount() const { return rpo_order_.size(); }
@@ -267,6 +276,7 @@ class V8_EXPORT_PRIVATE Schedule final : public NON_EXPORTED_BASE(ZoneObject) {
   Zone* zone() const { return zone_; }
 
  private:
+  friend class GraphAssembler;
   friend class Scheduler;
   friend class BasicBlockInstrumentor;
   friend class RawMachineAssembler;
@@ -280,8 +290,6 @@ class V8_EXPORT_PRIVATE Schedule final : public NON_EXPORTED_BASE(ZoneObject) {
   void EliminateRedundantPhiNodes();
   // Ensure split-edge form for a hand-assembled schedule.
   void EnsureSplitEdgeForm(BasicBlock* block);
-  // Ensure entry into a deferred block happens from a single hot block.
-  void EnsureDeferredCodeSingleEntryPoint(BasicBlock* block);
   // Move Phi operands to newly created merger blocks
   void MovePhis(BasicBlock* from, BasicBlock* to);
   // Copy deferred block markers down as far as possible

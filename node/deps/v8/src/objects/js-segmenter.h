@@ -12,6 +12,7 @@
 #include <set>
 #include <string>
 
+#include "src/base/bit-field.h"
 #include "src/execution/isolate.h"
 #include "src/heap/factory.h"
 #include "src/objects/managed.h"
@@ -28,7 +29,7 @@ class BreakIterator;
 namespace v8 {
 namespace internal {
 
-class JSSegmenter : public JSObject {
+class JSSegmenter : public TorqueGeneratedJSSegmenter<JSSegmenter, JSObject> {
  public:
   // Creates segmenter object with properties derived from input locales and
   // options.
@@ -43,11 +44,7 @@ class JSSegmenter : public JSObject {
 
   Handle<String> GranularityAsString() const;
 
-  DECL_CAST(JSSegmenter)
-
   // Segmenter accessors.
-  DECL_ACCESSORS(locale, String)
-
   DECL_ACCESSORS(icu_break_iterator, Managed<icu::BreakIterator>)
 
   // Granularity: identifying the segmenter used.
@@ -61,29 +58,16 @@ class JSSegmenter : public JSObject {
   inline void set_granularity(Granularity granularity);
   inline Granularity granularity() const;
 
-// Bit positions in |flags|.
-#define FLAGS_BIT_FIELDS(V, _) V(GranularityBits, Granularity, 2, _)
-  DEFINE_BIT_FIELDS(FLAGS_BIT_FIELDS)
-#undef FLAGS_BIT_FIELDS
+  // Bit positions in |flags|.
+  DEFINE_TORQUE_GENERATED_JS_SEGMENTER_FLAGS()
 
   STATIC_ASSERT(Granularity::GRAPHEME <= GranularityBits::kMax);
   STATIC_ASSERT(Granularity::WORD <= GranularityBits::kMax);
   STATIC_ASSERT(Granularity::SENTENCE <= GranularityBits::kMax);
 
-  // [flags] Bit field containing various flags about the function.
-  DECL_INT_ACCESSORS(flags)
-
   DECL_PRINTER(JSSegmenter)
-  DECL_VERIFIER(JSSegmenter)
 
-  // Layout description.
-  DEFINE_FIELD_OFFSET_CONSTANTS(JSObject::kHeaderSize,
-                                TORQUE_GENERATED_JSSEGMENTER_FIELDS)
-
- private:
-  static Granularity GetGranularity(const char* str);
-
-  OBJECT_CONSTRUCTORS(JSSegmenter, JSObject);
+  TQ_OBJECT_CONSTRUCTORS(JSSegmenter)
 };
 
 }  // namespace internal

@@ -11,7 +11,6 @@
 namespace node {
 
 using errors::TryCatchScope;
-using v8::Array;
 using v8::Context;
 using v8::Function;
 using v8::FunctionCallbackInfo;
@@ -21,7 +20,6 @@ using v8::kPromiseRejectAfterResolved;
 using v8::kPromiseRejectWithNoHandler;
 using v8::kPromiseResolveAfterResolved;
 using v8::Local;
-using v8::Message;
 using v8::MicrotasksScope;
 using v8::Number;
 using v8::Object;
@@ -39,20 +37,6 @@ static void EnqueueMicrotask(const FunctionCallbackInfo<Value>& args) {
   CHECK(args[0]->IsFunction());
 
   isolate->EnqueueMicrotask(args[0].As<Function>());
-}
-
-// Should be in sync with runNextTicks in internal/process/task_queues.js
-bool RunNextTicksNative(Environment* env) {
-  TickInfo* tick_info = env->tick_info();
-  if (!tick_info->has_tick_scheduled() && !tick_info->has_rejection_to_warn())
-    MicrotasksScope::PerformCheckpoint(env->isolate());
-  if (!tick_info->has_tick_scheduled() && !tick_info->has_rejection_to_warn())
-    return true;
-
-  Local<Function> callback = env->tick_callback_function();
-  CHECK(!callback.IsEmpty());
-  return !callback->Call(env->context(), env->process_object(), 0, nullptr)
-              .IsEmpty();
 }
 
 static void RunMicrotasks(const FunctionCallbackInfo<Value>& args) {

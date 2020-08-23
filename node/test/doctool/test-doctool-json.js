@@ -69,7 +69,7 @@ const testData = [
           textRaw: 'Subsection',
           name: 'subsection',
           classMethods: [{
-            textRaw: 'Class Method: Buffer.from(array)',
+            textRaw: 'Static method: Buffer.from(array)',
             type: 'classMethod',
             name: 'from',
             signatures: [
@@ -154,6 +154,74 @@ const testData = [
           ],
           type: 'module',
           displayName: 'Sample Markdown with YAML info'
+        }
+      ]
+    }
+  },
+  {
+    file: fixtures.path('doc_with_backticks_in_headings.md'),
+    json: {
+      type: 'module',
+      source: 'foo',
+      modules: [
+        {
+          textRaw: 'Fhqwhgads',
+          name: 'fhqwhgads',
+          properties: [
+            {
+              name: 'fullName',
+              textRaw: '`Fqhqwhgads.fullName`'
+            }
+          ],
+          classMethods: [
+            {
+              name: 'again',
+              signatures: [
+                {
+                  params: []
+                }
+              ],
+              textRaw: 'Static method: `Fhqwhgads.again()`',
+              type: 'classMethod'
+            }
+          ],
+          classes: [
+            {
+              textRaw: 'Class: `ComeOn`',
+              type: 'class',
+              name: 'ComeOn'
+            }
+          ],
+          ctors: [
+            {
+              name: 'Fhqwhgads',
+              signatures: [
+                {
+                  params: []
+                }
+              ],
+              textRaw: 'Constructor: `new Fhqwhgads()`',
+              type: 'ctor'
+            }
+          ],
+          methods: [
+            {
+              textRaw: '`everybody.to(limit)`',
+              type: 'method',
+              name: 'to',
+              signatures: [{ params: [] }]
+            }
+          ],
+          events: [
+            {
+              textRaw: "Event: `'FHQWHfest'`",
+              type: 'event',
+              name: 'FHQWHfest',
+              params: []
+            }
+          ],
+          type: 'module',
+          displayName: 'Fhqwhgads'
         }
       ]
     }

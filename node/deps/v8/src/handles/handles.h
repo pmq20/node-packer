@@ -21,12 +21,15 @@ namespace internal {
 class DeferredHandles;
 class HandleScopeImplementer;
 class Isolate;
+class LocalHeap;
+class OffThreadIsolate;
 template <typename T>
 class MaybeHandle;
 class Object;
 class OrderedHashMap;
 class OrderedHashSet;
 class OrderedNameDictionary;
+class RootVisitor;
 class SmallOrderedHashMap;
 class SmallOrderedHashSet;
 class SmallOrderedNameDictionary;
@@ -38,14 +41,13 @@ class HandleBase {
  public:
   V8_INLINE explicit HandleBase(Address* location) : location_(location) {}
   V8_INLINE explicit HandleBase(Address object, Isolate* isolate);
+  V8_INLINE explicit HandleBase(Address object, OffThreadIsolate* isolate);
+  V8_INLINE explicit HandleBase(Address object, LocalHeap* local_heap);
 
   // Check if this handle refers to the exact same object as the other handle.
   V8_INLINE bool is_identical_to(const HandleBase that) const {
-    // Dereferencing deferred handles to check object equality is safe.
-    SLOW_DCHECK((this->location_ == nullptr ||
-                 this->IsDereferenceAllowed(NO_DEFERRED_CHECK)) &&
-                (that.location_ == nullptr ||
-                 that.IsDereferenceAllowed(NO_DEFERRED_CHECK)));
+    SLOW_DCHECK((this->location_ == nullptr || this->IsDereferenceAllowed()) &&
+                (that.location_ == nullptr || that.IsDereferenceAllowed()));
     if (this->location_ == that.location_) return true;
     if (this->location_ == nullptr || that.location_ == nullptr) return false;
     return *this->location_ == *that.location_;
@@ -59,20 +61,16 @@ class HandleBase {
 
   // Returns the address to where the raw pointer is stored.
   V8_INLINE Address* location() const {
-    SLOW_DCHECK(location_ == nullptr ||
-                IsDereferenceAllowed(INCLUDE_DEFERRED_CHECK));
+    SLOW_DCHECK(location_ == nullptr || IsDereferenceAllowed());
     return location_;
   }
 
  protected:
-  enum DereferenceCheckMode { INCLUDE_DEFERRED_CHECK, NO_DEFERRED_CHECK };
 #ifdef DEBUG
-  bool V8_EXPORT_PRIVATE IsDereferenceAllowed(DereferenceCheckMode mode) const;
+  bool V8_EXPORT_PRIVATE IsDereferenceAllowed() const;
 #else
   V8_INLINE
-  bool V8_EXPORT_PRIVATE IsDereferenceAllowed(DereferenceCheckMode mode) const {
-    return true;
-  }
+  bool V8_EXPORT_PRIVATE IsDereferenceAllowed() const { return true; }
 #endif  // DEBUG
 
   // This uses type Address* as opposed to a pointer type to a typed
@@ -105,7 +103,7 @@ class Handle final : public HandleBase {
     T* operator->() { return &object_; }
 
    private:
-    friend class Handle;
+    friend class Handle<T>;
     explicit ObjectRef(T object) : object_(object) {}
 
     T object_;
@@ -125,6 +123,8 @@ class Handle final : public HandleBase {
   }
 
   V8_INLINE Handle(T object, Isolate* isolate);
+  V8_INLINE Handle(T object, OffThreadIsolate* isolate);
+  V8_INLINE Handle(T object, LocalHeap* local_heap);
 
   // Allocate a new handle for the object, do not canonicalize.
   V8_INLINE static Handle<T> New(T object, Isolate* isolate);
@@ -133,6 +133,7 @@ class Handle final : public HandleBase {
   // Ex. Handle<JSFunction> can be passed when Handle<Object> is expected.
   template <typename S, typename = typename std::enable_if<
                             std::is_convertible<S*, T*>::value>::type>
+  // NOLINTNEXTLINE
   V8_INLINE Handle(Handle<S> handle) : HandleBase(handle) {}
 
   V8_INLINE ObjectRef operator->() const { return ObjectRef{**this}; }
@@ -140,14 +141,14 @@ class Handle final : public HandleBase {
   V8_INLINE T operator*() const {
     // unchecked_cast because we rather trust Handle<T> to contain a T than
     // include all the respective -inl.h headers for SLOW_DCHECKs.
-    SLOW_DCHECK(IsDereferenceAllowed(INCLUDE_DEFERRED_CHECK));
+    SLOW_DCHECK(IsDereferenceAllowed());
     return T::unchecked_cast(Object(*location()));
   }
 
   template <typename S>
   inline static const Handle<T> cast(Handle<S> that);
 
-  // TODO(yangguo): Values that contain empty handles should be declared as
+  // Consider declaring values that contain empty handles as
   // MaybeHandle to force validation before being used as handles.
   static const Handle<T> null() { return Handle<T>(); }
 
@@ -318,7 +319,7 @@ class V8_EXPORT_PRIVATE DeferredHandleScope final {
   // The DeferredHandles object returned stores the Handles created
   // since the creation of this DeferredHandleScope.  The Handles are
   // alive as long as the DeferredHandles object is alive.
-  DeferredHandles* Detach();
+  std::unique_ptr<DeferredHandles> Detach();
   ~DeferredHandleScope();
 
  private:
@@ -364,6 +365,16 @@ struct HandleScopeData final {
     sealed_level = level = 0;
     canonical_scope = nullptr;
   }
+};
+
+class OffThreadHandleScope {
+ public:
+  // Off-thread Handles are allocated in the parse/compile zone, and not
+  // cleared out, so the scope doesn't have to do anything
+  explicit OffThreadHandleScope(OffThreadIsolate* isolate) {}
+
+  template <typename T>
+  inline Handle<T> CloseAndEscape(Handle<T> handle_value);
 };
 
 }  // namespace internal

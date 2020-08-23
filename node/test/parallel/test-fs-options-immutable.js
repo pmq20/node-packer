@@ -46,7 +46,7 @@ if (common.canCreateSymLink()) {
   fs.appendFile(fileName, 'ABCD', options, common.mustCall(errHandler));
 }
 
-{
+if (!common.isIBMi) { // IBMi does not suppport fs.watch()
   const watch = fs.watch(__filename, options, common.mustNotCall());
   watch.close();
 }
@@ -70,6 +70,6 @@ if (common.canCreateSymLink()) {
 {
   const fileName = path.resolve(tmpdir.path, 'streams');
   fs.WriteStream(fileName, options).once('open', common.mustCall(() => {
-    fs.ReadStream(fileName, options);
-  }));
+    fs.ReadStream(fileName, options).destroy();
+  })).end();
 }

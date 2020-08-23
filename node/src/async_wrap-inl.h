@@ -50,20 +50,6 @@ inline double AsyncWrap::get_trigger_async_id() const {
 }
 
 
-inline AsyncWrap::AsyncScope::AsyncScope(AsyncWrap* wrap)
-    : wrap_(wrap) {
-  Environment* env = wrap->env();
-  if (env->async_hooks()->fields()[AsyncHooks::kBefore] == 0) return;
-  EmitBefore(env, wrap->get_async_id());
-}
-
-inline AsyncWrap::AsyncScope::~AsyncScope() {
-  Environment* env = wrap_->env();
-  if (env->async_hooks()->fields()[AsyncHooks::kAfter] == 0) return;
-  EmitAfter(env, wrap_->get_async_id());
-}
-
-
 inline v8::MaybeLocal<v8::Value> AsyncWrap::MakeCallback(
     const v8::Local<v8::String> symbol,
     int argc,
@@ -88,9 +74,8 @@ inline v8::MaybeLocal<v8::Value> AsyncWrap::MakeCallback(
   if (!object()->Get(env()->context(), symbol).ToLocal(&cb_v))
     return v8::MaybeLocal<v8::Value>();
   if (!cb_v->IsFunction()) {
-    // TODO(addaleax): We should throw an error here to fulfill the
-    // `MaybeLocal<>` API contract.
-    return v8::MaybeLocal<v8::Value>();
+    v8::Isolate* isolate = env()->isolate();
+    return Undefined(isolate);
   }
   return MakeCallback(cb_v.As<v8::Function>(), argc, argv);
 }

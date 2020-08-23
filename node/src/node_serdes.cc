@@ -206,8 +206,7 @@ void SerializerContext::ReleaseBuffer(const FunctionCallbackInfo<Value>& args) {
   std::pair<uint8_t*, size_t> ret = ctx->serializer_.Release();
   auto buf = Buffer::New(ctx->env(),
                          reinterpret_cast<char*>(ret.first),
-                         ret.second,
-                         true /* uses_malloc */);
+                         ret.second);
 
   if (!buf.IsEmpty()) {
     args.GetReturnValue().Set(buf.ToLocalChecked());
@@ -286,7 +285,6 @@ DeserializerContext::DeserializerContext(Environment* env,
     length_(Buffer::Length(buffer)),
     deserializer_(env->isolate(), data_, length_, this) {
   object()->Set(env->context(), env->buffer_string(), buffer).Check();
-  deserializer_.SetExpectInlineWasm(true);
 
   MakeWeak();
 }
@@ -451,7 +449,9 @@ void Initialize(Local<Object> target,
   Local<FunctionTemplate> ser =
       env->NewFunctionTemplate(SerializerContext::New);
 
-  ser->InstanceTemplate()->SetInternalFieldCount(1);
+  ser->InstanceTemplate()->SetInternalFieldCount(
+      SerializerContext::kInternalFieldCount);
+  ser->Inherit(BaseObject::GetConstructorTemplate(env));
 
   env->SetProtoMethod(ser, "writeHeader", SerializerContext::WriteHeader);
   env->SetProtoMethod(ser, "writeValue", SerializerContext::WriteValue);
@@ -477,7 +477,9 @@ void Initialize(Local<Object> target,
   Local<FunctionTemplate> des =
       env->NewFunctionTemplate(DeserializerContext::New);
 
-  des->InstanceTemplate()->SetInternalFieldCount(1);
+  des->InstanceTemplate()->SetInternalFieldCount(
+      DeserializerContext::kInternalFieldCount);
+  des->Inherit(BaseObject::GetConstructorTemplate(env));
 
   env->SetProtoMethod(des, "readHeader", DeserializerContext::ReadHeader);
   env->SetProtoMethod(des, "readValue", DeserializerContext::ReadValue);

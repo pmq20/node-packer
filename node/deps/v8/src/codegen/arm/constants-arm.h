@@ -295,15 +295,16 @@ enum LFlag {
 // Neon sizes.
 enum NeonSize { Neon8 = 0x0, Neon16 = 0x1, Neon32 = 0x2, Neon64 = 0x3 };
 
-// NEON data type
+// NEON data type, top bit set for unsigned data types.
 enum NeonDataType {
   NeonS8 = 0,
   NeonS16 = 1,
   NeonS32 = 2,
-  // Gap to make it easier to extract U and size.
+  NeonS64 = 3,
   NeonU8 = 4,
   NeonU16 = 5,
-  NeonU32 = 6
+  NeonU32 = 6,
+  NeonU64 = 7
 };
 
 inline int NeonU(NeonDataType dt) { return static_cast<int>(dt) >> 2; }
@@ -456,23 +457,6 @@ class Instruction {
   // Read a bit field <hi:lo>, leaving its position unchanged in the result.
   inline int BitField(int hi, int lo) const {
     return InstructionBits() & (((2 << (hi - lo)) - 1) << lo);
-  }
-
-  // Static support.
-
-  // Extract a single bit from the instruction bits and return it as bit 0 in
-  // the result.
-  static inline int Bit(Instr instr, int nr) { return (instr >> nr) & 1; }
-
-  // Extract a bit field <hi:lo> from the instruction bits and return it in the
-  // least-significant bits of the result.
-  static inline int Bits(Instr instr, int hi, int lo) {
-    return (instr >> lo) & ((2 << (hi - lo)) - 1);
-  }
-
-  // Read a bit field <hi:lo>, leaving its position unchanged in the result.
-  static inline int BitField(Instr instr, int hi, int lo) {
-    return instr & (((2 << (hi - lo)) - 1) << lo);
   }
 
   // Accessors for the different named fields used in the ARM encoding.

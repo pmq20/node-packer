@@ -66,7 +66,7 @@ void DateCache::ResetDateCache(
 // ECMA 262 - ES#sec-timeclip TimeClip (time)
 double DateCache::TimeClip(double time) {
   if (-kMaxTimeInMs <= time && time <= kMaxTimeInMs) {
-    return DoubleToInteger(time) + 0.0;
+    return DoubleToInteger(time);
   }
   return std::numeric_limits<double>::quiet_NaN();
 }
@@ -128,8 +128,8 @@ void DateCache::YearMonthDayFromDays(int days, int* year, int* month,
   days += is_leap;
 
   // Check if the date is after February.
-  if (days >= 31 + 28 + BoolToInt(is_leap)) {
-    days -= 31 + 28 + BoolToInt(is_leap);
+  if (days >= 31 + 28 + (is_leap ? 1 : 0)) {
+    days -= 31 + 28 + (is_leap ? 1 : 0);
     // Find the date starting from March.
     for (int i = 2; i < 12; i++) {
       if (days < kDaysInMonths[i]) {

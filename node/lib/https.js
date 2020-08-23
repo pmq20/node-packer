@@ -21,7 +21,10 @@
 
 'use strict';
 
-const { Object } = primordials;
+const {
+  ObjectAssign,
+  ObjectSetPrototypeOf,
+} = primordials;
 
 require('internal/util').assertCrypto();
 
@@ -34,14 +37,12 @@ const {
   kServerResponse
 } = require('_http_server');
 const { ClientRequest } = require('_http_client');
-const debug = require('internal/util/debuglog').debuglog('https');
+let debug = require('internal/util/debuglog').debuglog('https', (fn) => {
+  debug = fn;
+});
 const { URL, urlToOptions, searchParamsSymbol } = require('internal/url');
 const { IncomingMessage, ServerResponse } = require('http');
 const { kIncomingMessage } = require('_http_common');
-const { getOptionValue } = require('internal/options');
-
-const kDefaultHttpServerTimeout =
-  getOptionValue('--http-server-default-timeout');
 
 function Server(opts, requestListener) {
   if (!(this instanceof Server)) return new Server(opts, requestListener);
@@ -54,7 +55,7 @@ function Server(opts, requestListener) {
 
   if (!opts.ALPNProtocols) {
     // http/1.0 is not defined as Protocol IDs in IANA
-    // http://www.iana.org/assignments/tls-extensiontype-values
+    // https://www.iana.org/assignments/tls-extensiontype-values
     //       /tls-extensiontype-values.xhtml#alpn-protocol-ids
     opts.ALPNProtocols = ['http/1.1'];
   }
@@ -75,13 +76,13 @@ function Server(opts, requestListener) {
       conn.destroy(err);
   });
 
-  this.timeout = kDefaultHttpServerTimeout;
+  this.timeout = 0;
   this.keepAliveTimeout = 5000;
   this.maxHeadersCount = null;
-  this.headersTimeout = 40 * 1000; // 40 seconds
+  this.headersTimeout = 60 * 1000; // 60 seconds
 }
-Object.setPrototypeOf(Server.prototype, tls.Server.prototype);
-Object.setPrototypeOf(Server, tls.Server);
+ObjectSetPrototypeOf(Server.prototype, tls.Server.prototype);
+ObjectSetPrototypeOf(Server, tls.Server);
 
 Server.prototype.setTimeout = HttpServer.prototype.setTimeout;
 
@@ -96,9 +97,11 @@ function createConnection(port, host, options) {
   if (port !== null && typeof port === 'object') {
     options = port;
   } else if (host !== null && typeof host === 'object') {
-    options = host;
+    options = { ...host };
   } else if (options === null || typeof options !== 'object') {
     options = {};
+  } else {
+    options = { ...options };
   }
 
   if (typeof port === 'number') {
@@ -157,12 +160,12 @@ function Agent(options) {
     list: []
   };
 }
-Object.setPrototypeOf(Agent.prototype, HttpAgent.prototype);
-Object.setPrototypeOf(Agent, HttpAgent);
+ObjectSetPrototypeOf(Agent.prototype, HttpAgent.prototype);
+ObjectSetPrototypeOf(Agent, HttpAgent);
 Agent.prototype.createConnection = createConnection;
 
 Agent.prototype.getName = function getName(options) {
-  var name = HttpAgent.prototype.getName.call(this, options);
+  let name = HttpAgent.prototype.getName.call(this, options);
 
   name += ':';
   if (options.ca)
@@ -300,7 +303,7 @@ function request(...args) {
   }
 
   if (args[0] && typeof args[0] !== 'function') {
-    Object.assign(options, args.shift());
+    ObjectAssign(options, args.shift());
   }
 
   options._defaultAgent = module.exports.globalAgent;

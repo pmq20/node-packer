@@ -1,26 +1,30 @@
 'use strict';
 
-const { Object, SafeMap } = primordials;
+const {
+  ObjectDefineProperty,
+  ObjectPrototypeHasOwnProperty,
+  SafeMap,
+} = primordials;
 const {
   ERR_MANIFEST_DEPENDENCY_MISSING,
   ERR_UNKNOWN_BUILTIN_MODULE
 } = require('internal/errors').codes;
 const { NativeModule } = require('internal/bootstrap/loaders');
-const { getOptionValue } = require('internal/options');
-const experimentalModules = getOptionValue('--experimental-modules');
 
 const { validateString } = require('internal/validators');
 const path = require('path');
 const { pathToFileURL, fileURLToPath } = require('internal/url');
 const { URL } = require('url');
 
-const debug = require('internal/util/debuglog').debuglog('module');
+let debug = require('internal/util/debuglog').debuglog('module', (fn) => {
+  debug = fn;
+});
 
-function loadNativeModule(filename, request, experimentalModules) {
+function loadNativeModule(filename, request) {
   const mod = NativeModule.map.get(filename);
   if (mod) {
     debug('load native module %s', request);
-    mod.compileForPublicLoader(experimentalModules);
+    mod.compileForPublicLoader();
     return mod;
   }
 }
@@ -45,10 +49,7 @@ function makeRequireFunction(mod, redirects) {
         const href = destination.href;
         if (destination.protocol === 'node:') {
           const specifier = destination.pathname;
-          const mod = loadNativeModule(
-            specifier,
-            href,
-            experimentalModules);
+          const mod = loadNativeModule(specifier, href);
           if (mod && mod.canBeRequiredByUsers) {
             return mod.exports;
           }
@@ -111,42 +112,17 @@ function stripBOM(content) {
   return content;
 }
 
-/**
- * Find end of shebang line and slice it off
- */
-function stripShebang(content) {
-  // Remove shebang
-  if (content.charAt(0) === '#' && content.charAt(1) === '!') {
-    // Find end of shebang line and slice it off
-    let index = content.indexOf('\n', 2);
-    if (index === -1)
-      return '';
-    if (content.charAt(index - 1) === '\r')
-      index--;
-    // Note that this actually includes the newline character(s) in the
-    // new output. This duplicates the behavior of the regular expression
-    // that was previously used to replace the shebang line.
-    content = content.slice(index);
-  }
-  return content;
-}
-
-const builtinLibs = [
-  'assert', 'async_hooks', 'buffer', 'child_process', 'cluster', 'crypto',
-  'dgram', 'dns', 'domain', 'events', 'fs', 'http', 'http2', 'https', 'net',
-  'os', 'path', 'perf_hooks', 'punycode', 'querystring', 'readline', 'repl',
-  'stream', 'string_decoder', 'tls', 'trace_events', 'tty', 'url', 'util',
-  'v8', 'vm', 'worker_threads', 'zlib'
-];
-
-if (typeof internalBinding('inspector').open === 'function') {
-  builtinLibs.push('inspector');
-  builtinLibs.sort();
-}
-
 function addBuiltinLibsToObject(object) {
   // Make built-in modules available directly (loaded lazily).
-  builtinLibs.forEach((name) => {
+  const { builtinModules } = require('internal/modules/cjs/loader').Module;
+  builtinModules.forEach((name) => {
+    // Neither add underscored modules, nor ones that contain slashes (e.g.,
+    // 'fs/promises') or ones that are already defined.
+    if (name.startsWith('_') ||
+        name.includes('/') ||
+        ObjectPrototypeHasOwnProperty(object, name)) {
+      return;
+    }
     // Goals of this mechanism are:
     // - Lazy loading of built-in modules
     // - Having all built-in modules available as non-enumerable properties
@@ -160,14 +136,14 @@ function addBuiltinLibsToObject(object) {
       object[name] = val;
     };
 
-    Object.defineProperty(object, name, {
+    ObjectDefineProperty(object, name, {
       get: () => {
         const lib = require(name);
 
         // Disable the current getter/setter and set up a new
         // non-enumerable property.
         delete object[name];
-        Object.defineProperty(object, name, {
+        ObjectDefineProperty(object, name, {
           get: () => lib,
           set: setReal,
           configurable: true,
@@ -192,10 +168,8 @@ function normalizeReferrerURL(referrer) {
 
 module.exports = {
   addBuiltinLibsToObject,
-  builtinLibs,
   loadNativeModule,
   makeRequireFunction,
   normalizeReferrerURL,
   stripBOM,
-  stripShebang
 };

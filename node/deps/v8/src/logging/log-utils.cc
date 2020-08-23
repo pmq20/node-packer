@@ -75,8 +75,7 @@ FILE* Log::Close() {
   }
   output_handle_ = nullptr;
 
-  DeleteArray(format_buffer_);
-  format_buffer_ = nullptr;
+  format_buffer_.reset();
 
   is_stopped_ = false;
   return result;
@@ -84,7 +83,7 @@ FILE* Log::Close() {
 
 Log::MessageBuilder::MessageBuilder(Log* log)
     : log_(log), lock_guard_(&log_->mutex_) {
-  DCHECK_NOT_NULL(log_->format_buffer_);
+  DCHECK_NOT_NULL(log_->format_buffer_.get());
 }
 
 void Log::MessageBuilder::AppendString(String str,
@@ -158,9 +157,9 @@ void Log::MessageBuilder::AppendSymbolName(Symbol symbol) {
   DCHECK(!symbol.is_null());
   OFStream& os = log_->os_;
   os << "symbol(";
-  if (!symbol.name().IsUndefined()) {
+  if (!symbol.description().IsUndefined()) {
     os << "\"";
-    AppendSymbolNameDetails(String::cast(symbol.name()), false);
+    AppendSymbolNameDetails(String::cast(symbol.description()), false);
     os << "\" ";
   }
   os << "hash " << std::hex << symbol.Hash() << std::dec << ")";
@@ -185,7 +184,7 @@ void Log::MessageBuilder::AppendSymbolNameDetails(String str,
 
 int Log::MessageBuilder::FormatStringIntoBuffer(const char* format,
                                                 va_list args) {
-  Vector<char> buf(log_->format_buffer_, Log::kMessageBufferSize);
+  Vector<char> buf(log_->format_buffer_.get(), Log::kMessageBufferSize);
   int length = v8::internal::VSNPrintF(buf, format, args);
   // |length| is -1 if output was truncated.
   if (length == -1) length = Log::kMessageBufferSize;

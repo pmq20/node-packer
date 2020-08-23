@@ -1,14 +1,17 @@
 'use strict';
 
-const { JSON } = primordials;
+const {
+  JSONStringify,
+} = primordials;
 
 const path = require('path');
 
 const {
   codes: {
     ERR_INVALID_ARG_TYPE,
-    ERR_UNCAUGHT_EXCEPTION_CAPTURE_ALREADY_SET
-  }
+    ERR_UNCAUGHT_EXCEPTION_CAPTURE_ALREADY_SET,
+    ERR_EVAL_ESM_CANNOT_PRINT,
+  },
 } = require('internal/errors');
 
 const {
@@ -36,25 +39,24 @@ function tryGetCwd() {
 }
 
 function evalModule(source, print) {
-  const { log, error } = require('internal/console/global');
-  const { decorateErrorStack } = require('internal/util');
-  const asyncESM = require('internal/process/esm_loader');
-  asyncESM.loaderPromise.then(async (loader) => {
+  if (print) {
+    throw new ERR_EVAL_ESM_CANNOT_PRINT();
+  }
+  const { log } = require('internal/console/global');
+  const { loadESM } = require('internal/process/esm_loader');
+  const { handleMainPromise } = require('internal/modules/run_main');
+  handleMainPromise(loadESM(async (loader) => {
     const { result } = await loader.eval(source);
     if (print) {
       log(result);
     }
-  })
-  .catch((e) => {
-    decorateErrorStack(e);
-    error(e);
-    process.exit(1);
-  });
+  }));
 }
 
 function evalScript(name, body, breakFirstLine, print) {
-  const CJSModule = require('internal/modules/cjs/loader');
+  const CJSModule = require('internal/modules/cjs/loader').Module;
   const { kVmBreakFirstLineSymbol } = require('internal/util');
+  const { pathToFileURL } = require('url');
 
   const cwd = tryGetCwd();
   const origModule = global.module;  // Set e.g. when called from the REPL.
@@ -62,20 +64,30 @@ function evalScript(name, body, breakFirstLine, print) {
   const module = new CJSModule(name);
   module.filename = path.join(cwd, name);
   module.paths = CJSModule._nodeModulePaths(cwd);
+
   global.kVmBreakFirstLineSymbol = kVmBreakFirstLineSymbol;
+  global.asyncESM = require('internal/process/esm_loader');
+
+  const baseUrl = pathToFileURL(module.filename).href;
+
   const script = `
-    global.__filename = ${JSON.stringify(name)};
+    global.__filename = ${JSONStringify(name)};
     global.exports = exports;
     global.module = module;
     global.__dirname = __dirname;
     global.require = require;
-    const { kVmBreakFirstLineSymbol } = global;
+    const { kVmBreakFirstLineSymbol, asyncESM } = global;
     delete global.kVmBreakFirstLineSymbol;
+    delete global.asyncESM;
     return require("vm").runInThisContext(
-      ${JSON.stringify(body)}, {
-        filename: ${JSON.stringify(name)},
+      ${JSONStringify(body)}, {
+        filename: ${JSONStringify(name)},
         displayErrors: true,
-        [kVmBreakFirstLineSymbol]: ${!!breakFirstLine}
+        [kVmBreakFirstLineSymbol]: ${!!breakFirstLine},
+        async importModuleDynamically (specifier) {
+          const loader = await asyncESM.ESMLoader;
+          return loader.import(specifier, ${JSONStringify(baseUrl)});
+        }
       });\n`;
   const result = module._compile(script, `${name}-wrapper`);
   if (print) {
@@ -139,12 +151,13 @@ function createOnGlobalUncaughtException() {
           report.writeReport(er ? er.message : 'Exception',
                              'Exception',
                              null,
-                             er ? er.stack : undefined);
+                             er ? er : {});
         }
       } catch {}  // Ignore the exception. Diagnostic reporting is unavailable.
     }
 
     const type = fromPromise ? 'unhandledRejection' : 'uncaughtException';
+    process.emit('uncaughtExceptionMonitor', er, type);
     if (exceptionHandlerState.captureFn !== null) {
       exceptionHandlerState.captureFn(er);
     } else if (!process.emit('uncaughtException', er, type)) {
@@ -171,10 +184,10 @@ function createOnGlobalUncaughtException() {
       do {
         emitAfter(executionAsyncId());
       } while (hasAsyncIdStack());
-    // Or completely empty the id stack.
-    } else {
-      clearAsyncIdStack();
     }
+    // And completely empty the id stack, including anything that may be
+    // cached on the native side.
+    clearAsyncIdStack();
 
     return true;
   };

@@ -11,7 +11,6 @@
 #include "src/base/platform/mutex.h"
 #include "src/base/platform/platform.h"
 #include "src/base/platform/time.h"
-#include "src/base/template-utils.h"
 #include "src/base/utils/random-number-generator.h"
 #include "src/d8/d8-platforms.h"
 
@@ -44,29 +43,22 @@ class PredictablePlatform : public Platform {
   int NumberOfWorkerThreads() override { return 0; }
 
   void CallOnWorkerThread(std::unique_ptr<Task> task) override {
-    // It's not defined when background tasks are being executed, so we can just
-    // execute them right away.
-    task->Run();
+    // We post worker tasks on the foreground task runner of the
+    // {kProcessGlobalPredictablePlatformWorkerTaskQueue} isolate. The task
+    // queue of the {kProcessGlobalPredictablePlatformWorkerTaskQueue} isolate
+    // is then executed on the main thread to achieve predictable behavior.
+    //
+    // In this context here it is okay to call {GetForegroundTaskRunner} from a
+    // background thread. The reason is that code is executed sequentially with
+    // the PredictablePlatform, and that the {DefaultPlatform} does not access
+    // the isolate but only uses it as the key in a HashMap.
+    GetForegroundTaskRunner(kProcessGlobalPredictablePlatformWorkerTaskQueue)
+        ->PostTask(std::move(task));
   }
 
   void CallDelayedOnWorkerThread(std::unique_ptr<Task> task,
                                  double delay_in_seconds) override {
     // Never run delayed tasks.
-  }
-
-  void CallOnForegroundThread(v8::Isolate* isolate, Task* task) override {
-    // This is a deprecated function and should not be called anymore.
-    UNREACHABLE();
-  }
-
-  void CallDelayedOnForegroundThread(v8::Isolate* isolate, Task* task,
-                                     double delay_in_seconds) override {
-    // This is a deprecated function and should not be called anymore.
-    UNREACHABLE();
-  }
-
-  void CallIdleOnForegroundThread(Isolate* isolate, IdleTask* task) override {
-    UNREACHABLE();
   }
 
   bool IdleTasksEnabled(Isolate* isolate) override { return false; }
@@ -94,7 +86,7 @@ class PredictablePlatform : public Platform {
 
 std::unique_ptr<Platform> MakePredictablePlatform(
     std::unique_ptr<Platform> platform) {
-  return base::make_unique<PredictablePlatform>(std::move(platform));
+  return std::make_unique<PredictablePlatform>(std::move(platform));
 }
 
 class DelayedTasksPlatform : public Platform {
@@ -163,22 +155,6 @@ class DelayedTasksPlatform : public Platform {
                                          delay_in_seconds);
   }
 
-  void CallOnForegroundThread(v8::Isolate* isolate, Task* task) override {
-    // This is a deprecated function and should not be called anymore.
-    UNREACHABLE();
-  }
-
-  void CallDelayedOnForegroundThread(v8::Isolate* isolate, Task* task,
-                                     double delay_in_seconds) override {
-    // This is a deprecated function and should not be called anymore.
-    UNREACHABLE();
-  }
-
-  void CallIdleOnForegroundThread(Isolate* isolate, IdleTask* task) override {
-    // This is a deprecated function and should not be called anymore.
-    UNREACHABLE();
-  }
-
   bool IdleTasksEnabled(Isolate* isolate) override {
     return platform_->IdleTasksEnabled(isolate);
   }
@@ -207,6 +183,11 @@ class DelayedTasksPlatform : public Platform {
       task_runner_->PostTask(platform_->MakeDelayedTask(std::move(task)));
     }
 
+    void PostNonNestableTask(std::unique_ptr<Task> task) final {
+      task_runner_->PostNonNestableTask(
+          platform_->MakeDelayedTask(std::move(task)));
+    }
+
     void PostDelayedTask(std::unique_ptr<Task> task,
                          double delay_in_seconds) final {
       task_runner_->PostDelayedTask(platform_->MakeDelayedTask(std::move(task)),
@@ -219,6 +200,10 @@ class DelayedTasksPlatform : public Platform {
     }
 
     bool IdleTasksEnabled() final { return task_runner_->IdleTasksEnabled(); }
+
+    bool NonNestableTasksEnabled() const final {
+      return task_runner_->NonNestableTasksEnabled();
+    }
 
    private:
     friend class DelayedTaskRunnerDeleter;
@@ -284,14 +269,14 @@ class DelayedTasksPlatform : public Platform {
   }
 
   std::unique_ptr<Task> MakeDelayedTask(std::unique_ptr<Task> task) {
-    return base::make_unique<DelayedTask>(std::move(task),
-                                          GetRandomDelayInMilliseconds());
+    return std::make_unique<DelayedTask>(std::move(task),
+                                         GetRandomDelayInMilliseconds());
   }
 
   std::unique_ptr<IdleTask> MakeDelayedIdleTask(
       std::unique_ptr<IdleTask> task) {
-    return base::make_unique<DelayedIdleTask>(std::move(task),
-                                              GetRandomDelayInMilliseconds());
+    return std::make_unique<DelayedIdleTask>(std::move(task),
+                                             GetRandomDelayInMilliseconds());
   }
 
   DISALLOW_COPY_AND_ASSIGN(DelayedTasksPlatform);
@@ -300,10 +285,10 @@ class DelayedTasksPlatform : public Platform {
 std::unique_ptr<Platform> MakeDelayedTasksPlatform(
     std::unique_ptr<Platform> platform, int64_t random_seed) {
   if (random_seed) {
-    return base::make_unique<DelayedTasksPlatform>(std::move(platform),
-                                                   random_seed);
+    return std::make_unique<DelayedTasksPlatform>(std::move(platform),
+                                                  random_seed);
   }
-  return base::make_unique<DelayedTasksPlatform>(std::move(platform));
+  return std::make_unique<DelayedTasksPlatform>(std::move(platform));
 }
 
 }  // namespace v8

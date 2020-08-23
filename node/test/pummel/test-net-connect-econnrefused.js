@@ -31,12 +31,17 @@ const ATTEMPTS_PER_ROUND = 50;
 let rounds = 1;
 let reqs = 0;
 
-pummel();
+let port;
+const server = net.createServer().listen(0, common.mustCall(() => {
+  port = server.address().port;
+  server.close(common.mustCall(pummel));
+}));
 
 function pummel() {
   let pending;
   for (pending = 0; pending < ATTEMPTS_PER_ROUND; pending++) {
-    net.createConnection(common.PORT).on('error', function(err) {
+    net.createConnection(port).on('error', function(err) {
+      console.log('pending', pending, 'rounds', rounds);
       assert.strictEqual(err.code, 'ECONNREFUSED');
       if (--pending > 0) return;
       if (rounds === ROUNDS) return check();
@@ -48,17 +53,14 @@ function pummel() {
 }
 
 function check() {
-  setTimeout(function() {
+  setTimeout(common.mustCall(function() {
     assert.strictEqual(process._getActiveRequests().length, 0);
     const activeHandles = process._getActiveHandles();
     assert.ok(activeHandles.every((val) => val.constructor.name !== 'Socket'));
-    check_called = true;
-  }, 0);
+  }), 0);
 }
-let check_called = false;
 
 process.on('exit', function() {
   assert.strictEqual(rounds, ROUNDS);
   assert.strictEqual(reqs, ROUNDS * ATTEMPTS_PER_ROUND);
-  assert(check_called);
 });

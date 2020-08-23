@@ -3,10 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>ECMAScript Modules | Node.js v12.13.0 Documentation</title>
+  <meta name="nodejs.org:node-version" content="v14.8.0">
+  <title>ECMAScript modules | Node.js v14.8.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
-  <link rel="stylesheet" href="assets/sh.css">
+  <link rel="stylesheet" href="assets/hljs.css">
   <link rel="canonical" href="https://nodejs.org/api/esm.html">
 </head>
 <body class="alt apidoc" id="api-section-esm">
@@ -18,29 +19,30 @@
         </a>
       </div>
       <ul>
-<li><a href="documentation.html" class="nav-documentation">About these Docs</a></li>
-<li><a href="synopsis.html" class="nav-synopsis">Usage &#x26; Example</a></li>
+<li><a href="documentation.html" class="nav-documentation">About this documentation</a></li>
+<li><a href="synopsis.html" class="nav-synopsis">Usage and example</a></li>
 </ul>
 <div class="line"></div>
 <ul>
-<li><a href="assert.html" class="nav-assert">Assertion Testing</a></li>
-<li><a href="async_hooks.html" class="nav-async_hooks">Async Hooks</a></li>
+<li><a href="assert.html" class="nav-assert">Assertion testing</a></li>
+<li><a href="async_hooks.html" class="nav-async_hooks">Async hooks</a></li>
 <li><a href="buffer.html" class="nav-buffer">Buffer</a></li>
-<li><a href="addons.html" class="nav-addons">C++ Addons</a></li>
-<li><a href="n-api.html" class="nav-n-api">C/C++ Addons - N-API</a></li>
-<li><a href="child_process.html" class="nav-child_process">Child Processes</a></li>
+<li><a href="addons.html" class="nav-addons">C++ addons</a></li>
+<li><a href="n-api.html" class="nav-n-api">C/C++ addons with N-API</a></li>
+<li><a href="embedding.html" class="nav-embedding">C++ embedder API</a></li>
+<li><a href="child_process.html" class="nav-child_process">Child processes</a></li>
 <li><a href="cluster.html" class="nav-cluster">Cluster</a></li>
-<li><a href="cli.html" class="nav-cli">Command Line Options</a></li>
+<li><a href="cli.html" class="nav-cli">Command line options</a></li>
 <li><a href="console.html" class="nav-console">Console</a></li>
 <li><a href="crypto.html" class="nav-crypto">Crypto</a></li>
 <li><a href="debugger.html" class="nav-debugger">Debugger</a></li>
 <li><a href="deprecations.html" class="nav-deprecations">Deprecated APIs</a></li>
 <li><a href="dns.html" class="nav-dns">DNS</a></li>
 <li><a href="domain.html" class="nav-domain">Domain</a></li>
-<li><a href="esm.html" class="nav-esm active">ECMAScript Modules</a></li>
+<li><a href="esm.html" class="nav-esm active">ECMAScript modules</a></li>
 <li><a href="errors.html" class="nav-errors">Errors</a></li>
 <li><a href="events.html" class="nav-events">Events</a></li>
-<li><a href="fs.html" class="nav-fs">File System</a></li>
+<li><a href="fs.html" class="nav-fs">File system</a></li>
 <li><a href="globals.html" class="nav-globals">Globals</a></li>
 <li><a href="http.html" class="nav-http">HTTP</a></li>
 <li><a href="http2.html" class="nav-http2">HTTP/2</a></li>
@@ -51,37 +53,38 @@
 <li><a href="net.html" class="nav-net">Net</a></li>
 <li><a href="os.html" class="nav-os">OS</a></li>
 <li><a href="path.html" class="nav-path">Path</a></li>
-<li><a href="perf_hooks.html" class="nav-perf_hooks">Performance Hooks</a></li>
+<li><a href="perf_hooks.html" class="nav-perf_hooks">Performance hooks</a></li>
 <li><a href="policy.html" class="nav-policy">Policies</a></li>
 <li><a href="process.html" class="nav-process">Process</a></li>
 <li><a href="punycode.html" class="nav-punycode">Punycode</a></li>
-<li><a href="querystring.html" class="nav-querystring">Query Strings</a></li>
+<li><a href="querystring.html" class="nav-querystring">Query strings</a></li>
 <li><a href="readline.html" class="nav-readline">Readline</a></li>
 <li><a href="repl.html" class="nav-repl">REPL</a></li>
 <li><a href="report.html" class="nav-report">Report</a></li>
 <li><a href="stream.html" class="nav-stream">Stream</a></li>
-<li><a href="string_decoder.html" class="nav-string_decoder">String Decoder</a></li>
+<li><a href="string_decoder.html" class="nav-string_decoder">String decoder</a></li>
 <li><a href="timers.html" class="nav-timers">Timers</a></li>
 <li><a href="tls.html" class="nav-tls">TLS/SSL</a></li>
-<li><a href="tracing.html" class="nav-tracing">Trace Events</a></li>
+<li><a href="tracing.html" class="nav-tracing">Trace events</a></li>
 <li><a href="tty.html" class="nav-tty">TTY</a></li>
-<li><a href="dgram.html" class="nav-dgram">UDP/Datagram</a></li>
+<li><a href="dgram.html" class="nav-dgram">UDP/datagram</a></li>
 <li><a href="url.html" class="nav-url">URL</a></li>
 <li><a href="util.html" class="nav-util">Utilities</a></li>
 <li><a href="v8.html" class="nav-v8">V8</a></li>
 <li><a href="vm.html" class="nav-vm">VM</a></li>
-<li><a href="worker_threads.html" class="nav-worker_threads">Worker Threads</a></li>
+<li><a href="wasi.html" class="nav-wasi">WASI</a></li>
+<li><a href="worker_threads.html" class="nav-worker_threads">Worker threads</a></li>
 <li><a href="zlib.html" class="nav-zlib">Zlib</a></li>
 </ul>
 <div class="line"></div>
 <ul>
-<li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">GitHub Repo &#x26; Issue Tracker</a></li>
+<li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">Code repository and issue tracker</a></li>
 </ul>
     </div>
 
     <div id="column1" data-id="esm" class="interior">
       <header>
-        <h1>Node.js v12.13.0 Documentation</h1>
+        <h1>Node.js v14.8.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -96,11 +99,13 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v12.x/api/esm.html">12.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v14.x/api/esm.html">14.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v13.x/api/esm.html">13.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v12.x/api/esm.html">12.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v11.x/api/esm.html">11.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v10.x/api/esm.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/esm.html">9.x</a></li>
-<li><a href="https://nodejs.org/docs/latest-v8.x/api/esm.html">8.x <b>LTS</b></a></li></ol>
+<li><a href="https://nodejs.org/docs/latest-v8.x/api/esm.html">8.x</a></li></ol>
     </li>
   
             <li class="edit_on_github"><a href="https://github.com/nodejs/node/edit/master/doc/api/esm.md"><span class="github_icon"><svg height="16" width="16" viewBox="0 0 16.1 16.1" fill="currentColor"><path d="M8 0a8 8 0 0 0-2.5 15.6c.4 0 .5-.2.5-.4v-1.5c-2 .4-2.5-.5-2.7-1 0-.1-.5-.9-.8-1-.3-.2-.7-.6 0-.6.6 0 1 .6 1.2.8.7 1.2 1.9 1 2.4.7 0-.5.2-.9.5-1-1.8-.3-3.7-1-3.7-4 0-.9.3-1.6.8-2.2 0-.2-.3-1 .1-2 0 0 .7-.3 2.2.7a7.4 7.4 0 0 1 4 0c1.5-1 2.2-.8 2.2-.8.5 1.1.2 2 .1 2.1.5.6.8 1.3.8 2.2 0 3-1.9 3.7-3.6 4 .3.2.5.7.5 1.4v2.2c0 .2.1.5.5.4A8 8 0 0 0 16 8a8 8 0 0 0-8-8z"/></svg></span>Edit on GitHub</a></li>
@@ -113,31 +118,50 @@
         <h2>Table of Contents</h2>
         <ul>
 <li>
-<p><span class="stability_1"><a href="#esm_ecmascript_modules">ECMAScript Modules</a></span></p>
+<p><span class="stability_1"><a href="#esm_ecmascript_modules">ECMAScript modules</a></span></p>
 <ul>
 <li><a href="#esm_introduction">Introduction</a></li>
 <li>
 <p><a href="#esm_enabling">Enabling</a></p>
 <ul>
-<li><a href="#esm_code_package_json_code_code_type_code_field"><code>package.json</code> <code>"type"</code> field</a></li>
-<li><a href="#esm_package_scope_and_file_extensions">Package Scope and File Extensions</a></li>
-<li><a href="#esm_code_input_type_code_flag"><code>--input-type</code> flag</a></li>
+<li><a href="#esm_package_json_type_field"><code>package.json</code> <code>"type"</code> field</a></li>
+<li><a href="#esm_package_scope_and_file_extensions">Package scope and file extensions</a></li>
+<li><a href="#esm_input_type_flag"><code>--input-type</code> flag</a></li>
 </ul>
 </li>
 <li>
 <p><a href="#esm_packages">Packages</a></p>
 <ul>
 <li>
-<p><a href="#esm_package_entry_points">Package Entry Points</a></p>
+<p><a href="#esm_package_entry_points">Package entry points</a></p>
 <ul>
-<li><a href="#esm_compatibility_with_commonjs_only_versions_of_node_js">Compatibility with CommonJS-Only Versions of Node.js</a></li>
+<li><a href="#esm_main_entry_point_export">Main entry point export</a></li>
+<li><a href="#esm_subpath_exports">Subpath exports</a></li>
+<li><a href="#esm_package_exports_fallbacks">Package exports fallbacks</a></li>
+<li><a href="#esm_exports_sugar">Exports sugar</a></li>
+<li><a href="#esm_conditional_exports">Conditional exports</a></li>
+<li><a href="#esm_nested_conditions">Nested conditions</a></li>
+<li><a href="#esm_self_referencing_a_package_using_its_name">Self-referencing a package using its name</a></li>
 </ul>
 </li>
-<li><a href="#esm_package_exports">Package Exports</a></li>
+<li><a href="#esm_internal_package_imports">Internal package imports</a></li>
+<li>
+<p><a href="#esm_dual_commonjs_es_module_packages">Dual CommonJS/ES module packages</a></p>
+<ul>
+<li><a href="#esm_dual_package_hazard">Dual package hazard</a></li>
+<li>
+<p><a href="#esm_writing_dual_packages_while_avoiding_or_minimizing_hazards">Writing dual packages while avoiding or minimizing hazards</a></p>
+<ul>
+<li><a href="#esm_approach_1_use_an_es_module_wrapper">Approach #1: Use an ES module wrapper</a></li>
+<li><a href="#esm_approach_2_isolate_state">Approach #2: Isolate state</a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 <li>
-<p><a href="#esm_code_import_code_specifiers"><code>import</code> Specifiers</a></p>
+<p><a href="#esm_import_specifiers"><code>import</code> Specifiers</a></p>
 <ul>
 <li>
 <p><a href="#esm_terminology">Terminology</a></p>
@@ -147,42 +171,59 @@
 </li>
 </ul>
 </li>
-<li><a href="#esm_import_meta">import.meta</a></li>
+<li><a href="#esm_import_meta"><code>import.meta</code></a></li>
 <li>
-<p><a href="#esm_differences_between_es_modules_and_commonjs">Differences Between ES Modules and CommonJS</a></p>
+<p><a href="#esm_differences_between_es_modules_and_commonjs">Differences between ES modules and CommonJS</a></p>
 <ul>
 <li><a href="#esm_mandatory_file_extensions">Mandatory file extensions</a></li>
-<li><a href="#esm_no_code_node_path_code">No <code>NODE_PATH</code></a></li>
-<li><a href="#esm_no_code_require_code_code_exports_code_code_module_exports_code_code_filename_code_code_dirname_code">No <code>require</code>, <code>exports</code>, <code>module.exports</code>, <code>__filename</code>, <code>__dirname</code></a></li>
-<li><a href="#esm_no_code_require_extensions_code">No <code>require.extensions</code></a></li>
-<li><a href="#esm_no_code_require_cache_code">No <code>require.cache</code></a></li>
+<li><a href="#esm_no_node_path">No <code>NODE_PATH</code></a></li>
+<li><a href="#esm_no_require_exports_module_exports_filename_dirname">No <code>require</code>, <code>exports</code>, <code>module.exports</code>, <code>__filename</code>, <code>__dirname</code></a></li>
+<li><a href="#esm_no_require_resolve">No <code>require.resolve</code></a></li>
+<li><a href="#esm_no_require_extensions">No <code>require.extensions</code></a></li>
+<li><a href="#esm_no_require_cache">No <code>require.cache</code></a></li>
 <li><a href="#esm_url_based_paths">URL-based paths</a></li>
 </ul>
 </li>
 <li>
 <p><a href="#esm_interoperability_with_commonjs">Interoperability with CommonJS</a></p>
 <ul>
-<li><a href="#esm_code_require_code"><code>require</code></a></li>
-<li><a href="#esm_code_import_code_statements"><code>import</code> statements</a></li>
-<li><a href="#esm_code_import_code_expressions"><code>import()</code> expressions</a></li>
+<li><a href="#esm_require"><code>require</code></a></li>
+<li><a href="#esm_import_statements"><code>import</code> statements</a></li>
+<li><a href="#esm_import_expressions"><code>import()</code> expressions</a></li>
 </ul>
 </li>
-<li><a href="#esm_commonjs_json_and_native_modules">CommonJS, JSON, and Native Modules</a></li>
+<li><a href="#esm_commonjs_json_and_native_modules">CommonJS, JSON, and native modules</a></li>
 <li><a href="#esm_builtin_modules">Builtin modules</a></li>
-<li><a href="#esm_experimental_json_modules">Experimental JSON Modules</a></li>
-<li><a href="#esm_experimental_wasm_modules">Experimental Wasm Modules</a></li>
+<li><a href="#esm_experimental_json_modules">Experimental JSON modules</a></li>
+<li><a href="#esm_experimental_wasm_modules">Experimental Wasm modules</a></li>
+<li><a href="#esm_experimental_top_level_await">Experimental top-level <code>await</code></a></li>
 <li>
-<p><a href="#esm_experimental_loader_hooks">Experimental Loader hooks</a></p>
+<p><a href="#esm_experimental_loaders">Experimental loaders</a></p>
 <ul>
-<li><a href="#esm_resolve_hook">Resolve hook</a></li>
-<li><a href="#esm_dynamic_instantiate_hook">Dynamic instantiate hook</a></li>
+<li>
+<p><a href="#esm_hooks">Hooks</a></p>
+<ul>
+<li><a href="#esm_resolve_specifier_context_defaultresolve"><code>resolve(specifier, context, defaultResolve)</code></a></li>
+<li><a href="#esm_getformat_url_context_defaultgetformat"><code>getFormat(url, context, defaultGetFormat)</code></a></li>
+<li><a href="#esm_getsource_url_context_defaultgetsource"><code>getSource(url, context, defaultGetSource)</code></a></li>
+<li><a href="#esm_transformsource_source_context_defaulttransformsource"><code>transformSource(source, context, defaultTransformSource)</code></a></li>
+<li><a href="#esm_getglobalpreloadcode"><code>getGlobalPreloadCode()</code></a></li>
 </ul>
 </li>
 <li>
-<p><a href="#esm_resolution_algorithm">Resolution Algorithm</a></p>
+<p><a href="#esm_examples">Examples</a></p>
+<ul>
+<li><a href="#esm_https_loader">HTTPS loader</a></li>
+<li><a href="#esm_transpiler_loader">Transpiler loader</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><a href="#esm_resolution_algorithm">Resolution algorithm</a></p>
 <ul>
 <li><a href="#esm_features">Features</a></li>
-<li><a href="#esm_resolver_algorithm">Resolver Algorithm</a></li>
+<li><a href="#esm_resolver_algorithm">Resolver algorithm</a></li>
 <li><a href="#esm_customizing_esm_specifier_resolution_algorithm">Customizing ESM specifier resolution algorithm</a></li>
 </ul>
 </li>
@@ -192,7 +233,7 @@
       </div>
 
       <div id="apicontent">
-        <h1>ECMAScript Modules<span><a class="mark" href="#esm_ecmascript_modules" id="esm_ecmascript_modules">#</a></span></h1>
+        <h1>ECMAScript modules<span><a class="mark" href="#esm_ecmascript_modules" id="esm_ecmascript_modules">#</a></span></h1>
 
 
 <p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
@@ -201,6 +242,19 @@
 <p>ECMAScript modules are <a href="https://tc39.github.io/ecma262/#sec-modules">the official standard format</a> to package JavaScript
 code for reuse. Modules are defined using a variety of <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import"><code>import</code></a> and
 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/export"><code>export</code></a> statements.</p>
+<p>The following example of an ES module exports a function:</p>
+<pre><code class="language-js"><span class="hljs-comment">// addTwo.mjs</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">addTwo</span>(<span class="hljs-params">num</span>) </span>{
+  <span class="hljs-keyword">return</span> num + <span class="hljs-number">2</span>;
+}
+
+<span class="hljs-keyword">export</span> { addTwo };</code></pre>
+<p>The following example of an ES module imports the function from <code>addTwo.mjs</code>:</p>
+<pre><code class="language-js"><span class="hljs-comment">// app.mjs</span>
+<span class="hljs-keyword">import</span> { addTwo } <span class="hljs-keyword">from</span> <span class="hljs-string">'./addTwo.mjs'</span>;
+
+<span class="hljs-comment">// Prints: 6</span>
+<span class="hljs-built_in">console</span>.log(addTwo(<span class="hljs-number">4</span>));</code></pre>
 <p>Node.js fully supports ECMAScript modules as they are currently specified and
 provides limited interoperability between them and the existing module format,
 <a href="modules.html">CommonJS</a>.</p>
@@ -210,23 +264,20 @@ provides limited interoperability between them and the existing module format,
 specifier resolution, and default behavior.</p>
 <h2>Enabling<span><a class="mark" href="#esm_enabling" id="esm_enabling">#</a></span></h2>
 
-<p>The <code>--experimental-modules</code> flag can be used to enable support for
-ECMAScript modules (ES modules).</p>
-<p>Once enabled, Node.js will treat the following as ES modules when passed to
-<code>node</code> as the initial input, or when referenced by <code>import</code> statements within
-ES module code:</p>
+<p>Experimental support for ECMAScript modules is enabled by default.
+Node.js will treat the following as ES modules when passed to <code>node</code> as the
+initial input, or when referenced by <code>import</code> statements within ES module code:</p>
 <ul>
 <li>
 <p>Files ending in <code>.mjs</code>.</p>
 </li>
 <li>
-<p>Files ending in <code>.js</code>, or extensionless files, when the nearest parent
-<code>package.json</code> file contains a top-level field <code>"type"</code> with a value of
-<code>"module"</code>.</p>
+<p>Files ending in <code>.js</code> when the nearest parent <code>package.json</code> file contains a
+top-level field <code>"type"</code> with a value of <code>"module"</code>.</p>
 </li>
 <li>
-<p>Strings passed in as an argument to <code>--eval</code> or <code>--print</code>, or piped to
-<code>node</code> via <code>STDIN</code>, with the flag <code>--input-type=module</code>.</p>
+<p>Strings passed in as an argument to <code>--eval</code>, or piped to <code>node</code> via <code>STDIN</code>,
+with the flag <code>--input-type=module</code>.</p>
 </li>
 </ul>
 <p>Node.js will treat as CommonJS all other forms of input, such as <code>.js</code> files
@@ -241,82 +292,76 @@ or when referenced by <code>import</code> statements within ES module code:</p>
 <p>Files ending in <code>.cjs</code>.</p>
 </li>
 <li>
-<p>Files ending in <code>.js</code>, or extensionless files, when the nearest parent
-<code>package.json</code> file contains a top-level field <code>"type"</code> with a value of
-<code>"commonjs"</code>.</p>
+<p>Files ending in <code>.js</code> when the nearest parent <code>package.json</code> file contains a
+top-level field <code>"type"</code> with a value of <code>"commonjs"</code>.</p>
 </li>
 <li>
-<p>Strings passed in as an argument to <code>--eval</code> or <code>--print</code>, or piped to
-<code>node</code> via <code>STDIN</code>, with the flag <code>--input-type=commonjs</code>.</p>
+<p>Strings passed in as an argument to <code>--eval</code> or <code>--print</code>, or piped to <code>node</code>
+via <code>STDIN</code>, with the flag <code>--input-type=commonjs</code>.</p>
 </li>
 </ul>
-<h3><code>package.json</code> <code>"type"</code> field<span><a class="mark" href="#esm_code_package_json_code_code_type_code_field" id="esm_code_package_json_code_code_type_code_field">#</a></span></h3>
-<p>Files ending with <code>.js</code> or <code>.mjs</code>, or lacking any extension,
-will be loaded as ES modules when the nearest parent <code>package.json</code> file
-contains a top-level field <code>"type"</code> with a value of <code>"module"</code>.</p>
+<h3><code>package.json</code> <code>"type"</code> field<span><a class="mark" href="#esm_package_json_type_field" id="esm_package_json_type_field">#</a></span></h3>
+<p>Files ending with <code>.js</code> will be loaded as ES modules when the nearest parent
+<code>package.json</code> file contains a top-level field <code>"type"</code> with a value of
+<code>"module"</code>.</p>
 <p>The nearest parent <code>package.json</code> is defined as the first <code>package.json</code> found
 when searching in the current folder, that folder’s parent, and so on up
 until the root of the volume is reached.</p>
 <!-- eslint-skip -->
-<pre><code class="language-js">// package.json
+<pre><code class="language-js"><span class="hljs-comment">// package.json</span>
 {
-  "type": "module"
-}
-</code></pre>
-<pre><code class="language-sh"># In same folder as above package.json
-node --experimental-modules my-app.js # Runs as ES module
-</code></pre>
+  <span class="hljs-string">"type"</span>: <span class="hljs-string">"module"</span>
+}</code></pre>
+<pre><code class="language-bash"><span class="hljs-comment"># In same folder as above package.json</span>
+node my-app.js <span class="hljs-comment"># Runs as ES module</span></code></pre>
 <p>If the nearest parent <code>package.json</code> lacks a <code>"type"</code> field, or contains
-<code>"type": "commonjs"</code>, extensionless and <code>.js</code> files are treated as CommonJS.
-If the volume root is reached and no <code>package.json</code> is found,
-Node.js defers to the default, a <code>package.json</code> with no <code>"type"</code>
-field.</p>
-<p><code>import</code> statements of <code>.js</code> and extensionless files are treated as ES modules
-if the nearest parent <code>package.json</code> contains <code>"type": "module"</code>.</p>
-<pre><code class="language-js">// my-app.js, part of the same example as above
-import './startup.js'; // Loaded as ES module because of package.json
-</code></pre>
+<code>"type": "commonjs"</code>, <code>.js</code> files are treated as CommonJS. If the volume root is
+reached and no <code>package.json</code> is found, Node.js defers to the default, a
+<code>package.json</code> with no <code>"type"</code> field.</p>
+<p><code>import</code> statements of <code>.js</code> files are treated as ES modules if the nearest
+parent <code>package.json</code> contains <code>"type": "module"</code>.</p>
+<pre><code class="language-js"><span class="hljs-comment">// my-app.js, part of the same example as above</span>
+<span class="hljs-keyword">import</span> <span class="hljs-string">'./startup.js'</span>; <span class="hljs-comment">// Loaded as ES module because of package.json</span></code></pre>
 <p>Package authors should include the <code>"type"</code> field, even in packages where all
 sources are CommonJS. Being explicit about the <code>type</code> of the package will
 future-proof the package in case the default type of Node.js ever changes, and
 it will also make things easier for build tools and loaders to determine how the
 files in the package should be interpreted.</p>
-<h3>Package Scope and File Extensions<span><a class="mark" href="#esm_package_scope_and_file_extensions" id="esm_package_scope_and_file_extensions">#</a></span></h3>
-<p>A folder containing a <code>package.json</code> file, and all subfolders below that
-folder down until the next folder containing another <code>package.json</code>, is
-considered a <em>package scope</em>. The <code>"type"</code> field defines how <code>.js</code> and
-extensionless files should be treated within a particular <code>package.json</code> file’s
-package scope. Every package in a project’s <code>node_modules</code> folder contains its
-own <code>package.json</code> file, so each project’s dependencies have their own package
-scopes. A <code>package.json</code> lacking a <code>"type"</code> field is treated as if it contained
-<code>"type": "commonjs"</code>.</p>
-<p>The package scope applies not only to initial entry points (<code>node --experimental-modules my-app.js</code>) but also to files referenced by <code>import</code>
-statements and <code>import()</code> expressions.</p>
-<pre><code class="language-js">// my-app.js, in an ES module package scope because there is a package.json
-// file in the same folder with "type": "module".
+<p>Regardless of the value of the <code>"type"</code> field, <code>.mjs</code> files are always treated
+as ES modules and <code>.cjs</code> files are always treated as CommonJS.</p>
+<h3>Package scope and file extensions<span><a class="mark" href="#esm_package_scope_and_file_extensions" id="esm_package_scope_and_file_extensions">#</a></span></h3>
+<p>A folder containing a <code>package.json</code> file, and all subfolders below that folder
+until the next folder containing another <code>package.json</code>, are a
+<em>package scope</em>. The <code>"type"</code> field defines how to treat <code>.js</code> files
+within the package scope. Every package in a
+project’s <code>node_modules</code> folder contains its own <code>package.json</code> file, so each
+project’s dependencies have their own package scopes. If a <code>package.json</code> file
+does not have a <code>"type"</code> field, the default <code>"type"</code> is <code>"commonjs"</code>.</p>
+<p>The package scope applies not only to initial entry points (<code>node my-app.js</code>)
+but also to files referenced by <code>import</code> statements and <code>import()</code> expressions.</p>
+<pre><code class="language-js"><span class="hljs-comment">// my-app.js, in an ES module package scope because there is a package.json</span>
+<span class="hljs-comment">// file in the same folder with "type": "module".</span>
 
-import './startup/init.js';
-// Loaded as ES module since ./startup contains no package.json file,
-// and therefore inherits the ES module package scope from one level up.
+<span class="hljs-keyword">import</span> <span class="hljs-string">'./startup/init.js'</span>;
+<span class="hljs-comment">// Loaded as ES module since ./startup contains no package.json file,</span>
+<span class="hljs-comment">// and therefore inherits the ES module package scope from one level up.</span>
 
-import 'commonjs-package';
-// Loaded as CommonJS since ./node_modules/commonjs-package/package.json
-// lacks a "type" field or contains "type": "commonjs".
+<span class="hljs-keyword">import</span> <span class="hljs-string">'commonjs-package'</span>;
+<span class="hljs-comment">// Loaded as CommonJS since ./node_modules/commonjs-package/package.json</span>
+<span class="hljs-comment">// lacks a "type" field or contains "type": "commonjs".</span>
 
-import './node_modules/commonjs-package/index.js';
-// Loaded as CommonJS since ./node_modules/commonjs-package/package.json
-// lacks a "type" field or contains "type": "commonjs".
-</code></pre>
+<span class="hljs-keyword">import</span> <span class="hljs-string">'./node_modules/commonjs-package/index.js'</span>;
+<span class="hljs-comment">// Loaded as CommonJS since ./node_modules/commonjs-package/package.json</span>
+<span class="hljs-comment">// lacks a "type" field or contains "type": "commonjs".</span></code></pre>
 <p>Files ending with <code>.mjs</code> are always loaded as ES modules regardless of package
 scope.</p>
 <p>Files ending with <code>.cjs</code> are always loaded as CommonJS regardless of package
 scope.</p>
-<pre><code class="language-js">import './legacy-file.cjs';
-// Loaded as CommonJS since .cjs is always loaded as CommonJS.
+<pre><code class="language-js"><span class="hljs-keyword">import</span> <span class="hljs-string">'./legacy-file.cjs'</span>;
+<span class="hljs-comment">// Loaded as CommonJS since .cjs is always loaded as CommonJS.</span>
 
-import 'commonjs-package/src/index.mjs';
-// Loaded as ES module since .mjs is always loaded as ES module.
-</code></pre>
+<span class="hljs-keyword">import</span> <span class="hljs-string">'commonjs-package/src/index.mjs'</span>;
+<span class="hljs-comment">// Loaded as ES module since .mjs is always loaded as ES module.</span></code></pre>
 <p>The <code>.mjs</code> and <code>.cjs</code> extensions may be used to mix types within the same
 package scope:</p>
 <ul>
@@ -333,160 +378,505 @@ extension (since both <code>.js</code> and <code>.cjs</code> files are treated a
 <code>"commonjs"</code> package scope).</p>
 </li>
 </ul>
-<h3><code>--input-type</code> flag<span><a class="mark" href="#esm_code_input_type_code_flag" id="esm_code_input_type_code_flag">#</a></span></h3>
-<p>Strings passed in as an argument to <code>--eval</code> or <code>--print</code> (or <code>-e</code> or <code>-p</code>), or
-piped to <code>node</code> via <code>STDIN</code>, will be treated as ES modules when the
-<code>--input-type=module</code> flag is set.</p>
-<pre><code class="language-sh">node --experimental-modules --input-type=module --eval \
-  "import { sep } from 'path'; console.log(sep);"
+<h3><code>--input-type</code> flag<span><a class="mark" href="#esm_input_type_flag" id="esm_input_type_flag">#</a></span></h3>
+<p>Strings passed in as an argument to <code>--eval</code> (or <code>-e</code>), or piped to <code>node</code> via
+<code>STDIN</code>, will be treated as ES modules when the <code>--input-type=module</code> flag is
+set.</p>
+<pre><code class="language-bash">node --input-type=module --<span class="hljs-built_in">eval</span> <span class="hljs-string">"import { sep } from 'path'; console.log(sep);"</span>
 
-echo "import { sep } from 'path'; console.log(sep);" | \
-  node --experimental-modules --input-type=module
-</code></pre>
+<span class="hljs-built_in">echo</span> <span class="hljs-string">"import { sep } from 'path'; console.log(sep);"</span> | node --input-type=module</code></pre>
 <p>For completeness there is also <code>--input-type=commonjs</code>, for explicitly running
 string input as CommonJS. This is the default behavior if <code>--input-type</code> is
 unspecified.</p>
 <h2>Packages<span><a class="mark" href="#esm_packages" id="esm_packages">#</a></span></h2>
-<h3>Package Entry Points<span><a class="mark" href="#esm_package_entry_points" id="esm_package_entry_points">#</a></span></h3>
-<p>The <code>package.json</code> <code>"main"</code> field defines the entry point for a package,
-whether the package is included into CommonJS via <code>require</code> or into an ES
-module via <code>import</code>.</p>
+<h3>Package entry points<span><a class="mark" href="#esm_package_entry_points" id="esm_package_entry_points">#</a></span></h3>
+<p>In a package’s <code>package.json</code> file, two fields can define entry points for a
+package: <code>"main"</code> and <code>"exports"</code>. The <code>"main"</code> field is supported in all
+versions of Node.js, but its capabilities are limited: it only defines the main
+entry point of the package.</p>
+<p>The <code>"exports"</code> field provides an alternative to <code>"main"</code> where the package
+main entry point can be defined while also encapsulating the package,
+<strong>preventing any other entry points besides those defined in <code>"exports"</code></strong>.
+This encapsulation allows module authors to define a public interface for
+their package.</p>
+<p>If both <code>"exports"</code> and <code>"main"</code> are defined, the <code>"exports"</code> field takes
+precedence over <code>"main"</code>. <code>"exports"</code> are not specific to ES modules or
+CommonJS; <code>"main"</code> will be overridden by <code>"exports"</code> if it exists. As such
+<code>"main"</code> cannot be used as a fallback for CommonJS but it can be used as a
+fallback for legacy versions of Node.js that do not support the <code>"exports"</code>
+field.</p>
+<p><a href="#esm_conditional_exports">Conditional exports</a> can be used within <code>"exports"</code> to define different
+package entry points per environment, including whether the package is
+referenced via <code>require</code> or via <code>import</code>. For more information about supporting
+both CommonJS and ES Modules in a single package please consult
+<a href="#esm_dual_commonjs_es_module_packages">the dual CommonJS/ES module packages section</a>.</p>
+<p><strong>Warning</strong>: Introducing the <code>"exports"</code> field prevents consumers of a package
+from using any entry points that are not defined, including the <code>package.json</code>
+(e.g. <code>require('your-package/package.json')</code>. <strong>This will likely be a breaking
+change.</strong></p>
+<p>To make the introduction of <code>"exports"</code> non-breaking, ensure that every
+previously supported entry point is exported. It is best to explicitly specify
+entry points so that the package’s public API is well-defined. For example,
+a project that previous exported <code>main</code>, <code>lib</code>,
+<code>feature</code>, and the <code>package.json</code> could use the following <code>package.exports</code>:</p>
+<pre><code class="language-json">{
+  <span class="hljs-attr">"name"</span>: <span class="hljs-string">"my-mod"</span>,
+  <span class="hljs-attr">"exports"</span>: {
+    <span class="hljs-attr">"."</span>: <span class="hljs-string">"./lib/index.js"</span>,
+    <span class="hljs-attr">"./lib"</span>: <span class="hljs-string">"./lib/index.js"</span>,
+    <span class="hljs-attr">"./lib/index"</span>: <span class="hljs-string">"./lib/index.js"</span>,
+    <span class="hljs-attr">"./lib/index.js"</span>: <span class="hljs-string">"./lib/index.js"</span>,
+    <span class="hljs-attr">"./feature"</span>: <span class="hljs-string">"./feature/index.js"</span>,
+    <span class="hljs-attr">"./feature/index.js"</span>: <span class="hljs-string">"./feature/index.js"</span>,
+    <span class="hljs-attr">"./package.json"</span>: <span class="hljs-string">"./package.json"</span>
+  }
+}</code></pre>
+<p>Alternatively a project could choose to export entire folders:</p>
+<pre><code class="language-json">{
+  <span class="hljs-attr">"name"</span>: <span class="hljs-string">"my-mod"</span>,
+  <span class="hljs-attr">"exports"</span>: {
+    <span class="hljs-attr">"."</span>: <span class="hljs-string">"./lib/index.js"</span>,
+    <span class="hljs-attr">"./lib"</span>: <span class="hljs-string">"./lib/index.js"</span>,
+    <span class="hljs-attr">"./lib/"</span>: <span class="hljs-string">"./lib/"</span>,
+    <span class="hljs-attr">"./feature"</span>: <span class="hljs-string">"./feature/index.js"</span>,
+    <span class="hljs-attr">"./feature/"</span>: <span class="hljs-string">"./feature/"</span>,
+    <span class="hljs-attr">"./package.json"</span>: <span class="hljs-string">"./package.json"</span>
+  }
+}</code></pre>
+<p>As a last resort, package encapsulation can be disabled entirely by creating an
+export for the root of the package <code>"./": "./"</code>. This will expose every file in
+the package at the cost of disabling the encapsulation and potential tooling
+benefits this provides. As the ES Module loader in Node.js enforces the use of
+<a href="#esm_mandatory_file_extensions">the full specifier path</a>, exporting the root rather than being explicit
+about entry is less expressive than either of the prior examples. Not only
+will encapsulation be lost but module consumers will be unable to
+<code>import feature from 'my-mod/feature'</code> as they will need to provide the full
+path <code>import feature from 'my-mod/feature/index.js</code>.</p>
+<h4>Main entry point export<span><a class="mark" href="#esm_main_entry_point_export" id="esm_main_entry_point_export">#</a></span></h4>
+<p>To set the main entry point for a package, it is advisable to define both
+<code>"exports"</code> and <code>"main"</code> in the package’s <code>package.json</code> file:</p>
 <!-- eslint-skip -->
-<pre><code class="language-js">// ./node_modules/es-module-package/package.json
+<pre><code class="language-js">{
+  <span class="hljs-string">"main"</span>: <span class="hljs-string">"./main.js"</span>,
+  <span class="hljs-string">"exports"</span>: <span class="hljs-string">"./main.js"</span>
+}</code></pre>
+<p>The benefit of doing this is that when using the <code>"exports"</code> field all
+subpaths of the package will no longer be available to importers under
+<code>require('pkg/subpath.js')</code>, and instead they will get a new error,
+<code>ERR_PACKAGE_PATH_NOT_EXPORTED</code>.</p>
+<p>This encapsulation of exports provides more reliable guarantees
+about package interfaces for tools and when handling semver upgrades for a
+package. It is not a strong encapsulation since a direct require of any
+absolute subpath of the package such as
+<code>require('/path/to/node_modules/pkg/subpath.js')</code> will still load <code>subpath.js</code>.</p>
+<h4>Subpath exports<span><a class="mark" href="#esm_subpath_exports" id="esm_subpath_exports">#</a></span></h4>
+<p>When using the <code>"exports"</code> field, custom subpaths can be defined along
+with the main entry point by treating the main entry point as the
+<code>"."</code> subpath:</p>
+<!-- eslint-skip -->
+<pre><code class="language-js">{
+  <span class="hljs-string">"main"</span>: <span class="hljs-string">"./main.js"</span>,
+  <span class="hljs-string">"exports"</span>: {
+    <span class="hljs-string">"."</span>: <span class="hljs-string">"./main.js"</span>,
+    <span class="hljs-string">"./submodule"</span>: <span class="hljs-string">"./src/submodule.js"</span>
+  }
+}</code></pre>
+<p>Now only the defined subpath in <code>"exports"</code> can be imported by a
+consumer:</p>
+<pre><code class="language-js"><span class="hljs-keyword">import</span> submodule <span class="hljs-keyword">from</span> <span class="hljs-string">'es-module-package/submodule'</span>;
+<span class="hljs-comment">// Loads ./node_modules/es-module-package/src/submodule.js</span></code></pre>
+<p>While other subpaths will error:</p>
+<pre><code class="language-js"><span class="hljs-keyword">import</span> submodule <span class="hljs-keyword">from</span> <span class="hljs-string">'es-module-package/private-module.js'</span>;
+<span class="hljs-comment">// Throws ERR_PACKAGE_PATH_NOT_EXPORTED</span></code></pre>
+<p>Entire folders can also be mapped with package exports:</p>
+<!-- eslint-skip -->
+<pre><code class="language-js"><span class="hljs-comment">// ./node_modules/es-module-package/package.json</span>
 {
-  "type": "module",
-  "main": "./src/index.js"
-}
-</code></pre>
-<pre><code class="language-js">// ./my-app.mjs
+  <span class="hljs-string">"exports"</span>: {
+    <span class="hljs-string">"./features/"</span>: <span class="hljs-string">"./src/features/"</span>
+  }
+}</code></pre>
+<p>With the above, all modules within the <code>./src/features/</code> folder
+are exposed deeply to <code>import</code> and <code>require</code>:</p>
+<pre><code class="language-js"><span class="hljs-keyword">import</span> feature <span class="hljs-keyword">from</span> <span class="hljs-string">'es-module-package/features/x.js'</span>;
+<span class="hljs-comment">// Loads ./node_modules/es-module-package/src/features/x.js</span></code></pre>
+<p>When using folder mappings, ensure that you do want to expose every
+module inside the subfolder. Any modules which are not public
+should be moved to another folder to retain the encapsulation
+benefits of exports.</p>
+<h4>Package exports fallbacks<span><a class="mark" href="#esm_package_exports_fallbacks" id="esm_package_exports_fallbacks">#</a></span></h4>
+<p>For possible new specifier support in future, array fallbacks are
+supported for all invalid specifiers:</p>
+<!-- eslint-skip -->
+<pre><code class="language-js">{
+  <span class="hljs-string">"exports"</span>: {
+    <span class="hljs-string">"./submodule"</span>: [<span class="hljs-string">"not:valid"</span>, <span class="hljs-string">"./submodule.js"</span>]
+  }
+}</code></pre>
+<p>Since <code>"not:valid"</code> is not a valid specifier, <code>"./submodule.js"</code> is used
+instead as the fallback, as if it were the only target.</p>
+<h4>Exports sugar<span><a class="mark" href="#esm_exports_sugar" id="esm_exports_sugar">#</a></span></h4>
+<p>If the <code>"."</code> export is the only export, the <code>"exports"</code> field provides sugar
+for this case being the direct <code>"exports"</code> field value.</p>
+<p>If the <code>"."</code> export has a fallback array or string value, then the <code>"exports"</code>
+field can be set to this value directly.</p>
+<!-- eslint-skip -->
+<pre><code class="language-js">{
+  <span class="hljs-string">"exports"</span>: {
+    <span class="hljs-string">"."</span>: <span class="hljs-string">"./main.js"</span>
+  }
+}</code></pre>
+<p>can be written:</p>
+<!-- eslint-skip -->
+<pre><code class="language-js">{
+  <span class="hljs-string">"exports"</span>: <span class="hljs-string">"./main.js"</span>
+}</code></pre>
+<h4>Conditional exports<span><a class="mark" href="#esm_conditional_exports" id="esm_conditional_exports">#</a></span></h4>
+<p>Conditional exports provide a way to map to different paths depending on
+certain conditions. They are supported for both CommonJS and ES module imports.</p>
+<p>For example, a package that wants to provide different ES module exports for
+<code>require()</code> and <code>import</code> can be written:</p>
+<!-- eslint-skip -->
+<pre><code class="language-js"><span class="hljs-comment">// package.json</span>
+{
+  <span class="hljs-string">"main"</span>: <span class="hljs-string">"./main-require.cjs"</span>,
+  <span class="hljs-string">"exports"</span>: {
+    <span class="hljs-string">"import"</span>: <span class="hljs-string">"./main-module.js"</span>,
+    <span class="hljs-string">"require"</span>: <span class="hljs-string">"./main-require.cjs"</span>
+  },
+  <span class="hljs-string">"type"</span>: <span class="hljs-string">"module"</span>
+}</code></pre>
+<p>Node.js supports the following conditions out of the box:</p>
+<ul>
+<li><code>"import"</code> - matched when the package is loaded via <code>import</code> or
+<code>import()</code>. Can reference either an ES module or CommonJS file, as both
+<code>import</code> and <code>import()</code> can load either ES module or CommonJS sources.
+<em>Always matched when the <code>"require"</code> condition is not matched.</em></li>
+<li><code>"require"</code> - matched when the package is loaded via <code>require()</code>.
+As <code>require()</code> only supports CommonJS, the referenced file must be CommonJS.
+<em>Always matched when the <code>"import"</code> condition is not matched.</em></li>
+<li><code>"node"</code> - matched for any Node.js environment. Can be a CommonJS or ES
+module file. <em>This condition should always come after <code>"import"</code> or
+<code>"require"</code>.</em></li>
+<li><code>"default"</code> - the generic fallback that will always match. Can be a CommonJS
+or ES module file. <em>This condition should always come last.</em></li>
+</ul>
+<p>Within the <code>"exports"</code> object, key order is significant. During condition
+matching, earlier entries have higher priority and take precedence over later
+entries. <em>The general rule is that conditions should be from most specific to
+least specific in object order</em>.</p>
+<p>Other conditions such as <code>"browser"</code>, <code>"electron"</code>, <code>"deno"</code>, <code>"react-native"</code>,
+etc. are unknown to, and thus ignored by Node.js. Runtimes or tools other than
+Node.js may use them at their discretion. Further restrictions, definitions, or
+guidance on condition names may occur in the future.</p>
+<p>Using the <code>"import"</code> and <code>"require"</code> conditions can lead to some hazards,
+which are further explained in <a href="#esm_dual_commonjs_es_module_packages">the dual CommonJS/ES module packages section</a>.</p>
+<p>Conditional exports can also be extended to exports subpaths, for example:</p>
+<!-- eslint-skip -->
+<pre><code class="language-js">{
+  <span class="hljs-string">"main"</span>: <span class="hljs-string">"./main.js"</span>,
+  <span class="hljs-string">"exports"</span>: {
+    <span class="hljs-string">"."</span>: <span class="hljs-string">"./main.js"</span>,
+    <span class="hljs-string">"./feature"</span>: {
+      <span class="hljs-string">"node"</span>: <span class="hljs-string">"./feature-node.js"</span>,
+      <span class="hljs-string">"default"</span>: <span class="hljs-string">"./feature.js"</span>
+    }
+  }
+}</code></pre>
+<p>Defines a package where <code>require('pkg/feature')</code> and <code>import 'pkg/feature'</code>
+could provide different implementations between Node.js and other JS
+environments.</p>
+<p>When using environment branches, always include a <code>"default"</code> condition where
+possible. Providing a <code>"default"</code> condition ensures that any unknown JS
+environments are able to use this universal implementation, which helps avoid
+these JS environments from having to pretend to be existing environments in
+order to support packages with conditional exports. For this reason, using
+<code>"node"</code> and <code>"default"</code> condition branches is usually preferable to using
+<code>"node"</code> and <code>"browser"</code> condition branches.</p>
+<h4>Nested conditions<span><a class="mark" href="#esm_nested_conditions" id="esm_nested_conditions">#</a></span></h4>
+<p>In addition to direct mappings, Node.js also supports nested condition objects.</p>
+<p>For example, to define a package that only has dual mode entry points for
+use in Node.js but not the browser:</p>
+<!-- eslint-skip -->
+<pre><code class="language-js">{
+  <span class="hljs-string">"main"</span>: <span class="hljs-string">"./main.js"</span>,
+  <span class="hljs-string">"exports"</span>: {
+    <span class="hljs-string">"node"</span>: {
+      <span class="hljs-string">"import"</span>: <span class="hljs-string">"./feature-node.mjs"</span>,
+      <span class="hljs-string">"require"</span>: <span class="hljs-string">"./feature-node.cjs"</span>
+    },
+    <span class="hljs-string">"default"</span>: <span class="hljs-string">"./feature.mjs"</span>,
+  }
+}</code></pre>
+<p>Conditions continue to be matched in order as with flat conditions. If
+a nested conditional does not have any mapping it will continue checking
+the remaining conditions of the parent condition. In this way nested
+conditions behave analogously to nested JavaScript <code>if</code> statements.</p>
+<h4>Self-referencing a package using its name<span><a class="mark" href="#esm_self_referencing_a_package_using_its_name" id="esm_self_referencing_a_package_using_its_name">#</a></span></h4>
+<p>Within a package, the values defined in the package’s
+<code>package.json</code> <code>"exports"</code> field can be referenced via the package’s name.
+For example, assuming the <code>package.json</code> is:</p>
+<pre><code class="language-json"><span class="hljs-comment">// package.json</span>
+{
+  <span class="hljs-attr">"name"</span>: <span class="hljs-string">"a-package"</span>,
+  <span class="hljs-attr">"exports"</span>: {
+    <span class="hljs-attr">"."</span>: <span class="hljs-string">"./main.mjs"</span>,
+    <span class="hljs-attr">"./foo"</span>: <span class="hljs-string">"./foo.js"</span>
+  }
+}</code></pre>
+<p>Then any module <em>in that package</em> can reference an export in the package itself:</p>
+<pre><code class="language-js"><span class="hljs-comment">// ./a-module.mjs</span>
+<span class="hljs-keyword">import</span> { something } <span class="hljs-keyword">from</span> <span class="hljs-string">'a-package'</span>; <span class="hljs-comment">// Imports "something" from ./main.mjs.</span></code></pre>
+<p>Self-referencing is available only if <code>package.json</code> has <code>exports</code>, and will
+allow importing only what that <code>exports</code> (in the <code>package.json</code>) allows.
+So the code below, given the package above, will generate a runtime error:</p>
+<pre><code class="language-js"><span class="hljs-comment">// ./another-module.mjs</span>
 
-import { something } from 'es-module-package';
-// Loads from ./node_modules/es-module-package/src/index.js
-</code></pre>
-<p>An attempt to <code>require</code> the above <code>es-module-package</code> would attempt to load
-<code>./node_modules/es-module-package/src/index.js</code> as CommonJS, which would throw
-an error as Node.js would not be able to parse the <code>export</code> statement in
-CommonJS.</p>
-<p>As with <code>import</code> statements, for ES module usage the value of <code>"main"</code> must be
-a full path including extension: <code>"./index.mjs"</code>, not <code>"./index"</code>.</p>
-<p>If the <code>package.json</code> <code>"type"</code> field is omitted, a <code>.js</code> file in <code>"main"</code> will
-be interpreted as CommonJS.</p>
-<p>The <code>"main"</code> field can point to exactly one file, regardless of whether the
-package is referenced via <code>require</code> (in a CommonJS context) or <code>import</code> (in an
-ES module context).</p>
-<h4>Compatibility with CommonJS-Only Versions of Node.js<span><a class="mark" href="#esm_compatibility_with_commonjs_only_versions_of_node_js" id="esm_compatibility_with_commonjs_only_versions_of_node_js">#</a></span></h4>
+<span class="hljs-comment">// Imports "another" from ./m.mjs. Fails because</span>
+<span class="hljs-comment">// the "package.json" "exports" field</span>
+<span class="hljs-comment">// does not provide an export named "./m.mjs".</span>
+<span class="hljs-keyword">import</span> { another } <span class="hljs-keyword">from</span> <span class="hljs-string">'a-package/m.mjs'</span>;</code></pre>
+<p>Self-referencing is also available when using <code>require</code>, both in an ES module,
+and in a CommonJS one. For example, this code will also work:</p>
+<pre><code class="language-js"><span class="hljs-comment">// ./a-module.js</span>
+<span class="hljs-keyword">const</span> { something } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'a-package/foo'</span>); <span class="hljs-comment">// Loads from ./foo.js.</span></code></pre>
+<h3>Internal package imports<span><a class="mark" href="#esm_internal_package_imports" id="esm_internal_package_imports">#</a></span></h3>
+<p>In addition to the <code>"exports"</code> field it is possible to define internal package
+import maps that only apply to import specifiers from within the package itself.</p>
+<p>Entries in the imports field must always start with <code>#</code> to ensure they are
+clearly disambiguated from package specifiers.</p>
+<p>For example, the imports field can be used to gain the benefits of conditional
+exports for internal modules:</p>
+<pre><code class="language-json"><span class="hljs-comment">// package.json</span>
+{
+  <span class="hljs-attr">"imports"</span>: {
+    <span class="hljs-attr">"#dep"</span>: {
+      <span class="hljs-attr">"node"</span>: <span class="hljs-string">"dep-node-native"</span>,
+      <span class="hljs-attr">"default"</span>: <span class="hljs-string">"./dep-polyfill.js"</span>
+    }
+  },
+  <span class="hljs-attr">"dependencies"</span>: {
+    <span class="hljs-attr">"dep-node-native"</span>: <span class="hljs-string">"^1.0.0"</span>
+  }
+}</code></pre>
+<p>where <code>import '#dep'</code> would now get the resolution of the external package
+<code>dep-node-native</code> (including its exports in turn), and instead get the local
+file <code>./dep-polyfill.js</code> relative to the package in other environments.</p>
+<p>Unlike the exports field, import maps permit mapping to external packages
+because this provides an important use case for conditional loading and also can
+be done without the risk of cycles, unlike for exports.</p>
+<p>Apart from the above, the resolution rules for the imports field are otherwise
+analogous to the exports field.</p>
+<h3>Dual CommonJS/ES module packages<span><a class="mark" href="#esm_dual_commonjs_es_module_packages" id="esm_dual_commonjs_es_module_packages">#</a></span></h3>
 <p>Prior to the introduction of support for ES modules in Node.js, it was a common
 pattern for package authors to include both CommonJS and ES module JavaScript
 sources in their package, with <code>package.json</code> <code>"main"</code> specifying the CommonJS
 entry point and <code>package.json</code> <code>"module"</code> specifying the ES module entry point.
 This enabled Node.js to run the CommonJS entry point while build tools such as
 bundlers used the ES module entry point, since Node.js ignored (and still
-ignores) <code>"module"</code>.</p>
-<p>Node.js can now run ES module entry points, but it remains impossible for a
-package to define separate CommonJS and ES module entry points. This is for good
-reason: the <code>pkg</code> variable created from <code>import pkg from 'pkg'</code> is not the same
-singleton as the <code>pkg</code> variable created from <code>const pkg = require('pkg')</code>, so if
-both are referenced within the same app (including dependencies), unexpected
-behavior might occur.</p>
-<p>There are two general approaches to addressing this limitation while still
-publishing a package that contains both CommonJS and ES module sources:</p>
+ignores) the top-level <code>"module"</code> field.</p>
+<p>Node.js can now run ES module entry points, and a package can contain both
+CommonJS and ES module entry points (either via separate specifiers such as
+<code>'pkg'</code> and <code>'pkg/es-module'</code>, or both at the same specifier via <a href="#esm_conditional_exports">Conditional
+exports</a>). Unlike in the scenario where <code>"module"</code> is only used by bundlers,
+or ES module files are transpiled into CommonJS on the fly before evaluation by
+Node.js, the files referenced by the ES module entry point are evaluated as ES
+modules.</p>
+<h4>Dual package hazard<span><a class="mark" href="#esm_dual_package_hazard" id="esm_dual_package_hazard">#</a></span></h4>
+<p>When an application is using a package that provides both CommonJS and ES module
+sources, there is a risk of certain bugs if both versions of the package get
+loaded. This potential comes from the fact that the <code>pkgInstance</code> created by
+<code>const pkgInstance = require('pkg')</code> is not the same as the <code>pkgInstance</code>
+created by <code>import pkgInstance from 'pkg'</code> (or an alternative main path like
+<code>'pkg/module'</code>). This is the “dual package hazard,” where two versions of the
+same package can be loaded within the same runtime environment. While it is
+unlikely that an application or package would intentionally load both versions
+directly, it is common for an application to load one version while a dependency
+of the application loads the other version. This hazard can happen because
+Node.js supports intermixing CommonJS and ES modules, and can lead to unexpected
+behavior.</p>
+<p>If the package main export is a constructor, an <code>instanceof</code> comparison of
+instances created by the two versions returns <code>false</code>, and if the export is an
+object, properties added to one (like <code>pkgInstance.foo = 3</code>) are not present on
+the other. This differs from how <code>import</code> and <code>require</code> statements work in
+all-CommonJS or all-ES module environments, respectively, and therefore is
+surprising to users. It also differs from the behavior users are familiar with
+when using transpilation via tools like <a href="https://babeljs.io/">Babel</a> or <a href="https://github.com/standard-things/esm#readme"><code>esm</code></a>.</p>
+<h4>Writing dual packages while avoiding or minimizing hazards<span><a class="mark" href="#esm_writing_dual_packages_while_avoiding_or_minimizing_hazards" id="esm_writing_dual_packages_while_avoiding_or_minimizing_hazards">#</a></span></h4>
+<p>First, the hazard described in the previous section occurs when a package
+contains both CommonJS and ES module sources and both sources are provided for
+use in Node.js, either via separate main entry points or exported paths. A
+package could instead be written where any version of Node.js receives only
+CommonJS sources, and any separate ES module sources the package may contain
+could be intended only for other environments such as browsers. Such a package
+would be usable by any version of Node.js, since <code>import</code> can refer to CommonJS
+files; but it would not provide any of the advantages of using ES module syntax.</p>
+<p>A package could also switch from CommonJS to ES module syntax in a breaking
+change version bump. This has the disadvantage that the newest version
+of the package would only be usable in ES module-supporting versions of Node.js.</p>
+<p>Every pattern has tradeoffs, but there are two broad approaches that satisfy the
+following conditions:</p>
+<ol>
+<li>The package is usable via both <code>require</code> and <code>import</code>.</li>
+<li>The package is usable in both current Node.js and older versions of Node.js
+that lack support for ES modules.</li>
+<li>The package main entry point, e.g. <code>'pkg'</code> can be used by both <code>require</code> to
+resolve to a CommonJS file and by <code>import</code> to resolve to an ES module file.
+(And likewise for exported paths, e.g. <code>'pkg/feature'</code>.)</li>
+<li>The package provides named exports, e.g. <code>import { name } from 'pkg'</code> rather
+than <code>import pkg from 'pkg'; pkg.name</code>.</li>
+<li>The package is potentially usable in other ES module environments such as
+browsers.</li>
+<li>The hazards described in the previous section are avoided or minimized.</li>
+</ol>
+<h5>Approach #1: Use an ES module wrapper<span><a class="mark" href="#esm_approach_1_use_an_es_module_wrapper" id="esm_approach_1_use_an_es_module_wrapper">#</a></span></h5>
+<p>Write the package in CommonJS or transpile ES module sources into CommonJS, and
+create an ES module wrapper file that defines the named exports. Using
+<a href="#esm_conditional_exports">Conditional exports</a>, the ES module wrapper is used for <code>import</code> and the
+CommonJS entry point for <code>require</code>.</p>
+<!-- eslint-skip -->
+<pre><code class="language-js"><span class="hljs-comment">// ./node_modules/pkg/package.json</span>
+{
+  <span class="hljs-string">"type"</span>: <span class="hljs-string">"module"</span>,
+  <span class="hljs-string">"main"</span>: <span class="hljs-string">"./index.cjs"</span>,
+  <span class="hljs-string">"exports"</span>: {
+    <span class="hljs-string">"import"</span>: <span class="hljs-string">"./wrapper.mjs"</span>,
+    <span class="hljs-string">"require"</span>: <span class="hljs-string">"./index.cjs"</span>
+  }
+}</code></pre>
+<pre><code class="language-js"><span class="hljs-comment">// ./node_modules/pkg/index.cjs</span>
+exports.name = <span class="hljs-string">'value'</span>;</code></pre>
+<pre><code class="language-js"><span class="hljs-comment">// ./node_modules/pkg/wrapper.mjs</span>
+<span class="hljs-keyword">import</span> cjsModule <span class="hljs-keyword">from</span> <span class="hljs-string">'./index.cjs'</span>;
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> name = cjsModule.name;</code></pre>
+<p>In this example, the <code>name</code> from <code>import { name } from 'pkg'</code> is the same
+singleton as the <code>name</code> from <code>const { name } = require('pkg')</code>. Therefore <code>===</code>
+returns <code>true</code> when comparing the two <code>name</code>s and the divergent specifier hazard
+is avoided.</p>
+<p>If the module is not simply a list of named exports, but rather contains a
+unique function or object export like <code>module.exports = function () { ... }</code>,
+or if support in the wrapper for the <code>import pkg from 'pkg'</code> pattern is desired,
+then the wrapper would instead be written to export the default optionally
+along with any named exports as well:</p>
+<pre><code class="language-js"><span class="hljs-keyword">import</span> cjsModule <span class="hljs-keyword">from</span> <span class="hljs-string">'./index.cjs'</span>;
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> name = cjsModule.name;
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> cjsModule;</code></pre>
+<p>This approach is appropriate for any of the following use cases:</p>
+<ul>
+<li>The package is currently written in CommonJS and the author would prefer not
+to refactor it into ES module syntax, but wishes to provide named exports for
+ES module consumers.</li>
+<li>The package has other packages that depend on it, and the end user might
+install both this package and those other packages. For example a <code>utilities</code>
+package is used directly in an application, and a <code>utilities-plus</code> package
+adds a few more functions to <code>utilities</code>. Because the wrapper exports
+underlying CommonJS files, it doesn’t matter if <code>utilities-plus</code> is written in
+CommonJS or ES module syntax; it will work either way.</li>
+<li>The package stores internal state, and the package author would prefer not to
+refactor the package to isolate its state management. See the next section.</li>
+</ul>
+<p>A variant of this approach not requiring conditional exports for consumers could
+be to add an export, e.g. <code>"./module"</code>, to point to an all-ES module-syntax
+version of the package. This could be used via <code>import 'pkg/module'</code> by users
+who are certain that the CommonJS version will not be loaded anywhere in the
+application, such as by dependencies; or if the CommonJS version can be loaded
+but doesn’t affect the ES module version (for example, because the package is
+stateless):</p>
+<!-- eslint-skip -->
+<pre><code class="language-js"><span class="hljs-comment">// ./node_modules/pkg/package.json</span>
+{
+  <span class="hljs-string">"type"</span>: <span class="hljs-string">"module"</span>,
+  <span class="hljs-string">"main"</span>: <span class="hljs-string">"./index.cjs"</span>,
+  <span class="hljs-string">"exports"</span>: {
+    <span class="hljs-string">"."</span>: <span class="hljs-string">"./index.cjs"</span>,
+    <span class="hljs-string">"./module"</span>: <span class="hljs-string">"./wrapper.mjs"</span>
+  }
+}</code></pre>
+<h5>Approach #2: Isolate state<span><a class="mark" href="#esm_approach_2_isolate_state" id="esm_approach_2_isolate_state">#</a></span></h5>
+<p>A <code>package.json</code> file can define the separate CommonJS and ES module entry
+points directly:</p>
+<!-- eslint-skip -->
+<pre><code class="language-js"><span class="hljs-comment">// ./node_modules/pkg/package.json</span>
+{
+  <span class="hljs-string">"type"</span>: <span class="hljs-string">"module"</span>,
+  <span class="hljs-string">"main"</span>: <span class="hljs-string">"./index.cjs"</span>,
+  <span class="hljs-string">"exports"</span>: {
+    <span class="hljs-string">"import"</span>: <span class="hljs-string">"./index.mjs"</span>,
+    <span class="hljs-string">"require"</span>: <span class="hljs-string">"./index.cjs"</span>
+  }
+}</code></pre>
+<p>This can be done if both the CommonJS and ES module versions of the package are
+equivalent, for example because one is the transpiled output of the other; and
+the package’s management of state is carefully isolated (or the package is
+stateless).</p>
+<p>The reason that state is an issue is because both the CommonJS and ES module
+versions of the package may get used within an application; for example, the
+user’s application code could <code>import</code> the ES module version while a dependency
+<code>require</code>s the CommonJS version. If that were to occur, two copies of the
+package would be loaded in memory and therefore two separate states would be
+present. This would likely cause hard-to-troubleshoot bugs.</p>
+<p>Aside from writing a stateless package (if JavaScript’s <code>Math</code> were a package,
+for example, it would be stateless as all of its methods are static), there are
+some ways to isolate state so that it’s shared between the potentially loaded
+CommonJS and ES module instances of the package:</p>
 <ol>
 <li>
-<p>Document a new ES module entry point that’s not the package <code>"main"</code>, e.g.
-<code>import pkg from 'pkg/module.mjs'</code> (or <code>import 'pkg/esm'</code>, if using <a href="#esm_package_exports">package
-exports</a>). The package <code>"main"</code> would still point to a CommonJS file, and
-thus the package would remain compatible with older versions of Node.js that
-lack support for ES modules.</p>
+<p>If possible, contain all state within an instantiated object. JavaScript’s
+<code>Date</code>, for example, needs to be instantiated to contain state; if it were a
+package, it would be used like this:</p>
+<pre><code class="language-js"><span class="hljs-keyword">import</span> <span class="hljs-built_in">Date</span> <span class="hljs-keyword">from</span> <span class="hljs-string">'date'</span>;
+<span class="hljs-keyword">const</span> someDate = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>();
+<span class="hljs-comment">// someDate contains state; Date does not</span></code></pre>
+<p>The <code>new</code> keyword isn’t required; a package’s function can return a new
+object, or modify a passed-in object, to keep the state external to the
+package.</p>
 </li>
 <li>
-<p>Switch the package <code>"main"</code> entry point to an ES module file as part of a
-breaking change version bump. This version and above would only be usable on
-ES module-supporting versions of Node.js. If the package still contains a
-CommonJS version, it would be accessible via a path within the package, e.g.
-<code>require('pkg/commonjs')</code>; this is essentially the inverse of the previous
-approach. Package consumers who are using CommonJS-only versions of Node.js
-would need to update their code from <code>require('pkg')</code> to e.g.
-<code>require('pkg/commonjs')</code>.</p>
+<p>Isolate the state in one or more CommonJS files that are shared between the
+CommonJS and ES module versions of the package. For example, if the CommonJS
+and ES module entry points are <code>index.cjs</code> and <code>index.mjs</code>, respectively:</p>
+<pre><code class="language-js"><span class="hljs-comment">// ./node_modules/pkg/index.cjs</span>
+<span class="hljs-keyword">const</span> state = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./state.cjs'</span>);
+<span class="hljs-built_in">module</span>.exports.state = state;</code></pre>
+<pre><code class="language-js"><span class="hljs-comment">// ./node_modules/pkg/index.mjs</span>
+<span class="hljs-keyword">import</span> state <span class="hljs-keyword">from</span> <span class="hljs-string">'./state.cjs'</span>;
+<span class="hljs-keyword">export</span> {
+  state
+};</code></pre>
+<p>Even if <code>pkg</code> is used via both <code>require</code> and <code>import</code> in an application (for
+example, via <code>import</code> in application code and via <code>require</code> by a dependency)
+each reference of <code>pkg</code> will contain the same state; and modifying that
+state from either module system will apply to both.</p>
 </li>
 </ol>
-<p>Of course, a package could also include only CommonJS or only ES module sources.
-An existing package could make a semver major bump to an ES module-only version,
-that would only be supported in ES module-supporting versions of Node.js (and
-other runtimes). New packages could be published containing only ES module
-sources, and would be compatible only with ES module-supporting runtimes.</p>
-<h3>Package Exports<span><a class="mark" href="#esm_package_exports" id="esm_package_exports">#</a></span></h3>
-<p>By default, all subpaths from a package can be imported (<code>import 'pkg/x.js'</code>).
-Custom subpath aliasing and encapsulation can be provided through the
-<code>"exports"</code> field.</p>
+<p>Any plugins that attach to the package’s singleton would need to separately
+attach to both the CommonJS and ES module singletons.</p>
+<p>This approach is appropriate for any of the following use cases:</p>
+<ul>
+<li>The package is currently written in ES module syntax and the package author
+wants that version to be used wherever such syntax is supported.</li>
+<li>The package is stateless or its state can be isolated without too much
+difficulty.</li>
+<li>The package is unlikely to have other public packages that depend on it, or if
+it does, the package is stateless or has state that need not be shared between
+dependencies or with the overall application.</li>
+</ul>
+<p>Even with isolated state, there is still the cost of possible extra code
+execution between the CommonJS and ES module versions of a package.</p>
+<p>As with the previous approach, a variant of this approach not requiring
+conditional exports for consumers could be to add an export, e.g.
+<code>"./module"</code>, to point to an all-ES module-syntax version of the package:</p>
 <!-- eslint-skip -->
-<pre><code class="language-js">// ./node_modules/es-module-package/package.json
+<pre><code class="language-js"><span class="hljs-comment">// ./node_modules/pkg/package.json</span>
 {
-  "exports": {
-    "./submodule": "./src/submodule.js"
+  <span class="hljs-string">"type"</span>: <span class="hljs-string">"module"</span>,
+  <span class="hljs-string">"main"</span>: <span class="hljs-string">"./index.cjs"</span>,
+  <span class="hljs-string">"exports"</span>: {
+    <span class="hljs-string">"."</span>: <span class="hljs-string">"./index.cjs"</span>,
+    <span class="hljs-string">"./module"</span>: <span class="hljs-string">"./index.mjs"</span>
   }
-}
-</code></pre>
-<pre><code class="language-js">import submodule from 'es-module-package/submodule';
-// Loads ./node_modules/es-module-package/src/submodule.js
-</code></pre>
-<p>In addition to defining an alias, subpaths not defined by <code>"exports"</code> will
-throw when an attempt is made to import them:</p>
-<pre><code class="language-js">import submodule from 'es-module-package/private-module.js';
-// Throws - Module not found
-</code></pre>
-<blockquote>
-<p>Note: this is not a strong encapsulation as any private modules can still be
-loaded by absolute paths.</p>
-</blockquote>
-<p>Folders can also be mapped with package exports:</p>
-<!-- eslint-skip -->
-<pre><code class="language-js">// ./node_modules/es-module-package/package.json
-{
-  "exports": {
-    "./features/": "./src/features/"
-  }
-}
-</code></pre>
-<pre><code class="language-js">import feature from 'es-module-package/features/x.js';
-// Loads ./node_modules/es-module-package/src/features/x.js
-</code></pre>
-<p>If a package has no exports, setting <code>"exports": false</code> can be used instead of
-<code>"exports": {}</code> to indicate the package does not intend for submodules to be
-exposed.</p>
-<p>Exports can also be used to map the main entry point of a package:</p>
-<!-- eslint-skip -->
-<pre><code class="language-js">// ./node_modules/es-module-package/package.json
-{
-  "exports": {
-    ".": "./main.js"
-  }
-}
-</code></pre>
-<p>where the "." indicates loading the package without any subpath. Exports will
-always override any existing <code>"main"</code> value for both CommonJS and
-ES module packages.</p>
-<p>For packages with only a main entry point, an <code>"exports"</code> value of just
-a string is also supported:</p>
-<!-- eslint-skip -->
-<pre><code class="language-js">// ./node_modules/es-module-package/package.json
-{
-  "exports": "./main.js"
-}
-</code></pre>
-<p>Any invalid exports entries will be ignored. This includes exports not
-starting with <code>"./"</code> or a missing trailing <code>"/"</code> for directory exports.</p>
-<p>Array fallback support is provided for exports, similarly to import maps
-in order to be forward-compatible with fallback workflows in future:</p>
-<!-- eslint-skip -->
-<pre><code class="language-js">{
-  "exports": {
-    "./submodule": ["not:valid", "./submodule.js"]
-  }
-}
-</code></pre>
-<p>Since <code>"not:valid"</code> is not a supported target, <code>"./submodule.js"</code> is used
-instead as the fallback, as if it were the only target.</p>
-<h2><code>import</code> Specifiers<span><a class="mark" href="#esm_code_import_code_specifiers" id="esm_code_import_code_specifiers">#</a></span></h2>
+}</code></pre>
+<h2><code>import</code> Specifiers<span><a class="mark" href="#esm_import_specifiers" id="esm_import_specifiers">#</a></span></h2>
 <h3>Terminology<span><a class="mark" href="#esm_terminology" id="esm_terminology">#</a></span></h3>
 <p>The <em>specifier</em> of an <code>import</code> statement is the string after the <code>from</code> keyword,
 e.g. <code>'path'</code> in <code>import { sep } from 'path'</code>. Specifiers are also used in
@@ -534,10 +924,9 @@ and <a href="#esm_terminology"><em>Absolute specifiers</em></a>. Resolving
 from <code>data:text/javascript,import "./foo";</code> will fail to resolve since there
 is no concept of relative resolution for <code>data:</code> URLs. An example of a <code>data:</code>
 URLs being used is:</p>
-<pre><code class="language-js">import 'data:text/javascript,console.log("hello!");';
-import _ from 'data:application/json,"world!"';
-</code></pre>
-<h2>import.meta<span><a class="mark" href="#esm_import_meta" id="esm_import_meta">#</a></span></h2>
+<pre><code class="language-js"><span class="hljs-keyword">import</span> <span class="hljs-string">'data:text/javascript,console.log("hello!");'</span>;
+<span class="hljs-keyword">import</span> _ <span class="hljs-keyword">from</span> <span class="hljs-string">'data:application/json,"world!"'</span>;</code></pre>
+<h2><code>import.meta</code><span><a class="mark" href="#esm_import_meta" id="esm_import_meta">#</a></span></h2>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></li>
 </ul>
@@ -546,30 +935,45 @@ property:</p>
 <ul>
 <li><code>url</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The absolute <code>file:</code> URL of the module.</li>
 </ul>
-<h2>Differences Between ES Modules and CommonJS<span><a class="mark" href="#esm_differences_between_es_modules_and_commonjs" id="esm_differences_between_es_modules_and_commonjs">#</a></span></h2>
+<h2>Differences between ES modules and CommonJS<span><a class="mark" href="#esm_differences_between_es_modules_and_commonjs" id="esm_differences_between_es_modules_and_commonjs">#</a></span></h2>
 <h3>Mandatory file extensions<span><a class="mark" href="#esm_mandatory_file_extensions" id="esm_mandatory_file_extensions">#</a></span></h3>
 <p>A file extension must be provided when using the <code>import</code> keyword. Directory
 indexes (e.g. <code>'./startup/index.js'</code>) must also be fully specified.</p>
 <p>This behavior matches how <code>import</code> behaves in browser environments, assuming a
 typically configured server.</p>
-<h3>No <code>NODE_PATH</code><span><a class="mark" href="#esm_no_code_node_path_code" id="esm_no_code_node_path_code">#</a></span></h3>
+<h3>No <code>NODE_PATH</code><span><a class="mark" href="#esm_no_node_path" id="esm_no_node_path">#</a></span></h3>
 <p><code>NODE_PATH</code> is not part of resolving <code>import</code> specifiers. Please use symlinks
 if this behavior is desired.</p>
-<h3>No <code>require</code>, <code>exports</code>, <code>module.exports</code>, <code>__filename</code>, <code>__dirname</code><span><a class="mark" href="#esm_no_code_require_code_code_exports_code_code_module_exports_code_code_filename_code_code_dirname_code" id="esm_no_code_require_code_code_exports_code_code_module_exports_code_code_filename_code_code_dirname_code">#</a></span></h3>
+<h3>No <code>require</code>, <code>exports</code>, <code>module.exports</code>, <code>__filename</code>, <code>__dirname</code><span><a class="mark" href="#esm_no_require_exports_module_exports_filename_dirname" id="esm_no_require_exports_module_exports_filename_dirname">#</a></span></h3>
 <p>These CommonJS variables are not available in ES modules.</p>
 <p><code>require</code> can be imported into an ES module using <a href="modules.html#modules_module_createrequire_filename"><code>module.createRequire()</code></a>.</p>
 <p>Equivalents of <code>__filename</code> and <code>__dirname</code> can be created inside of each file
 via <a href="#esm_import_meta"><code>import.meta.url</code></a>.</p>
-<pre><code class="language-js">import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+<pre><code class="language-js"><span class="hljs-keyword">import</span> { fileURLToPath } <span class="hljs-keyword">from</span> <span class="hljs-string">'url'</span>;
+<span class="hljs-keyword">import</span> { dirname } <span class="hljs-keyword">from</span> <span class="hljs-string">'path'</span>;
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-</code></pre>
-<h3>No <code>require.extensions</code><span><a class="mark" href="#esm_no_code_require_extensions_code" id="esm_no_code_require_extensions_code">#</a></span></h3>
+<span class="hljs-keyword">const</span> __filename = fileURLToPath(<span class="hljs-keyword">import</span>.meta.url);
+<span class="hljs-keyword">const</span> __dirname = dirname(__filename);</code></pre>
+<h3>No <code>require.resolve</code><span><a class="mark" href="#esm_no_require_resolve" id="esm_no_require_resolve">#</a></span></h3>
+<p>Former use cases relying on <code>require.resolve</code> to determine the resolved path
+of a module can be supported via <code>import.meta.resolve</code>, which is experimental
+and supported via the <code>--experimental-import-meta-resolve</code> flag:</p>
+<pre><code class="language-js">(<span class="hljs-keyword">async</span> () => {
+  <span class="hljs-keyword">const</span> dependencyAsset = <span class="hljs-keyword">await</span> <span class="hljs-keyword">import</span>.meta.resolve(<span class="hljs-string">'component-lib/asset.css'</span>);
+})();</code></pre>
+<p><code>import.meta.resolve</code> also accepts a second argument which is the parent module
+from which to resolve from:</p>
+<pre><code class="language-js">(<span class="hljs-keyword">async</span> () => {
+  <span class="hljs-comment">// Equivalent to import.meta.resolve('./dep')</span>
+  <span class="hljs-keyword">await</span> <span class="hljs-keyword">import</span>.meta.resolve(<span class="hljs-string">'./dep'</span>, <span class="hljs-keyword">import</span>.meta.url);
+})();</code></pre>
+<p>This function is asynchronous since the ES module resolver in Node.js is
+asynchronous. With the introduction of <a href="https://github.com/tc39/proposal-top-level-await">Top-Level Await</a>, these use cases
+will be easier as they won't require an async function wrapper.</p>
+<h3>No <code>require.extensions</code><span><a class="mark" href="#esm_no_require_extensions" id="esm_no_require_extensions">#</a></span></h3>
 <p><code>require.extensions</code> is not used by <code>import</code>. The expectation is that loader
 hooks can provide this workflow in the future.</p>
-<h3>No <code>require.cache</code><span><a class="mark" href="#esm_no_code_require_cache_code" id="esm_no_code_require_cache_code">#</a></span></h3>
+<h3>No <code>require.cache</code><span><a class="mark" href="#esm_no_require_cache" id="esm_no_require_cache">#</a></span></h3>
 <p><code>require.cache</code> is not used by <code>import</code>. It has a separate cache.</p>
 <h3>URL-based paths<span><a class="mark" href="#esm_url_based_paths" id="esm_url_based_paths">#</a></span></h3>
 <p>ES modules are resolved and cached based upon
@@ -577,88 +981,76 @@ hooks can provide this workflow in the future.</p>
 special characters such as <code>#</code> and <code>?</code> need to be escaped.</p>
 <p>Modules will be loaded multiple times if the <code>import</code> specifier used to resolve
 them have a different query or fragment.</p>
-<pre><code class="language-js">import './foo.mjs?query=1'; // loads ./foo.mjs with query of "?query=1"
-import './foo.mjs?query=2'; // loads ./foo.mjs with query of "?query=2"
-</code></pre>
+<pre><code class="language-js"><span class="hljs-keyword">import</span> <span class="hljs-string">'./foo.mjs?query=1'</span>; <span class="hljs-comment">// loads ./foo.mjs with query of "?query=1"</span>
+<span class="hljs-keyword">import</span> <span class="hljs-string">'./foo.mjs?query=2'</span>; <span class="hljs-comment">// loads ./foo.mjs with query of "?query=2"</span></code></pre>
 <p>For now, only modules using the <code>file:</code> protocol can be loaded.</p>
 <h2>Interoperability with CommonJS<span><a class="mark" href="#esm_interoperability_with_commonjs" id="esm_interoperability_with_commonjs">#</a></span></h2>
-<h3><code>require</code><span><a class="mark" href="#esm_code_require_code" id="esm_code_require_code">#</a></span></h3>
+<h3><code>require</code><span><a class="mark" href="#esm_require" id="esm_require">#</a></span></h3>
 <p><code>require</code> always treats the files it references as CommonJS. This applies
 whether <code>require</code> is used the traditional way within a CommonJS environment, or
 in an ES module environment using <a href="modules.html#modules_module_createrequire_filename"><code>module.createRequire()</code></a>.</p>
-<p>To include an ES module into CommonJS, use <a href="#esm_import-expressions"><code>import()</code></a>.</p>
-<h3><code>import</code> statements<span><a class="mark" href="#esm_code_import_code_statements" id="esm_code_import_code_statements">#</a></span></h3>
-<p>An <code>import</code> statement can reference an ES module, a CommonJS module, or JSON.
-Other file types such as Native modules are not supported. For those,
-use <a href="modules.html#modules_module_createrequire_filename"><code>module.createRequire()</code></a>.</p>
+<p>To include an ES module into CommonJS, use <a href="#esm_import_expressions"><code>import()</code></a>.</p>
+<h3><code>import</code> statements<span><a class="mark" href="#esm_import_statements" id="esm_import_statements">#</a></span></h3>
+<p>An <code>import</code> statement can reference an ES module or a CommonJS module. Other
+file types such as JSON or native modules are not supported. For those, use
+<a href="modules.html#modules_module_createrequire_filename"><code>module.createRequire()</code></a>.</p>
 <p><code>import</code> statements are permitted only in ES modules. For similar functionality
-in CommonJS, see <a href="#esm_import-expressions"><code>import()</code></a>.</p>
+in CommonJS, see <a href="#esm_import_expressions"><code>import()</code></a>.</p>
 <p>The <em>specifier</em> of an <code>import</code> statement (the string after the <code>from</code> keyword)
 can either be an URL-style relative path like <code>'./file.mjs'</code> or a package name
 like <code>'fs'</code>.</p>
 <p>Like in CommonJS, files within packages can be accessed by appending a path to
-the package name.</p>
-<pre><code class="language-js">import { sin, cos } from 'geometry/trigonometry-functions.mjs';
-</code></pre>
-<blockquote>
-<p>Currently only the “default export” is supported for CommonJS files or
-packages:</p>
+the package name; unless the package’s <code>package.json</code> contains an <code>"exports"</code>
+field, in which case files within packages need to be accessed via the path
+defined in <code>"exports"</code>.</p>
+<pre><code class="language-js"><span class="hljs-keyword">import</span> { sin, cos } <span class="hljs-keyword">from</span> <span class="hljs-string">'geometry/trigonometry-functions.mjs'</span>;</code></pre>
+<p>Only the “default export” is supported for CommonJS files or packages:</p>
 <!-- eslint-disable no-duplicate-imports -->
-<pre><code class="language-js">import packageMain from 'commonjs-package'; // Works
+<pre><code class="language-js"><span class="hljs-keyword">import</span> packageMain <span class="hljs-keyword">from</span> <span class="hljs-string">'commonjs-package'</span>; <span class="hljs-comment">// Works</span>
 
-import { method } from 'commonjs-package'; // Errors
-</code></pre>
-<p>There are ongoing efforts to make the latter code possible.</p>
-</blockquote>
-<h3><code>import()</code> expressions<span><a class="mark" href="#esm_code_import_code_expressions" id="esm_code_import_code_expressions">#</a></span></h3>
-<p>Dynamic <code>import()</code> is supported in both CommonJS and ES modules. It can be used
-to include ES module files from CommonJS code.</p>
-<pre><code class="language-js">(async () => {
-  await import('./my-app.mjs');
-})();
-</code></pre>
-<h2>CommonJS, JSON, and Native Modules<span><a class="mark" href="#esm_commonjs_json_and_native_modules" id="esm_commonjs_json_and_native_modules">#</a></span></h2>
-<p>CommonJS, JSON, and Native modules can be used with
+<span class="hljs-keyword">import</span> { method } <span class="hljs-keyword">from</span> <span class="hljs-string">'commonjs-package'</span>; <span class="hljs-comment">// Errors</span></code></pre>
+<p>It is also possible to
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import#Import_a_module_for_its_side_effects_only">import an ES or CommonJS module for its side effects only</a>.</p>
+<h3><code>import()</code> expressions<span><a class="mark" href="#esm_import_expressions" id="esm_import_expressions">#</a></span></h3>
+<p><a href="https://wiki.developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import#Dynamic_Imports">Dynamic <code>import()</code></a> is supported in both CommonJS and ES modules. It can be
+used to include ES module files from CommonJS code.</p>
+<h2>CommonJS, JSON, and native modules<span><a class="mark" href="#esm_commonjs_json_and_native_modules" id="esm_commonjs_json_and_native_modules">#</a></span></h2>
+<p>CommonJS, JSON, and native modules can be used with
 <a href="modules.html#modules_module_createrequire_filename"><code>module.createRequire()</code></a>.</p>
-<pre><code class="language-js">// cjs.js
-module.exports = 'cjs';
+<pre><code class="language-js"><span class="hljs-comment">// cjs.cjs</span>
+<span class="hljs-built_in">module</span>.exports = <span class="hljs-string">'cjs'</span>;
 
-// esm.mjs
-import { createRequire } from 'module';
-import { fileURLToPath as fromURL } from 'url';
+<span class="hljs-comment">// esm.mjs</span>
+<span class="hljs-keyword">import</span> { createRequire } <span class="hljs-keyword">from</span> <span class="hljs-string">'module'</span>;
 
-const require = createRequire(fromURL(import.meta.url));
+<span class="hljs-keyword">const</span> <span class="hljs-built_in">require</span> = createRequire(<span class="hljs-keyword">import</span>.meta.url);
 
-const cjs = require('./cjs');
-cjs === 'cjs'; // true
-</code></pre>
+<span class="hljs-keyword">const</span> cjs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./cjs.cjs'</span>);
+cjs === <span class="hljs-string">'cjs'</span>; <span class="hljs-comment">// true</span></code></pre>
 <h2>Builtin modules<span><a class="mark" href="#esm_builtin_modules" id="esm_builtin_modules">#</a></span></h2>
 <p>Builtin modules will provide named exports of their public API. A
 default export is also provided which is the value of the CommonJS exports.
 The default export can be used for, among other things, modifying the named
 exports. Named exports of builtin modules are updated only by calling
 <a href="modules.html#modules_module_syncbuiltinesmexports"><code>module.syncBuiltinESMExports()</code></a>.</p>
-<pre><code class="language-js">import EventEmitter from 'events';
-const e = new EventEmitter();
-</code></pre>
-<pre><code class="language-js">import { readFile } from 'fs';
-readFile('./foo.txt', (err, source) => {
-  if (err) {
-    console.error(err);
-  } else {
-    console.log(source);
+<pre><code class="language-js"><span class="hljs-keyword">import</span> EventEmitter <span class="hljs-keyword">from</span> <span class="hljs-string">'events'</span>;
+<span class="hljs-keyword">const</span> e = <span class="hljs-keyword">new</span> EventEmitter();</code></pre>
+<pre><code class="language-js"><span class="hljs-keyword">import</span> { readFile } <span class="hljs-keyword">from</span> <span class="hljs-string">'fs'</span>;
+readFile(<span class="hljs-string">'./foo.txt'</span>, (err, source) => {
+  <span class="hljs-keyword">if</span> (err) {
+    <span class="hljs-built_in">console</span>.error(err);
+  } <span class="hljs-keyword">else</span> {
+    <span class="hljs-built_in">console</span>.log(source);
   }
-});
-</code></pre>
-<pre><code class="language-js">import fs, { readFileSync } from 'fs';
-import { syncBuiltinESMExports } from 'module';
+});</code></pre>
+<pre><code class="language-js"><span class="hljs-keyword">import</span> fs, { readFileSync } <span class="hljs-keyword">from</span> <span class="hljs-string">'fs'</span>;
+<span class="hljs-keyword">import</span> { syncBuiltinESMExports } <span class="hljs-keyword">from</span> <span class="hljs-string">'module'</span>;
 
-fs.readFileSync = () => Buffer.from('Hello, ESM');
+fs.readFileSync = <span class="hljs-function"><span class="hljs-params">()</span> =></span> Buffer.from(<span class="hljs-string">'Hello, ESM'</span>);
 syncBuiltinESMExports();
 
-fs.readFileSync === readFileSync;
-</code></pre>
-<h2>Experimental JSON Modules<span><a class="mark" href="#esm_experimental_json_modules" id="esm_experimental_json_modules">#</a></span></h2>
+fs.readFileSync === readFileSync;</code></pre>
+<h2>Experimental JSON modules<span><a class="mark" href="#esm_experimental_json_modules" id="esm_experimental_json_modules">#</a></span></h2>
 <p>Currently importing JSON modules are only supported in the <code>commonjs</code> mode
 and are loaded using the CJS loader. <a href="https://html.spec.whatwg.org/#creating-a-json-module-script">WHATWG JSON modules specification</a> are
 still being standardized, and are experimentally supported by including the
@@ -672,164 +1064,451 @@ CommonJS if the JSON module has already been imported from the
 same path.</p>
 <p>Assuming an <code>index.mjs</code> with</p>
 <!-- eslint-skip -->
-<pre><code class="language-js">import packageConfig from './package.json';
-</code></pre>
+<pre><code class="language-js"><span class="hljs-keyword">import</span> packageConfig <span class="hljs-keyword">from</span> <span class="hljs-string">'./package.json'</span>;</code></pre>
 <p>The <code>--experimental-json-modules</code> flag is needed for the module
 to work.</p>
-<pre><code class="language-bash">node --experimental-modules index.mjs # fails
-node --experimental-modules --experimental-json-modules index.mjs # works
-</code></pre>
-<h2>Experimental Wasm Modules<span><a class="mark" href="#esm_experimental_wasm_modules" id="esm_experimental_wasm_modules">#</a></span></h2>
+<pre><code class="language-bash">node index.mjs <span class="hljs-comment"># fails</span>
+node --experimental-json-modules index.mjs <span class="hljs-comment"># works</span></code></pre>
+<h2>Experimental Wasm modules<span><a class="mark" href="#esm_experimental_wasm_modules" id="esm_experimental_wasm_modules">#</a></span></h2>
 <p>Importing Web Assembly modules is supported under the
 <code>--experimental-wasm-modules</code> flag, allowing any <code>.wasm</code> files to be
 imported as normal modules while also supporting their module imports.</p>
 <p>This integration is in line with the
 <a href="https://github.com/webassembly/esm-integration">ES Module Integration Proposal for Web Assembly</a>.</p>
 <p>For example, an <code>index.mjs</code> containing:</p>
-<pre><code class="language-js">import * as M from './module.wasm';
-console.log(M);
-</code></pre>
+<pre><code class="language-js"><span class="hljs-keyword">import</span> * <span class="hljs-keyword">as</span> M <span class="hljs-keyword">from</span> <span class="hljs-string">'./module.wasm'</span>;
+<span class="hljs-built_in">console</span>.log(M);</code></pre>
 <p>executed under:</p>
-<pre><code class="language-bash">node --experimental-modules --experimental-wasm-modules index.mjs
-</code></pre>
+<pre><code class="language-bash">node --experimental-wasm-modules index.mjs</code></pre>
 <p>would provide the exports interface for the instantiation of <code>module.wasm</code>.</p>
-<h2>Experimental Loader hooks<span><a class="mark" href="#esm_experimental_loader_hooks" id="esm_experimental_loader_hooks">#</a></span></h2>
+<h2>Experimental top-level <code>await</code><span><a class="mark" href="#esm_experimental_top_level_await" id="esm_experimental_top_level_await">#</a></span></h2>
+<p>The <code>await</code> keyword may be used in the top level (outside of async functions)
+within modules as per the <a href="https://github.com/tc39/proposal-top-level-await/">ECMAScript Top-Level <code>await</code> proposal</a>.</p>
+<p>Assuming an <code>a.mjs</code> with</p>
+<!-- eslint-skip -->
+<pre><code class="language-js"><span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> five = <span class="hljs-keyword">await</span> <span class="hljs-built_in">Promise</span>.resolve(<span class="hljs-number">5</span>);</code></pre>
+<p>And a <code>b.mjs</code> with</p>
+<pre><code class="language-js"><span class="hljs-keyword">import</span> { five } <span class="hljs-keyword">from</span> <span class="hljs-string">'./a.mjs'</span>;
+
+<span class="hljs-built_in">console</span>.log(five); <span class="hljs-comment">// Logs `5`</span></code></pre>
+<pre><code class="language-bash">node b.mjs <span class="hljs-comment"># works</span></code></pre>
+<h2>Experimental loaders<span><a class="mark" href="#esm_experimental_loaders" id="esm_experimental_loaders">#</a></span></h2>
 <p><strong>Note: This API is currently being redesigned and will still change.</strong></p>
 
 <p>To customize the default module resolution, loader hooks can optionally be
 provided via a <code>--experimental-loader ./loader-name.mjs</code> argument to Node.js.</p>
 <p>When hooks are used they only apply to ES module loading and not to any
 CommonJS modules loaded.</p>
-<h3>Resolve hook<span><a class="mark" href="#esm_resolve_hook" id="esm_resolve_hook">#</a></span></h3>
-<p>The resolve hook returns the resolved file URL and module format for a
-given module specifier and parent file URL:</p>
-<pre><code class="language-js">import { URL, pathToFileURL } from 'url';
-const baseURL = pathToFileURL(process.cwd()).href;
-
-/**
- * @param {string} specifier
- * @param {string} parentModuleURL
- * @param {function} defaultResolver
- */
-export async function resolve(specifier,
-                              parentModuleURL = baseURL,
-                              defaultResolver) {
-  return {
-    url: new URL(specifier, parentModuleURL).href,
-    format: 'module'
-  };
-}
-</code></pre>
-<p>The <code>parentModuleURL</code> is provided as <code>undefined</code> when performing main Node.js
-load itself.</p>
-<p>The default Node.js ES module resolution function is provided as a third
-argument to the resolver for easy compatibility workflows.</p>
-<p>In addition to returning the resolved file URL value, the resolve hook also
-returns a <code>format</code> property specifying the module format of the resolved
-module. This can be one of the following:</p>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<table><thead><tr><th><code>format</code></th><th>Description</th></tr></thead><tbody><tr><td><code>'builtin'</code></td><td>Load a Node.js builtin module</td></tr><tr><td><code>'commonjs'</code></td><td>Load a Node.js CommonJS module</td></tr><tr><td><code>'dynamic'</code></td><td>Use a <a href="#esm_dynamic_instantiate_hook">dynamic instantiate hook</a></td></tr><tr><td><code>'json'</code></td><td>Load a JSON file</td></tr><tr><td><code>'module'</code></td><td>Load a standard JavaScript module</td></tr><tr><td><code>'wasm'</code></td><td>Load a WebAssembly module</td></tr></tbody></table>
-<p>For example, a dummy loader to load JavaScript restricted to browser resolution
-rules with only JS file extension and Node.js builtin modules support could
-be written:</p>
-<pre><code class="language-js">import path from 'path';
-import process from 'process';
-import Module from 'module';
-import { URL, pathToFileURL } from 'url';
-
-const builtins = Module.builtinModules;
-const JS_EXTENSIONS = new Set(['.js', '.mjs']);
-
-const baseURL = pathToFileURL(process.cwd()).href;
-
-/**
- * @param {string} specifier
- * @param {string} parentModuleURL
- * @param {function} defaultResolver
- */
-export async function resolve(specifier,
-                              parentModuleURL = baseURL,
-                              defaultResolver) {
-  if (builtins.includes(specifier)) {
-    return {
-      url: specifier,
-      format: 'builtin'
+<h3>Hooks<span><a class="mark" href="#esm_hooks" id="esm_hooks">#</a></span></h3>
+<h4><code>resolve(specifier, context, defaultResolve)</code><span><a class="mark" href="#esm_resolve_specifier_context_defaultresolve" id="esm_resolve_specifier_context_defaultresolve">#</a></span></h4>
+<blockquote>
+<p>Note: The loaders API is being redesigned. This hook may disappear or its
+signature may change. Do not rely on the API described below.</p>
+</blockquote>
+<ul>
+<li><code>specifier</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li>
+<p><code>context</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
+<ul>
+<li><code>conditions</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string[]></a></li>
+<li><code>parentURL</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+</ul>
+</li>
+<li><code>defaultResolve</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
+<li>
+<p>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
+<ul>
+<li><code>url</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+</ul>
+</li>
+</ul>
+<p>The <code>resolve</code> hook returns the resolved file URL for a given module specifier
+and parent URL. The module specifier is the string in an <code>import</code> statement or
+<code>import()</code> expression, and the parent URL is the URL of the module that imported
+this one, or <code>undefined</code> if this is the main entry point for the application.</p>
+<p>The <code>conditions</code> property on the <code>context</code> is an array of conditions for
+<a href="#esm_conditional_exports">Conditional exports</a> that apply to this resolution request. They can be used
+for looking up conditional mappings elsewhere or to modify the list when calling
+the default resolution logic.</p>
+<p>The current <a href="#esm_conditional_exports">package exports conditions</a> will always be in
+the <code>context.conditions</code> array passed into the hook. To guarantee <em>default
+Node.js module specifier resolution behavior</em> when calling <code>defaultResolve</code>, the
+<code>context.conditions</code> array passed to it <em>must</em> include <em>all</em> elements of the
+<code>context.conditions</code> array originally passed into the <code>resolve</code> hook.</p>
+<pre><code class="language-js"><span class="hljs-comment">/**
+ * <span class="hljs-doctag">@param <span class="hljs-type">{string}</span> <span class="hljs-variable">specifier</span></span>
+ * <span class="hljs-doctag">@param <span class="hljs-type">{{
+ *   conditions: !Array&#x3C;string>,
+ *   parentURL: !(string | undefined),
+ * }</span></span>} context
+ * <span class="hljs-doctag">@param <span class="hljs-type">{Function}</span> <span class="hljs-variable">defaultResolve</span></span>
+ * <span class="hljs-doctag">@returns <span class="hljs-type">{Promise&#x3C;{ url: string }</span></span>>}
+ */</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">resolve</span>(<span class="hljs-params">specifier, context, defaultResolve</span>) </span>{
+  <span class="hljs-keyword">const</span> { parentURL = <span class="hljs-literal">null</span> } = context;
+  <span class="hljs-keyword">if</span> (<span class="hljs-built_in">Math</span>.random() > <span class="hljs-number">0.5</span>) { <span class="hljs-comment">// Some condition.</span>
+    <span class="hljs-comment">// For some or all specifiers, do some custom logic for resolving.</span>
+    <span class="hljs-comment">// Always return an object of the form {url: &#x3C;string>}.</span>
+    <span class="hljs-keyword">return</span> {
+      <span class="hljs-attr">url</span>: parentURL ?
+        <span class="hljs-keyword">new</span> URL(specifier, parentURL).href :
+        <span class="hljs-keyword">new</span> URL(specifier).href,
     };
   }
-  if (/^\.{0,2}[/]/.test(specifier) !== true &#x26;&#x26; !specifier.startsWith('file:')) {
-    // For node_modules support:
-    // return defaultResolver(specifier, parentModuleURL);
-    throw new Error(
-      `imports must begin with '/', './', or '../'; '${specifier}' does not`);
+  <span class="hljs-keyword">if</span> (<span class="hljs-built_in">Math</span>.random() &#x3C; <span class="hljs-number">0.5</span>) { <span class="hljs-comment">// Another condition.</span>
+    <span class="hljs-comment">// When calling `defaultResolve`, the arguments can be modified. In this</span>
+    <span class="hljs-comment">// case it's adding another value for matching conditional exports.</span>
+    <span class="hljs-keyword">return</span> defaultResolve(specifier, {
+      ...context,
+      <span class="hljs-attr">conditions</span>: [...context.conditions, <span class="hljs-string">'another-condition'</span>],
+    });
   }
-  const resolved = new URL(specifier, parentModuleURL);
-  const ext = path.extname(resolved.pathname);
-  if (!JS_EXTENSIONS.has(ext)) {
-    throw new Error(
-      `Cannot load file with non-JavaScript file extension ${ext}.`);
+  <span class="hljs-comment">// Defer to Node.js for all other specifiers.</span>
+  <span class="hljs-keyword">return</span> defaultResolve(specifier, context, defaultResolve);
+}</code></pre>
+<h4><code>getFormat(url, context, defaultGetFormat)</code><span><a class="mark" href="#esm_getformat_url_context_defaultgetformat" id="esm_getformat_url_context_defaultgetformat">#</a></span></h4>
+<blockquote>
+<p>Note: The loaders API is being redesigned. This hook may disappear or its
+signature may change. Do not rely on the API described below.</p>
+</blockquote>
+<ul>
+<li><code>url</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>context</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></li>
+<li><code>defaultGetFormat</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
+<li>
+<p>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
+<ul>
+<li><code>format</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+</ul>
+</li>
+</ul>
+<p>The <code>getFormat</code> hook provides a way to define a custom method of determining how
+a URL should be interpreted. The <code>format</code> returned also affects what the
+acceptable forms of source values are for a module when parsing. This can be one
+of the following:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th><code>format</code></th><th>Description</th><th>Acceptable Types For <code>source</code> Returned by <code>getSource</code> or <code>transformSource</code></th></tr></thead><tbody><tr><td><code>'builtin'</code></td><td>Load a Node.js builtin module</td><td>Not applicable</td></tr><tr><td><code>'commonjs'</code></td><td>Load a Node.js CommonJS module</td><td>Not applicable</td></tr><tr><td><code>'json'</code></td><td>Load a JSON file</td><td>{ <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String"><code>string</code></a>, <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer"><code>ArrayBuffer</code></a>, <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray"><code>TypedArray</code></a> }</td></tr><tr><td><code>'module'</code></td><td>Load an ES module</td><td>{ <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String"><code>string</code></a>, <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer"><code>ArrayBuffer</code></a>, <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray"><code>TypedArray</code></a> }</td></tr><tr><td><code>'wasm'</code></td><td>Load a WebAssembly module</td><td>{ <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer"><code>ArrayBuffer</code></a>, <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray"><code>TypedArray</code></a> }</td></tr></tbody></table>
+<p>Note: These types all correspond to classes defined in ECMAScript.</p>
+<ul>
+<li>The specific <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer"><code>ArrayBuffer</code></a> object is a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SharedArrayBuffer"><code>SharedArrayBuffer</code></a>.</li>
+<li>The specific <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray"><code>TypedArray</code></a> object is a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array"><code>Uint8Array</code></a>.</li>
+</ul>
+<p>Note: If the source value of a text-based format (i.e., <code>'json'</code>, <code>'module'</code>) is
+not a string, it will be converted to a string using <a href="util.html#util_class_util_textdecoder"><code>util.TextDecoder</code></a>.</p>
+<pre><code class="language-js"><span class="hljs-comment">/**
+ * <span class="hljs-doctag">@param <span class="hljs-type">{string}</span> <span class="hljs-variable">url</span></span>
+ * <span class="hljs-doctag">@param <span class="hljs-type">{Object}</span> </span>context (currently empty)
+ * <span class="hljs-doctag">@param <span class="hljs-type">{Function}</span> <span class="hljs-variable">defaultGetFormat</span></span>
+ * <span class="hljs-doctag">@returns <span class="hljs-type">{Promise&#x3C;{ format: string }</span></span>>}
+ */</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getFormat</span>(<span class="hljs-params">url, context, defaultGetFormat</span>) </span>{
+  <span class="hljs-keyword">if</span> (<span class="hljs-built_in">Math</span>.random() > <span class="hljs-number">0.5</span>) { <span class="hljs-comment">// Some condition.</span>
+    <span class="hljs-comment">// For some or all URLs, do some custom logic for determining format.</span>
+    <span class="hljs-comment">// Always return an object of the form {format: &#x3C;string>}, where the</span>
+    <span class="hljs-comment">// format is one of the strings in the table above.</span>
+    <span class="hljs-keyword">return</span> {
+      <span class="hljs-attr">format</span>: <span class="hljs-string">'module'</span>,
+    };
   }
-  return {
-    url: resolved.href,
-    format: 'module'
-  };
+  <span class="hljs-comment">// Defer to Node.js for all other URLs.</span>
+  <span class="hljs-keyword">return</span> defaultGetFormat(url, context, defaultGetFormat);
+}</code></pre>
+<h4><code>getSource(url, context, defaultGetSource)</code><span><a class="mark" href="#esm_getsource_url_context_defaultgetsource" id="esm_getsource_url_context_defaultgetsource">#</a></span></h4>
+<blockquote>
+<p>Note: The loaders API is being redesigned. This hook may disappear or its
+signature may change. Do not rely on the API described below.</p>
+</blockquote>
+<ul>
+<li><code>url</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li>
+<p><code>context</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
+<ul>
+<li><code>format</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+</ul>
+</li>
+<li><code>defaultGetSource</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
+<li>
+<p>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
+<ul>
+<li><code>source</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SharedArrayBuffer" class="type">&#x3C;SharedArrayBuffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&#x3C;Uint8Array></a></li>
+</ul>
+</li>
+</ul>
+<p>The <code>getSource</code> hook provides a way to define a custom method for retrieving
+the source code of an ES module specifier. This would allow a loader to
+potentially avoid reading files from disk.</p>
+<pre><code class="language-js"><span class="hljs-comment">/**
+ * <span class="hljs-doctag">@param <span class="hljs-type">{string}</span> <span class="hljs-variable">url</span></span>
+ * <span class="hljs-doctag">@param <span class="hljs-type">{{ format: string }</span></span>} context
+ * <span class="hljs-doctag">@param <span class="hljs-type">{Function}</span> <span class="hljs-variable">defaultGetSource</span></span>
+ * <span class="hljs-doctag">@returns <span class="hljs-type">{Promise&#x3C;{ source: !(string | SharedArrayBuffer | Uint8Array) }</span></span>>}
+ */</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getSource</span>(<span class="hljs-params">url, context, defaultGetSource</span>) </span>{
+  <span class="hljs-keyword">const</span> { format } = context;
+  <span class="hljs-keyword">if</span> (<span class="hljs-built_in">Math</span>.random() > <span class="hljs-number">0.5</span>) { <span class="hljs-comment">// Some condition.</span>
+    <span class="hljs-comment">// For some or all URLs, do some custom logic for retrieving the source.</span>
+    <span class="hljs-comment">// Always return an object of the form {source: &#x3C;string|buffer>}.</span>
+    <span class="hljs-keyword">return</span> {
+      <span class="hljs-attr">source</span>: <span class="hljs-string">'...'</span>,
+    };
+  }
+  <span class="hljs-comment">// Defer to Node.js for all other URLs.</span>
+  <span class="hljs-keyword">return</span> defaultGetSource(url, context, defaultGetSource);
+}</code></pre>
+<h4><code>transformSource(source, context, defaultTransformSource)</code><span><a class="mark" href="#esm_transformsource_source_context_defaulttransformsource" id="esm_transformsource_source_context_defaulttransformsource">#</a></span></h4>
+<blockquote>
+<p>Note: The loaders API is being redesigned. This hook may disappear or its
+signature may change. Do not rely on the API described below.</p>
+</blockquote>
+<ul>
+<li><code>source</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SharedArrayBuffer" class="type">&#x3C;SharedArrayBuffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&#x3C;Uint8Array></a></li>
+<li>
+<p><code>context</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
+<ul>
+<li><code>format</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>url</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+</ul>
+</li>
+<li>
+<p>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
+<ul>
+<li><code>source</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SharedArrayBuffer" class="type">&#x3C;SharedArrayBuffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&#x3C;Uint8Array></a></li>
+</ul>
+</li>
+</ul>
+<p>The <code>transformSource</code> hook provides a way to modify the source code of a loaded
+ES module file after the source string has been loaded but before Node.js has
+done anything with it.</p>
+<p>If this hook is used to convert unknown-to-Node.js file types into executable
+JavaScript, a resolve hook is also necessary in order to register any
+unknown-to-Node.js file extensions. See the <a href="#esm_transpiler_loader">transpiler loader example</a> below.</p>
+<pre><code class="language-js"><span class="hljs-comment">/**
+ * <span class="hljs-doctag">@param <span class="hljs-type">{!(string | SharedArrayBuffer | Uint8Array)}</span> <span class="hljs-variable">source</span></span>
+ * <span class="hljs-doctag">@param <span class="hljs-type">{{
+ *   format: string,
+ *   url: string,
+ * }</span></span>} context
+ * <span class="hljs-doctag">@param <span class="hljs-type">{Function}</span> <span class="hljs-variable">defaultTransformSource</span></span>
+ * <span class="hljs-doctag">@returns <span class="hljs-type">{Promise&#x3C;{ source: !(string | SharedArrayBuffer | Uint8Array) }</span></span>>}
+ */</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">transformSource</span>(<span class="hljs-params">source, context, defaultTransformSource</span>) </span>{
+  <span class="hljs-keyword">const</span> { url, format } = context;
+  <span class="hljs-keyword">if</span> (<span class="hljs-built_in">Math</span>.random() > <span class="hljs-number">0.5</span>) { <span class="hljs-comment">// Some condition.</span>
+    <span class="hljs-comment">// For some or all URLs, do some custom logic for modifying the source.</span>
+    <span class="hljs-comment">// Always return an object of the form {source: &#x3C;string|buffer>}.</span>
+    <span class="hljs-keyword">return</span> {
+      <span class="hljs-attr">source</span>: <span class="hljs-string">'...'</span>,
+    };
+  }
+  <span class="hljs-comment">// Defer to Node.js for all other sources.</span>
+  <span class="hljs-keyword">return</span> defaultTransformSource(source, context, defaultTransformSource);
+}</code></pre>
+<h4><code>getGlobalPreloadCode()</code><span><a class="mark" href="#esm_getglobalpreloadcode" id="esm_getglobalpreloadcode">#</a></span></h4>
+<blockquote>
+<p>Note: The loaders API is being redesigned. This hook may disappear or its
+signature may change. Do not rely on the API described below.</p>
+</blockquote>
+<ul>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+</ul>
+<p>Sometimes it can be necessary to run some code inside of the same global scope
+that the application will run in. This hook allows to return a string that will
+be ran as sloppy-mode script on startup.</p>
+<p>Similar to how CommonJS wrappers work, the code runs in an implicit function
+scope. The only argument is a <code>require</code>-like function that can be used to load
+builtins like "fs": <code>getBuiltin(request: string)</code>.</p>
+<p>If the code needs more advanced <code>require</code> features, it will have to construct
+its own <code>require</code> using  <code>module.createRequire()</code>.</p>
+<pre><code class="language-js"><span class="hljs-comment">/**
+ * <span class="hljs-doctag">@returns <span class="hljs-type">{string}</span> </span>Code to run before application startup
+ */</span>
+<span class="hljs-keyword">export</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getGlobalPreloadCode</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">return</span> <span class="hljs-string">`\
+globalThis.someInjectedProperty = 42;
+console.log('I just set some globals!');
+
+const { createRequire } = getBuiltin('module');
+
+const require = createRequire(process.cwd() + '/&#x3C;preload>');
+// [...]
+`</span>;
+}</code></pre>
+<h3>Examples<span><a class="mark" href="#esm_examples" id="esm_examples">#</a></span></h3>
+<p>The various loader hooks can be used together to accomplish wide-ranging
+customizations of Node.js’ code loading and evaluation behaviors.</p>
+<h4>HTTPS loader<span><a class="mark" href="#esm_https_loader" id="esm_https_loader">#</a></span></h4>
+<p>In current Node.js, specifiers starting with <code>https://</code> are unsupported. The
+loader below registers hooks to enable rudimentary support for such specifiers.
+While this may seem like a significant improvement to Node.js core
+functionality, there are substantial downsides to actually using this loader:
+performance is much slower than loading files from disk, there is no caching,
+and there is no security.</p>
+<pre><code class="language-js"><span class="hljs-comment">// https-loader.mjs</span>
+<span class="hljs-keyword">import</span> { <span class="hljs-keyword">get</span> } from 'https';
+
+export function resolve(specifier, context, defaultResolve) {
+  <span class="hljs-keyword">const</span> { parentURL = <span class="hljs-literal">null</span> } = context;
+
+  <span class="hljs-comment">// Normally Node.js would error on specifiers starting with 'https://', so</span>
+  <span class="hljs-comment">// this hook intercepts them and converts them into absolute URLs to be</span>
+  <span class="hljs-comment">// passed along to the later hooks below.</span>
+  <span class="hljs-keyword">if</span> (specifier.startsWith(<span class="hljs-string">'https://'</span>)) {
+    <span class="hljs-keyword">return</span> {
+      <span class="hljs-attr">url</span>: specifier
+    };
+  } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (parentURL &#x26;&#x26; parentURL.startsWith(<span class="hljs-string">'https://'</span>)) {
+    <span class="hljs-keyword">return</span> {
+      <span class="hljs-attr">url</span>: <span class="hljs-keyword">new</span> URL(specifier, parentURL).href
+    };
+  }
+
+  <span class="hljs-comment">// Let Node.js handle all other specifiers.</span>
+  <span class="hljs-keyword">return</span> defaultResolve(specifier, context, defaultResolve);
 }
-</code></pre>
+
+<span class="hljs-keyword">export</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getFormat</span>(<span class="hljs-params">url, context, defaultGetFormat</span>) </span>{
+  <span class="hljs-comment">// This loader assumes all network-provided JavaScript is ES module code.</span>
+  <span class="hljs-keyword">if</span> (url.startsWith(<span class="hljs-string">'https://'</span>)) {
+    <span class="hljs-keyword">return</span> {
+      <span class="hljs-attr">format</span>: <span class="hljs-string">'module'</span>
+    };
+  }
+
+  <span class="hljs-comment">// Let Node.js handle all other URLs.</span>
+  <span class="hljs-keyword">return</span> defaultGetFormat(url, context, defaultGetFormat);
+}
+
+<span class="hljs-keyword">export</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getSource</span>(<span class="hljs-params">url, context, defaultGetSource</span>) </span>{
+  <span class="hljs-comment">// For JavaScript to be loaded over the network, we need to fetch and</span>
+  <span class="hljs-comment">// return it.</span>
+  <span class="hljs-keyword">if</span> (url.startsWith(<span class="hljs-string">'https://'</span>)) {
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Promise</span>(<span class="hljs-function">(<span class="hljs-params">resolve, reject</span>) =></span> {
+      <span class="hljs-keyword">get</span>(url, (res) => {
+        <span class="hljs-keyword">let</span> data = <span class="hljs-string">''</span>;
+        res.on(<span class="hljs-string">'data'</span>, (chunk) => data += chunk);
+        res.on(<span class="hljs-string">'end'</span>, () => resolve({ <span class="hljs-attr">source</span>: data }));
+      }).on(<span class="hljs-string">'error'</span>, (err) => reject(err));
+    });
+  }
+
+  <span class="hljs-comment">// Let Node.js handle all other URLs.</span>
+  <span class="hljs-keyword">return</span> defaultGetSource(url, context, defaultGetSource);
+}</code></pre>
+<pre><code class="language-js"><span class="hljs-comment">// main.mjs</span>
+<span class="hljs-keyword">import</span> { VERSION } <span class="hljs-keyword">from</span> <span class="hljs-string">'https://coffeescript.org/browser-compiler-modern/coffeescript.js'</span>;
+
+<span class="hljs-built_in">console</span>.log(VERSION);</code></pre>
 <p>With this loader, running:</p>
-<pre><code class="language-console">NODE_OPTIONS='--experimental-modules --experimental-loader ./custom-loader.mjs' node x.js
-</code></pre>
-<p>would load the module <code>x.js</code> as an ES module with relative resolution support
-(with <code>node_modules</code> loading skipped in this example).</p>
-<h3>Dynamic instantiate hook<span><a class="mark" href="#esm_dynamic_instantiate_hook" id="esm_dynamic_instantiate_hook">#</a></span></h3>
-<p>To create a custom dynamic module that doesn't correspond to one of the
-existing <code>format</code> interpretations, the <code>dynamicInstantiate</code> hook can be used.
-This hook is called only for modules that return <code>format: 'dynamic'</code> from
-the <code>resolve</code> hook.</p>
-<pre><code class="language-js">export async function dynamicInstantiate(url) {
-  return {
-    exports: ['customExportName'],
-    execute: (exports) => {
-      // Get and set functions provided for pre-allocated export names
-      exports.customExportName.set('value');
-    }
-  };
+<pre><code class="language-console">node --experimental-loader ./https-loader.mjs ./main.js</code></pre>
+<p>Will print the current version of CoffeeScript per the module at the URL in
+<code>main.mjs</code>.</p>
+<h4>Transpiler loader<span><a class="mark" href="#esm_transpiler_loader" id="esm_transpiler_loader">#</a></span></h4>
+<p>Sources that are in formats Node.js doesn’t understand can be converted into
+JavaScript using the <a href="#esm_transformsource_source_context_defaulttransformsource"><code>transformSource</code> hook</a>. Before that hook gets called,
+however, other hooks need to tell Node.js not to throw an error on unknown file
+types; and to tell Node.js how to load this new file type.</p>
+<p>This is less performant than transpiling source files before running
+Node.js; a transpiler loader should only be used for development and testing
+purposes.</p>
+<pre><code class="language-js"><span class="hljs-comment">// coffeescript-loader.mjs</span>
+<span class="hljs-keyword">import</span> { URL, pathToFileURL } <span class="hljs-keyword">from</span> <span class="hljs-string">'url'</span>;
+<span class="hljs-keyword">import</span> CoffeeScript <span class="hljs-keyword">from</span> <span class="hljs-string">'coffeescript'</span>;
+
+<span class="hljs-keyword">const</span> baseURL = pathToFileURL(<span class="hljs-string">`<span class="hljs-subst">${process.cwd()}</span>/`</span>).href;
+
+<span class="hljs-comment">// CoffeeScript files end in .coffee, .litcoffee or .coffee.md.</span>
+<span class="hljs-keyword">const</span> extensionsRegex = <span class="hljs-regexp">/\.coffee$|\.litcoffee$|\.coffee\.md$/</span>;
+
+<span class="hljs-keyword">export</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">resolve</span>(<span class="hljs-params">specifier, context, defaultResolve</span>) </span>{
+  <span class="hljs-keyword">const</span> { parentURL = baseURL } = context;
+
+  <span class="hljs-comment">// Node.js normally errors on unknown file extensions, so return a URL for</span>
+  <span class="hljs-comment">// specifiers ending in the CoffeeScript file extensions.</span>
+  <span class="hljs-keyword">if</span> (extensionsRegex.test(specifier)) {
+    <span class="hljs-keyword">return</span> {
+      <span class="hljs-attr">url</span>: <span class="hljs-keyword">new</span> URL(specifier, parentURL).href
+    };
+  }
+
+  <span class="hljs-comment">// Let Node.js handle all other specifiers.</span>
+  <span class="hljs-keyword">return</span> defaultResolve(specifier, context, defaultResolve);
 }
-</code></pre>
-<p>With the list of module exports provided upfront, the <code>execute</code> function will
-then be called at the exact point of module evaluation order for that module
-in the import tree.</p>
-<h2>Resolution Algorithm<span><a class="mark" href="#esm_resolution_algorithm" id="esm_resolution_algorithm">#</a></span></h2>
+
+<span class="hljs-keyword">export</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getFormat</span>(<span class="hljs-params">url, context, defaultGetFormat</span>) </span>{
+  <span class="hljs-comment">// Now that we patched resolve to let CoffeeScript URLs through, we need to</span>
+  <span class="hljs-comment">// tell Node.js what format such URLs should be interpreted as. For the</span>
+  <span class="hljs-comment">// purposes of this loader, all CoffeeScript URLs are ES modules.</span>
+  <span class="hljs-keyword">if</span> (extensionsRegex.test(url)) {
+    <span class="hljs-keyword">return</span> {
+      <span class="hljs-attr">format</span>: <span class="hljs-string">'module'</span>
+    };
+  }
+
+  <span class="hljs-comment">// Let Node.js handle all other URLs.</span>
+  <span class="hljs-keyword">return</span> defaultGetFormat(url, context, defaultGetFormat);
+}
+
+<span class="hljs-keyword">export</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">transformSource</span>(<span class="hljs-params">source, context, defaultTransformSource</span>) </span>{
+  <span class="hljs-keyword">const</span> { url, format } = context;
+
+  <span class="hljs-keyword">if</span> (extensionsRegex.test(url)) {
+    <span class="hljs-keyword">return</span> {
+      <span class="hljs-attr">source</span>: CoffeeScript.compile(source, { <span class="hljs-attr">bare</span>: <span class="hljs-literal">true</span> })
+    };
+  }
+
+  <span class="hljs-comment">// Let Node.js handle all other sources.</span>
+  <span class="hljs-keyword">return</span> defaultTransformSource(source, context, defaultTransformSource);
+}</code></pre>
+<pre><code class="language-coffee"><span class="hljs-comment"># main.coffee</span>
+<span class="hljs-keyword">import</span> { scream } <span class="hljs-keyword">from</span> <span class="hljs-string">'./scream.coffee'</span>
+<span class="hljs-built_in">console</span>.log scream <span class="hljs-string">'hello, world'</span>
+
+<span class="hljs-keyword">import</span> { version } <span class="hljs-keyword">from</span> <span class="hljs-string">'process'</span>
+<span class="hljs-built_in">console</span>.log <span class="hljs-string">"Brought to you by Node.js version <span class="hljs-subst">#{version}</span>"</span></code></pre>
+<pre><code class="language-coffee"><span class="hljs-comment"># scream.coffee</span>
+<span class="hljs-keyword">export</span> scream = <span class="hljs-function"><span class="hljs-params">(str)</span> -></span> str.toUpperCase()</code></pre>
+<p>With this loader, running:</p>
+<pre><code class="language-console">node --experimental-loader ./coffeescript-loader.mjs main.coffee</code></pre>
+<p>Will cause <code>main.coffee</code> to be turned into JavaScript after its source code is
+loaded from disk but before Node.js executes it; and so on for any <code>.coffee</code>,
+<code>.litcoffee</code> or <code>.coffee.md</code> files referenced via <code>import</code> statements of any
+loaded file.</p>
+<h2>Resolution algorithm<span><a class="mark" href="#esm_resolution_algorithm" id="esm_resolution_algorithm">#</a></span></h2>
 <h3>Features<span><a class="mark" href="#esm_features" id="esm_features">#</a></span></h3>
 <p>The resolver has the following properties:</p>
 <ul>
@@ -840,21 +1519,36 @@ in the import tree.</p>
 <li>No folder mains</li>
 <li>Bare specifier package resolution lookup through node_modules</li>
 </ul>
-<h3>Resolver Algorithm<span><a class="mark" href="#esm_resolver_algorithm" id="esm_resolver_algorithm">#</a></span></h3>
+<h3>Resolver algorithm<span><a class="mark" href="#esm_resolver_algorithm" id="esm_resolver_algorithm">#</a></span></h3>
 <p>The algorithm to load an ES module specifier is given through the
 <strong>ESM_RESOLVE</strong> method below. It returns the resolved URL for a
-module specifier relative to a parentURL, in addition to the unique module
-format for that resolved URL given by the <strong>ESM_FORMAT</strong> routine.</p>
-<p>The <em>"module"</em> format is returned for an ECMAScript Module, while the
-<em>"commonjs"</em> format is used to indicate loading through the legacy
-CommonJS loader. Additional formats such as <em>"addon"</em> can be extended in future
-updates.</p>
+module specifier relative to a parentURL.</p>
+<p>The algorithm to determine the module format of a resolved URL is
+provided by <strong>ESM_FORMAT</strong>, which returns the unique module
+format for any file. The <em>"module"</em> format is returned for an ECMAScript
+Module, while the <em>"commonjs"</em> format is used to indicate loading through the
+legacy CommonJS loader. Additional formats such as <em>"addon"</em> can be extended in
+future updates.</p>
 <p>In the following algorithms, all subroutine errors are propagated as errors
 of these top-level routines unless stated otherwise.</p>
-<p><em>isMain</em> is <strong>true</strong> when resolving the Node.js application entry point.</p>
+<p><em>defaultEnv</em> is the conditional environment name priority array,
+<code>["node", "import"]</code>.</p>
+<p>The resolver can throw the following errors:</p>
+<ul>
+<li><em>Invalid Module Specifier</em>: Module specifier is an invalid URL, package name
+or package subpath specifier.</li>
+<li><em>Invalid Package Configuration</em>: package.json configuration is invalid or
+contains an invalid configuration.</li>
+<li><em>Invalid Package Target</em>: Package exports or imports define a target module
+for the package that is an invalid type or string target.</li>
+<li><em>Package Path Not Exported</em>: Package exports do not define or permit a target
+subpath in the package for the given module.</li>
+<li><em>Package Import Not Defined</em>: Package imports do not define the specifier.</li>
+<li><em>Module Not Found</em>: The package or module requested does not exist.</li>
+</ul>
 <details>
 <summary>Resolver algorithm specification</summary>
-<p><strong>ESM_RESOLVE</strong>(<em>specifier</em>, <em>parentURL</em>, <em>isMain</em>)</p>
+<p><strong>ESM_RESOLVE</strong>(<em>specifier</em>, <em>parentURL</em>)</p>
 <blockquote>
 <ol>
 <li>Let <em>resolvedURL</em> be <strong>undefined</strong>.</li>
@@ -866,16 +1560,19 @@ of these top-level routines unless stated otherwise.</p>
 </ol>
 </li>
 <li>
-<p>Otherwise, if <em>specifier</em> starts with <em>"/"</em>, then</p>
-<ol>
-<li>Throw an <em>Invalid Specifier</em> error.</li>
-</ol>
-</li>
-<li>
-<p>Otherwise, if <em>specifier</em> starts with <em>"./"</em> or <em>"../"</em>, then</p>
+<p>Otherwise, if <em>specifier</em> starts with <em>"/"</em>, <em>"./"</em> or <em>"../"</em>, then</p>
 <ol>
 <li>Set <em>resolvedURL</em> to the URL resolution of <em>specifier</em> relative to
 <em>parentURL</em>.</li>
+</ol>
+</li>
+<li>
+<p>Otherwise, if <em>specifier</em> starts with <em>"#"</em>, then</p>
+<ol>
+<li>Set <em>resolvedURL</em> to the result of
+<strong>PACKAGE_INTERNAL_RESOLVE</strong>(<em>specifier</em>, <em>parentURL</em>).</li>
+<li>If <em>resolvedURL</em> is <strong>null</strong> or <strong>undefined</strong>, throw a
+<em>Package Import Not Defined</em> error.</li>
 </ol>
 </li>
 <li>
@@ -890,7 +1587,13 @@ of these top-level routines unless stated otherwise.</p>
 <p>If <em>resolvedURL</em> contains any percent encodings of <em>"/"</em> or <em>"\"</em> (<em>"%2f"</em>
 and <em>"%5C"</em> respectively), then</p>
 <ol>
-<li>Throw an <em>Invalid Specifier</em> error.</li>
+<li>Throw an <em>Invalid Module Specifier</em> error.</li>
+</ol>
+</li>
+<li>
+<p>If the file at <em>resolvedURL</em> is a directory, then</p>
+<ol>
+<li>Throw an <em>Unsupported Directory Import</em> error.</li>
 </ol>
 </li>
 <li>
@@ -900,8 +1603,9 @@ and <em>"%5C"</em> respectively), then</p>
 </ol>
 </li>
 <li>Set <em>resolvedURL</em> to the real path of <em>resolvedURL</em>.</li>
-<li>Let <em>format</em> be the result of <strong>ESM_FORMAT</strong>(<em>resolvedURL</em>, <em>isMain</em>).</li>
+<li>Let <em>format</em> be the result of <strong>ESM_FORMAT</strong>(<em>resolvedURL</em>).</li>
 <li>Load <em>resolvedURL</em> as module format, <em>format</em>.</li>
+<li>Return <em>resolvedURL</em>.</li>
 </ol>
 </blockquote>
 <p><strong>PACKAGE_RESOLVE</strong>(<em>packageSpecifier</em>, <em>parentURL</em>)</p>
@@ -912,14 +1616,7 @@ and <em>"%5C"</em> respectively), then</p>
 <li>
 <p>If <em>packageSpecifier</em> is an empty string, then</p>
 <ol>
-<li>Throw an <em>Invalid Specifier</em> error.</li>
-</ol>
-</li>
-<li>
-<p>If <em>packageSpecifier</em> does not start with <em>"@"</em>, then</p>
-<ol>
-<li>Set <em>packageName</em> to the substring of <em>packageSpecifier</em> until the
-first <em>"/"</em> separator or the end of the string.</li>
+<li>Throw an <em>Invalid Module Specifier</em> error.</li>
 </ol>
 </li>
 <li>
@@ -928,7 +1625,7 @@ first <em>"/"</em> separator or the end of the string.</li>
 <li>
 <p>If <em>packageSpecifier</em> does not contain a <em>"/"</em> separator, then</p>
 <ol>
-<li>Throw an <em>Invalid Specifier</em> error.</li>
+<li>Throw an <em>Invalid Module Specifier</em> error.</li>
 </ol>
 </li>
 <li>Set <em>packageName</em> to the substring of <em>packageSpecifier</em>
@@ -938,7 +1635,7 @@ until the second <em>"/"</em> separator or the end of the string.</li>
 <li>
 <p>If <em>packageName</em> starts with <em>"."</em> or contains <em>"\"</em> or <em>"%"</em>, then</p>
 <ol>
-<li>Throw an <em>Invalid Specifier</em> error.</li>
+<li>Throw an <em>Invalid Module Specifier</em> error.</li>
 </ol>
 </li>
 <li>Let <em>packageSubpath</em> be <em>undefined</em>.</li>
@@ -952,16 +1649,19 @@ until the second <em>"/"</em> separator or the end of the string.</li>
 </li>
 <li>
 <p>If <em>packageSubpath</em> contains any <em>"."</em> or <em>".."</em> segments or percent
-encoded strings for <em>"/"</em> or <em>"\"</em> then,</p>
+encoded strings for <em>"/"</em> or <em>"\"</em>, then</p>
 <ol>
-<li>Throw an <em>Invalid Specifier</em> error.</li>
+<li>Throw an <em>Invalid Module Specifier</em> error.</li>
 </ol>
 </li>
+<li>Let <em>selfUrl</em> be the result of
+<strong>SELF_REFERENCE_RESOLVE</strong>(<em>packageName</em>, <em>packageSubpath</em>, <em>parentURL</em>).</li>
+<li>If <em>selfUrl</em> isn't empty, return <em>selfUrl</em>.</li>
 <li>
 <p>If <em>packageSubpath</em> is <em>undefined</em> and <em>packageName</em> is a Node.js builtin
 module, then</p>
 <ol>
-<li>Return the string <em>"node:"</em> concatenated with <em>packageSpecifier</em>.</li>
+<li>Return the string <em>"nodejs:"</em> concatenated with <em>packageSpecifier</em>.</li>
 </ol>
 </li>
 <li>
@@ -979,6 +1679,12 @@ concatenated with <em>packageSpecifier</em>, relative to <em>parentURL</em>.</li
 </li>
 <li>Let <em>pjson</em> be the result of <strong>READ_PACKAGE_JSON</strong>(<em>packageURL</em>).</li>
 <li>
+<p>If <em>packageSubpath</em> is equal to <em>"./"</em>, then</p>
+<ol>
+<li>Return <em>packageURL</em> + <em>"/"</em>.</li>
+</ol>
+</li>
+<li>
 <p>If <em>packageSubpath</em> is _undefined__, then</p>
 <ol>
 <li>Return the result of <strong>PACKAGE_MAIN_RESOLVE</strong>(<em>packageURL</em>,
@@ -995,8 +1701,11 @@ concatenated with <em>packageSpecifier</em>, relative to <em>parentURL</em>.</li
 <li>
 <p>If <em>exports</em> is not <strong>null</strong> or <strong>undefined</strong>, then</p>
 <ol>
-<li>Return <strong>PACKAGE_EXPORTS_RESOLVE</strong>(<em>packageURL</em>,
-<em>packageSubpath</em>, <em>pjson.exports</em>).</li>
+<li>Let <em>resolved</em> be the result of  <strong>PACKAGE_EXPORTS_RESOLVE</strong>(
+<em>packageURL</em>, <em>packageSubpath</em>, <em>pjson.exports</em>).</li>
+<li>If <em>resolved</em> is <strong>null</strong> or <strong>undefined</strong>, throw a
+<em>Package Path Not Exported</em> error.</li>
+<li>Return <em>resolved</em>.</li>
 </ol>
 </li>
 </ol>
@@ -1007,6 +1716,65 @@ concatenated with <em>packageSpecifier</em>, relative to <em>parentURL</em>.</li
 </ol>
 </li>
 <li>Throw a <em>Module Not Found</em> error.</li>
+</ol>
+</blockquote>
+<p><strong>SELF_REFERENCE_RESOLVE</strong>(<em>packageName</em>, <em>packageSubpath</em>, <em>parentURL</em>)</p>
+<blockquote>
+<ol>
+<li>Let <em>packageURL</em> be the result of <strong>READ_PACKAGE_SCOPE</strong>(<em>parentURL</em>).</li>
+<li>
+<p>If <em>packageURL</em> is <strong>null</strong>, then</p>
+<ol>
+<li>Return <strong>undefined</strong>.</li>
+</ol>
+</li>
+<li>Let <em>pjson</em> be the result of <strong>READ_PACKAGE_JSON</strong>(<em>packageURL</em>).</li>
+<li>
+<p>If <em>pjson</em> does not include an <em>"exports"</em> property, then</p>
+<ol>
+<li>Return <strong>undefined</strong>.</li>
+</ol>
+</li>
+<li>
+<p>If <em>pjson.name</em> is equal to <em>packageName</em>, then</p>
+<ol>
+<li>
+<p>If <em>packageSubpath</em> is equal to <em>"./"</em>, then</p>
+<ol>
+<li>Return <em>packageURL</em> + <em>"/"</em>.</li>
+</ol>
+</li>
+<li>
+<p>If <em>packageSubpath</em> is <em>undefined</em>, then</p>
+<ol>
+<li>Return the result of <strong>PACKAGE_MAIN_RESOLVE</strong>(<em>packageURL</em>, <em>pjson</em>).</li>
+</ol>
+</li>
+<li>
+<p>Otherwise,</p>
+<ol>
+<li>
+<p>If <em>pjson</em> is not <strong>null</strong> and <em>pjson</em> has an <em>"exports"</em> key, then</p>
+<ol>
+<li>Let <em>exports</em> be <em>pjson.exports</em>.</li>
+<li>
+<p>If <em>exports</em> is not <strong>null</strong> or <strong>undefined</strong>, then</p>
+<ol>
+<li>Let <em>resolved</em> be the result of <strong>PACKAGE_EXPORTS_RESOLVE</strong>(
+<em>packageURL</em>, <em>subpath</em>, <em>pjson.exports</em>).</li>
+<li>If <em>resolved</em> is <strong>null</strong> or <strong>undefined</strong>, throw a
+<em>Package Path Not Exported</em> error.</li>
+<li>Return <em>resolved</em>.</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>Return the URL resolution of <em>subpath</em> in <em>packageURL</em>.</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>Otherwise, return <strong>undefined</strong>.</li>
 </ol>
 </blockquote>
 <p><strong>PACKAGE_MAIN_RESOLVE</strong>(<em>packageURL</em>, <em>pjson</em>)</p>
@@ -1021,45 +1789,31 @@ concatenated with <em>packageSpecifier</em>, relative to <em>parentURL</em>.</li
 <li>
 <p>If <em>pjson.exports</em> is not <strong>null</strong> or <strong>undefined</strong>, then</p>
 <ol>
+<li>If <em>exports</em> is an Object with both a key starting with <em>"."</em> and a key
+not starting with <em>"."</em>, throw an <em>Invalid Package Configuration</em> error.</li>
 <li>
-<p>If <em>pjson.exports</em> is a String or Array, then</p>
+<p>If <em>pjson.exports</em> is a String or Array, or an Object containing no
+keys starting with <em>"."</em>, then</p>
 <ol>
-<li>Return <em>PACKAGE_EXPORTS_TARGET_RESOLVE(packageURL, pjson.exports,
-"")</em>.</li>
+<li>Let <em>resolved</em> be the result of  <strong>PACKAGE_TARGET_RESOLVE</strong>(
+<em>packageURL</em>, <em>pjson.exports</em>, <em>""</em>, <strong>false</strong>, <em>defaultEnv</em>).</li>
+<li>If <em>resolved</em> is <strong>null</strong> or <strong>undefined</strong>, throw a
+<em>Package Path Not Exported</em> error.</li>
+<li>Return <em>resolved</em>.</li>
 </ol>
 </li>
 <li>
-<p>If _pjson.exports is an Object, then</p>
-<ol>
-<li>
-<p>If <em>pjson.exports</em> contains a <em>"."</em> property, then</p>
+<p>If <em>pjson.exports</em> is an Object containing a <em>"."</em> property, then</p>
 <ol>
 <li>Let <em>mainExport</em> be the <em>"."</em> property in <em>pjson.exports</em>.</li>
-<li>Return <em>PACKAGE_EXPORTS_TARGET_RESOLVE(packageURL, mainExport,
-"")</em>.</li>
+<li>Let <em>resolved</em> be the result of <strong>PACKAGE_TARGET_RESOLVE</strong>(
+<em>packageURL</em>, <em>mainExport</em>, <em>""</em>, <strong>false</strong>, <em>defaultEnv</em>).</li>
+<li>If <em>resolved</em> is <strong>null</strong> or <strong>undefined</strong>, throw a
+<em>Package Path Not Exported</em> error.</li>
+<li>Return <em>resolved</em>.</li>
 </ol>
 </li>
-</ol>
-</li>
-</ol>
-</li>
-<li>
-<p>If <em>pjson.main</em> is a String, then</p>
-<ol>
-<li>Let <em>resolvedMain</em> be the URL resolution of <em>packageURL</em>, "/", and
-<em>pjson.main</em>.</li>
-<li>
-<p>If the file at <em>resolvedMain</em> exists, then</p>
-<ol>
-<li>Return <em>resolvedMain</em>.</li>
-</ol>
-</li>
-</ol>
-</li>
-<li>
-<p>If <em>pjson.type</em> is equal to <em>"module"</em>, then</p>
-<ol>
-<li>Throw a <em>Module Not Found</em> error.</li>
+<li>Throw a <em>Package Path Not Exported</em> error.</li>
 </ol>
 </li>
 <li>Let <em>legacyMainURL</em> be the result applying the legacy
@@ -1071,16 +1825,18 @@ concatenated with <em>packageSpecifier</em>, relative to <em>parentURL</em>.</li
 <p><strong>PACKAGE_EXPORTS_RESOLVE</strong>(<em>packageURL</em>, <em>packagePath</em>, <em>exports</em>)</p>
 <blockquote>
 <ol>
+<li>If <em>exports</em> is an Object with both a key starting with <em>"."</em> and a key not
+starting with <em>"."</em>, throw an <em>Invalid Package Configuration</em> error.</li>
 <li>
-<p>If <em>exports</em> is an Object, then</p>
+<p>If <em>exports</em> is an Object and all keys of <em>exports</em> start with <em>"."</em>, then</p>
 <ol>
 <li>Set <em>packagePath</em> to <em>"./"</em> concatenated with <em>packagePath</em>.</li>
 <li>
 <p>If <em>packagePath</em> is a key of <em>exports</em>, then</p>
 <ol>
 <li>Let <em>target</em> be the value of <em>exports[packagePath]</em>.</li>
-<li>Return <strong>PACKAGE_EXPORTS_TARGET_RESOLVE</strong>(<em>packageURL</em>, <em>target</em>,
-<em>""</em>).</li>
+<li>Return <strong>PACKAGE_TARGET_RESOLVE</strong>(<em>packageURL</em>, <em>target</em>,
+<em>""</em>, <strong>false</strong>, <em>defaultEnv</em>).</li>
 </ol>
 </li>
 <li>Let <em>directoryKeys</em> be the list of keys of <em>exports</em> ending in
@@ -1094,66 +1850,149 @@ concatenated with <em>packageSpecifier</em>, relative to <em>parentURL</em>.</li
 <li>Let <em>target</em> be the value of <em>exports[directory]</em>.</li>
 <li>Let <em>subpath</em> be the substring of <em>target</em> starting at the index
 of the length of <em>directory</em>.</li>
-<li>Return <strong>PACKAGE_EXPORTS_TARGET_RESOLVE</strong>(<em>packageURL</em>, <em>target</em>,
-<em>subpath</em>).</li>
+<li>Return <strong>PACKAGE_TARGET_RESOLVE</strong>(<em>packageURL</em>, <em>target</em>,
+<em>subpath</em>, <strong>false</strong>, <em>defaultEnv</em>).</li>
 </ol>
 </li>
 </ol>
 </li>
 </ol>
 </li>
-<li>Throw a <em>Module Not Found</em> error.</li>
+<li>Return <strong>null</strong>.</li>
 </ol>
 </blockquote>
-<p><strong>PACKAGE_EXPORTS_TARGET_RESOLVE</strong>(<em>packageURL</em>, <em>target</em>, <em>subpath</em>)</p>
+<p><strong>PACKAGE_TARGET_RESOLVE</strong>(<em>packageURL</em>, <em>target</em>, <em>subpath</em>, <em>internal</em>, <em>env</em>)</p>
 <blockquote>
 <ol>
 <li>
 <p>If <em>target</em> is a String, then</p>
 <ol>
-<li>If <em>target</em> does not start with <em>"./"</em>, throw a <em>Module Not Found</em>
+<li>If <em>target</em> contains any <em>"node_modules"</em> segments including
+<em>"node_modules"</em> percent-encoding, throw an <em>Invalid Package Target</em>
 error.</li>
 <li>If <em>subpath</em> has non-zero length and <em>target</em> does not end with <em>"/"</em>,
-throw a <em>Module Not Found</em> error.</li>
-<li>If <em>target</em> or <em>subpath</em> contain any <em>"node_modules"</em> segments including
-<em>"node_modules"</em> percent-encoding, throw a <em>Module Not Found</em> error.</li>
+throw an <em>Invalid Module Specifier</em> error.</li>
+<li>
+<p>If <em>target</em> does not start with <em>"./"</em>, then</p>
+<ol>
+<li>
+<p>If <em>target</em> does not start with <em>"../"</em> or <em>"/"</em> and is not a valid
+URL, then</p>
+<ol>
+<li>If <em>internal</em> is <strong>true</strong>, return <strong>PACKAGE_RESOLVE</strong>(
+<em>target</em> + <em>subpath</em>, <em>packageURL</em> + <em>"/"</em>)_.</li>
+</ol>
+</li>
+<li>Otherwise throw an <em>Invalid Package Target</em> error.</li>
+</ol>
+</li>
 <li>Let <em>resolvedTarget</em> be the URL resolution of the concatenation of
 <em>packageURL</em> and <em>target</em>.</li>
-<li>
-<p>If <em>resolvedTarget</em> is contained in <em>packageURL</em>, then</p>
-<ol>
+<li>If <em>resolvedTarget</em> is not contained in <em>packageURL</em>, throw an
+<em>Invalid Package Target</em> error.</li>
 <li>Let <em>resolved</em> be the URL resolution of the concatenation of
 <em>subpath</em> and <em>resolvedTarget</em>.</li>
+<li>If <em>resolved</em> is not contained in <em>resolvedTarget</em>, throw an
+<em>Invalid Module Specifier</em> error.</li>
+<li>Return <em>resolved</em>.</li>
+</ol>
+</li>
 <li>
-<p>If <em>resolved</em> is contained in <em>resolvedTarget</em>, then</p>
+<p>Otherwise, if <em>target</em> is a non-null Object, then</p>
 <ol>
+<li>If <em>exports</em> contains any index property keys, as defined in ECMA-262
+<a href="https://tc39.es/ecma262/#integer-index">6.1.7 Array Index</a>, throw an <em>Invalid Package Configuration</em> error.</li>
+<li>
+<p>For each property <em>p</em> of <em>target</em>, in object insertion order as,</p>
+<ol>
+<li>
+<p>If <em>p</em> equals <em>"default"</em> or <em>env</em> contains an entry for <em>p</em>, then</p>
+<ol>
+<li>Let <em>targetValue</em> be the value of the <em>p</em> property in <em>target</em>.</li>
+<li>Let <em>resolved</em> be the result of <strong>PACKAGE_TARGET_RESOLVE</strong>(
+<em>packageURL</em>, <em>targetValue</em>, <em>subpath</em>, <em>internal</em>, <em>env</em>)</li>
+<li>If <em>resolved</em> is equal to <strong>undefined</strong>, continue the loop.</li>
 <li>Return <em>resolved</em>.</li>
 </ol>
 </li>
 </ol>
 </li>
+<li>Return <strong>undefined</strong>.</li>
 </ol>
 </li>
 <li>
 <p>Otherwise, if <em>target</em> is an Array, then</p>
 <ol>
+<li>If _target.length is zero, return <strong>null</strong>.</li>
 <li>
 <p>For each item <em>targetValue</em> in <em>target</em>, do</p>
 <ol>
-<li>If <em>targetValue</em> is not a String, continue the loop.</li>
-<li>Let <em>resolved</em> be the result of
-<strong>PACKAGE_EXPORTS_TARGET_RESOLVE</strong>(<em>packageURL</em>, <em>targetValue</em>,
-<em>subpath</em>), continuing the loop on abrupt completion.</li>
-<li>Assert: <em>resolved</em> is a String.</li>
+<li>Let <em>resolved</em> be the result of <strong>PACKAGE_TARGET_RESOLVE</strong>(
+<em>packageURL</em>, <em>targetValue</em>, <em>subpath</em>, <em>internal</em>, <em>env</em>),
+continuing the loop on any <em>Invalid Package Target</em> error.</li>
+<li>If <em>resolved</em> is <strong>undefined</strong>, continue the loop.</li>
 <li>Return <em>resolved</em>.</li>
 </ol>
 </li>
+<li>Return or throw the last fallback resolution <strong>null</strong> return or error.</li>
 </ol>
 </li>
-<li>Throw a <em>Module Not Found</em> error.</li>
+<li>Otherwise, if <em>target</em> is <em>null</em>, return <strong>null</strong>.</li>
+<li>Otherwise throw an <em>Invalid Package Target</em> error.</li>
 </ol>
 </blockquote>
-<p><strong>ESM_FORMAT</strong>(<em>url</em>, <em>isMain</em>)</p>
+<p><strong>PACKAGE_INTERNAL_RESOLVE</strong>(<em>specifier</em>, <em>parentURL</em>)</p>
+<blockquote>
+<ol>
+<li>Assert: <em>specifier</em> begins with <em>"#"</em>.</li>
+<li>
+<p>If <em>specifier</em> is exactly equal to <em>"#"</em> or starts with <em>"#/"</em>, then</p>
+<ol>
+<li>Throw an <em>Invalid Module Specifier</em> error.</li>
+</ol>
+</li>
+<li>Let <em>packageURL</em> be the result of <strong>READ_PACKAGE_SCOPE</strong>(<em>parentURL</em>).</li>
+<li>
+<p>If <em>packageURL</em> is not <strong>null</strong>, then</p>
+<ol>
+<li>Let <em>pjson</em> be the result of <strong>READ_PACKAGE_JSON</strong>(<em>packageURL</em>).</li>
+<li>
+<p>If _pjson.imports is a non-null Object, then</p>
+<ol>
+<li>Let <em>imports</em> be <em>pjson.imports</em>.</li>
+<li>
+<p>If <em>specifier</em> is a key of <em>imports</em>, then</p>
+<ol>
+<li>Let <em>target</em> be the value of <em>imports[specifier]</em>.</li>
+<li>Return <strong>PACKAGE_TARGET_RESOLVE</strong>(<em>packageURL</em>, <em>target</em>,
+<em>""</em>, <strong>true</strong>, <em>defaultEnv</em>).</li>
+</ol>
+</li>
+<li>Let <em>directoryKeys</em> be the list of keys of <em>imports</em> ending in
+<em>"/"</em>, sorted by length descending.</li>
+<li>
+<p>For each key <em>directory</em> in <em>directoryKeys</em>, do</p>
+<ol>
+<li>
+<p>If <em>specifier</em> starts with <em>directory</em>, then</p>
+<ol>
+<li>Let <em>target</em> be the value of <em>imports[directory]</em>.</li>
+<li>Let <em>subpath</em> be the substring of <em>target</em> starting at the
+index of the length of <em>directory</em>.</li>
+<li>Return <strong>PACKAGE_TARGET_RESOLVE</strong>(<em>packageURL</em>, <em>target</em>,
+<em>subpath</em>, <strong>true</strong>, <em>defaultEnv</em>).</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>Return <strong>null</strong>.</li>
+</ol>
+</blockquote>
+<p><strong>ESM_FORMAT</strong>(<em>url</em>)</p>
 <blockquote>
 <ol>
 <li>Assert: <em>url</em> corresponds to an existing file.</li>
@@ -1174,7 +2013,7 @@ throw a <em>Module Not Found</em> error.</li>
 <p>If <em>pjson?.type</em> exists and is <em>"module"</em>, then</p>
 <ol>
 <li>
-<p>If <em>isMain</em> is <strong>true</strong> or <em>url</em> ends in <em>".js"</em>, then</p>
+<p>If <em>url</em> ends in <em>".js"</em>, then</p>
 <ol>
 <li>Return <em>"module"</em>.</li>
 </ol>
@@ -1185,13 +2024,6 @@ throw a <em>Module Not Found</em> error.</li>
 <li>
 <p>Otherwise,</p>
 <ol>
-<li>
-<p>If <em>isMain</em> is <strong>true</strong> or <em>url</em> ends in <em>".js"</em>, <em>".json"</em> or
-<em>".node"</em>, then</p>
-<ol>
-<li>Return <em>"commonjs"</em>.</li>
-</ol>
-</li>
 <li>Throw an <em>Unsupported File Extension</em> error.</li>
 </ol>
 </li>
@@ -1243,23 +2075,20 @@ throw a <em>Module Not Found</em> error.</li>
 the CommonJS loader. One of the behavior differences is automatic resolution
 of file extensions and the ability to import directories that have an index
 file.</p>
-<p>The <code>--es-module-specifier-resolution=[mode]</code> flag can be used to customize
+<p>The <code>--experimental-specifier-resolution=[mode]</code> flag can be used to customize
 the extension resolution algorithm. The default mode is <code>explicit</code>, which
 requires the full path to a module be provided to the loader. To enable the
 automatic extension resolution and importing from directories that include an
 index file use the <code>node</code> mode.</p>
-<pre><code class="language-bash">$ node --experimental-modules index.mjs
+<pre><code class="language-bash">$ node index.mjs
 success!
-$ node --experimental-modules index #Failure!
+$ node index <span class="hljs-comment"># Failure!</span>
 Error: Cannot find module
-$ node --experimental-modules --es-module-specifier-resolution=node index
-success!
-</code></pre>
+$ node --experimental-specifier-resolution=node index
+success!</code></pre>
+        <!-- API END -->
       </div>
     </div>
   </div>
-  <script src="assets/sh_main.js"></script>
-  <script src="assets/sh_javascript.min.js"></script>
-  <script>highlight(undefined, undefined, 'pre');</script>
 </body>
 </html>

@@ -1,5 +1,10 @@
 'use strict';
 
+const {
+  RegExp,
+  Symbol,
+} = primordials;
+
 const Buffer = require('buffer').Buffer;
 const { writeBuffer } = internalBinding('fs');
 const errors = require('internal/errors');
@@ -20,7 +25,7 @@ const IPv6Reg = new RegExp('^(' +
   `(?:${v6Seg}:){2}(?:(:${v6Seg}){0,3}:${v4Str}|(:${v6Seg}){1,5}|:)|` +
   `(?:${v6Seg}:){1}(?:(:${v6Seg}){0,4}:${v4Str}|(:${v6Seg}){1,6}|:)|` +
   `(?::((?::${v6Seg}){0,5}:${v4Str}|(?::${v6Seg}){1,7}|:))` +
-')(%[0-9a-zA-Z]{1,})?$');
+')(%[0-9a-zA-Z-.:]{1,})?$');
 
 function isIPv4(s) {
   return IPv4Reg.test(s);
@@ -36,15 +41,6 @@ function isIP(s) {
   return 0;
 }
 
-// Check that the port number is not NaN when coerced to a number,
-// is an integer and that it falls within the legal range of port numbers.
-function isLegalPort(port) {
-  if ((typeof port !== 'number' && typeof port !== 'string') ||
-      (typeof port === 'string' && port.trim().length === 0))
-    return false;
-  return +port === (+port >>> 0) && port <= 0xFFFF;
-}
-
 function makeSyncWrite(fd) {
   return function(chunk, enc, cb) {
     if (enc !== 'buffer')
@@ -56,9 +52,7 @@ function makeSyncWrite(fd) {
     writeBuffer(fd, chunk, 0, chunk.length, null, undefined, ctx);
     if (ctx.errno !== undefined) {
       const ex = errors.uvException(ctx);
-      // Legacy: net writes have .code === .errno, whereas writeBuffer gives the
-      // raw errno number in .errno.
-      ex.errno = ex.code;
+      ex.errno = ctx.errno;
       return cb(ex);
     }
     cb();
@@ -69,7 +63,6 @@ module.exports = {
   isIP,
   isIPv4,
   isIPv6,
-  isLegalPort,
   makeSyncWrite,
   normalizedArgsSymbol: Symbol('normalizedArgs')
 };

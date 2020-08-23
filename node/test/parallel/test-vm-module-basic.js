@@ -4,7 +4,12 @@
 
 const common = require('../common');
 const assert = require('assert');
-const { SourceTextModule, createContext } = require('vm');
+const {
+  Module,
+  SourceTextModule,
+  SyntheticModule,
+  createContext
+} = require('vm');
 const util = require('util');
 
 (async function test1() {
@@ -20,26 +25,26 @@ const util = require('util');
   assert.strictEqual(m.status, 'unlinked');
   await m.link(common.mustNotCall());
   assert.strictEqual(m.status, 'linked');
-  const result = await m.evaluate();
+  assert.strictEqual(await m.evaluate(), undefined);
   assert.strictEqual(m.status, 'evaluated');
-  assert.strictEqual(Object.getPrototypeOf(result), null);
   assert.deepStrictEqual(context, {
     foo: 'bar',
     baz: 'bar',
     typeofProcess: 'undefined'
   });
-  assert.strictEqual(result.result, 'function');
 }());
 
 (async () => {
-  const m = new SourceTextModule(
-    'global.vmResult = "foo"; Object.prototype.toString.call(process);'
-  );
+  const m = new SourceTextModule(`
+    global.vmResultFoo = "foo";
+    global.vmResultTypeofProcess = Object.prototype.toString.call(process);
+  `);
   await m.link(common.mustNotCall());
-  const { result } = await m.evaluate();
-  assert.strictEqual(global.vmResult, 'foo');
-  assert.strictEqual(result, '[object process]');
-  delete global.vmResult;
+  await m.evaluate();
+  assert.strictEqual(global.vmResultFoo, 'foo');
+  assert.strictEqual(global.vmResultTypeofProcess, '[object process]');
+  delete global.vmResultFoo;
+  delete global.vmResultTypeofProcess;
 })();
 
 (async () => {
@@ -75,15 +80,32 @@ const util = require('util');
   context: { foo: 'bar' }
 }`
   );
-  assert.strictEqual(
-    m[util.inspect.custom].call(Object.create(null)),
-    `SourceTextModule {
-  status: undefined,
-  identifier: undefined,
-  context: undefined
-}`,
-  );
+
   assert.strictEqual(util.inspect(m, { depth: -1 }), '[SourceTextModule]');
+
+  assert.throws(
+    () => m[util.inspect.custom].call(Object.create(null)),
+    {
+      code: 'ERR_VM_MODULE_NOT_MODULE',
+      message: 'Provided module is not an instance of Module'
+    },
+  );
+}
+
+{
+  const context = createContext({ foo: 'bar' });
+  const m = new SyntheticModule([], () => {}, { context });
+
+  assert.strictEqual(
+    util.inspect(m),
+    `SyntheticModule {
+  status: 'unlinked',
+  identifier: 'vm:module(0)',
+  context: { foo: 'bar' }
+}`
+  );
+
+  assert.strictEqual(util.inspect(m, { depth: -1 }), '[SyntheticModule]');
 }
 
 // Check dependencies getter returns same object every time
@@ -92,4 +114,49 @@ const util = require('util');
   const dep = m.dependencySpecifiers;
   assert.notStrictEqual(dep, undefined);
   assert.strictEqual(dep, m.dependencySpecifiers);
+}
+
+// Check the impossibility of creating an abstract instance of the Module.
+{
+  assert.throws(() => new Module(), {
+    message: 'Module is not a constructor',
+    name: 'TypeError'
+  });
+}
+
+// Check to throws invalid exportNames
+{
+  assert.throws(() => new SyntheticModule(undefined, () => {}, {}), {
+    message: 'The "exportNames" argument must be an ' +
+        'Array of unique strings.' +
+        ' Received undefined',
+    name: 'TypeError'
+  });
+}
+
+// Check to throws duplicated exportNames
+// https://github.com/nodejs/node/issues/32806
+{
+  assert.throws(() => new SyntheticModule(['x', 'x'], () => {}, {}), {
+    message: 'The argument \'exportNames.x\' is duplicated. Received \'x\'',
+    name: 'TypeError',
+  });
+}
+
+// Check to throws invalid evaluateCallback
+{
+  assert.throws(() => new SyntheticModule([], undefined, {}), {
+    message: 'The "evaluateCallback" argument must be of type function.' +
+      ' Received undefined',
+    name: 'TypeError'
+  });
+}
+
+// Check to throws invalid options
+{
+  assert.throws(() => new SyntheticModule([], () => {}, null), {
+    message: 'The "options" argument must be of type object.' +
+      ' Received null',
+    name: 'TypeError'
+  });
 }

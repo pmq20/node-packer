@@ -193,7 +193,7 @@ class Register : public RegisterBase<Register, kRegAfterLast> {
 // s3: scratch register
 // s4: scratch register 2
 #define DECLARE_REGISTER(R) \
-  constexpr Register R = Register::from_code<kRegCode_##R>();
+  constexpr Register R = Register::from_code(kRegCode_##R);
 GENERAL_REGISTERS(DECLARE_REGISTER)
 #undef DECLARE_REGISTER
 
@@ -206,6 +206,19 @@ Register ToRegister(int num);
 constexpr bool kPadArguments = false;
 constexpr bool kSimpleFPAliasing = true;
 constexpr bool kSimdMaskRegisters = false;
+
+enum MSARegisterCode {
+#define REGISTER_CODE(R) kMsaCode_##R,
+  SIMD128_REGISTERS(REGISTER_CODE)
+#undef REGISTER_CODE
+      kMsaAfterLast
+};
+
+// MIPS SIMD (MSA) register
+class MSARegister : public RegisterBase<MSARegister, kMsaAfterLast> {
+  friend class RegisterBase;
+  explicit constexpr MSARegister(int code) : RegisterBase(code) {}
+};
 
 enum DoubleRegisterCode {
 #define REGISTER_CODE(R) kDoubleCode_##R,
@@ -234,22 +247,11 @@ class FPURegister : public RegisterBase<FPURegister, kDoubleAfterLast> {
     return FPURegister::from_code(code() + 1);
   }
 
+  MSARegister toW() const { return MSARegister::from_code(code()); }
+
  private:
   friend class RegisterBase;
   explicit constexpr FPURegister(int code) : RegisterBase(code) {}
-};
-
-enum MSARegisterCode {
-#define REGISTER_CODE(R) kMsaCode_##R,
-  SIMD128_REGISTERS(REGISTER_CODE)
-#undef REGISTER_CODE
-      kMsaAfterLast
-};
-
-// MIPS SIMD (MSA) register
-class MSARegister : public RegisterBase<MSARegister, kMsaAfterLast> {
-  friend class RegisterBase;
-  explicit constexpr MSARegister(int code) : RegisterBase(code) {}
 };
 
 // A few double registers are reserved: one as a scratch register and one to
@@ -271,7 +273,7 @@ using FloatRegister = FPURegister;
 using DoubleRegister = FPURegister;
 
 #define DECLARE_DOUBLE_REGISTER(R) \
-  constexpr DoubleRegister R = DoubleRegister::from_code<kDoubleCode_##R>();
+  constexpr DoubleRegister R = DoubleRegister::from_code(kDoubleCode_##R);
 DOUBLE_REGISTERS(DECLARE_DOUBLE_REGISTER)
 #undef DECLARE_DOUBLE_REGISTER
 
@@ -281,7 +283,7 @@ constexpr DoubleRegister no_dreg = DoubleRegister::no_reg();
 using Simd128Register = MSARegister;
 
 #define DECLARE_SIMD128_REGISTER(R) \
-  constexpr Simd128Register R = Simd128Register::from_code<kMsaCode_##R>();
+  constexpr Simd128Register R = Simd128Register::from_code(kMsaCode_##R);
 SIMD128_REGISTERS(DECLARE_SIMD128_REGISTER)
 #undef DECLARE_SIMD128_REGISTER
 
@@ -294,11 +296,13 @@ constexpr Register cp = s7;
 constexpr Register kScratchReg = s3;
 constexpr Register kScratchReg2 = s4;
 constexpr DoubleRegister kScratchDoubleReg = f30;
+// FPU zero reg is often used to hold 0.0, but it's not hardwired to 0.0.
 constexpr DoubleRegister kDoubleRegZero = f28;
 // Used on mips64r6 for compare operations.
 // We use the last non-callee saved odd register for N64 ABI
 constexpr DoubleRegister kDoubleCompareReg = f23;
 // MSA zero and scratch regs must have the same numbers as FPU zero and scratch
+// MSA zero reg is often used to hold 0, but it's not hardwired to 0.
 constexpr Simd128Register kSimd128RegZero = w28;
 constexpr Simd128Register kSimd128ScratchReg = w30;
 
@@ -382,6 +386,8 @@ constexpr Register kRuntimeCallArgCountRegister = a0;
 constexpr Register kRuntimeCallArgvRegister = a2;
 constexpr Register kWasmInstanceRegister = a0;
 constexpr Register kWasmCompileLazyFuncIndexRegister = t0;
+
+constexpr DoubleRegister kFPReturnRegister0 = f0;
 
 }  // namespace internal
 }  // namespace v8

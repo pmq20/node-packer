@@ -21,7 +21,10 @@
 
 'use strict';
 
-const { Object } = primordials;
+const {
+  ObjectDefineProperty,
+  ObjectSetPrototypeOf,
+} = primordials;
 
 const Stream = require('stream');
 
@@ -37,12 +40,19 @@ function readStop(socket) {
 
 /* Abstract base class for ServerRequest and ClientResponse. */
 function IncomingMessage(socket) {
-  Stream.Readable.call(this);
+  let streamOptions;
+
+  if (socket) {
+    streamOptions = {
+      highWaterMark: socket.readableHighWaterMark
+    };
+  }
+
+  Stream.Readable.call(this, { autoDestroy: false, ...streamOptions });
 
   this._readableState.readingMore = true;
 
   this.socket = socket;
-  this.connection = socket;
 
   this.httpVersionMajor = null;
   this.httpVersionMinor = null;
@@ -52,8 +62,6 @@ function IncomingMessage(socket) {
   this.rawHeaders = [];
   this.trailers = {};
   this.rawTrailers = [];
-
-  this.readable = true;
 
   this.aborted = false;
 
@@ -73,8 +81,17 @@ function IncomingMessage(socket) {
   // read by the user, so there's no point continuing to handle it.
   this._dumped = false;
 }
-Object.setPrototypeOf(IncomingMessage.prototype, Stream.Readable.prototype);
-Object.setPrototypeOf(IncomingMessage, Stream.Readable);
+ObjectSetPrototypeOf(IncomingMessage.prototype, Stream.Readable.prototype);
+ObjectSetPrototypeOf(IncomingMessage, Stream.Readable);
+
+ObjectDefineProperty(IncomingMessage.prototype, 'connection', {
+  get: function() {
+    return this.socket;
+  },
+  set: function(val) {
+    this.socket = val;
+  }
+});
 
 IncomingMessage.prototype.setTimeout = function setTimeout(msecs, callback) {
   if (callback)
@@ -104,13 +121,14 @@ IncomingMessage.prototype._read = function _read(n) {
 IncomingMessage.prototype.destroy = function destroy(error) {
   if (this.socket)
     this.socket.destroy(error);
+  return this;
 };
 
 
 IncomingMessage.prototype._addHeaderLines = _addHeaderLines;
 function _addHeaderLines(headers, n) {
   if (headers && headers.length) {
-    var dest;
+    let dest;
     if (this.complete) {
       this.rawTrailers = headers;
       dest = this.trailers;
@@ -119,7 +137,7 @@ function _addHeaderLines(headers, n) {
       dest = this.headers;
     }
 
-    for (var i = 0; i < n; i += 2) {
+    for (let i = 0; i < n; i += 2) {
       this._addHeaderLine(headers[i], headers[i + 1], dest);
     }
   }
@@ -229,9 +247,8 @@ function matchKnownFields(field, lowercased) {
   }
   if (lowercased) {
     return '\u0000' + field;
-  } else {
-    return matchKnownFields(field.toLowerCase(), true);
   }
+  return matchKnownFields(field.toLowerCase(), true);
 }
 // Add the given (field, value) pair to the message
 //

@@ -1,11 +1,20 @@
 'use strict';
 
+const {
+  Symbol,
+} = primordials;
+
 const { setImmediate } = require('timers');
 const assert = require('internal/assert');
 const { Socket } = require('net');
 const { JSStream } = internalBinding('js_stream');
 const uv = internalBinding('uv');
-const debug = require('internal/util/debuglog').debuglog('stream_socket');
+let debug = require('internal/util/debuglog').debuglog(
+  'stream_socket',
+  (fn) => {
+    debug = fn;
+  }
+);
 const { owner_symbol } = require('internal/async_hooks').symbols;
 const { ERR_STREAM_WRAP } = require('internal/errors').codes;
 
@@ -14,9 +23,13 @@ const kCurrentShutdownRequest = Symbol('kCurrentShutdownRequest');
 const kPendingShutdownRequest = Symbol('kPendingShutdownRequest');
 
 function isClosing() { return this[owner_symbol].isClosing(); }
+
 function onreadstart() { return this[owner_symbol].readStart(); }
+
 function onreadstop() { return this[owner_symbol].readStop(); }
+
 function onshutdown(req) { return this[owner_symbol].doShutdown(req); }
+
 function onwrite(req, bufs) { return this[owner_symbol].doWrite(req, bufs); }
 
 /* This class serves as a wrapper for when the C++ side of Node wants access
@@ -157,6 +170,7 @@ class JSStreamSocket extends Socket {
     let pending = bufs.length;
 
     this.stream.cork();
+    // Use `var` over `let` for performance optimization.
     for (var i = 0; i < bufs.length; ++i)
       this.stream.write(bufs[i], done);
     this.stream.uncork();

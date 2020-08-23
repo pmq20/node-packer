@@ -15,7 +15,7 @@ namespace v8 {
 namespace internal {
 
 // Arguments object passed to C++ builtins.
-class BuiltinArguments : public Arguments {
+class BuiltinArguments : public JavaScriptArguments {
  public:
   BuiltinArguments(int length, Address* arguments)
       : Arguments(length, arguments) {
@@ -23,15 +23,26 @@ class BuiltinArguments : public Arguments {
     DCHECK_LE(1, this->length());
   }
 
-  Object operator[](int index) {
+  Object operator[](int index) const {
     DCHECK_LT(index, length());
-    return Arguments::operator[](index);
+    return Object(*address_of_arg_at(index + kArgsOffset));
   }
 
   template <class S = Object>
-  Handle<S> at(int index) {
+  Handle<S> at(int index) const {
     DCHECK_LT(index, length());
-    return Arguments::at<S>(index);
+    return Handle<S>(address_of_arg_at(index + kArgsOffset));
+  }
+
+  inline void set_at(int index, Object value) {
+    DCHECK_LT(index, length());
+    *address_of_arg_at(index + kArgsOffset) = value.ptr();
+  }
+
+  // Note: this should return the address after the receiver,
+  // even when length() == 1.
+  inline Address* address_of_first_argument() const {
+    return address_of_arg_at(kArgsOffset + 1);  // Skips receiver.
   }
 
   static constexpr int kNewTargetOffset = 0;
@@ -42,10 +53,16 @@ class BuiltinArguments : public Arguments {
   static constexpr int kNumExtraArgs = 4;
   static constexpr int kNumExtraArgsWithReceiver = 5;
 
-  inline Handle<Object> atOrUndefined(Isolate* isolate, int index);
-  inline Handle<Object> receiver();
-  inline Handle<JSFunction> target();
-  inline Handle<HeapObject> new_target();
+#ifdef V8_REVERSE_JSARGS
+  static constexpr int kArgsOffset = 4;
+#else
+  static constexpr int kArgsOffset = 0;
+#endif
+
+  inline Handle<Object> atOrUndefined(Isolate* isolate, int index) const;
+  inline Handle<Object> receiver() const;
+  inline Handle<JSFunction> target() const;
+  inline Handle<HeapObject> new_target() const;
 
   // Gets the total number of arguments including the receiver (but
   // excluding extra arguments).
@@ -77,7 +94,7 @@ class BuiltinArguments : public Arguments {
                                 RuntimeCallCounterId::kBuiltin_##name);     \
     TRACE_EVENT0(TRACE_DISABLED_BY_DEFAULT("v8.runtime"),                   \
                  "V8.Builtin_" #name);                                      \
-    return Builtin_Impl_##name(args, isolate).ptr();                        \
+    return CONVERT_OBJECT(Builtin_Impl_##name(args, isolate));              \
   }                                                                         \
                                                                             \
   V8_WARN_UNUSED_RESULT Address Builtin_##name(                             \
@@ -87,7 +104,7 @@ class BuiltinArguments : public Arguments {
       return Builtin_Impl_Stats_##name(args_length, args_object, isolate);  \
     }                                                                       \
     BuiltinArguments args(args_length, args_object);                        \
-    return Builtin_Impl_##name(args, isolate).ptr();                        \
+    return CONVERT_OBJECT(Builtin_Impl_##name(args, isolate));              \
   }                                                                         \
                                                                             \
   V8_WARN_UNUSED_RESULT static Object Builtin_Impl_##name(                  \

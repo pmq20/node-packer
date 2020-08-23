@@ -1,4 +1,4 @@
-// Flags: --expose_internals
+// Flags: --expose-internals
 'use strict';
 const common = require('../common');
 const assert = require('assert');
@@ -37,7 +37,7 @@ assert.strictEqual(command.stdout.toString().trim(), 'bar');
 
 // Verify that the environment is properly inherited
 const env = cp.spawnSync(`"${process.execPath}" -pe process.env.BAZ`, {
-  env: Object.assign({}, process.env, { BAZ: 'buzz' }),
+  env: { ...process.env, BAZ: 'buzz' },
   shell: true
 });
 
@@ -64,12 +64,12 @@ assert.strictEqual(env.stdout.toString().trim(), 'buzz');
       assert.strictEqual(opts.file, shellOutput);
       assert.deepStrictEqual(opts.args,
                              [shellOutput, ...shellFlags, outputCmd]);
-      assert.strictEqual(opts.options.shell, shell);
-      assert.strictEqual(opts.options.file, opts.file);
-      assert.deepStrictEqual(opts.options.args, opts.args);
-      assert.strictEqual(opts.options.windowsHide, undefined);
-      assert.strictEqual(opts.options.windowsVerbatimArguments,
-                         windowsVerbatim);
+      assert.strictEqual(opts.shell, shell);
+      assert.strictEqual(opts.file, opts.file);
+      assert.deepStrictEqual(opts.args, opts.args);
+      assert.strictEqual(opts.windowsHide, false);
+      assert.strictEqual(opts.windowsVerbatimArguments,
+                         !!windowsVerbatim);
     });
     cp.spawnSync(cmd, { shell });
     internalCp.spawnSync = oldSpawnSync;

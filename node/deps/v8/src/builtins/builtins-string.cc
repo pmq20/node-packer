@@ -136,31 +136,32 @@ BUILTIN(StringPrototypeLocaleCompare) {
   HandleScope handle_scope(isolate);
 
   isolate->CountUsage(v8::Isolate::UseCounterFeature::kStringLocaleCompare);
+  const char* method = "String.prototype.localeCompare";
 
 #ifdef V8_INTL_SUPPORT
-  TO_THIS_STRING(str1, "String.prototype.localeCompare");
+  TO_THIS_STRING(str1, method);
   Handle<String> str2;
   ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
       isolate, str2, Object::ToString(isolate, args.atOrUndefined(isolate, 1)));
   RETURN_RESULT_OR_FAILURE(
-      isolate, Intl::StringLocaleCompare(isolate, str1, str2,
-                                         args.atOrUndefined(isolate, 2),
-                                         args.atOrUndefined(isolate, 3)));
+      isolate, Intl::StringLocaleCompare(
+                   isolate, str1, str2, args.atOrUndefined(isolate, 2),
+                   args.atOrUndefined(isolate, 3), method));
 #else
   DCHECK_EQ(2, args.length());
 
-  TO_THIS_STRING(str1, "String.prototype.localeCompare");
+  TO_THIS_STRING(str1, method);
   Handle<String> str2;
   ASSIGN_RETURN_FAILURE_ON_EXCEPTION(isolate, str2,
                                      Object::ToString(isolate, args.at(1)));
 
-  if (str1.is_identical_to(str2)) return Smi::kZero;  // Equal.
+  if (str1.is_identical_to(str2)) return Smi::zero();  // Equal.
   int str1_length = str1->length();
   int str2_length = str2->length();
 
   // Decide trivial cases without flattening.
   if (str1_length == 0) {
-    if (str2_length == 0) return Smi::kZero;  // Equal.
+    if (str2_length == 0) return Smi::zero();  // Equal.
     return Smi::FromInt(-str2_length);
   } else {
     if (str2_length == 0) return Smi::FromInt(str1_length);
@@ -208,14 +209,10 @@ BUILTIN(StringPrototypeNormalize) {
   ASSIGN_RETURN_FAILURE_ON_EXCEPTION(isolate, form,
                                      Object::ToString(isolate, form_input));
 
-  if (!(String::Equals(isolate, form,
-                       isolate->factory()->NewStringFromStaticChars("NFC")) ||
-        String::Equals(isolate, form,
-                       isolate->factory()->NewStringFromStaticChars("NFD")) ||
-        String::Equals(isolate, form,
-                       isolate->factory()->NewStringFromStaticChars("NFKC")) ||
-        String::Equals(isolate, form,
-                       isolate->factory()->NewStringFromStaticChars("NFKD")))) {
+  if (!(String::Equals(isolate, form, isolate->factory()->NFC_string()) ||
+        String::Equals(isolate, form, isolate->factory()->NFD_string()) ||
+        String::Equals(isolate, form, isolate->factory()->NFKC_string()) ||
+        String::Equals(isolate, form, isolate->factory()->NFKD_string()))) {
     Handle<String> valid_forms =
         isolate->factory()->NewStringFromStaticChars("NFC, NFD, NFKC, NFKD");
     THROW_NEW_ERROR_RETURN_FAILURE(

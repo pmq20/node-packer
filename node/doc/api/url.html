@@ -3,10 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>URL | Node.js v12.13.0 Documentation</title>
+  <meta name="nodejs.org:node-version" content="v14.8.0">
+  <title>URL | Node.js v14.8.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
-  <link rel="stylesheet" href="assets/sh.css">
+  <link rel="stylesheet" href="assets/hljs.css">
   <link rel="canonical" href="https://nodejs.org/api/url.html">
 </head>
 <body class="alt apidoc" id="api-section-url">
@@ -18,29 +19,30 @@
         </a>
       </div>
       <ul>
-<li><a href="documentation.html" class="nav-documentation">About these Docs</a></li>
-<li><a href="synopsis.html" class="nav-synopsis">Usage &#x26; Example</a></li>
+<li><a href="documentation.html" class="nav-documentation">About this documentation</a></li>
+<li><a href="synopsis.html" class="nav-synopsis">Usage and example</a></li>
 </ul>
 <div class="line"></div>
 <ul>
-<li><a href="assert.html" class="nav-assert">Assertion Testing</a></li>
-<li><a href="async_hooks.html" class="nav-async_hooks">Async Hooks</a></li>
+<li><a href="assert.html" class="nav-assert">Assertion testing</a></li>
+<li><a href="async_hooks.html" class="nav-async_hooks">Async hooks</a></li>
 <li><a href="buffer.html" class="nav-buffer">Buffer</a></li>
-<li><a href="addons.html" class="nav-addons">C++ Addons</a></li>
-<li><a href="n-api.html" class="nav-n-api">C/C++ Addons - N-API</a></li>
-<li><a href="child_process.html" class="nav-child_process">Child Processes</a></li>
+<li><a href="addons.html" class="nav-addons">C++ addons</a></li>
+<li><a href="n-api.html" class="nav-n-api">C/C++ addons with N-API</a></li>
+<li><a href="embedding.html" class="nav-embedding">C++ embedder API</a></li>
+<li><a href="child_process.html" class="nav-child_process">Child processes</a></li>
 <li><a href="cluster.html" class="nav-cluster">Cluster</a></li>
-<li><a href="cli.html" class="nav-cli">Command Line Options</a></li>
+<li><a href="cli.html" class="nav-cli">Command line options</a></li>
 <li><a href="console.html" class="nav-console">Console</a></li>
 <li><a href="crypto.html" class="nav-crypto">Crypto</a></li>
 <li><a href="debugger.html" class="nav-debugger">Debugger</a></li>
 <li><a href="deprecations.html" class="nav-deprecations">Deprecated APIs</a></li>
 <li><a href="dns.html" class="nav-dns">DNS</a></li>
 <li><a href="domain.html" class="nav-domain">Domain</a></li>
-<li><a href="esm.html" class="nav-esm">ECMAScript Modules</a></li>
+<li><a href="esm.html" class="nav-esm">ECMAScript modules</a></li>
 <li><a href="errors.html" class="nav-errors">Errors</a></li>
 <li><a href="events.html" class="nav-events">Events</a></li>
-<li><a href="fs.html" class="nav-fs">File System</a></li>
+<li><a href="fs.html" class="nav-fs">File system</a></li>
 <li><a href="globals.html" class="nav-globals">Globals</a></li>
 <li><a href="http.html" class="nav-http">HTTP</a></li>
 <li><a href="http2.html" class="nav-http2">HTTP/2</a></li>
@@ -51,37 +53,38 @@
 <li><a href="net.html" class="nav-net">Net</a></li>
 <li><a href="os.html" class="nav-os">OS</a></li>
 <li><a href="path.html" class="nav-path">Path</a></li>
-<li><a href="perf_hooks.html" class="nav-perf_hooks">Performance Hooks</a></li>
+<li><a href="perf_hooks.html" class="nav-perf_hooks">Performance hooks</a></li>
 <li><a href="policy.html" class="nav-policy">Policies</a></li>
 <li><a href="process.html" class="nav-process">Process</a></li>
 <li><a href="punycode.html" class="nav-punycode">Punycode</a></li>
-<li><a href="querystring.html" class="nav-querystring">Query Strings</a></li>
+<li><a href="querystring.html" class="nav-querystring">Query strings</a></li>
 <li><a href="readline.html" class="nav-readline">Readline</a></li>
 <li><a href="repl.html" class="nav-repl">REPL</a></li>
 <li><a href="report.html" class="nav-report">Report</a></li>
 <li><a href="stream.html" class="nav-stream">Stream</a></li>
-<li><a href="string_decoder.html" class="nav-string_decoder">String Decoder</a></li>
+<li><a href="string_decoder.html" class="nav-string_decoder">String decoder</a></li>
 <li><a href="timers.html" class="nav-timers">Timers</a></li>
 <li><a href="tls.html" class="nav-tls">TLS/SSL</a></li>
-<li><a href="tracing.html" class="nav-tracing">Trace Events</a></li>
+<li><a href="tracing.html" class="nav-tracing">Trace events</a></li>
 <li><a href="tty.html" class="nav-tty">TTY</a></li>
-<li><a href="dgram.html" class="nav-dgram">UDP/Datagram</a></li>
+<li><a href="dgram.html" class="nav-dgram">UDP/datagram</a></li>
 <li><a href="url.html" class="nav-url active">URL</a></li>
 <li><a href="util.html" class="nav-util">Utilities</a></li>
 <li><a href="v8.html" class="nav-v8">V8</a></li>
 <li><a href="vm.html" class="nav-vm">VM</a></li>
-<li><a href="worker_threads.html" class="nav-worker_threads">Worker Threads</a></li>
+<li><a href="wasi.html" class="nav-wasi">WASI</a></li>
+<li><a href="worker_threads.html" class="nav-worker_threads">Worker threads</a></li>
 <li><a href="zlib.html" class="nav-zlib">Zlib</a></li>
 </ul>
 <div class="line"></div>
 <ul>
-<li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">GitHub Repo &#x26; Issue Tracker</a></li>
+<li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">Code repository and issue tracker</a></li>
 </ul>
     </div>
 
     <div id="column1" data-id="url" class="interior">
       <header>
-        <h1>Node.js v12.13.0 Documentation</h1>
+        <h1>Node.js v14.8.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -96,11 +99,13 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v12.x/api/url.html">12.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v14.x/api/url.html">14.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v13.x/api/url.html">13.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v12.x/api/url.html">12.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v11.x/api/url.html">11.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v10.x/api/url.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/url.html">9.x</a></li>
-<li><a href="https://nodejs.org/docs/latest-v8.x/api/url.html">8.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v8.x/api/url.html">8.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/url.html">7.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v6.x/api/url.html">6.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v5.x/api/url.html">5.x</a></li>
@@ -121,62 +126,62 @@
 <li>
 <p><span class="stability_2"><a href="#url_url">URL</a></span></p>
 <ul>
-<li><a href="#url_url_strings_and_url_objects">URL Strings and URL Objects</a></li>
+<li><a href="#url_url_strings_and_url_objects">URL strings and URL objects</a></li>
 <li>
 <p><a href="#url_the_whatwg_url_api">The WHATWG URL API</a></p>
 <ul>
 <li>
-<p><a href="#url_class_url">Class: URL</a></p>
+<p><a href="#url_class_url">Class: <code>URL</code></a></p>
 <ul>
-<li><a href="#url_constructor_new_url_input_base">Constructor: new URL(input[, base])</a></li>
-<li><a href="#url_url_hash">url.hash</a></li>
-<li><a href="#url_url_host">url.host</a></li>
-<li><a href="#url_url_hostname">url.hostname</a></li>
-<li><a href="#url_url_href">url.href</a></li>
-<li><a href="#url_url_origin">url.origin</a></li>
-<li><a href="#url_url_password">url.password</a></li>
-<li><a href="#url_url_pathname">url.pathname</a></li>
-<li><a href="#url_url_port">url.port</a></li>
+<li><a href="#url_new_url_input_base"><code>new URL(input[, base])</code></a></li>
+<li><a href="#url_url_hash"><code>url.hash</code></a></li>
+<li><a href="#url_url_host"><code>url.host</code></a></li>
+<li><a href="#url_url_hostname"><code>url.hostname</code></a></li>
+<li><a href="#url_url_href"><code>url.href</code></a></li>
+<li><a href="#url_url_origin"><code>url.origin</code></a></li>
+<li><a href="#url_url_password"><code>url.password</code></a></li>
+<li><a href="#url_url_pathname"><code>url.pathname</code></a></li>
+<li><a href="#url_url_port"><code>url.port</code></a></li>
 <li>
-<p><a href="#url_url_protocol">url.protocol</a></p>
+<p><a href="#url_url_protocol"><code>url.protocol</code></a></p>
 <ul>
-<li><a href="#url_special_schemes">Special Schemes</a></li>
+<li><a href="#url_special_schemes">Special schemes</a></li>
 </ul>
 </li>
-<li><a href="#url_url_search">url.search</a></li>
-<li><a href="#url_url_searchparams">url.searchParams</a></li>
-<li><a href="#url_url_username">url.username</a></li>
-<li><a href="#url_url_tostring">url.toString()</a></li>
-<li><a href="#url_url_tojson">url.toJSON()</a></li>
+<li><a href="#url_url_search"><code>url.search</code></a></li>
+<li><a href="#url_url_searchparams"><code>url.searchParams</code></a></li>
+<li><a href="#url_url_username"><code>url.username</code></a></li>
+<li><a href="#url_url_tostring"><code>url.toString()</code></a></li>
+<li><a href="#url_url_tojson"><code>url.toJSON()</code></a></li>
 </ul>
 </li>
 <li>
-<p><a href="#url_class_urlsearchparams">Class: URLSearchParams</a></p>
+<p><a href="#url_class_urlsearchparams">Class: <code>URLSearchParams</code></a></p>
 <ul>
-<li><a href="#url_constructor_new_urlsearchparams">Constructor: new URLSearchParams()</a></li>
-<li><a href="#url_constructor_new_urlsearchparams_string">Constructor: new URLSearchParams(string)</a></li>
-<li><a href="#url_constructor_new_urlsearchparams_obj">Constructor: new URLSearchParams(obj)</a></li>
-<li><a href="#url_constructor_new_urlsearchparams_iterable">Constructor: new URLSearchParams(iterable)</a></li>
-<li><a href="#url_urlsearchparams_append_name_value">urlSearchParams.append(name, value)</a></li>
-<li><a href="#url_urlsearchparams_delete_name">urlSearchParams.delete(name)</a></li>
-<li><a href="#url_urlsearchparams_entries">urlSearchParams.entries()</a></li>
-<li><a href="#url_urlsearchparams_foreach_fn_thisarg">urlSearchParams.forEach(fn[, thisArg])</a></li>
-<li><a href="#url_urlsearchparams_get_name">urlSearchParams.get(name)</a></li>
-<li><a href="#url_urlsearchparams_getall_name">urlSearchParams.getAll(name)</a></li>
-<li><a href="#url_urlsearchparams_has_name">urlSearchParams.has(name)</a></li>
-<li><a href="#url_urlsearchparams_keys">urlSearchParams.keys()</a></li>
-<li><a href="#url_urlsearchparams_set_name_value">urlSearchParams.set(name, value)</a></li>
-<li><a href="#url_urlsearchparams_sort">urlSearchParams.sort()</a></li>
-<li><a href="#url_urlsearchparams_tostring">urlSearchParams.toString()</a></li>
-<li><a href="#url_urlsearchparams_values">urlSearchParams.values()</a></li>
-<li><a href="#url_urlsearchparams_symbol_iterator">urlSearchParams[Symbol.iterator]()</a></li>
+<li><a href="#url_new_urlsearchparams"><code>new URLSearchParams()</code></a></li>
+<li><a href="#url_new_urlsearchparams_string"><code>new URLSearchParams(string)</code></a></li>
+<li><a href="#url_new_urlsearchparams_obj"><code>new URLSearchParams(obj)</code></a></li>
+<li><a href="#url_new_urlsearchparams_iterable"><code>new URLSearchParams(iterable)</code></a></li>
+<li><a href="#url_urlsearchparams_append_name_value"><code>urlSearchParams.append(name, value)</code></a></li>
+<li><a href="#url_urlsearchparams_delete_name"><code>urlSearchParams.delete(name)</code></a></li>
+<li><a href="#url_urlsearchparams_entries"><code>urlSearchParams.entries()</code></a></li>
+<li><a href="#url_urlsearchparams_foreach_fn_thisarg"><code>urlSearchParams.forEach(fn[, thisArg])</code></a></li>
+<li><a href="#url_urlsearchparams_get_name"><code>urlSearchParams.get(name)</code></a></li>
+<li><a href="#url_urlsearchparams_getall_name"><code>urlSearchParams.getAll(name)</code></a></li>
+<li><a href="#url_urlsearchparams_has_name"><code>urlSearchParams.has(name)</code></a></li>
+<li><a href="#url_urlsearchparams_keys"><code>urlSearchParams.keys()</code></a></li>
+<li><a href="#url_urlsearchparams_set_name_value"><code>urlSearchParams.set(name, value)</code></a></li>
+<li><a href="#url_urlsearchparams_sort"><code>urlSearchParams.sort()</code></a></li>
+<li><a href="#url_urlsearchparams_tostring"><code>urlSearchParams.toString()</code></a></li>
+<li><a href="#url_urlsearchparams_values"><code>urlSearchParams.values()</code></a></li>
+<li><a href="#url_urlsearchparams_symbol_iterator"><code>urlSearchParams[Symbol.iterator]()</code></a></li>
 </ul>
 </li>
-<li><a href="#url_url_domaintoascii_domain">url.domainToASCII(domain)</a></li>
-<li><a href="#url_url_domaintounicode_domain">url.domainToUnicode(domain)</a></li>
-<li><a href="#url_url_fileurltopath_url">url.fileURLToPath(url)</a></li>
-<li><a href="#url_url_format_url_options">url.format(URL[, options])</a></li>
-<li><a href="#url_url_pathtofileurl_path">url.pathToFileURL(path)</a></li>
+<li><a href="#url_url_domaintoascii_domain"><code>url.domainToASCII(domain)</code></a></li>
+<li><a href="#url_url_domaintounicode_domain"><code>url.domainToUnicode(domain)</code></a></li>
+<li><a href="#url_url_fileurltopath_url"><code>url.fileURLToPath(url)</code></a></li>
+<li><a href="#url_url_format_url_options"><code>url.format(URL[, options])</code></a></li>
+<li><a href="#url_url_pathtofileurl_path"><code>url.pathToFileURL(path)</code></a></li>
 </ul>
 </li>
 <li>
@@ -185,27 +190,27 @@
 <li>
 <p><a href="#url_legacy_urlobject">Legacy <code>urlObject</code></a></p>
 <ul>
-<li><a href="#url_urlobject_auth">urlObject.auth</a></li>
-<li><a href="#url_urlobject_hash">urlObject.hash</a></li>
-<li><a href="#url_urlobject_host">urlObject.host</a></li>
-<li><a href="#url_urlobject_hostname">urlObject.hostname</a></li>
-<li><a href="#url_urlobject_href">urlObject.href</a></li>
-<li><a href="#url_urlobject_path">urlObject.path</a></li>
-<li><a href="#url_urlobject_pathname">urlObject.pathname</a></li>
-<li><a href="#url_urlobject_port">urlObject.port</a></li>
-<li><a href="#url_urlobject_protocol">urlObject.protocol</a></li>
-<li><a href="#url_urlobject_query">urlObject.query</a></li>
-<li><a href="#url_urlobject_search">urlObject.search</a></li>
-<li><a href="#url_urlobject_slashes">urlObject.slashes</a></li>
+<li><a href="#url_urlobject_auth"><code>urlObject.auth</code></a></li>
+<li><a href="#url_urlobject_hash"><code>urlObject.hash</code></a></li>
+<li><a href="#url_urlobject_host"><code>urlObject.host</code></a></li>
+<li><a href="#url_urlobject_hostname"><code>urlObject.hostname</code></a></li>
+<li><a href="#url_urlobject_href"><code>urlObject.href</code></a></li>
+<li><a href="#url_urlobject_path"><code>urlObject.path</code></a></li>
+<li><a href="#url_urlobject_pathname"><code>urlObject.pathname</code></a></li>
+<li><a href="#url_urlobject_port"><code>urlObject.port</code></a></li>
+<li><a href="#url_urlobject_protocol"><code>urlObject.protocol</code></a></li>
+<li><a href="#url_urlobject_query"><code>urlObject.query</code></a></li>
+<li><a href="#url_urlobject_search"><code>urlObject.search</code></a></li>
+<li><a href="#url_urlobject_slashes"><code>urlObject.slashes</code></a></li>
 </ul>
 </li>
-<li><a href="#url_url_format_urlobject">url.format(urlObject)</a></li>
-<li><a href="#url_url_parse_urlstring_parsequerystring_slashesdenotehost">url.parse(urlString[, parseQueryString[, slashesDenoteHost]])</a></li>
-<li><a href="#url_url_resolve_from_to">url.resolve(from, to)</a></li>
+<li><a href="#url_url_format_urlobject"><code>url.format(urlObject)</code></a></li>
+<li><a href="#url_url_parse_urlstring_parsequerystring_slashesdenotehost"><code>url.parse(urlString[, parseQueryString[, slashesDenoteHost]])</code></a></li>
+<li><a href="#url_url_resolve_from_to"><code>url.resolve(from, to)</code></a></li>
 </ul>
 </li>
 <li>
-<p><a href="#url_percent_encoding_in_urls">Percent-Encoding in URLs</a></p>
+<p><a href="#url_percent_encoding_in_urls">Percent-encoding in URLs</a></p>
 <ul>
 <li><a href="#url_legacy_api">Legacy API</a></li>
 <li><a href="#url_whatwg_api">WHATWG API</a></li>
@@ -220,11 +225,11 @@
         <h1>URL<span><a class="mark" href="#url_url" id="url_url">#</a></span></h1>
 
 <p></p><div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p></p>
+<p><strong>Source Code:</strong> <a href="https://github.com/nodejs/node/blob/v14.8.0/lib/url.js">lib/url.js</a></p>
 <p>The <code>url</code> module provides utilities for URL resolution and parsing. It can be
 accessed using:</p>
-<pre><code class="language-js">const url = require('url');
-</code></pre>
-<h2>URL Strings and URL Objects<span><a class="mark" href="#url_url_strings_and_url_objects" id="url_url_strings_and_url_objects">#</a></span></h2>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> url = <span class="hljs-built_in">require</span>(<span class="hljs-string">'url'</span>);</code></pre>
+<h2>URL strings and URL objects<span><a class="mark" href="#url_url_strings_and_url_objects" id="url_url_strings_and_url_objects">#</a></span></h2>
 <p>A URL string is a structured string containing multiple meaningful components.
 When parsed, a URL object is returned containing properties for each of these
 components.</p>
@@ -237,7 +242,7 @@ of an object returned by the legacy <code>url.parse()</code> are shown. Below it
 properties of a WHATWG <code>URL</code> object.</p>
 <p>WHATWG URL's <code>origin</code> property includes <code>protocol</code> and <code>host</code>, but not
 <code>username</code> or <code>password</code>.</p>
-<pre><code class="language-txt">┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+<pre><code class="language-text">┌────────────────────────────────────────────────────────────────────────────────────────────────┐
 │                                              href                                              │
 ├──────────┬──┬─────────────────────┬────────────────────────┬───────────────────────────┬───────┤
 │ protocol │  │        auth         │          host          │           path            │ hash  │
@@ -254,19 +259,16 @@ properties of a WHATWG <code>URL</code> object.</p>
 ├─────────────┴─────────────────────┴────────────────────────┴──────────┴────────────────┴───────┤
 │                                              href                                              │
 └────────────────────────────────────────────────────────────────────────────────────────────────┘
-(all spaces in the "" line should be ignored — they are purely for formatting)
-</code></pre>
+(All spaces in the "" line should be ignored. They are purely for formatting.)</code></pre>
 <p>Parsing the URL string using the WHATWG API:</p>
-<pre><code class="language-js">const myURL =
-  new URL('https://user:pass@sub.example.com:8080/p/a/t/h?query=string#hash');
-</code></pre>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> myURL =
+  <span class="hljs-keyword">new</span> URL(<span class="hljs-string">'https://user:pass@sub.example.com:8080/p/a/t/h?query=string#hash'</span>);</code></pre>
 <p>Parsing the URL string using the Legacy API:</p>
-<pre><code class="language-js">const url = require('url');
-const myURL =
-  url.parse('https://user:pass@sub.example.com:8080/p/a/t/h?query=string#hash');
-</code></pre>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> url = <span class="hljs-built_in">require</span>(<span class="hljs-string">'url'</span>);
+<span class="hljs-keyword">const</span> myURL =
+  url.parse(<span class="hljs-string">'https://user:pass@sub.example.com:8080/p/a/t/h?query=string#hash'</span>);</code></pre>
 <h2>The WHATWG URL API<span><a class="mark" href="#url_the_whatwg_url_api" id="url_the_whatwg_url_api">#</a></span></h2>
-<h3>Class: URL<span><a class="mark" href="#url_class_url" id="url_class_url">#</a></span></h3>
+<h3>Class: <code>URL</code><span><a class="mark" href="#url_class_url" id="url_class_url">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -286,7 +288,7 @@ are implemented as getters and setters on the class prototype, rather than as
 data properties on the object itself. Thus, unlike <a href="#url_legacy_urlobject">legacy <code>urlObject</code></a>s,
 using the <code>delete</code> keyword on any properties of <code>URL</code> objects (e.g. <code>delete myURL.protocol</code>, <code>delete myURL.pathname</code>, etc) has no effect but will still
 return <code>true</code>.</p>
-<h4>Constructor: new URL(input[, base])<span><a class="mark" href="#url_constructor_new_url_input_base" id="url_constructor_new_url_input_base">#</a></span></h4>
+<h4><code>new URL(input[, base])</code><span><a class="mark" href="#url_new_url_input_base" id="url_new_url_input_base">#</a></span></h4>
 <ul>
 <li><code>input</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The absolute or relative input URL to parse. If <code>input</code>
 is relative, then <code>base</code> is required. If <code>input</code> is absolute, the <code>base</code>
@@ -296,161 +298,152 @@ absolute.</li>
 </ul>
 <p>Creates a new <code>URL</code> object by parsing the <code>input</code> relative to the <code>base</code>. If
 <code>base</code> is passed as a string, it will be parsed equivalent to <code>new URL(base)</code>.</p>
-<pre><code class="language-js">const myURL = new URL('/foo', 'https://example.org/');
-// https://example.org/foo
-</code></pre>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> myURL = <span class="hljs-keyword">new</span> URL(<span class="hljs-string">'/foo'</span>, <span class="hljs-string">'https://example.org/'</span>);
+<span class="hljs-comment">// https://example.org/foo</span></code></pre>
+<p>The URL constructor is accessible as a property on the global object.
+It can also be imported from the built-in url module:</p>
+<pre><code class="language-js"><span class="hljs-built_in">console</span>.log(URL === <span class="hljs-built_in">require</span>(<span class="hljs-string">'url'</span>).URL); <span class="hljs-comment">// Prints 'true'.</span></code></pre>
 <p>A <code>TypeError</code> will be thrown if the <code>input</code> or <code>base</code> are not valid URLs. Note
 that an effort will be made to coerce the given values into strings. For
 instance:</p>
-<pre><code class="language-js">const myURL = new URL({ toString: () => 'https://example.org/' });
-// https://example.org/
-</code></pre>
-<p>Unicode characters appearing within the hostname of <code>input</code> will be
+<pre><code class="language-js"><span class="hljs-keyword">const</span> myURL = <span class="hljs-keyword">new</span> URL({ <span class="hljs-attr">toString</span>: <span class="hljs-function"><span class="hljs-params">()</span> =></span> <span class="hljs-string">'https://example.org/'</span> });
+<span class="hljs-comment">// https://example.org/</span></code></pre>
+<p>Unicode characters appearing within the host name of <code>input</code> will be
 automatically converted to ASCII using the <a href="https://tools.ietf.org/html/rfc5891#section-4.4">Punycode</a> algorithm.</p>
-<pre><code class="language-js">const myURL = new URL('https://測試');
-// https://xn--g6w251d/
-</code></pre>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> myURL = <span class="hljs-keyword">new</span> URL(<span class="hljs-string">'https://測試'</span>);
+<span class="hljs-comment">// https://xn--g6w251d/</span></code></pre>
 <p>This feature is only available if the <code>node</code> executable was compiled with
 <a href="intl.html#intl_options_for_building_node_js">ICU</a> enabled. If not, the domain names are passed through unchanged.</p>
 <p>In cases where it is not known in advance if <code>input</code> is an absolute URL
 and a <code>base</code> is provided, it is advised to validate that the <code>origin</code> of
 the <code>URL</code> object is what is expected.</p>
-<pre><code class="language-js">let myURL = new URL('http://Example.com/', 'https://example.org/');
-// http://example.com/
+<pre><code class="language-js"><span class="hljs-keyword">let</span> myURL = <span class="hljs-keyword">new</span> URL(<span class="hljs-string">'http://Example.com/'</span>, <span class="hljs-string">'https://example.org/'</span>);
+<span class="hljs-comment">// http://example.com/</span>
 
-myURL = new URL('https://Example.com/', 'https://example.org/');
-// https://example.com/
+myURL = <span class="hljs-keyword">new</span> URL(<span class="hljs-string">'https://Example.com/'</span>, <span class="hljs-string">'https://example.org/'</span>);
+<span class="hljs-comment">// https://example.com/</span>
 
-myURL = new URL('foo://Example.com/', 'https://example.org/');
-// foo://Example.com/
+myURL = <span class="hljs-keyword">new</span> URL(<span class="hljs-string">'foo://Example.com/'</span>, <span class="hljs-string">'https://example.org/'</span>);
+<span class="hljs-comment">// foo://Example.com/</span>
 
-myURL = new URL('http:Example.com/', 'https://example.org/');
-// http://example.com/
+myURL = <span class="hljs-keyword">new</span> URL(<span class="hljs-string">'http:Example.com/'</span>, <span class="hljs-string">'https://example.org/'</span>);
+<span class="hljs-comment">// http://example.com/</span>
 
-myURL = new URL('https:Example.com/', 'https://example.org/');
-// https://example.org/Example.com/
+myURL = <span class="hljs-keyword">new</span> URL(<span class="hljs-string">'https:Example.com/'</span>, <span class="hljs-string">'https://example.org/'</span>);
+<span class="hljs-comment">// https://example.org/Example.com/</span>
 
-myURL = new URL('foo:Example.com/', 'https://example.org/');
-// foo:Example.com/
-</code></pre>
-<h4>url.hash<span><a class="mark" href="#url_url_hash" id="url_url_hash">#</a></span></h4>
+myURL = <span class="hljs-keyword">new</span> URL(<span class="hljs-string">'foo:Example.com/'</span>, <span class="hljs-string">'https://example.org/'</span>);
+<span class="hljs-comment">// foo:Example.com/</span></code></pre>
+<h4><code>url.hash</code><span><a class="mark" href="#url_url_hash" id="url_url_hash">#</a></span></h4>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
 <p>Gets and sets the fragment portion of the URL.</p>
-<pre><code class="language-js">const myURL = new URL('https://example.org/foo#bar');
-console.log(myURL.hash);
-// Prints #bar
+<pre><code class="language-js"><span class="hljs-keyword">const</span> myURL = <span class="hljs-keyword">new</span> URL(<span class="hljs-string">'https://example.org/foo#bar'</span>);
+<span class="hljs-built_in">console</span>.log(myURL.hash);
+<span class="hljs-comment">// Prints #bar</span>
 
-myURL.hash = 'baz';
-console.log(myURL.href);
-// Prints https://example.org/foo#baz
-</code></pre>
+myURL.hash = <span class="hljs-string">'baz'</span>;
+<span class="hljs-built_in">console</span>.log(myURL.href);
+<span class="hljs-comment">// Prints https://example.org/foo#baz</span></code></pre>
 <p>Invalid URL characters included in the value assigned to the <code>hash</code> property
 are <a href="#whatwg-percent-encoding">percent-encoded</a>. The selection of which characters to
 percent-encode may vary somewhat from what the <a href="#url_url_parse_urlstring_parsequerystring_slashesdenotehost"><code>url.parse()</code></a> and
 <a href="#url_url_format_urlobject"><code>url.format()</code></a> methods would produce.</p>
-<h4>url.host<span><a class="mark" href="#url_url_host" id="url_url_host">#</a></span></h4>
+<h4><code>url.host</code><span><a class="mark" href="#url_url_host" id="url_url_host">#</a></span></h4>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
 <p>Gets and sets the host portion of the URL.</p>
-<pre><code class="language-js">const myURL = new URL('https://example.org:81/foo');
-console.log(myURL.host);
-// Prints example.org:81
+<pre><code class="language-js"><span class="hljs-keyword">const</span> myURL = <span class="hljs-keyword">new</span> URL(<span class="hljs-string">'https://example.org:81/foo'</span>);
+<span class="hljs-built_in">console</span>.log(myURL.host);
+<span class="hljs-comment">// Prints example.org:81</span>
 
-myURL.host = 'example.com:82';
-console.log(myURL.href);
-// Prints https://example.com:82/foo
-</code></pre>
+myURL.host = <span class="hljs-string">'example.com:82'</span>;
+<span class="hljs-built_in">console</span>.log(myURL.href);
+<span class="hljs-comment">// Prints https://example.com:82/foo</span></code></pre>
 <p>Invalid host values assigned to the <code>host</code> property are ignored.</p>
-<h4>url.hostname<span><a class="mark" href="#url_url_hostname" id="url_url_hostname">#</a></span></h4>
+<h4><code>url.hostname</code><span><a class="mark" href="#url_url_hostname" id="url_url_hostname">#</a></span></h4>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
-<p>Gets and sets the hostname portion of the URL. The key difference between
+<p>Gets and sets the host name portion of the URL. The key difference between
 <code>url.host</code> and <code>url.hostname</code> is that <code>url.hostname</code> does <em>not</em> include the
 port.</p>
-<pre><code class="language-js">const myURL = new URL('https://example.org:81/foo');
-console.log(myURL.hostname);
-// Prints example.org
+<pre><code class="language-js"><span class="hljs-keyword">const</span> myURL = <span class="hljs-keyword">new</span> URL(<span class="hljs-string">'https://example.org:81/foo'</span>);
+<span class="hljs-built_in">console</span>.log(myURL.hostname);
+<span class="hljs-comment">// Prints example.org</span>
 
-myURL.hostname = 'example.com:82';
-console.log(myURL.href);
-// Prints https://example.com:81/foo
-</code></pre>
-<p>Invalid hostname values assigned to the <code>hostname</code> property are ignored.</p>
-<h4>url.href<span><a class="mark" href="#url_url_href" id="url_url_href">#</a></span></h4>
+myURL.hostname = <span class="hljs-string">'example.com:82'</span>;
+<span class="hljs-built_in">console</span>.log(myURL.href);
+<span class="hljs-comment">// Prints https://example.com:81/foo</span></code></pre>
+<p>Invalid host name values assigned to the <code>hostname</code> property are ignored.</p>
+<h4><code>url.href</code><span><a class="mark" href="#url_url_href" id="url_url_href">#</a></span></h4>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
 <p>Gets and sets the serialized URL.</p>
-<pre><code class="language-js">const myURL = new URL('https://example.org/foo');
-console.log(myURL.href);
-// Prints https://example.org/foo
+<pre><code class="language-js"><span class="hljs-keyword">const</span> myURL = <span class="hljs-keyword">new</span> URL(<span class="hljs-string">'https://example.org/foo'</span>);
+<span class="hljs-built_in">console</span>.log(myURL.href);
+<span class="hljs-comment">// Prints https://example.org/foo</span>
 
-myURL.href = 'https://example.com/bar';
-console.log(myURL.href);
-// Prints https://example.com/bar
-</code></pre>
+myURL.href = <span class="hljs-string">'https://example.com/bar'</span>;
+<span class="hljs-built_in">console</span>.log(myURL.href);
+<span class="hljs-comment">// Prints https://example.com/bar</span></code></pre>
 <p>Getting the value of the <code>href</code> property is equivalent to calling
 <a href="#url_url_tostring"><code>url.toString()</code></a>.</p>
 <p>Setting the value of this property to a new value is equivalent to creating a
-new <code>URL</code> object using <a href="#url_constructor_new_url_input_base"><code>new URL(value)</code></a>. Each of the <code>URL</code>
+new <code>URL</code> object using <a href="#url_new_url_input_base"><code>new URL(value)</code></a>. Each of the <code>URL</code>
 object's properties will be modified.</p>
 <p>If the value assigned to the <code>href</code> property is not a valid URL, a <code>TypeError</code>
 will be thrown.</p>
-<h4>url.origin<span><a class="mark" href="#url_url_origin" id="url_url_origin">#</a></span></h4>
+<h4><code>url.origin</code><span><a class="mark" href="#url_url_origin" id="url_url_origin">#</a></span></h4>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
 <p>Gets the read-only serialization of the URL's origin.</p>
-<pre><code class="language-js">const myURL = new URL('https://example.org/foo/bar?baz');
-console.log(myURL.origin);
-// Prints https://example.org
-</code></pre>
-<pre><code class="language-js">const idnURL = new URL('https://測試');
-console.log(idnURL.origin);
-// Prints https://xn--g6w251d
+<pre><code class="language-js"><span class="hljs-keyword">const</span> myURL = <span class="hljs-keyword">new</span> URL(<span class="hljs-string">'https://example.org/foo/bar?baz'</span>);
+<span class="hljs-built_in">console</span>.log(myURL.origin);
+<span class="hljs-comment">// Prints https://example.org</span></code></pre>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> idnURL = <span class="hljs-keyword">new</span> URL(<span class="hljs-string">'https://測試'</span>);
+<span class="hljs-built_in">console</span>.log(idnURL.origin);
+<span class="hljs-comment">// Prints https://xn--g6w251d</span>
 
-console.log(idnURL.hostname);
-// Prints xn--g6w251d
-</code></pre>
-<h4>url.password<span><a class="mark" href="#url_url_password" id="url_url_password">#</a></span></h4>
+<span class="hljs-built_in">console</span>.log(idnURL.hostname);
+<span class="hljs-comment">// Prints xn--g6w251d</span></code></pre>
+<h4><code>url.password</code><span><a class="mark" href="#url_url_password" id="url_url_password">#</a></span></h4>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
 <p>Gets and sets the password portion of the URL.</p>
-<pre><code class="language-js">const myURL = new URL('https://abc:xyz@example.com');
-console.log(myURL.password);
-// Prints xyz
+<pre><code class="language-js"><span class="hljs-keyword">const</span> myURL = <span class="hljs-keyword">new</span> URL(<span class="hljs-string">'https://abc:xyz@example.com'</span>);
+<span class="hljs-built_in">console</span>.log(myURL.password);
+<span class="hljs-comment">// Prints xyz</span>
 
-myURL.password = '123';
-console.log(myURL.href);
-// Prints https://abc:123@example.com
-</code></pre>
+myURL.password = <span class="hljs-string">'123'</span>;
+<span class="hljs-built_in">console</span>.log(myURL.href);
+<span class="hljs-comment">// Prints https://abc:123@example.com</span></code></pre>
 <p>Invalid URL characters included in the value assigned to the <code>password</code> property
 are <a href="#whatwg-percent-encoding">percent-encoded</a>. The selection of which characters to
 percent-encode may vary somewhat from what the <a href="#url_url_parse_urlstring_parsequerystring_slashesdenotehost"><code>url.parse()</code></a> and
 <a href="#url_url_format_urlobject"><code>url.format()</code></a> methods would produce.</p>
-<h4>url.pathname<span><a class="mark" href="#url_url_pathname" id="url_url_pathname">#</a></span></h4>
+<h4><code>url.pathname</code><span><a class="mark" href="#url_url_pathname" id="url_url_pathname">#</a></span></h4>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
 <p>Gets and sets the path portion of the URL.</p>
-<pre><code class="language-js">const myURL = new URL('https://example.org/abc/xyz?123');
-console.log(myURL.pathname);
-// Prints /abc/xyz
+<pre><code class="language-js"><span class="hljs-keyword">const</span> myURL = <span class="hljs-keyword">new</span> URL(<span class="hljs-string">'https://example.org/abc/xyz?123'</span>);
+<span class="hljs-built_in">console</span>.log(myURL.pathname);
+<span class="hljs-comment">// Prints /abc/xyz</span>
 
-myURL.pathname = '/abcdef';
-console.log(myURL.href);
-// Prints https://example.org/abcdef?123
-</code></pre>
+myURL.pathname = <span class="hljs-string">'/abcdef'</span>;
+<span class="hljs-built_in">console</span>.log(myURL.href);
+<span class="hljs-comment">// Prints https://example.org/abcdef?123</span></code></pre>
 <p>Invalid URL characters included in the value assigned to the <code>pathname</code>
 property are <a href="#whatwg-percent-encoding">percent-encoded</a>. The selection of which characters
 to percent-encode may vary somewhat from what the <a href="#url_url_parse_urlstring_parsequerystring_slashesdenotehost"><code>url.parse()</code></a> and
 <a href="#url_url_format_urlobject"><code>url.format()</code></a> methods would produce.</p>
-<h4>url.port<span><a class="mark" href="#url_url_port" id="url_url_port">#</a></span></h4>
+<h4><code>url.port</code><span><a class="mark" href="#url_url_port" id="url_url_port">#</a></span></h4>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
@@ -504,139 +497,145 @@ string using <code>.toString()</code>.</p>
 <p>If that string is invalid but it begins with a number, the leading number is
 assigned to <code>port</code>.
 If the number lies outside the range denoted above, it is ignored.</p>
-<pre><code class="language-js">const myURL = new URL('https://example.org:8888');
-console.log(myURL.port);
-// Prints 8888
+<pre><code class="language-js"><span class="hljs-keyword">const</span> myURL = <span class="hljs-keyword">new</span> URL(<span class="hljs-string">'https://example.org:8888'</span>);
+<span class="hljs-built_in">console</span>.log(myURL.port);
+<span class="hljs-comment">// Prints 8888</span>
 
-// Default ports are automatically transformed to the empty string
-// (HTTPS protocol's default port is 443)
-myURL.port = '443';
-console.log(myURL.port);
-// Prints the empty string
-console.log(myURL.href);
-// Prints https://example.org/
+<span class="hljs-comment">// Default ports are automatically transformed to the empty string</span>
+<span class="hljs-comment">// (HTTPS protocol's default port is 443)</span>
+myURL.port = <span class="hljs-string">'443'</span>;
+<span class="hljs-built_in">console</span>.log(myURL.port);
+<span class="hljs-comment">// Prints the empty string</span>
+<span class="hljs-built_in">console</span>.log(myURL.href);
+<span class="hljs-comment">// Prints https://example.org/</span>
 
-myURL.port = 1234;
-console.log(myURL.port);
-// Prints 1234
-console.log(myURL.href);
-// Prints https://example.org:1234/
+myURL.port = <span class="hljs-number">1234</span>;
+<span class="hljs-built_in">console</span>.log(myURL.port);
+<span class="hljs-comment">// Prints 1234</span>
+<span class="hljs-built_in">console</span>.log(myURL.href);
+<span class="hljs-comment">// Prints https://example.org:1234/</span>
 
-// Completely invalid port strings are ignored
-myURL.port = 'abcd';
-console.log(myURL.port);
-// Prints 1234
+<span class="hljs-comment">// Completely invalid port strings are ignored</span>
+myURL.port = <span class="hljs-string">'abcd'</span>;
+<span class="hljs-built_in">console</span>.log(myURL.port);
+<span class="hljs-comment">// Prints 1234</span>
 
-// Leading numbers are treated as a port number
-myURL.port = '5678abcd';
-console.log(myURL.port);
-// Prints 5678
+<span class="hljs-comment">// Leading numbers are treated as a port number</span>
+myURL.port = <span class="hljs-string">'5678abcd'</span>;
+<span class="hljs-built_in">console</span>.log(myURL.port);
+<span class="hljs-comment">// Prints 5678</span>
 
-// Non-integers are truncated
-myURL.port = 1234.5678;
-console.log(myURL.port);
-// Prints 1234
+<span class="hljs-comment">// Non-integers are truncated</span>
+myURL.port = <span class="hljs-number">1234.5678</span>;
+<span class="hljs-built_in">console</span>.log(myURL.port);
+<span class="hljs-comment">// Prints 1234</span>
 
-// Out-of-range numbers which are not represented in scientific notation
-// will be ignored.
-myURL.port = 1e10; // 10000000000, will be range-checked as described below
-console.log(myURL.port);
-// Prints 1234
-</code></pre>
+<span class="hljs-comment">// Out-of-range numbers which are not represented in scientific notation</span>
+<span class="hljs-comment">// will be ignored.</span>
+myURL.port = <span class="hljs-number">1e10</span>; <span class="hljs-comment">// 10000000000, will be range-checked as described below</span>
+<span class="hljs-built_in">console</span>.log(myURL.port);
+<span class="hljs-comment">// Prints 1234</span></code></pre>
 <p>Numbers which contain a decimal point,
 such as floating-point numbers or numbers in scientific notation,
 are not an exception to this rule.
 Leading numbers up to the decimal point will be set as the URL's port,
 assuming they are valid:</p>
-<pre><code class="language-js">myURL.port = 4.567e21;
-console.log(myURL.port);
-// Prints 4 (because it is the leading number in the string '4.567e21')
-</code></pre>
-<h4>url.protocol<span><a class="mark" href="#url_url_protocol" id="url_url_protocol">#</a></span></h4>
+<pre><code class="language-js">myURL.port = <span class="hljs-number">4.567e21</span>;
+<span class="hljs-built_in">console</span>.log(myURL.port);
+<span class="hljs-comment">// Prints 4 (because it is the leading number in the string '4.567e21')</span></code></pre>
+<h4><code>url.protocol</code><span><a class="mark" href="#url_url_protocol" id="url_url_protocol">#</a></span></h4>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
 <p>Gets and sets the protocol portion of the URL.</p>
-<pre><code class="language-js">const myURL = new URL('https://example.org');
-console.log(myURL.protocol);
-// Prints https:
+<pre><code class="language-js"><span class="hljs-keyword">const</span> myURL = <span class="hljs-keyword">new</span> URL(<span class="hljs-string">'https://example.org'</span>);
+<span class="hljs-built_in">console</span>.log(myURL.protocol);
+<span class="hljs-comment">// Prints https:</span>
 
-myURL.protocol = 'ftp';
-console.log(myURL.href);
-// Prints ftp://example.org/
-</code></pre>
+myURL.protocol = <span class="hljs-string">'ftp'</span>;
+<span class="hljs-built_in">console</span>.log(myURL.href);
+<span class="hljs-comment">// Prints ftp://example.org/</span></code></pre>
 <p>Invalid URL protocol values assigned to the <code>protocol</code> property are ignored.</p>
-<h5>Special Schemes<span><a class="mark" href="#url_special_schemes" id="url_special_schemes">#</a></span></h5>
+<h5>Special schemes<span><a class="mark" href="#url_special_schemes" id="url_special_schemes">#</a></span></h5>
 <p>The <a href="https://url.spec.whatwg.org/">WHATWG URL Standard</a> considers a handful of URL protocol schemes to be
 <em>special</em> in terms of how they are parsed and serialized. When a URL is
 parsed using one of these special protocols, the <code>url.protocol</code> property
 may be changed to another special protocol but cannot be changed to a
 non-special protocol, and vice versa.</p>
 <p>For instance, changing from <code>http</code> to <code>https</code> works:</p>
-<pre><code class="language-js">const u = new URL('http://example.org');
-u.protocol = 'https';
-console.log(u.href);
-// https://example.org
-</code></pre>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> u = <span class="hljs-keyword">new</span> URL(<span class="hljs-string">'http://example.org'</span>);
+u.protocol = <span class="hljs-string">'https'</span>;
+<span class="hljs-built_in">console</span>.log(u.href);
+<span class="hljs-comment">// https://example.org</span></code></pre>
 <p>However, changing from <code>http</code> to a hypothetical <code>fish</code> protocol does not
 because the new protocol is not special.</p>
-<pre><code class="language-js">const u = new URL('http://example.org');
-u.protocol = 'fish';
-console.log(u.href);
-// http://example.org
-</code></pre>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> u = <span class="hljs-keyword">new</span> URL(<span class="hljs-string">'http://example.org'</span>);
+u.protocol = <span class="hljs-string">'fish'</span>;
+<span class="hljs-built_in">console</span>.log(u.href);
+<span class="hljs-comment">// http://example.org</span></code></pre>
 <p>Likewise, changing from a non-special protocol to a special protocol is also
 not permitted:</p>
-<pre><code class="language-js">const u = new URL('fish://example.org');
-u.protocol = 'http';
-console.log(u.href);
-// fish://example.org
-</code></pre>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> u = <span class="hljs-keyword">new</span> URL(<span class="hljs-string">'fish://example.org'</span>);
+u.protocol = <span class="hljs-string">'http'</span>;
+<span class="hljs-built_in">console</span>.log(u.href);
+<span class="hljs-comment">// fish://example.org</span></code></pre>
 <p>According to the WHATWG URL Standard, special protocol schemes are <code>ftp</code>,
 <code>file</code>, <code>gopher</code>, <code>http</code>, <code>https</code>, <code>ws</code>, and <code>wss</code>.</p>
-<h4>url.search<span><a class="mark" href="#url_url_search" id="url_url_search">#</a></span></h4>
+<h4><code>url.search</code><span><a class="mark" href="#url_url_search" id="url_url_search">#</a></span></h4>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
 <p>Gets and sets the serialized query portion of the URL.</p>
-<pre><code class="language-js">const myURL = new URL('https://example.org/abc?123');
-console.log(myURL.search);
-// Prints ?123
+<pre><code class="language-js"><span class="hljs-keyword">const</span> myURL = <span class="hljs-keyword">new</span> URL(<span class="hljs-string">'https://example.org/abc?123'</span>);
+<span class="hljs-built_in">console</span>.log(myURL.search);
+<span class="hljs-comment">// Prints ?123</span>
 
-myURL.search = 'abc=xyz';
-console.log(myURL.href);
-// Prints https://example.org/abc?abc=xyz
-</code></pre>
+myURL.search = <span class="hljs-string">'abc=xyz'</span>;
+<span class="hljs-built_in">console</span>.log(myURL.href);
+<span class="hljs-comment">// Prints https://example.org/abc?abc=xyz</span></code></pre>
 <p>Any invalid URL characters appearing in the value assigned the <code>search</code>
 property will be <a href="#whatwg-percent-encoding">percent-encoded</a>. The selection of which
 characters to percent-encode may vary somewhat from what the <a href="#url_url_parse_urlstring_parsequerystring_slashesdenotehost"><code>url.parse()</code></a>
 and <a href="#url_url_format_urlobject"><code>url.format()</code></a> methods would produce.</p>
-<h4>url.searchParams<span><a class="mark" href="#url_url_searchparams" id="url_url_searchparams">#</a></span></h4>
+<h4><code>url.searchParams</code><span><a class="mark" href="#url_url_searchparams" id="url_url_searchparams">#</a></span></h4>
 <ul>
 <li><a href="url.html#url_class_urlsearchparams" class="type">&#x3C;URLSearchParams></a></li>
 </ul>
 <p>Gets the <a href="#url_class_urlsearchparams"><code>URLSearchParams</code></a> object representing the query parameters of the
-URL. This property is read-only; to replace the entirety of query parameters of
-the URL, use the <a href="#url_url_search"><code>url.search</code></a> setter. See <a href="#url_class_urlsearchparams"><code>URLSearchParams</code></a>
-documentation for details.</p>
-<h4>url.username<span><a class="mark" href="#url_url_username" id="url_url_username">#</a></span></h4>
+URL. This property is read-only but the <code>URLSearchParams</code> object it provides
+can be used to mutate the URL instance; to replace the entirety of query
+parameters of the URL, use the <a href="#url_url_search"><code>url.search</code></a> setter. See
+<a href="#url_class_urlsearchparams"><code>URLSearchParams</code></a> documentation for details.</p>
+<p>Use care when using <code>.searchParams</code> to modify the <code>URL</code> because,
+per the WHATWG specification, the <code>URLSearchParams</code> object uses
+different rules to determine which characters to percent-encode. For
+instance, the <code>URL</code> object will not percent encode the ASCII tilde (<code>~</code>)
+character, while <code>URLSearchParams</code> will always encode it:</p>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> myUrl = <span class="hljs-keyword">new</span> URL(<span class="hljs-string">'https://example.org/abc?foo=~bar'</span>);
+
+<span class="hljs-built_in">console</span>.log(myUrl.search);  <span class="hljs-comment">// prints ?foo=~bar</span>
+
+<span class="hljs-comment">// Modify the URL via searchParams...</span>
+myUrl.searchParams.sort();
+
+<span class="hljs-built_in">console</span>.log(myUrl.search);  <span class="hljs-comment">// prints ?foo=%7Ebar</span></code></pre>
+<h4><code>url.username</code><span><a class="mark" href="#url_url_username" id="url_url_username">#</a></span></h4>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
 <p>Gets and sets the username portion of the URL.</p>
-<pre><code class="language-js">const myURL = new URL('https://abc:xyz@example.com');
-console.log(myURL.username);
-// Prints abc
+<pre><code class="language-js"><span class="hljs-keyword">const</span> myURL = <span class="hljs-keyword">new</span> URL(<span class="hljs-string">'https://abc:xyz@example.com'</span>);
+<span class="hljs-built_in">console</span>.log(myURL.username);
+<span class="hljs-comment">// Prints abc</span>
 
-myURL.username = '123';
-console.log(myURL.href);
-// Prints https://123:xyz@example.com/
-</code></pre>
+myURL.username = <span class="hljs-string">'123'</span>;
+<span class="hljs-built_in">console</span>.log(myURL.href);
+<span class="hljs-comment">// Prints https://123:xyz@example.com/</span></code></pre>
 <p>Any invalid URL characters appearing in the value assigned the <code>username</code>
 property will be <a href="#whatwg-percent-encoding">percent-encoded</a>. The selection of which
 characters to percent-encode may vary somewhat from what the <a href="#url_url_parse_urlstring_parsequerystring_slashesdenotehost"><code>url.parse()</code></a>
 and <a href="#url_url_format_urlobject"><code>url.format()</code></a> methods would produce.</p>
-<h4>url.toString()<span><a class="mark" href="#url_url_tostring" id="url_url_tostring">#</a></span></h4>
+<h4><code>url.toString()</code><span><a class="mark" href="#url_url_tostring" id="url_url_tostring">#</a></span></h4>
 <ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
@@ -645,7 +644,7 @@ value returned is equivalent to that of <a href="#url_url_href"><code>url.href</
 <p>Because of the need for standard compliance, this method does not allow users
 to customize the serialization process of the URL. For more flexibility,
 <a href="#url_url_format_url_options"><code>require('url').format()</code></a> method might be of interest.</p>
-<h4>url.toJSON()<span><a class="mark" href="#url_url_tojson" id="url_url_tojson">#</a></span></h4>
+<h4><code>url.toJSON()</code><span><a class="mark" href="#url_url_tojson" id="url_url_tojson">#</a></span></h4>
 <ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
@@ -654,14 +653,13 @@ value returned is equivalent to that of <a href="#url_url_href"><code>url.href</
 <a href="#url_url_tostring"><code>url.toString()</code></a>.</p>
 <p>This method is automatically called when an <code>URL</code> object is serialized
 with <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify"><code>JSON.stringify()</code></a>.</p>
-<pre><code class="language-js">const myURLs = [
-  new URL('https://www.example.com'),
-  new URL('https://test.example.org')
+<pre><code class="language-js"><span class="hljs-keyword">const</span> myURLs = [
+  <span class="hljs-keyword">new</span> URL(<span class="hljs-string">'https://www.example.com'</span>),
+  <span class="hljs-keyword">new</span> URL(<span class="hljs-string">'https://test.example.org'</span>)
 ];
-console.log(JSON.stringify(myURLs));
-// Prints ["https://www.example.com/","https://test.example.org/"]
-</code></pre>
-<h3>Class: URLSearchParams<span><a class="mark" href="#url_class_urlsearchparams" id="url_class_urlsearchparams">#</a></span></h3>
+<span class="hljs-built_in">console</span>.log(<span class="hljs-built_in">JSON</span>.stringify(myURLs));
+<span class="hljs-comment">// Prints ["https://www.example.com/","https://test.example.org/"]</span></code></pre>
+<h3>Class: <code>URLSearchParams</code><span><a class="mark" href="#url_class_urlsearchparams" id="url_class_urlsearchparams">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -681,58 +679,56 @@ The <code>URLSearchParams</code> class is also available on the global object.</
 similar purpose, but the purpose of the <a href="querystring.html"><code>querystring</code></a> module is more
 general, as it allows the customization of delimiter characters (<code>&#x26;</code> and <code>=</code>).
 On the other hand, this API is designed purely for URL query strings.</p>
-<pre><code class="language-js">const myURL = new URL('https://example.org/?abc=123');
-console.log(myURL.searchParams.get('abc'));
-// Prints 123
+<pre><code class="language-js"><span class="hljs-keyword">const</span> myURL = <span class="hljs-keyword">new</span> URL(<span class="hljs-string">'https://example.org/?abc=123'</span>);
+<span class="hljs-built_in">console</span>.log(myURL.searchParams.get(<span class="hljs-string">'abc'</span>));
+<span class="hljs-comment">// Prints 123</span>
 
-myURL.searchParams.append('abc', 'xyz');
-console.log(myURL.href);
-// Prints https://example.org/?abc=123&#x26;abc=xyz
+myURL.searchParams.append(<span class="hljs-string">'abc'</span>, <span class="hljs-string">'xyz'</span>);
+<span class="hljs-built_in">console</span>.log(myURL.href);
+<span class="hljs-comment">// Prints https://example.org/?abc=123&#x26;abc=xyz</span>
 
-myURL.searchParams.delete('abc');
-myURL.searchParams.set('a', 'b');
-console.log(myURL.href);
-// Prints https://example.org/?a=b
+myURL.searchParams.delete(<span class="hljs-string">'abc'</span>);
+myURL.searchParams.set(<span class="hljs-string">'a'</span>, <span class="hljs-string">'b'</span>);
+<span class="hljs-built_in">console</span>.log(myURL.href);
+<span class="hljs-comment">// Prints https://example.org/?a=b</span>
 
-const newSearchParams = new URLSearchParams(myURL.searchParams);
-// The above is equivalent to
-// const newSearchParams = new URLSearchParams(myURL.search);
+<span class="hljs-keyword">const</span> newSearchParams = <span class="hljs-keyword">new</span> URLSearchParams(myURL.searchParams);
+<span class="hljs-comment">// The above is equivalent to</span>
+<span class="hljs-comment">// const newSearchParams = new URLSearchParams(myURL.search);</span>
 
-newSearchParams.append('a', 'c');
-console.log(myURL.href);
-// Prints https://example.org/?a=b
-console.log(newSearchParams.toString());
-// Prints a=b&#x26;a=c
+newSearchParams.append(<span class="hljs-string">'a'</span>, <span class="hljs-string">'c'</span>);
+<span class="hljs-built_in">console</span>.log(myURL.href);
+<span class="hljs-comment">// Prints https://example.org/?a=b</span>
+<span class="hljs-built_in">console</span>.log(newSearchParams.toString());
+<span class="hljs-comment">// Prints a=b&#x26;a=c</span>
 
-// newSearchParams.toString() is implicitly called
+<span class="hljs-comment">// newSearchParams.toString() is implicitly called</span>
 myURL.search = newSearchParams;
-console.log(myURL.href);
-// Prints https://example.org/?a=b&#x26;a=c
-newSearchParams.delete('a');
-console.log(myURL.href);
-// Prints https://example.org/?a=b&#x26;a=c
-</code></pre>
-<h4>Constructor: new URLSearchParams()<span><a class="mark" href="#url_constructor_new_urlsearchparams" id="url_constructor_new_urlsearchparams">#</a></span></h4>
+<span class="hljs-built_in">console</span>.log(myURL.href);
+<span class="hljs-comment">// Prints https://example.org/?a=b&#x26;a=c</span>
+newSearchParams.delete(<span class="hljs-string">'a'</span>);
+<span class="hljs-built_in">console</span>.log(myURL.href);
+<span class="hljs-comment">// Prints https://example.org/?a=b&#x26;a=c</span></code></pre>
+<h4><code>new URLSearchParams()</code><span><a class="mark" href="#url_new_urlsearchparams" id="url_new_urlsearchparams">#</a></span></h4>
 <p>Instantiate a new empty <code>URLSearchParams</code> object.</p>
-<h4>Constructor: new URLSearchParams(string)<span><a class="mark" href="#url_constructor_new_urlsearchparams_string" id="url_constructor_new_urlsearchparams_string">#</a></span></h4>
+<h4><code>new URLSearchParams(string)</code><span><a class="mark" href="#url_new_urlsearchparams_string" id="url_new_urlsearchparams_string">#</a></span></h4>
 <ul>
 <li><code>string</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> A query string</li>
 </ul>
 <p>Parse the <code>string</code> as a query string, and use it to instantiate a new
 <code>URLSearchParams</code> object. A leading <code>'?'</code>, if present, is ignored.</p>
-<pre><code class="language-js">let params;
+<pre><code class="language-js"><span class="hljs-keyword">let</span> params;
 
-params = new URLSearchParams('user=abc&#x26;query=xyz');
-console.log(params.get('user'));
-// Prints 'abc'
-console.log(params.toString());
-// Prints 'user=abc&#x26;query=xyz'
+params = <span class="hljs-keyword">new</span> URLSearchParams(<span class="hljs-string">'user=abc&#x26;query=xyz'</span>);
+<span class="hljs-built_in">console</span>.log(params.get(<span class="hljs-string">'user'</span>));
+<span class="hljs-comment">// Prints 'abc'</span>
+<span class="hljs-built_in">console</span>.log(params.toString());
+<span class="hljs-comment">// Prints 'user=abc&#x26;query=xyz'</span>
 
-params = new URLSearchParams('?user=abc&#x26;query=xyz');
-console.log(params.toString());
-// Prints 'user=abc&#x26;query=xyz'
-</code></pre>
-<h4>Constructor: new URLSearchParams(obj)<span><a class="mark" href="#url_constructor_new_urlsearchparams_obj" id="url_constructor_new_urlsearchparams_obj">#</a></span></h4>
+params = <span class="hljs-keyword">new</span> URLSearchParams(<span class="hljs-string">'?user=abc&#x26;query=xyz'</span>);
+<span class="hljs-built_in">console</span>.log(params.toString());
+<span class="hljs-comment">// Prints 'user=abc&#x26;query=xyz'</span></code></pre>
+<h4><code>new URLSearchParams(obj)</code><span><a class="mark" href="#url_new_urlsearchparams_obj" id="url_new_urlsearchparams_obj">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v7.10.0, v6.13.0</span>
 </div>
@@ -744,16 +740,15 @@ value of each property of <code>obj</code> are always coerced to strings.</p>
 <p>Unlike <a href="querystring.html"><code>querystring</code></a> module, duplicate keys in the form of array values are
 not allowed. Arrays are stringified using <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/toString"><code>array.toString()</code></a>, which simply
 joins all array elements with commas.</p>
-<pre><code class="language-js">const params = new URLSearchParams({
-  user: 'abc',
-  query: ['first', 'second']
+<pre><code class="language-js"><span class="hljs-keyword">const</span> params = <span class="hljs-keyword">new</span> URLSearchParams({
+  <span class="hljs-attr">user</span>: <span class="hljs-string">'abc'</span>,
+  <span class="hljs-attr">query</span>: [<span class="hljs-string">'first'</span>, <span class="hljs-string">'second'</span>]
 });
-console.log(params.getAll('query'));
-// Prints [ 'first,second' ]
-console.log(params.toString());
-// Prints 'user=abc&#x26;query=first%2Csecond'
-</code></pre>
-<h4>Constructor: new URLSearchParams(iterable)<span><a class="mark" href="#url_constructor_new_urlsearchparams_iterable" id="url_constructor_new_urlsearchparams_iterable">#</a></span></h4>
+<span class="hljs-built_in">console</span>.log(params.getAll(<span class="hljs-string">'query'</span>));
+<span class="hljs-comment">// Prints [ 'first,second' ]</span>
+<span class="hljs-built_in">console</span>.log(params.toString());
+<span class="hljs-comment">// Prints 'user=abc&#x26;query=first%2Csecond'</span></code></pre>
+<h4><code>new URLSearchParams(iterable)</code><span><a class="mark" href="#url_new_urlsearchparams_iterable" id="url_new_urlsearchparams_iterable">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v7.10.0, v6.13.0</span>
 </div>
@@ -767,54 +762,53 @@ which case the constructor will simply create a clone of the provided
 <code>URLSearchParams</code>. Elements of <code>iterable</code> are key-value pairs, and can
 themselves be any iterable object.</p>
 <p>Duplicate keys are allowed.</p>
-<pre><code class="language-js">let params;
+<pre><code class="language-js"><span class="hljs-keyword">let</span> params;
 
-// Using an array
-params = new URLSearchParams([
-  ['user', 'abc'],
-  ['query', 'first'],
-  ['query', 'second']
+<span class="hljs-comment">// Using an array</span>
+params = <span class="hljs-keyword">new</span> URLSearchParams([
+  [<span class="hljs-string">'user'</span>, <span class="hljs-string">'abc'</span>],
+  [<span class="hljs-string">'query'</span>, <span class="hljs-string">'first'</span>],
+  [<span class="hljs-string">'query'</span>, <span class="hljs-string">'second'</span>]
 ]);
-console.log(params.toString());
-// Prints 'user=abc&#x26;query=first&#x26;query=second'
+<span class="hljs-built_in">console</span>.log(params.toString());
+<span class="hljs-comment">// Prints 'user=abc&#x26;query=first&#x26;query=second'</span>
 
-// Using a Map object
-const map = new Map();
-map.set('user', 'abc');
-map.set('query', 'xyz');
-params = new URLSearchParams(map);
-console.log(params.toString());
-// Prints 'user=abc&#x26;query=xyz'
+<span class="hljs-comment">// Using a Map object</span>
+<span class="hljs-keyword">const</span> map = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Map</span>();
+map.set(<span class="hljs-string">'user'</span>, <span class="hljs-string">'abc'</span>);
+map.set(<span class="hljs-string">'query'</span>, <span class="hljs-string">'xyz'</span>);
+params = <span class="hljs-keyword">new</span> URLSearchParams(map);
+<span class="hljs-built_in">console</span>.log(params.toString());
+<span class="hljs-comment">// Prints 'user=abc&#x26;query=xyz'</span>
 
-// Using a generator function
-function* getQueryPairs() {
-  yield ['user', 'abc'];
-  yield ['query', 'first'];
-  yield ['query', 'second'];
+<span class="hljs-comment">// Using a generator function</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span>* <span class="hljs-title">getQueryPairs</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">yield</span> [<span class="hljs-string">'user'</span>, <span class="hljs-string">'abc'</span>];
+  <span class="hljs-keyword">yield</span> [<span class="hljs-string">'query'</span>, <span class="hljs-string">'first'</span>];
+  <span class="hljs-keyword">yield</span> [<span class="hljs-string">'query'</span>, <span class="hljs-string">'second'</span>];
 }
-params = new URLSearchParams(getQueryPairs());
-console.log(params.toString());
-// Prints 'user=abc&#x26;query=first&#x26;query=second'
+params = <span class="hljs-keyword">new</span> URLSearchParams(getQueryPairs());
+<span class="hljs-built_in">console</span>.log(params.toString());
+<span class="hljs-comment">// Prints 'user=abc&#x26;query=first&#x26;query=second'</span>
 
-// Each key-value pair must have exactly two elements
-new URLSearchParams([
-  ['user', 'abc', 'error']
+<span class="hljs-comment">// Each key-value pair must have exactly two elements</span>
+<span class="hljs-keyword">new</span> URLSearchParams([
+  [<span class="hljs-string">'user'</span>, <span class="hljs-string">'abc'</span>, <span class="hljs-string">'error'</span>]
 ]);
-// Throws TypeError [ERR_INVALID_TUPLE]:
-//        Each query pair must be an iterable [name, value] tuple
-</code></pre>
-<h4>urlSearchParams.append(name, value)<span><a class="mark" href="#url_urlsearchparams_append_name_value" id="url_urlsearchparams_append_name_value">#</a></span></h4>
+<span class="hljs-comment">// Throws TypeError [ERR_INVALID_TUPLE]:</span>
+<span class="hljs-comment">//        Each query pair must be an iterable [name, value] tuple</span></code></pre>
+<h4><code>urlSearchParams.append(name, value)</code><span><a class="mark" href="#url_urlsearchparams_append_name_value" id="url_urlsearchparams_append_name_value">#</a></span></h4>
 <ul>
 <li><code>name</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 <li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
 <p>Append a new name-value pair to the query string.</p>
-<h4>urlSearchParams.delete(name)<span><a class="mark" href="#url_urlsearchparams_delete_name" id="url_urlsearchparams_delete_name">#</a></span></h4>
+<h4><code>urlSearchParams.delete(name)</code><span><a class="mark" href="#url_urlsearchparams_delete_name" id="url_urlsearchparams_delete_name">#</a></span></h4>
 <ul>
 <li><code>name</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
 <p>Remove all name-value pairs whose name is <code>name</code>.</p>
-<h4>urlSearchParams.entries()<span><a class="mark" href="#url_urlsearchparams_entries" id="url_urlsearchparams_entries">#</a></span></h4>
+<h4><code>urlSearchParams.entries()</code><span><a class="mark" href="#url_urlsearchparams_entries" id="url_urlsearchparams_entries">#</a></span></h4>
 <ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#The_iterator_protocol" class="type">&#x3C;Iterator></a></li>
 </ul>
@@ -822,21 +816,20 @@ new URLSearchParams([
 Each item of the iterator is a JavaScript <code>Array</code>. The first item of the <code>Array</code>
 is the <code>name</code>, the second item of the <code>Array</code> is the <code>value</code>.</p>
 <p>Alias for <a href="#url_urlsearchparams_symbol_iterator"><code>urlSearchParams[@@iterator]()</code></a>.</p>
-<h4>urlSearchParams.forEach(fn[, thisArg])<span><a class="mark" href="#url_urlsearchparams_foreach_fn_thisarg" id="url_urlsearchparams_foreach_fn_thisarg">#</a></span></h4>
+<h4><code>urlSearchParams.forEach(fn[, thisArg])</code><span><a class="mark" href="#url_urlsearchparams_foreach_fn_thisarg" id="url_urlsearchparams_foreach_fn_thisarg">#</a></span></h4>
 <ul>
 <li><code>fn</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> Invoked for each name-value pair in the query</li>
 <li><code>thisArg</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> To be used as <code>this</code> value for when <code>fn</code> is called</li>
 </ul>
 <p>Iterates over each name-value pair in the query and invokes the given function.</p>
-<pre><code class="language-js">const myURL = new URL('https://example.org/?a=b&#x26;c=d');
-myURL.searchParams.forEach((value, name, searchParams) => {
-  console.log(name, value, myURL.searchParams === searchParams);
+<pre><code class="language-js"><span class="hljs-keyword">const</span> myURL = <span class="hljs-keyword">new</span> URL(<span class="hljs-string">'https://example.org/?a=b&#x26;c=d'</span>);
+myURL.searchParams.forEach(<span class="hljs-function">(<span class="hljs-params">value, name, searchParams</span>) =></span> {
+  <span class="hljs-built_in">console</span>.log(name, value, myURL.searchParams === searchParams);
 });
-// Prints:
-//   a b true
-//   c d true
-</code></pre>
-<h4>urlSearchParams.get(name)<span><a class="mark" href="#url_urlsearchparams_get_name" id="url_urlsearchparams_get_name">#</a></span></h4>
+<span class="hljs-comment">// Prints:</span>
+<span class="hljs-comment">//   a b true</span>
+<span class="hljs-comment">//   c d true</span></code></pre>
+<h4><code>urlSearchParams.get(name)</code><span><a class="mark" href="#url_urlsearchparams_get_name" id="url_urlsearchparams_get_name">#</a></span></h4>
 <ul>
 <li><code>name</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> or <code>null</code> if there is no name-value pair with the given
@@ -844,33 +837,32 @@ myURL.searchParams.forEach((value, name, searchParams) => {
 </ul>
 <p>Returns the value of the first name-value pair whose name is <code>name</code>. If there
 are no such pairs, <code>null</code> is returned.</p>
-<h4>urlSearchParams.getAll(name)<span><a class="mark" href="#url_urlsearchparams_getall_name" id="url_urlsearchparams_getall_name">#</a></span></h4>
+<h4><code>urlSearchParams.getAll(name)</code><span><a class="mark" href="#url_urlsearchparams_getall_name" id="url_urlsearchparams_getall_name">#</a></span></h4>
 <ul>
 <li><code>name</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string[]></a></li>
 </ul>
 <p>Returns the values of all name-value pairs whose name is <code>name</code>. If there are
 no such pairs, an empty array is returned.</p>
-<h4>urlSearchParams.has(name)<span><a class="mark" href="#url_urlsearchparams_has_name" id="url_urlsearchparams_has_name">#</a></span></h4>
+<h4><code>urlSearchParams.has(name)</code><span><a class="mark" href="#url_urlsearchparams_has_name" id="url_urlsearchparams_has_name">#</a></span></h4>
 <ul>
 <li><code>name</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a></li>
 </ul>
 <p>Returns <code>true</code> if there is at least one name-value pair whose name is <code>name</code>.</p>
-<h4>urlSearchParams.keys()<span><a class="mark" href="#url_urlsearchparams_keys" id="url_urlsearchparams_keys">#</a></span></h4>
+<h4><code>urlSearchParams.keys()</code><span><a class="mark" href="#url_urlsearchparams_keys" id="url_urlsearchparams_keys">#</a></span></h4>
 <ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#The_iterator_protocol" class="type">&#x3C;Iterator></a></li>
 </ul>
 <p>Returns an ES6 <code>Iterator</code> over the names of each name-value pair.</p>
-<pre><code class="language-js">const params = new URLSearchParams('foo=bar&#x26;foo=baz');
-for (const name of params.keys()) {
-  console.log(name);
+<pre><code class="language-js"><span class="hljs-keyword">const</span> params = <span class="hljs-keyword">new</span> URLSearchParams(<span class="hljs-string">'foo=bar&#x26;foo=baz'</span>);
+<span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> name <span class="hljs-keyword">of</span> params.keys()) {
+  <span class="hljs-built_in">console</span>.log(name);
 }
-// Prints:
-//   foo
-//   foo
-</code></pre>
-<h4>urlSearchParams.set(name, value)<span><a class="mark" href="#url_urlsearchparams_set_name_value" id="url_urlsearchparams_set_name_value">#</a></span></h4>
+<span class="hljs-comment">// Prints:</span>
+<span class="hljs-comment">//   foo</span>
+<span class="hljs-comment">//   foo</span></code></pre>
+<h4><code>urlSearchParams.set(name, value)</code><span><a class="mark" href="#url_urlsearchparams_set_name_value" id="url_urlsearchparams_set_name_value">#</a></span></h4>
 <ul>
 <li><code>name</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 <li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
@@ -879,19 +871,18 @@ for (const name of params.keys()) {
 <code>value</code>. If there are any pre-existing name-value pairs whose names are <code>name</code>,
 set the first such pair's value to <code>value</code> and remove all others. If not,
 append the name-value pair to the query string.</p>
-<pre><code class="language-js">const params = new URLSearchParams();
-params.append('foo', 'bar');
-params.append('foo', 'baz');
-params.append('abc', 'def');
-console.log(params.toString());
-// Prints foo=bar&#x26;foo=baz&#x26;abc=def
+<pre><code class="language-js"><span class="hljs-keyword">const</span> params = <span class="hljs-keyword">new</span> URLSearchParams();
+params.append(<span class="hljs-string">'foo'</span>, <span class="hljs-string">'bar'</span>);
+params.append(<span class="hljs-string">'foo'</span>, <span class="hljs-string">'baz'</span>);
+params.append(<span class="hljs-string">'abc'</span>, <span class="hljs-string">'def'</span>);
+<span class="hljs-built_in">console</span>.log(params.toString());
+<span class="hljs-comment">// Prints foo=bar&#x26;foo=baz&#x26;abc=def</span>
 
-params.set('foo', 'def');
-params.set('xyz', 'opq');
-console.log(params.toString());
-// Prints foo=def&#x26;abc=def&#x26;xyz=opq
-</code></pre>
-<h4>urlSearchParams.sort()<span><a class="mark" href="#url_urlsearchparams_sort" id="url_urlsearchparams_sort">#</a></span></h4>
+params.set(<span class="hljs-string">'foo'</span>, <span class="hljs-string">'def'</span>);
+params.set(<span class="hljs-string">'xyz'</span>, <span class="hljs-string">'opq'</span>);
+<span class="hljs-built_in">console</span>.log(params.toString());
+<span class="hljs-comment">// Prints foo=def&#x26;abc=def&#x26;xyz=opq</span></code></pre>
+<h4><code>urlSearchParams.sort()</code><span><a class="mark" href="#url_urlsearchparams_sort" id="url_urlsearchparams_sort">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v7.7.0, v6.13.0</span>
 </div>
@@ -899,23 +890,22 @@ console.log(params.toString());
 with a <a href="https://en.wikipedia.org/wiki/Sorting_algorithm#Stability">stable sorting algorithm</a>, so relative order between name-value pairs
 with the same name is preserved.</p>
 <p>This method can be used, in particular, to increase cache hits.</p>
-<pre><code class="language-js">const params = new URLSearchParams('query[]=abc&#x26;type=search&#x26;query[]=123');
+<pre><code class="language-js"><span class="hljs-keyword">const</span> params = <span class="hljs-keyword">new</span> URLSearchParams(<span class="hljs-string">'query[]=abc&#x26;type=search&#x26;query[]=123'</span>);
 params.sort();
-console.log(params.toString());
-// Prints query%5B%5D=abc&#x26;query%5B%5D=123&#x26;type=search
-</code></pre>
-<h4>urlSearchParams.toString()<span><a class="mark" href="#url_urlsearchparams_tostring" id="url_urlsearchparams_tostring">#</a></span></h4>
+<span class="hljs-built_in">console</span>.log(params.toString());
+<span class="hljs-comment">// Prints query%5B%5D=abc&#x26;query%5B%5D=123&#x26;type=search</span></code></pre>
+<h4><code>urlSearchParams.toString()</code><span><a class="mark" href="#url_urlsearchparams_tostring" id="url_urlsearchparams_tostring">#</a></span></h4>
 <ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
 <p>Returns the search parameters serialized as a string, with characters
 percent-encoded where necessary.</p>
-<h4>urlSearchParams.values()<span><a class="mark" href="#url_urlsearchparams_values" id="url_urlsearchparams_values">#</a></span></h4>
+<h4><code>urlSearchParams.values()</code><span><a class="mark" href="#url_urlsearchparams_values" id="url_urlsearchparams_values">#</a></span></h4>
 <ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#The_iterator_protocol" class="type">&#x3C;Iterator></a></li>
 </ul>
 <p>Returns an ES6 <code>Iterator</code> over the values of each name-value pair.</p>
-<h4>urlSearchParams[Symbol.iterator]()<span><a class="mark" href="#url_urlsearchparams_symbol_iterator" id="url_urlsearchparams_symbol_iterator">#</a></span></h4>
+<h4><code>urlSearchParams[Symbol.iterator]()</code><span><a class="mark" href="#url_urlsearchparams_symbol_iterator" id="url_urlsearchparams_symbol_iterator">#</a></span></h4>
 <ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#The_iterator_protocol" class="type">&#x3C;Iterator></a></li>
 </ul>
@@ -923,15 +913,14 @@ percent-encoded where necessary.</p>
 Each item of the iterator is a JavaScript <code>Array</code>. The first item of the <code>Array</code>
 is the <code>name</code>, the second item of the <code>Array</code> is the <code>value</code>.</p>
 <p>Alias for <a href="#url_urlsearchparams_entries"><code>urlSearchParams.entries()</code></a>.</p>
-<pre><code class="language-js">const params = new URLSearchParams('foo=bar&#x26;xyz=baz');
-for (const [name, value] of params) {
-  console.log(name, value);
+<pre><code class="language-js"><span class="hljs-keyword">const</span> params = <span class="hljs-keyword">new</span> URLSearchParams(<span class="hljs-string">'foo=bar&#x26;xyz=baz'</span>);
+<span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> [name, value] <span class="hljs-keyword">of</span> params) {
+  <span class="hljs-built_in">console</span>.log(name, value);
 }
-// Prints:
-//   foo bar
-//   xyz baz
-</code></pre>
-<h3>url.domainToASCII(domain)<span><a class="mark" href="#url_url_domaintoascii_domain" id="url_url_domaintoascii_domain">#</a></span></h3>
+<span class="hljs-comment">// Prints:</span>
+<span class="hljs-comment">//   foo bar</span>
+<span class="hljs-comment">//   xyz baz</span></code></pre>
+<h3><code>url.domainToASCII(domain)</code><span><a class="mark" href="#url_url_domaintoascii_domain" id="url_url_domaintoascii_domain">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v7.4.0, v6.13.0</span>
 </div>
@@ -942,15 +931,14 @@ for (const [name, value] of params) {
 <p>Returns the <a href="https://tools.ietf.org/html/rfc5891#section-4.4">Punycode</a> ASCII serialization of the <code>domain</code>. If <code>domain</code> is an
 invalid domain, the empty string is returned.</p>
 <p>It performs the inverse operation to <a href="#url_url_domaintounicode_domain"><code>url.domainToUnicode()</code></a>.</p>
-<pre><code class="language-js">const url = require('url');
-console.log(url.domainToASCII('español.com'));
-// Prints xn--espaol-zwa.com
-console.log(url.domainToASCII('中文.com'));
-// Prints xn--fiq228c.com
-console.log(url.domainToASCII('xn--iñvalid.com'));
-// Prints an empty string
-</code></pre>
-<h3>url.domainToUnicode(domain)<span><a class="mark" href="#url_url_domaintounicode_domain" id="url_url_domaintounicode_domain">#</a></span></h3>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> url = <span class="hljs-built_in">require</span>(<span class="hljs-string">'url'</span>);
+<span class="hljs-built_in">console</span>.log(url.domainToASCII(<span class="hljs-string">'español.com'</span>));
+<span class="hljs-comment">// Prints xn--espaol-zwa.com</span>
+<span class="hljs-built_in">console</span>.log(url.domainToASCII(<span class="hljs-string">'中文.com'</span>));
+<span class="hljs-comment">// Prints xn--fiq228c.com</span>
+<span class="hljs-built_in">console</span>.log(url.domainToASCII(<span class="hljs-string">'xn--iñvalid.com'</span>));
+<span class="hljs-comment">// Prints an empty string</span></code></pre>
+<h3><code>url.domainToUnicode(domain)</code><span><a class="mark" href="#url_url_domaintounicode_domain" id="url_url_domaintounicode_domain">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v7.4.0, v6.13.0</span>
 </div>
@@ -961,15 +949,14 @@ console.log(url.domainToASCII('xn--iñvalid.com'));
 <p>Returns the Unicode serialization of the <code>domain</code>. If <code>domain</code> is an invalid
 domain, the empty string is returned.</p>
 <p>It performs the inverse operation to <a href="#url_url_domaintoascii_domain"><code>url.domainToASCII()</code></a>.</p>
-<pre><code class="language-js">const url = require('url');
-console.log(url.domainToUnicode('xn--espaol-zwa.com'));
-// Prints español.com
-console.log(url.domainToUnicode('xn--fiq228c.com'));
-// Prints 中文.com
-console.log(url.domainToUnicode('xn--iñvalid.com'));
-// Prints an empty string
-</code></pre>
-<h3>url.fileURLToPath(url)<span><a class="mark" href="#url_url_fileurltopath_url" id="url_url_fileurltopath_url">#</a></span></h3>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> url = <span class="hljs-built_in">require</span>(<span class="hljs-string">'url'</span>);
+<span class="hljs-built_in">console</span>.log(url.domainToUnicode(<span class="hljs-string">'xn--espaol-zwa.com'</span>));
+<span class="hljs-comment">// Prints español.com</span>
+<span class="hljs-built_in">console</span>.log(url.domainToUnicode(<span class="hljs-string">'xn--fiq228c.com'</span>));
+<span class="hljs-comment">// Prints 中文.com</span>
+<span class="hljs-built_in">console</span>.log(url.domainToUnicode(<span class="hljs-string">'xn--iñvalid.com'</span>));
+<span class="hljs-comment">// Prints an empty string</span></code></pre>
+<h3><code>url.fileURLToPath(url)</code><span><a class="mark" href="#url_url_fileurltopath_url" id="url_url_fileurltopath_url">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v10.12.0</span>
 </div>
@@ -979,19 +966,18 @@ console.log(url.domainToUnicode('xn--iñvalid.com'));
 </ul>
 <p>This function ensures the correct decodings of percent-encoded characters as
 well as ensuring a cross-platform valid absolute path string.</p>
-<pre><code class="language-js">new URL('file:///C:/path/').pathname;    // Incorrect: /C:/path/
-fileURLToPath('file:///C:/path/');       // Correct:   C:\path\ (Windows)
+<pre><code class="language-js"><span class="hljs-keyword">new</span> URL(<span class="hljs-string">'file:///C:/path/'</span>).pathname;    <span class="hljs-comment">// Incorrect: /C:/path/</span>
+fileURLToPath(<span class="hljs-string">'file:///C:/path/'</span>);       <span class="hljs-comment">// Correct:   C:\path\ (Windows)</span>
 
-new URL('file://nas/foo.txt').pathname;  // Incorrect: /foo.txt
-fileURLToPath('file://nas/foo.txt');     // Correct:   \\nas\foo.txt (Windows)
+<span class="hljs-keyword">new</span> URL(<span class="hljs-string">'file://nas/foo.txt'</span>).pathname;  <span class="hljs-comment">// Incorrect: /foo.txt</span>
+fileURLToPath(<span class="hljs-string">'file://nas/foo.txt'</span>);     <span class="hljs-comment">// Correct:   \\nas\foo.txt (Windows)</span>
 
-new URL('file:///你好.txt').pathname;    // Incorrect: /%E4%BD%A0%E5%A5%BD.txt
-fileURLToPath('file:///你好.txt');       // Correct:   /你好.txt (POSIX)
+<span class="hljs-keyword">new</span> URL(<span class="hljs-string">'file:///你好.txt'</span>).pathname;    <span class="hljs-comment">// Incorrect: /%E4%BD%A0%E5%A5%BD.txt</span>
+fileURLToPath(<span class="hljs-string">'file:///你好.txt'</span>);       <span class="hljs-comment">// Correct:   /你好.txt (POSIX)</span>
 
-new URL('file:///hello world').pathname; // Incorrect: /hello%20world
-fileURLToPath('file:///hello world');    // Correct:   /hello world (POSIX)
-</code></pre>
-<h3>url.format(URL[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/url.js#L572">[src]</a><span><a class="mark" href="#url_url_format_url_options" id="url_url_format_url_options">#</a></span></h3>
+<span class="hljs-keyword">new</span> URL(<span class="hljs-string">'file:///hello world'</span>).pathname; <span class="hljs-comment">// Incorrect: /hello%20world</span>
+fileURLToPath(<span class="hljs-string">'file:///hello world'</span>);    <span class="hljs-comment">// Correct:   /hello world (POSIX)</span></code></pre>
+<h3><code>url.format(URL[, options])</code><span><a class="mark" href="#url_url_format_url_options" id="url_url_format_url_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v7.6.0</span>
 </div>
@@ -1019,18 +1005,17 @@ Punycode encoded. <strong>Default:</strong> <code>false</code>.</li>
 string serializations of the URL. These are not, however, customizable in
 any way. The <code>url.format(URL[, options])</code> method allows for basic customization
 of the output.</p>
-<pre><code class="language-js">const myURL = new URL('https://a:b@測試?abc#foo');
+<pre><code class="language-js"><span class="hljs-keyword">const</span> myURL = <span class="hljs-keyword">new</span> URL(<span class="hljs-string">'https://a:b@測試?abc#foo'</span>);
 
-console.log(myURL.href);
-// Prints https://a:b@xn--g6w251d/?abc#foo
+<span class="hljs-built_in">console</span>.log(myURL.href);
+<span class="hljs-comment">// Prints https://a:b@xn--g6w251d/?abc#foo</span>
 
-console.log(myURL.toString());
-// Prints https://a:b@xn--g6w251d/?abc#foo
+<span class="hljs-built_in">console</span>.log(myURL.toString());
+<span class="hljs-comment">// Prints https://a:b@xn--g6w251d/?abc#foo</span>
 
-console.log(url.format(myURL, { fragment: false, unicode: true, auth: false }));
-// Prints 'https://測試/?abc'
-</code></pre>
-<h3>url.pathToFileURL(path)<span><a class="mark" href="#url_url_pathtofileurl_path" id="url_url_pathtofileurl_path">#</a></span></h3>
+<span class="hljs-built_in">console</span>.log(url.format(myURL, { <span class="hljs-attr">fragment</span>: <span class="hljs-literal">false</span>, <span class="hljs-attr">unicode</span>: <span class="hljs-literal">true</span>, <span class="hljs-attr">auth</span>: <span class="hljs-literal">false</span> }));
+<span class="hljs-comment">// Prints 'https://測試/?abc'</span></code></pre>
+<h3><code>url.pathToFileURL(path)</code><span><a class="mark" href="#url_url_pathtofileurl_path" id="url_url_pathtofileurl_path">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v10.12.0</span>
 </div>
@@ -1040,17 +1025,16 @@ console.log(url.format(myURL, { fragment: false, unicode: true, auth: false }));
 </ul>
 <p>This function ensures that <code>path</code> is resolved absolutely, and that the URL
 control characters are correctly encoded when converting into a File URL.</p>
-<pre><code class="language-js">new URL(__filename);                // Incorrect: throws (POSIX)
-new URL(__filename);                // Incorrect: C:\... (Windows)
-pathToFileURL(__filename);          // Correct:   file:///... (POSIX)
-pathToFileURL(__filename);          // Correct:   file:///C:/... (Windows)
+<pre><code class="language-js"><span class="hljs-keyword">new</span> URL(__filename);                <span class="hljs-comment">// Incorrect: throws (POSIX)</span>
+<span class="hljs-keyword">new</span> URL(__filename);                <span class="hljs-comment">// Incorrect: C:\... (Windows)</span>
+pathToFileURL(__filename);          <span class="hljs-comment">// Correct:   file:///... (POSIX)</span>
+pathToFileURL(__filename);          <span class="hljs-comment">// Correct:   file:///C:/... (Windows)</span>
 
-new URL('/foo#1', 'file:');         // Incorrect: file:///foo#1
-pathToFileURL('/foo#1');            // Correct:   file:///foo%231 (POSIX)
+<span class="hljs-keyword">new</span> URL(<span class="hljs-string">'/foo#1'</span>, <span class="hljs-string">'file:'</span>);         <span class="hljs-comment">// Incorrect: file:///foo#1</span>
+pathToFileURL(<span class="hljs-string">'/foo#1'</span>);            <span class="hljs-comment">// Correct:   file:///foo%231 (POSIX)</span>
 
-new URL('/some/path%.js', 'file:'); // Incorrect: file:///some/path%
-pathToFileURL('/some/path%.js');    // Correct:   file:///some/path%25 (POSIX)
-</code></pre>
+<span class="hljs-keyword">new</span> URL(<span class="hljs-string">'/some/path%.c'</span>, <span class="hljs-string">'file:'</span>); <span class="hljs-comment">// Incorrect: file:///some/path%.c</span>
+pathToFileURL(<span class="hljs-string">'/some/path%.c'</span>);    <span class="hljs-comment">// Correct:   file:///some/path%25.c (POSIX)</span></code></pre>
 <h2>Legacy URL API<span><a class="mark" href="#url_legacy_url_api" id="url_legacy_url_api">#</a></span></h2>
 <p></p><div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use the WHATWG URL API instead.</div><p></p>
 <h3>Legacy <code>urlObject</code><span><a class="mark" href="#url_legacy_urlobject" id="url_legacy_urlobject">#</a></span></h3>
@@ -1065,48 +1049,48 @@ pathToFileURL('/some/path%.js');    // Correct:   file:///some/path%25 (POSIX)
 </div>
 <p>The legacy <code>urlObject</code> (<code>require('url').Url</code>) is created and returned by the
 <code>url.parse()</code> function.</p>
-<h4>urlObject.auth<span><a class="mark" href="#url_urlobject_auth" id="url_urlobject_auth">#</a></span></h4>
+<h4><code>urlObject.auth</code><span><a class="mark" href="#url_urlobject_auth" id="url_urlobject_auth">#</a></span></h4>
 <p>The <code>auth</code> property is the username and password portion of the URL, also
 referred to as <em>userinfo</em>. This string subset follows the <code>protocol</code> and
 double slashes (if present) and precedes the <code>host</code> component, delimited by <code>@</code>.
 The string is either the username, or it is the username and password separated
 by <code>:</code>.</p>
 <p>For example: <code>'user:pass'</code>.</p>
-<h4>urlObject.hash<span><a class="mark" href="#url_urlobject_hash" id="url_urlobject_hash">#</a></span></h4>
+<h4><code>urlObject.hash</code><span><a class="mark" href="#url_urlobject_hash" id="url_urlobject_hash">#</a></span></h4>
 <p>The <code>hash</code> property is the fragment identifier portion of the URL including the
 leading <code>#</code> character.</p>
 <p>For example: <code>'#hash'</code>.</p>
-<h4>urlObject.host<span><a class="mark" href="#url_urlobject_host" id="url_urlobject_host">#</a></span></h4>
+<h4><code>urlObject.host</code><span><a class="mark" href="#url_urlobject_host" id="url_urlobject_host">#</a></span></h4>
 <p>The <code>host</code> property is the full lower-cased host portion of the URL, including
 the <code>port</code> if specified.</p>
 <p>For example: <code>'sub.example.com:8080'</code>.</p>
-<h4>urlObject.hostname<span><a class="mark" href="#url_urlobject_hostname" id="url_urlobject_hostname">#</a></span></h4>
+<h4><code>urlObject.hostname</code><span><a class="mark" href="#url_urlobject_hostname" id="url_urlobject_hostname">#</a></span></h4>
 <p>The <code>hostname</code> property is the lower-cased host name portion of the <code>host</code>
 component <em>without</em> the <code>port</code> included.</p>
 <p>For example: <code>'sub.example.com'</code>.</p>
-<h4>urlObject.href<span><a class="mark" href="#url_urlobject_href" id="url_urlobject_href">#</a></span></h4>
+<h4><code>urlObject.href</code><span><a class="mark" href="#url_urlobject_href" id="url_urlobject_href">#</a></span></h4>
 <p>The <code>href</code> property is the full URL string that was parsed with both the
 <code>protocol</code> and <code>host</code> components converted to lower-case.</p>
 <p>For example: <code>'http://user:pass@sub.example.com:8080/p/a/t/h?query=string#hash'</code>.</p>
-<h4>urlObject.path<span><a class="mark" href="#url_urlobject_path" id="url_urlobject_path">#</a></span></h4>
+<h4><code>urlObject.path</code><span><a class="mark" href="#url_urlobject_path" id="url_urlobject_path">#</a></span></h4>
 <p>The <code>path</code> property is a concatenation of the <code>pathname</code> and <code>search</code>
 components.</p>
 <p>For example: <code>'/p/a/t/h?query=string'</code>.</p>
 <p>No decoding of the <code>path</code> is performed.</p>
-<h4>urlObject.pathname<span><a class="mark" href="#url_urlobject_pathname" id="url_urlobject_pathname">#</a></span></h4>
+<h4><code>urlObject.pathname</code><span><a class="mark" href="#url_urlobject_pathname" id="url_urlobject_pathname">#</a></span></h4>
 <p>The <code>pathname</code> property consists of the entire path section of the URL. This
 is everything following the <code>host</code> (including the <code>port</code>) and before the start
 of the <code>query</code> or <code>hash</code> components, delimited by either the ASCII question
 mark (<code>?</code>) or hash (<code>#</code>) characters.</p>
 <p>For example: <code>'/p/a/t/h'</code>.</p>
 <p>No decoding of the path string is performed.</p>
-<h4>urlObject.port<span><a class="mark" href="#url_urlobject_port" id="url_urlobject_port">#</a></span></h4>
+<h4><code>urlObject.port</code><span><a class="mark" href="#url_urlobject_port" id="url_urlobject_port">#</a></span></h4>
 <p>The <code>port</code> property is the numeric port portion of the <code>host</code> component.</p>
 <p>For example: <code>'8080'</code>.</p>
-<h4>urlObject.protocol<span><a class="mark" href="#url_urlobject_protocol" id="url_urlobject_protocol">#</a></span></h4>
+<h4><code>urlObject.protocol</code><span><a class="mark" href="#url_urlobject_protocol" id="url_urlobject_protocol">#</a></span></h4>
 <p>The <code>protocol</code> property identifies the URL's lower-cased protocol scheme.</p>
 <p>For example: <code>'http:'</code>.</p>
-<h4>urlObject.query<span><a class="mark" href="#url_urlobject_query" id="url_urlobject_query">#</a></span></h4>
+<h4><code>urlObject.query</code><span><a class="mark" href="#url_urlobject_query" id="url_urlobject_query">#</a></span></h4>
 <p>The <code>query</code> property is either the query string without the leading ASCII
 question mark (<code>?</code>), or an object returned by the <a href="querystring.html"><code>querystring</code></a> module's
 <code>parse()</code> method. Whether the <code>query</code> property is a string or object is
@@ -1114,16 +1098,16 @@ determined by the <code>parseQueryString</code> argument passed to <code>url.par
 <p>For example: <code>'query=string'</code> or <code>{'query': 'string'}</code>.</p>
 <p>If returned as a string, no decoding of the query string is performed. If
 returned as an object, both keys and values are decoded.</p>
-<h4>urlObject.search<span><a class="mark" href="#url_urlobject_search" id="url_urlobject_search">#</a></span></h4>
+<h4><code>urlObject.search</code><span><a class="mark" href="#url_urlobject_search" id="url_urlobject_search">#</a></span></h4>
 <p>The <code>search</code> property consists of the entire "query string" portion of the
 URL, including the leading ASCII question mark (<code>?</code>) character.</p>
 <p>For example: <code>'?query=string'</code>.</p>
 <p>No decoding of the query string is performed.</p>
-<h4>urlObject.slashes<span><a class="mark" href="#url_urlobject_slashes" id="url_urlobject_slashes">#</a></span></h4>
+<h4><code>urlObject.slashes</code><span><a class="mark" href="#url_urlobject_slashes" id="url_urlobject_slashes">#</a></span></h4>
 <p>The <code>slashes</code> property is a <code>boolean</code> with a value of <code>true</code> if two ASCII
 forward-slash characters (<code>/</code>) are required following the colon in the
 <code>protocol</code>.</p>
-<h3>url.format(urlObject)<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/url.js#L572">[src]</a><span><a class="mark" href="#url_url_format_urlobject" id="url_url_format_urlobject">#</a></span></h3>
+<h3><code>url.format(urlObject)</code><span><a class="mark" href="#url_url_format_urlobject" id="url_url_format_urlobject">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1131,7 +1115,7 @@ forward-slash characters (<code>/</code>) are required following the colon in th
 <tr><td>v11.0.0</td>
 <td><p>The Legacy URL API is deprecated. Use the WHATWG URL API.</p></td></tr>
 <tr><td>v7.0.0</td>
-<td><p>URLs with a <code>file:</code> scheme will now always use the correct number of slashes regardless of <code>slashes</code> option. A false-y <code>slashes</code> option with no protocol is now also respected at all times.</p></td></tr>
+<td><p>URLs with a <code>file:</code> scheme will now always use the correct number of slashes regardless of <code>slashes</code> option. A falsy <code>slashes</code> option with no protocol is now also respected at all times.</p></td></tr>
 <tr><td>v0.1.25</td>
 <td><p><span>Added in: v0.1.25</span></p></td></tr>
 </tbody></table>
@@ -1145,17 +1129,16 @@ it to <code>url.parse()</code>.</li>
 <p>The <code>url.format()</code> method returns a formatted URL string derived from
 <code>urlObject</code>.</p>
 <pre><code class="language-js">url.format({
-  protocol: 'https',
-  hostname: 'example.com',
-  pathname: '/some/path',
-  query: {
-    page: 1,
-    format: 'json'
+  <span class="hljs-attr">protocol</span>: <span class="hljs-string">'https'</span>,
+  <span class="hljs-attr">hostname</span>: <span class="hljs-string">'example.com'</span>,
+  <span class="hljs-attr">pathname</span>: <span class="hljs-string">'/some/path'</span>,
+  <span class="hljs-attr">query</span>: {
+    <span class="hljs-attr">page</span>: <span class="hljs-number">1</span>,
+    <span class="hljs-attr">format</span>: <span class="hljs-string">'json'</span>
   }
 });
 
-// => 'https://example.com/some/path?page=1&#x26;format=json'
-</code></pre>
+<span class="hljs-comment">// => 'https://example.com/some/path?page=1&#x26;format=json'</span></code></pre>
 <p>If <code>urlObject</code> is not an object or a string, <code>url.format()</code> will throw a
 <a href="errors.html#errors_class_typeerror"><code>TypeError</code></a>.</p>
 <p>The formatting process operates as follows:</p>
@@ -1234,11 +1217,13 @@ character, the literal string <code>#</code> is appended to <code>result</code>.
 string, an <a href="errors.html#errors_class_error"><code>Error</code></a> is thrown.</li>
 <li><code>result</code> is returned.</li>
 </ul>
-<h3>url.parse(urlString[, parseQueryString[, slashesDenoteHost]])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/url.js#L154">[src]</a><span><a class="mark" href="#url_url_parse_urlstring_parsequerystring_slashesdenotehost" id="url_url_parse_urlstring_parsequerystring_slashesdenotehost">#</a></span></h3>
+<h3><code>url.parse(urlString[, parseQueryString[, slashesDenoteHost]])</code><span><a class="mark" href="#url_url_parse_urlstring_parsequerystring_slashesdenotehost" id="url_url_parse_urlstring_parsequerystring_slashesdenotehost">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v11.14.0</td>
+<td><p>The <code>pathname</code> property on the returned URL object is now <code>/</code> when there is no path and the protocol scheme is <code>ws:</code> or <code>wss:</code>.</p></td></tr>
 <tr><td>v11.0.0</td>
 <td><p>The Legacy URL API is deprecated. Use the WHATWG URL API.</p></td></tr>
 <tr><td>v9.0.0</td>
@@ -1264,7 +1249,12 @@ For instance, given <code>//foo/bar</code>, the result would be
 object.</p>
 <p>A <code>TypeError</code> is thrown if <code>urlString</code> is not a string.</p>
 <p>A <code>URIError</code> is thrown if the <code>auth</code> property is present but cannot be decoded.</p>
-<h3>url.resolve(from, to)<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/url.js#L663">[src]</a><span><a class="mark" href="#url_url_resolve_from_to" id="url_url_resolve_from_to">#</a></span></h3>
+<p>Use of the legacy <code>url.parse()</code> method is discouraged. Users should
+use the WHATWG <code>URL</code> API. Because the <code>url.parse()</code> method uses a
+lenient, non-standard algorithm for parsing URL strings, security
+issues can be introduced. Specifically, issues with <a href="https://hackerone.com/reports/678487">host name spoofing</a> and
+incorrect handling of usernames and passwords have been identified.</p>
+<h3><code>url.resolve(from, to)</code><span><a class="mark" href="#url_url_resolve_from_to" id="url_url_resolve_from_to">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1288,13 +1278,12 @@ object.</p>
 </ul>
 <p>The <code>url.resolve()</code> method resolves a target URL relative to a base URL in a
 manner similar to that of a Web browser resolving an anchor tag HREF.</p>
-<pre><code class="language-js">const url = require('url');
-url.resolve('/one/two/three', 'four');         // '/one/two/four'
-url.resolve('http://example.com/', '/one');    // 'http://example.com/one'
-url.resolve('http://example.com/one', '/two'); // 'http://example.com/two'
-</code></pre>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> url = <span class="hljs-built_in">require</span>(<span class="hljs-string">'url'</span>);
+url.resolve(<span class="hljs-string">'/one/two/three'</span>, <span class="hljs-string">'four'</span>);         <span class="hljs-comment">// '/one/two/four'</span>
+url.resolve(<span class="hljs-string">'http://example.com/'</span>, <span class="hljs-string">'/one'</span>);    <span class="hljs-comment">// 'http://example.com/one'</span>
+url.resolve(<span class="hljs-string">'http://example.com/one'</span>, <span class="hljs-string">'/two'</span>); <span class="hljs-comment">// 'http://example.com/two'</span></code></pre>
 <p><a id="whatwg-percent-encoding"></a></p>
-<h2>Percent-Encoding in URLs<span><a class="mark" href="#url_percent_encoding_in_urls" id="url_percent_encoding_in_urls">#</a></span></h2>
+<h2>Percent-encoding in URLs<span><a class="mark" href="#url_percent_encoding_in_urls" id="url_percent_encoding_in_urls">#</a></span></h2>
 <p>URLs are permitted to only contain a certain range of characters. Any character
 falling outside of that range must be encoded. How such characters are encoded,
 and which characters to encode depends entirely on where the character is
@@ -1302,8 +1291,7 @@ located within the structure of the URL.</p>
 <h3>Legacy API<span><a class="mark" href="#url_legacy_api" id="url_legacy_api">#</a></span></h3>
 <p>Within the Legacy API, spaces (<code>' '</code>) and the following characters will be
 automatically escaped in the properties of URL objects:</p>
-<pre><code class="language-txt">&#x3C; > " ` \r \n \t { } | \ ^ '
-</code></pre>
+<pre><code class="language-text">&#x3C; > " ` \r \n \t { } | \ ^ '</code></pre>
 <p>For example, the ASCII space character (<code>' '</code>) is encoded as <code>%20</code>. The ASCII
 forward slash (<code>/</code>) character is encoded as <code>%3C</code>.</p>
 <h3>WHATWG API<span><a class="mark" href="#url_whatwg_api" id="url_whatwg_api">#</a></span></h3>
@@ -1336,20 +1324,17 @@ passwords encoded within the URL. The <em>path percent-encode set</em> is used f
 path of most URLs. The <em>fragment percent-encode set</em> is used for URL fragments.
 The <em>C0 control percent-encode set</em> is used for host and path under certain
 specific conditions, in addition to all other cases.</p>
-<p>When non-ASCII characters appear within a hostname, the hostname is encoded
-using the <a href="https://tools.ietf.org/html/rfc5891#section-4.4">Punycode</a> algorithm. Note, however, that a hostname <em>may</em> contain
+<p>When non-ASCII characters appear within a host name, the host name is encoded
+using the <a href="https://tools.ietf.org/html/rfc5891#section-4.4">Punycode</a> algorithm. Note, however, that a host name <em>may</em> contain
 <em>both</em> Punycode encoded and percent-encoded characters:</p>
-<pre><code class="language-js">const myURL = new URL('https://%CF%80.example.com/foo');
-console.log(myURL.href);
-// Prints https://xn--1xa.example.com/foo
-console.log(myURL.origin);
-// Prints https://xn--1xa.example.com
-</code></pre>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> myURL = <span class="hljs-keyword">new</span> URL(<span class="hljs-string">'https://%CF%80.example.com/foo'</span>);
+<span class="hljs-built_in">console</span>.log(myURL.href);
+<span class="hljs-comment">// Prints https://xn--1xa.example.com/foo</span>
+<span class="hljs-built_in">console</span>.log(myURL.origin);
+<span class="hljs-comment">// Prints https://xn--1xa.example.com</span></code></pre>
+        <!-- API END -->
       </div>
     </div>
   </div>
-  <script src="assets/sh_main.js"></script>
-  <script src="assets/sh_javascript.min.js"></script>
-  <script>highlight(undefined, undefined, 'pre');</script>
 </body>
 </html>

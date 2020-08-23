@@ -1,4 +1,3 @@
-
 // Copyright 2019 the V8 project authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -6,7 +5,8 @@
 #ifndef V8_OBJECTS_FUNCTION_KIND_H_
 #define V8_OBJECTS_FUNCTION_KIND_H_
 
-#include "src/utils/utils.h"
+#include "src/base/bounds.h"
+#include "src/base/macros.h"
 
 namespace v8 {
 namespace internal {
@@ -15,18 +15,19 @@ enum FunctionKind : uint8_t {
   // BEGIN constructable functions
   kNormalFunction,
   kModule,
+  kAsyncModule,
   // BEGIN class constructors
   // BEGIN base constructors
   kBaseConstructor,
   // BEGIN default constructors
   kDefaultBaseConstructor,
   // END base constructors
-  // BEGIN derived cosntructors
+  // BEGIN derived constructors
   kDefaultDerivedConstructor,
   // END default constructors
   kDerivedConstructor,
-  // END derived costructors
-  // END class cosntructors
+  // END derived constructors
+  // END class constructors
   // END constructable functions.
   // BEGIN accessors
   kGetterFunction,
@@ -56,28 +57,36 @@ enum FunctionKind : uint8_t {
   kLastFunctionKind = kClassMembersInitializerFunction,
 };
 
+constexpr int kFunctionKindBitSize = 5;
+STATIC_ASSERT(kLastFunctionKind < (1 << kFunctionKindBitSize));
+
 inline bool IsArrowFunction(FunctionKind kind) {
-  return IsInRange(kind, FunctionKind::kArrowFunction,
-                   FunctionKind::kAsyncArrowFunction);
+  return base::IsInRange(kind, FunctionKind::kArrowFunction,
+                         FunctionKind::kAsyncArrowFunction);
 }
 
 inline bool IsModule(FunctionKind kind) {
-  return kind == FunctionKind::kModule;
+  return base::IsInRange(kind, FunctionKind::kModule,
+                         FunctionKind::kAsyncModule);
+}
+
+inline bool IsAsyncModule(FunctionKind kind) {
+  return kind == FunctionKind::kAsyncModule;
 }
 
 inline bool IsAsyncGeneratorFunction(FunctionKind kind) {
-  return IsInRange(kind, FunctionKind::kAsyncConciseGeneratorMethod,
-                   FunctionKind::kAsyncGeneratorFunction);
+  return base::IsInRange(kind, FunctionKind::kAsyncConciseGeneratorMethod,
+                         FunctionKind::kAsyncGeneratorFunction);
 }
 
 inline bool IsGeneratorFunction(FunctionKind kind) {
-  return IsInRange(kind, FunctionKind::kAsyncConciseGeneratorMethod,
-                   FunctionKind::kConciseGeneratorMethod);
+  return base::IsInRange(kind, FunctionKind::kAsyncConciseGeneratorMethod,
+                         FunctionKind::kConciseGeneratorMethod);
 }
 
 inline bool IsAsyncFunction(FunctionKind kind) {
-  return IsInRange(kind, FunctionKind::kAsyncArrowFunction,
-                   FunctionKind::kAsyncGeneratorFunction);
+  return base::IsInRange(kind, FunctionKind::kAsyncArrowFunction,
+                         FunctionKind::kAsyncGeneratorFunction);
 }
 
 inline bool IsResumableFunction(FunctionKind kind) {
@@ -85,19 +94,19 @@ inline bool IsResumableFunction(FunctionKind kind) {
 }
 
 inline bool IsConciseMethod(FunctionKind kind) {
-  return IsInRange(kind, FunctionKind::kAsyncConciseMethod,
-                   FunctionKind::kAsyncConciseGeneratorMethod) ||
-         IsInRange(kind, FunctionKind::kConciseGeneratorMethod,
-                   FunctionKind::kClassMembersInitializerFunction);
+  return base::IsInRange(kind, FunctionKind::kAsyncConciseMethod,
+                         FunctionKind::kAsyncConciseGeneratorMethod) ||
+         base::IsInRange(kind, FunctionKind::kConciseGeneratorMethod,
+                         FunctionKind::kClassMembersInitializerFunction);
 }
 
 inline bool IsStrictFunctionWithoutPrototype(FunctionKind kind) {
-  return IsInRange(kind, FunctionKind::kGetterFunction,
-                   FunctionKind::kAsyncArrowFunction) ||
-         IsInRange(kind, FunctionKind::kAsyncConciseMethod,
-                   FunctionKind::kAsyncConciseGeneratorMethod) ||
-         IsInRange(kind, FunctionKind::kConciseGeneratorMethod,
-                   FunctionKind::kClassMembersInitializerFunction);
+  return base::IsInRange(kind, FunctionKind::kGetterFunction,
+                         FunctionKind::kAsyncArrowFunction) ||
+         base::IsInRange(kind, FunctionKind::kAsyncConciseMethod,
+                         FunctionKind::kAsyncConciseGeneratorMethod) ||
+         base::IsInRange(kind, FunctionKind::kConciseGeneratorMethod,
+                         FunctionKind::kClassMembersInitializerFunction);
 }
 
 inline bool IsGetterFunction(FunctionKind kind) {
@@ -109,28 +118,28 @@ inline bool IsSetterFunction(FunctionKind kind) {
 }
 
 inline bool IsAccessorFunction(FunctionKind kind) {
-  return IsInRange(kind, FunctionKind::kGetterFunction,
-                   FunctionKind::kSetterFunction);
+  return base::IsInRange(kind, FunctionKind::kGetterFunction,
+                         FunctionKind::kSetterFunction);
 }
 
 inline bool IsDefaultConstructor(FunctionKind kind) {
-  return IsInRange(kind, FunctionKind::kDefaultBaseConstructor,
-                   FunctionKind::kDefaultDerivedConstructor);
+  return base::IsInRange(kind, FunctionKind::kDefaultBaseConstructor,
+                         FunctionKind::kDefaultDerivedConstructor);
 }
 
 inline bool IsBaseConstructor(FunctionKind kind) {
-  return IsInRange(kind, FunctionKind::kBaseConstructor,
-                   FunctionKind::kDefaultBaseConstructor);
+  return base::IsInRange(kind, FunctionKind::kBaseConstructor,
+                         FunctionKind::kDefaultBaseConstructor);
 }
 
 inline bool IsDerivedConstructor(FunctionKind kind) {
-  return IsInRange(kind, FunctionKind::kDefaultDerivedConstructor,
-                   FunctionKind::kDerivedConstructor);
+  return base::IsInRange(kind, FunctionKind::kDefaultDerivedConstructor,
+                         FunctionKind::kDerivedConstructor);
 }
 
 inline bool IsClassConstructor(FunctionKind kind) {
-  return IsInRange(kind, FunctionKind::kBaseConstructor,
-                   FunctionKind::kDerivedConstructor);
+  return base::IsInRange(kind, FunctionKind::kBaseConstructor,
+                         FunctionKind::kDerivedConstructor);
 }
 
 inline bool IsClassMembersInitializerFunction(FunctionKind kind) {
@@ -138,8 +147,8 @@ inline bool IsClassMembersInitializerFunction(FunctionKind kind) {
 }
 
 inline bool IsConstructable(FunctionKind kind) {
-  return IsInRange(kind, FunctionKind::kNormalFunction,
-                   FunctionKind::kDerivedConstructor);
+  return base::IsInRange(kind, FunctionKind::kNormalFunction,
+                         FunctionKind::kDerivedConstructor);
 }
 
 inline const char* FunctionKind2String(FunctionKind kind) {
@@ -164,6 +173,8 @@ inline const char* FunctionKind2String(FunctionKind kind) {
       return "AsyncFunction";
     case FunctionKind::kModule:
       return "Module";
+    case FunctionKind::kAsyncModule:
+      return "AsyncModule";
     case FunctionKind::kClassMembersInitializerFunction:
       return "ClassMembersInitializerFunction";
     case FunctionKind::kDefaultBaseConstructor:

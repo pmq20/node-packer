@@ -9,21 +9,21 @@
       "stability": 2,
       "stabilityText": "Stable",
       "type": "module",
-      "desc": "<p>Much of the Node.js core API is built around an idiomatic asynchronous\nevent-driven architecture in which certain kinds of objects (called \"emitters\")\nemit named events that cause <code>Function</code> objects (\"listeners\") to be called.</p>\n<p>For instance: a <a href=\"net.html#net_class_net_server\"><code>net.Server</code></a> object emits an event each time a peer\nconnects to it; a <a href=\"fs.html#fs_class_fs_readstream\"><code>fs.ReadStream</code></a> emits an event when the file is opened;\na <a href=\"stream.html\">stream</a> emits an event whenever data is available to be read.</p>\n<p>All objects that emit events are instances of the <code>EventEmitter</code> class. These\nobjects expose an <code>eventEmitter.on()</code> function that allows one or more\nfunctions to be attached to named events emitted by the object. Typically,\nevent names are camel-cased strings but any valid JavaScript property key\ncan be used.</p>\n<p>When the <code>EventEmitter</code> object emits an event, all of the functions attached\nto that specific event are called <em>synchronously</em>. Any values returned by the\ncalled listeners are <em>ignored</em> and will be discarded.</p>\n<p>The following example shows a simple <code>EventEmitter</code> instance with a single\nlistener. The <code>eventEmitter.on()</code> method is used to register listeners, while\nthe <code>eventEmitter.emit()</code> method is used to trigger the event.</p>\n<pre><code class=\"language-js\">const EventEmitter = require('events');\n\nclass MyEmitter extends EventEmitter {}\n\nconst myEmitter = new MyEmitter();\nmyEmitter.on('event', () => {\n  console.log('an event occurred!');\n});\nmyEmitter.emit('event');\n</code></pre>",
+      "desc": "<p><strong>Source Code:</strong> <a href=\"https://github.com/nodejs/node/blob/v14.8.0/lib/events.js\">lib/events.js</a></p>\n<p>Much of the Node.js core API is built around an idiomatic asynchronous\nevent-driven architecture in which certain kinds of objects (called \"emitters\")\nemit named events that cause <code>Function</code> objects (\"listeners\") to be called.</p>\n<p>For instance: a <a href=\"net.html#net_class_net_server\"><code>net.Server</code></a> object emits an event each time a peer\nconnects to it; a <a href=\"fs.html#fs_class_fs_readstream\"><code>fs.ReadStream</code></a> emits an event when the file is opened;\na <a href=\"stream.html\">stream</a> emits an event whenever data is available to be read.</p>\n<p>All objects that emit events are instances of the <code>EventEmitter</code> class. These\nobjects expose an <code>eventEmitter.on()</code> function that allows one or more\nfunctions to be attached to named events emitted by the object. Typically,\nevent names are camel-cased strings but any valid JavaScript property key\ncan be used.</p>\n<p>When the <code>EventEmitter</code> object emits an event, all of the functions attached\nto that specific event are called <em>synchronously</em>. Any values returned by the\ncalled listeners are <em>ignored</em> and will be discarded.</p>\n<p>The following example shows a simple <code>EventEmitter</code> instance with a single\nlistener. The <code>eventEmitter.on()</code> method is used to register listeners, while\nthe <code>eventEmitter.emit()</code> method is used to trigger the event.</p>\n<pre><code class=\"language-js\">const EventEmitter = require('events');\n\nclass MyEmitter extends EventEmitter {}\n\nconst myEmitter = new MyEmitter();\nmyEmitter.on('event', () => {\n  console.log('an event occurred!');\n});\nmyEmitter.emit('event');\n</code></pre>",
       "modules": [
         {
           "textRaw": "Passing arguments and `this` to listeners",
           "name": "passing_arguments_and_`this`_to_listeners",
-          "desc": "<p>The <code>eventEmitter.emit()</code> method allows an arbitrary set of arguments to be\npassed to the listener functions. It is important to keep in mind that when\nan ordinary listener function is called, the standard <code>this</code> keyword\nis intentionally set to reference the <code>EventEmitter</code> instance to which the\nlistener is attached.</p>\n<pre><code class=\"language-js\">const myEmitter = new MyEmitter();\nmyEmitter.on('event', function(a, b) {\n  console.log(a, b, this, this === myEmitter);\n  // Prints:\n  //   a b MyEmitter {\n  //     domain: null,\n  //     _events: { event: [Function] },\n  //     _eventsCount: 1,\n  //     _maxListeners: undefined } true\n});\nmyEmitter.emit('event', 'a', 'b');\n</code></pre>\n<p>It is possible to use ES6 Arrow Functions as listeners, however, when doing so,\nthe <code>this</code> keyword will no longer reference the <code>EventEmitter</code> instance:</p>\n<pre><code class=\"language-js\">const myEmitter = new MyEmitter();\nmyEmitter.on('event', (a, b) => {\n  console.log(a, b, this);\n  // Prints: a b {}\n});\nmyEmitter.emit('event', 'a', 'b');\n</code></pre>",
+          "desc": "<p>The <code>eventEmitter.emit()</code> method allows an arbitrary set of arguments to be\npassed to the listener functions. Keep in mind that when\nan ordinary listener function is called, the standard <code>this</code> keyword\nis intentionally set to reference the <code>EventEmitter</code> instance to which the\nlistener is attached.</p>\n<pre><code class=\"language-js\">const myEmitter = new MyEmitter();\nmyEmitter.on('event', function(a, b) {\n  console.log(a, b, this, this === myEmitter);\n  // Prints:\n  //   a b MyEmitter {\n  //     domain: null,\n  //     _events: { event: [Function] },\n  //     _eventsCount: 1,\n  //     _maxListeners: undefined } true\n});\nmyEmitter.emit('event', 'a', 'b');\n</code></pre>\n<p>It is possible to use ES6 Arrow Functions as listeners, however, when doing so,\nthe <code>this</code> keyword will no longer reference the <code>EventEmitter</code> instance:</p>\n<pre><code class=\"language-js\">const myEmitter = new MyEmitter();\nmyEmitter.on('event', (a, b) => {\n  console.log(a, b, this);\n  // Prints: a b {}\n});\nmyEmitter.emit('event', 'a', 'b');\n</code></pre>",
           "type": "module",
           "displayName": "Passing arguments and `this` to listeners"
         },
         {
-          "textRaw": "Asynchronous vs. Synchronous",
+          "textRaw": "Asynchronous vs. synchronous",
           "name": "asynchronous_vs._synchronous",
-          "desc": "<p>The <code>EventEmitter</code> calls all listeners synchronously in the order in which\nthey were registered. This is important to ensure the proper sequencing of\nevents and to avoid race conditions or logic errors. When appropriate,\nlistener functions can switch to an asynchronous mode of operation using\nthe <code>setImmediate()</code> or <code>process.nextTick()</code> methods:</p>\n<pre><code class=\"language-js\">const myEmitter = new MyEmitter();\nmyEmitter.on('event', (a, b) => {\n  setImmediate(() => {\n    console.log('this happens asynchronously');\n  });\n});\nmyEmitter.emit('event', 'a', 'b');\n</code></pre>",
+          "desc": "<p>The <code>EventEmitter</code> calls all listeners synchronously in the order in which\nthey were registered. This ensures the proper sequencing of\nevents and helps avoid race conditions and logic errors. When appropriate,\nlistener functions can switch to an asynchronous mode of operation using\nthe <code>setImmediate()</code> or <code>process.nextTick()</code> methods:</p>\n<pre><code class=\"language-js\">const myEmitter = new MyEmitter();\nmyEmitter.on('event', (a, b) => {\n  setImmediate(() => {\n    console.log('this happens asynchronously');\n  });\n});\nmyEmitter.emit('event', 'a', 'b');\n</code></pre>",
           "type": "module",
-          "displayName": "Asynchronous vs. Synchronous"
+          "displayName": "Asynchronous vs. synchronous"
         },
         {
           "textRaw": "Handling events only once",
@@ -35,26 +35,761 @@
         {
           "textRaw": "Error events",
           "name": "error_events",
-          "desc": "<p>When an error occurs within an <code>EventEmitter</code> instance, the typical action is\nfor an <code>'error'</code> event to be emitted. These are treated as special cases\nwithin Node.js.</p>\n<p>If an <code>EventEmitter</code> does <em>not</em> have at least one listener registered for the\n<code>'error'</code> event, and an <code>'error'</code> event is emitted, the error is thrown, a\nstack trace is printed, and the Node.js process exits.</p>\n<pre><code class=\"language-js\">const myEmitter = new MyEmitter();\nmyEmitter.emit('error', new Error('whoops!'));\n// Throws and crashes Node.js\n</code></pre>\n<p>To guard against crashing the Node.js process the <a href=\"domain.html\"><code>domain</code></a> module can be\nused. (Note, however, that the <code>domain</code> module is deprecated.)</p>\n<p>As a best practice, listeners should always be added for the <code>'error'</code> events.</p>\n<pre><code class=\"language-js\">const myEmitter = new MyEmitter();\nmyEmitter.on('error', (err) => {\n  console.error('whoops! there was an error');\n});\nmyEmitter.emit('error', new Error('whoops!'));\n// Prints: whoops! there was an error\n</code></pre>",
+          "desc": "<p>When an error occurs within an <code>EventEmitter</code> instance, the typical action is\nfor an <code>'error'</code> event to be emitted. These are treated as special cases\nwithin Node.js.</p>\n<p>If an <code>EventEmitter</code> does <em>not</em> have at least one listener registered for the\n<code>'error'</code> event, and an <code>'error'</code> event is emitted, the error is thrown, a\nstack trace is printed, and the Node.js process exits.</p>\n<pre><code class=\"language-js\">const myEmitter = new MyEmitter();\nmyEmitter.emit('error', new Error('whoops!'));\n// Throws and crashes Node.js\n</code></pre>\n<p>To guard against crashing the Node.js process the <a href=\"domain.html\"><code>domain</code></a> module can be\nused. (Note, however, that the <code>domain</code> module is deprecated.)</p>\n<p>As a best practice, listeners should always be added for the <code>'error'</code> events.</p>\n<pre><code class=\"language-js\">const myEmitter = new MyEmitter();\nmyEmitter.on('error', (err) => {\n  console.error('whoops! there was an error');\n});\nmyEmitter.emit('error', new Error('whoops!'));\n// Prints: whoops! there was an error\n</code></pre>\n<p>It is possible to monitor <code>'error'</code> events without consuming the emitted error\nby installing a listener using the symbol <code>errorMonitor</code>.</p>\n<pre><code class=\"language-js\">const myEmitter = new MyEmitter();\nmyEmitter.on(EventEmitter.errorMonitor, (err) => {\n  MyMonitoringTool.log(err);\n});\nmyEmitter.emit('error', new Error('whoops!'));\n// Still throws and crashes Node.js\n</code></pre>",
           "type": "module",
           "displayName": "Error events"
+        },
+        {
+          "textRaw": "Capture rejections of promises",
+          "name": "capture_rejections_of_promises",
+          "stability": 1,
+          "stabilityText": "captureRejections is experimental.",
+          "desc": "<p>Using <code>async</code> functions with event handlers is problematic, because it\ncan lead to an unhandled rejection in case of a thrown exception:</p>\n<pre><code class=\"language-js\">const ee = new EventEmitter();\nee.on('something', async (value) => {\n  throw new Error('kaboom');\n});\n</code></pre>\n<p>The <code>captureRejections</code> option in the <code>EventEmitter</code> constructor or the global\nsetting change this behavior, installing a <code>.then(undefined, handler)</code>\nhandler on the <code>Promise</code>. This handler routes the exception\nasynchronously to the <a href=\"#events_emitter_symbol_for_nodejs_rejection_err_eventname_args\"><code>Symbol.for('nodejs.rejection')</code></a> method\nif there is one, or to <a href=\"#events_error_events\"><code>'error'</code></a> event handler if there is none.</p>\n<pre><code class=\"language-js\">const ee1 = new EventEmitter({ captureRejections: true });\nee1.on('something', async (value) => {\n  throw new Error('kaboom');\n});\n\nee1.on('error', console.log);\n\nconst ee2 = new EventEmitter({ captureRejections: true });\nee2.on('something', async (value) => {\n  throw new Error('kaboom');\n});\n\nee2[Symbol.for('nodejs.rejection')] = console.log;\n</code></pre>\n<p>Setting <code>EventEmitter.captureRejections = true</code> will change the default for all\nnew instances of <code>EventEmitter</code>.</p>\n<pre><code class=\"language-js\">EventEmitter.captureRejections = true;\nconst ee1 = new EventEmitter();\nee1.on('something', async (value) => {\n  throw new Error('kaboom');\n});\n\nee1.on('error', console.log);\n</code></pre>\n<p>The <code>'error'</code> events that are generated by the <code>captureRejections</code> behavior\ndo not have a catch handler to avoid infinite error loops: the\nrecommendation is to <strong>not use <code>async</code> functions as <code>'error'</code> event handlers</strong>.</p>",
+          "type": "module",
+          "displayName": "Capture rejections of promises"
+        },
+        {
+          "textRaw": "`EventTarget` and `Event` API",
+          "name": "`eventtarget`_and_`event`_api",
+          "meta": {
+            "added": [
+              "v14.5.0"
+            ],
+            "changes": []
+          },
+          "stability": 1,
+          "stabilityText": "Experimental",
+          "desc": "<p>The <code>EventTarget</code> and <code>Event</code> objects are a Node.js-specific implementation\nof the <a href=\"https://dom.spec.whatwg.org/#eventtarget\"><code>EventTarget</code> Web API</a> that are exposed by some Node.js core APIs.\nNeither the <code>EventTarget</code> nor <code>Event</code> classes are available for end\nuser code to create.</p>\n<pre><code class=\"language-js\">const target = getEventTargetSomehow();\n\ntarget.addEventListener('foo', (event) => {\n  console.log('foo event happened!');\n});\n</code></pre>",
+          "modules": [
+            {
+              "textRaw": "Node.js `EventTarget` vs. DOM `EventTarget`",
+              "name": "node.js_`eventtarget`_vs._dom_`eventtarget`",
+              "desc": "<p>There are two key differences between the Node.js <code>EventTarget</code> and the\n<a href=\"https://dom.spec.whatwg.org/#eventtarget\"><code>EventTarget</code> Web API</a>:</p>\n<ol>\n<li>Whereas DOM <code>EventTarget</code> instances <em>may</em> be hierarchical, there is no\nconcept of hierarchy and event propagation in Node.js. That is, an event\ndispatched to an <code>EventTarget</code> does not propagate through a hierarchy of\nnested target objects that may each have their own set of handlers for the\nevent.</li>\n<li>In the Node.js <code>EventTarget</code>, if an event listener is an async function\nor returns a <code>Promise</code>, and the returned <code>Promise</code> rejects, the rejection\nwill be automatically captured and handled the same way as a listener that\nthrows synchronously (see <a href=\"#events_eventtarget_error_handling\"><code>EventTarget</code> error handling</a> for details).</li>\n</ol>",
+              "type": "module",
+              "displayName": "Node.js `EventTarget` vs. DOM `EventTarget`"
+            },
+            {
+              "textRaw": "`NodeEventTarget` vs. `EventEmitter`",
+              "name": "`nodeeventtarget`_vs._`eventemitter`",
+              "desc": "<p>The <code>NodeEventTarget</code> object implements a modified subset of the\n<code>EventEmitter</code> API that allows it to closely <em>emulate</em> an <code>EventEmitter</code> in\ncertain situations. A <code>NodeEventTarget</code> is <em>not</em> an instance of <code>EventEmitter</code>\nand cannot be used in place of an <code>EventEmitter</code> in most cases.</p>\n<ol>\n<li>Unlike <code>EventEmitter</code>, any given <code>listener</code> can be registered at most once\nper event <code>type</code>. Attempts to register a <code>listener</code> multiple times will be\nignored.</li>\n<li>The <code>NodeEventTarget</code> does not emulate the full <code>EventEmitter</code> API.\nSpecifically the <code>prependListener()</code>, <code>prependOnceListener()</code>,\n<code>rawListeners()</code>, <code>setMaxListeners()</code>, <code>getMaxListeners()</code>, and\n<code>errorMonitor</code> APIs are not emulated. The <code>'newListener'</code> and\n<code>'removeListener'</code> events will also not be emitted.</li>\n<li>The <code>NodeEventTarget</code> does not implement any special default behavior\nfor events with type <code>'error'</code>.</li>\n<li>The <code>NodeEventTarget</code> supports <code>EventListener</code> objects as well as\nfunctions as handlers for all event types.</li>\n</ol>",
+              "type": "module",
+              "displayName": "`NodeEventTarget` vs. `EventEmitter`"
+            },
+            {
+              "textRaw": "Event listener",
+              "name": "event_listener",
+              "desc": "<p>Event listeners registered for an event <code>type</code> may either be JavaScript\nfunctions or objects with a <code>handleEvent</code> property whose value is a function.</p>\n<p>In either case, the handler function will be invoked with the <code>event</code> argument\npassed to the <code>eventTarget.dispatchEvent()</code> function.</p>\n<p>Async functions may be used as event listeners. If an async handler function\nrejects, the rejection will be captured and be will handled as described in\n<a href=\"#events_eventtarget_error_handling\"><code>EventTarget</code> error handling</a>.</p>\n<p>An error thrown by one handler function will not prevent the other handlers\nfrom being invoked.</p>\n<p>The return value of a handler function will be ignored.</p>\n<p>Handlers are always invoked in the order they were added.</p>\n<p>Handler functions may mutate the <code>event</code> object.</p>\n<pre><code class=\"language-js\">function handler1(event) {\n  console.log(event.type);  // Prints 'foo'\n  event.a = 1;\n}\n\nasync function handler2(event) {\n  console.log(event.type);  // Prints 'foo'\n  console.log(event.a);  // Prints 1\n}\n\nconst handler3 = {\n  handleEvent(event) {\n    console.log(event.type);  // Prints 'foo'\n  }\n};\n\nconst handler4 = {\n  async handleEvent(event) {\n    console.log(event.type);  // Prints 'foo'\n  }\n};\n\nconst target = getEventTargetSomehow();\n\ntarget.addEventListener('foo', handler1);\ntarget.addEventListener('foo', handler2);\ntarget.addEventListener('foo', handler3);\ntarget.addEventListener('foo', handler4, { once: true });\n</code></pre>",
+              "type": "module",
+              "displayName": "Event listener"
+            },
+            {
+              "textRaw": "`EventTarget` error handling",
+              "name": "`eventtarget`_error_handling",
+              "desc": "<p>When a registered event listener throws (or returns a Promise that rejects),\nby default the error will be forwarded to the <code>process.on('error')</code> event\non <code>process.nextTick()</code>. Throwing within an event listener will <em>not</em> stop\nthe other registered handlers from being invoked.</p>\n<p>The <code>EventTarget</code> does not implement any special default handling for\n<code>'error'</code> type events.</p>",
+              "type": "module",
+              "displayName": "`EventTarget` error handling"
+            }
+          ],
+          "classes": [
+            {
+              "textRaw": "Class: `Event`",
+              "type": "class",
+              "name": "Event",
+              "meta": {
+                "added": [
+                  "v14.5.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>The <code>Event</code> object is an adaptation of the <a href=\"https://dom.spec.whatwg.org/#event\"><code>Event</code> Web API</a>. Instances\nare created internally by Node.js.</p>",
+              "properties": [
+                {
+                  "textRaw": "`bubbles` Type: {boolean} Always returns `false`.",
+                  "type": "boolean",
+                  "name": "Type",
+                  "meta": {
+                    "added": [
+                      "v14.5.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<p>This is not used in Node.js and is provided purely for completeness.</p>",
+                  "shortDesc": "Always returns `false`."
+                },
+                {
+                  "textRaw": "`cancelable` Type: {boolean} True if the event was created with the `cancelable` option.",
+                  "type": "boolean",
+                  "name": "Type",
+                  "meta": {
+                    "added": [
+                      "v14.5.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "True if the event was created with the `cancelable` option."
+                },
+                {
+                  "textRaw": "`composed` Type: {boolean} Always returns `false`.",
+                  "type": "boolean",
+                  "name": "Type",
+                  "meta": {
+                    "added": [
+                      "v14.5.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<p>This is not used in Node.js and is provided purely for completeness.</p>",
+                  "shortDesc": "Always returns `false`."
+                },
+                {
+                  "textRaw": "`currentTarget` Type: {EventTarget} The `EventTarget` dispatching the event.",
+                  "type": "EventTarget",
+                  "name": "Type",
+                  "meta": {
+                    "added": [
+                      "v14.5.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<p>Alias for <code>event.target</code>.</p>",
+                  "shortDesc": "The `EventTarget` dispatching the event."
+                },
+                {
+                  "textRaw": "`defaultPrevented` Type: {boolean}",
+                  "type": "boolean",
+                  "name": "Type",
+                  "meta": {
+                    "added": [
+                      "v14.5.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<p>Will be <code>true</code> if <code>cancelable</code> is <code>true</code> and <code>event.preventDefault()</code> has been\ncalled.</p>"
+                },
+                {
+                  "textRaw": "`eventPhase` Type: {number} Returns `0` while an event is not being dispatched, `2` while it is being dispatched.",
+                  "type": "number",
+                  "name": "Type",
+                  "meta": {
+                    "added": [
+                      "v14.5.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<p>This is not used in Node.js and is provided purely for completeness.</p>",
+                  "shortDesc": "Returns `0` while an event is not being dispatched, `2` while it is being dispatched."
+                },
+                {
+                  "textRaw": "`isTrusted` Type: {boolean} Always returns `false`.",
+                  "type": "boolean",
+                  "name": "Type",
+                  "meta": {
+                    "added": [
+                      "v14.5.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<p>This is not used in Node.js and is provided purely for completeness.</p>",
+                  "shortDesc": "Always returns `false`."
+                },
+                {
+                  "textRaw": "`returnValue` Type: {boolean} True if the event has not been canceled.",
+                  "type": "boolean",
+                  "name": "Type",
+                  "meta": {
+                    "added": [
+                      "v14.5.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<p>This is not used in Node.js and is provided purely for completeness.</p>",
+                  "shortDesc": "True if the event has not been canceled."
+                },
+                {
+                  "textRaw": "`srcElement` Type: {EventTarget} The `EventTarget` dispatching the event.",
+                  "type": "EventTarget",
+                  "name": "Type",
+                  "meta": {
+                    "added": [
+                      "v14.5.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<p>Alias for <code>event.target</code>.</p>",
+                  "shortDesc": "The `EventTarget` dispatching the event."
+                },
+                {
+                  "textRaw": "`target` Type: {EventTarget} The `EventTarget` dispatching the event.",
+                  "type": "EventTarget",
+                  "name": "Type",
+                  "meta": {
+                    "added": [
+                      "v14.5.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "The `EventTarget` dispatching the event."
+                },
+                {
+                  "textRaw": "`timeStamp` Type: {number}",
+                  "type": "number",
+                  "name": "Type",
+                  "meta": {
+                    "added": [
+                      "v14.5.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<p>The millisecond timestamp when the <code>Event</code> object was created.</p>"
+                },
+                {
+                  "textRaw": "`type` Type: {string}",
+                  "type": "string",
+                  "name": "Type",
+                  "meta": {
+                    "added": [
+                      "v14.5.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<p>The event type identifier.</p>"
+                }
+              ],
+              "methods": [
+                {
+                  "textRaw": "`event.cancelBubble()`",
+                  "type": "method",
+                  "name": "cancelBubble",
+                  "meta": {
+                    "added": [
+                      "v14.5.0"
+                    ],
+                    "changes": []
+                  },
+                  "signatures": [
+                    {
+                      "params": []
+                    }
+                  ],
+                  "desc": "<p>Alias for <code>event.stopPropagation()</code>. This is not used in Node.js and is\nprovided purely for completeness.</p>"
+                },
+                {
+                  "textRaw": "`event.composedPath()`",
+                  "type": "method",
+                  "name": "composedPath",
+                  "meta": {
+                    "added": [
+                      "v14.5.0"
+                    ],
+                    "changes": []
+                  },
+                  "signatures": [
+                    {
+                      "params": []
+                    }
+                  ],
+                  "desc": "<p>Returns an array containing the current <code>EventTarget</code> as the only entry or\nempty if the event is not being dispatched. This is not used in\nNode.js and is provided purely for completeness.</p>"
+                },
+                {
+                  "textRaw": "`event.preventDefault()`",
+                  "type": "method",
+                  "name": "preventDefault",
+                  "meta": {
+                    "added": [
+                      "v14.5.0"
+                    ],
+                    "changes": []
+                  },
+                  "signatures": [
+                    {
+                      "params": []
+                    }
+                  ],
+                  "desc": "<p>Sets the <code>defaultPrevented</code> property to <code>true</code> if <code>cancelable</code> is <code>true</code>.</p>"
+                },
+                {
+                  "textRaw": "`event.stopImmediatePropagation()`",
+                  "type": "method",
+                  "name": "stopImmediatePropagation",
+                  "meta": {
+                    "added": [
+                      "v14.5.0"
+                    ],
+                    "changes": []
+                  },
+                  "signatures": [
+                    {
+                      "params": []
+                    }
+                  ],
+                  "desc": "<p>Stops the invocation of event listeners after the current one completes.</p>"
+                },
+                {
+                  "textRaw": "`event.stopPropagation()`",
+                  "type": "method",
+                  "name": "stopPropagation",
+                  "meta": {
+                    "added": [
+                      "v14.5.0"
+                    ],
+                    "changes": []
+                  },
+                  "signatures": [
+                    {
+                      "params": []
+                    }
+                  ],
+                  "desc": "<p>This is not used in Node.js and is provided purely for completeness.</p>"
+                }
+              ]
+            },
+            {
+              "textRaw": "Class: `EventTarget`",
+              "type": "class",
+              "name": "EventTarget",
+              "meta": {
+                "added": [
+                  "v14.5.0"
+                ],
+                "changes": []
+              },
+              "methods": [
+                {
+                  "textRaw": "`eventTarget.addEventListener(type, listener[, options])`",
+                  "type": "method",
+                  "name": "addEventListener",
+                  "meta": {
+                    "added": [
+                      "v14.5.0"
+                    ],
+                    "changes": []
+                  },
+                  "signatures": [
+                    {
+                      "params": [
+                        {
+                          "textRaw": "`type` {string}",
+                          "name": "type",
+                          "type": "string"
+                        },
+                        {
+                          "textRaw": "`listener` {Function|EventListener}",
+                          "name": "listener",
+                          "type": "Function|EventListener"
+                        },
+                        {
+                          "textRaw": "`options` {Object}",
+                          "name": "options",
+                          "type": "Object",
+                          "options": [
+                            {
+                              "textRaw": "`once` {boolean} When `true`, the listener will be automatically removed when it is first invoked. **Default:** `false`.",
+                              "name": "once",
+                              "type": "boolean",
+                              "default": "`false`",
+                              "desc": "When `true`, the listener will be automatically removed when it is first invoked."
+                            },
+                            {
+                              "textRaw": "`passive` {boolean} When `true`, serves as a hint that the listener will not call the `Event` object's `preventDefault()` method. **Default:** `false`.",
+                              "name": "passive",
+                              "type": "boolean",
+                              "default": "`false`",
+                              "desc": "When `true`, serves as a hint that the listener will not call the `Event` object's `preventDefault()` method."
+                            },
+                            {
+                              "textRaw": "`capture` {boolean} Not directly used by Node.js. Added for API completeness. **Default:** `false`.",
+                              "name": "capture",
+                              "type": "boolean",
+                              "default": "`false`",
+                              "desc": "Not directly used by Node.js. Added for API completeness."
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "desc": "<p>Adds a new handler for the <code>type</code> event. Any given <code>listener</code> will be added\nonly once per <code>type</code> and per <code>capture</code> option value.</p>\n<p>If the <code>once</code> option is <code>true</code>, the <code>listener</code> will be removed after the\nnext time a <code>type</code> event is dispatched.</p>\n<p>The <code>capture</code> option is not used by Node.js in any functional way other than\ntracking registered event listeners per the <code>EventTarget</code> specification.\nSpecifically, the <code>capture</code> option is used as part of the key when registering\na <code>listener</code>. Any individual <code>listener</code> may be added once with\n<code>capture = false</code>, and once with <code>capture = true</code>.</p>\n<pre><code class=\"language-js\">function handler(event) {}\n\nconst target = getEventTargetSomehow();\ntarget.addEventListener('foo', handler, { capture: true });  // first\ntarget.addEventListener('foo', handler, { capture: false }); // second\n\n// Removes the second instance of handler\ntarget.removeEventListener('foo', handler);\n\n// Removes the first instance of handler\ntarget.removeEventListener('foo', handler, { capture: true });\n</code></pre>"
+                },
+                {
+                  "textRaw": "`eventTarget.dispatchEvent(event)`",
+                  "type": "method",
+                  "name": "dispatchEvent",
+                  "meta": {
+                    "added": [
+                      "v14.5.0"
+                    ],
+                    "changes": []
+                  },
+                  "signatures": [
+                    {
+                      "params": [
+                        {
+                          "textRaw": "`event` {Object|Event}",
+                          "name": "event",
+                          "type": "Object|Event"
+                        }
+                      ]
+                    }
+                  ],
+                  "desc": "<p>Dispatches the <code>event</code> to the list of handlers for <code>event.type</code>. The <code>event</code>\nmay be an <code>Event</code> object or any object with a <code>type</code> property whose value is\na <code>string</code>.</p>\n<p>The registered event listeners will be synchronously invoked in the order they\nwere registered.</p>"
+                },
+                {
+                  "textRaw": "`eventTarget.removeEventListener(type, listener)`",
+                  "type": "method",
+                  "name": "removeEventListener",
+                  "meta": {
+                    "added": [
+                      "v14.5.0"
+                    ],
+                    "changes": []
+                  },
+                  "signatures": [
+                    {
+                      "params": [
+                        {
+                          "textRaw": "`type` {string}",
+                          "name": "type",
+                          "type": "string"
+                        },
+                        {
+                          "textRaw": "`listener` {Function|EventListener}",
+                          "name": "listener",
+                          "type": "Function|EventListener"
+                        },
+                        {
+                          "textRaw": "`options` {Object}",
+                          "name": "options",
+                          "type": "Object",
+                          "options": [
+                            {
+                              "textRaw": "`capture` {boolean}",
+                              "name": "capture",
+                              "type": "boolean"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "desc": "<p>Removes the <code>listener</code> from the list of handlers for event <code>type</code>.</p>"
+                }
+              ]
+            },
+            {
+              "textRaw": "Class: `NodeEventTarget extends EventTarget`",
+              "type": "class",
+              "name": "NodeEventTarget",
+              "meta": {
+                "added": [
+                  "v14.5.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>The <code>NodeEventTarget</code> is a Node.js-specific extension to <code>EventTarget</code>\nthat emulates a subset of the <code>EventEmitter</code> API.</p>",
+              "methods": [
+                {
+                  "textRaw": "`nodeEventTarget.addListener(type, listener[, options])`",
+                  "type": "method",
+                  "name": "addListener",
+                  "meta": {
+                    "added": [
+                      "v14.5.0"
+                    ],
+                    "changes": []
+                  },
+                  "signatures": [
+                    {
+                      "return": {
+                        "textRaw": "Returns: {EventTarget} this",
+                        "name": "return",
+                        "type": "EventTarget",
+                        "desc": "this"
+                      },
+                      "params": [
+                        {
+                          "textRaw": "`type` {string}",
+                          "name": "type",
+                          "type": "string"
+                        },
+                        {
+                          "textRaw": "`listener` {Function|EventListener}",
+                          "name": "listener",
+                          "type": "Function|EventListener"
+                        },
+                        {
+                          "textRaw": "`options` {Object}",
+                          "name": "options",
+                          "type": "Object",
+                          "options": [
+                            {
+                              "textRaw": "`once` {boolean}",
+                              "name": "once",
+                              "type": "boolean"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "desc": "<p>Node.js-specific extension to the <code>EventTarget</code> class that emulates the\nequivalent <code>EventEmitter</code> API. The only difference between <code>addListener()</code> and\n<code>addEventListener()</code> is that <code>addListener()</code> will return a reference to the\n<code>EventTarget</code>.</p>"
+                },
+                {
+                  "textRaw": "`nodeEventTarget.eventNames()`",
+                  "type": "method",
+                  "name": "eventNames",
+                  "meta": {
+                    "added": [
+                      "v14.5.0"
+                    ],
+                    "changes": []
+                  },
+                  "signatures": [
+                    {
+                      "return": {
+                        "textRaw": "Returns: {string[]}",
+                        "name": "return",
+                        "type": "string[]"
+                      },
+                      "params": []
+                    }
+                  ],
+                  "desc": "<p>Node.js-specific extension to the <code>EventTarget</code> class that returns an array\nof event <code>type</code> names for which event listeners are registered.</p>"
+                },
+                {
+                  "textRaw": "`nodeEventTarget.listenerCount(type)`",
+                  "type": "method",
+                  "name": "listenerCount",
+                  "meta": {
+                    "added": [
+                      "v14.5.0"
+                    ],
+                    "changes": []
+                  },
+                  "signatures": [
+                    {
+                      "return": {
+                        "textRaw": "Returns: {number}",
+                        "name": "return",
+                        "type": "number"
+                      },
+                      "params": [
+                        {
+                          "textRaw": "`type` {string}",
+                          "name": "type",
+                          "type": "string"
+                        }
+                      ]
+                    }
+                  ],
+                  "desc": "<p>Node.js-specific extension to the <code>EventTarget</code> class that returns the number\nof event listeners registered for the <code>type</code>.</p>"
+                },
+                {
+                  "textRaw": "`nodeEventTarget.off(type, listener)`",
+                  "type": "method",
+                  "name": "off",
+                  "meta": {
+                    "added": [
+                      "v14.5.0"
+                    ],
+                    "changes": []
+                  },
+                  "signatures": [
+                    {
+                      "return": {
+                        "textRaw": "Returns: {EventTarget} this",
+                        "name": "return",
+                        "type": "EventTarget",
+                        "desc": "this"
+                      },
+                      "params": [
+                        {
+                          "textRaw": "`type` {string}",
+                          "name": "type",
+                          "type": "string"
+                        },
+                        {
+                          "textRaw": "`listener` {Function|EventListener}",
+                          "name": "listener",
+                          "type": "Function|EventListener"
+                        }
+                      ]
+                    }
+                  ],
+                  "desc": "<p>Node.js-speciic alias for <code>eventTarget.removeListener()</code>.</p>"
+                },
+                {
+                  "textRaw": "`nodeEventTarget.on(type, listener[, options])`",
+                  "type": "method",
+                  "name": "on",
+                  "meta": {
+                    "added": [
+                      "v14.5.0"
+                    ],
+                    "changes": []
+                  },
+                  "signatures": [
+                    {
+                      "return": {
+                        "textRaw": "Returns: {EventTarget} this",
+                        "name": "return",
+                        "type": "EventTarget",
+                        "desc": "this"
+                      },
+                      "params": [
+                        {
+                          "textRaw": "`type` {string}",
+                          "name": "type",
+                          "type": "string"
+                        },
+                        {
+                          "textRaw": "`listener` {Function|EventListener}",
+                          "name": "listener",
+                          "type": "Function|EventListener"
+                        },
+                        {
+                          "textRaw": "`options` {Object}",
+                          "name": "options",
+                          "type": "Object",
+                          "options": [
+                            {
+                              "textRaw": "`once` {boolean}",
+                              "name": "once",
+                              "type": "boolean"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "desc": "<p>Node.js-specific alias for <code>eventTarget.addListener()</code>.</p>"
+                },
+                {
+                  "textRaw": "`nodeEventTarget.once(type, listener[, options])`",
+                  "type": "method",
+                  "name": "once",
+                  "meta": {
+                    "added": [
+                      "v14.5.0"
+                    ],
+                    "changes": []
+                  },
+                  "signatures": [
+                    {
+                      "return": {
+                        "textRaw": "Returns: {EventTarget} this",
+                        "name": "return",
+                        "type": "EventTarget",
+                        "desc": "this"
+                      },
+                      "params": [
+                        {
+                          "textRaw": "`type` {string}",
+                          "name": "type",
+                          "type": "string"
+                        },
+                        {
+                          "textRaw": "`listener` {Function|EventListener}",
+                          "name": "listener",
+                          "type": "Function|EventListener"
+                        },
+                        {
+                          "textRaw": "`options` {Object}",
+                          "name": "options",
+                          "type": "Object"
+                        }
+                      ]
+                    }
+                  ],
+                  "desc": "<p>Node.js-specific extension to the <code>EventTarget</code> class that adds a <code>once</code>\nlistener for the given event <code>type</code>. This is equivalent to calling <code>on</code>\nwith the <code>once</code> option set to <code>true</code>.</p>"
+                },
+                {
+                  "textRaw": "`nodeEventTarget.removeAllListeners([type])`",
+                  "type": "method",
+                  "name": "removeAllListeners",
+                  "meta": {
+                    "added": [
+                      "v14.5.0"
+                    ],
+                    "changes": []
+                  },
+                  "signatures": [
+                    {
+                      "params": [
+                        {
+                          "textRaw": "`type` {string}",
+                          "name": "type",
+                          "type": "string"
+                        }
+                      ]
+                    }
+                  ],
+                  "desc": "<p>Node.js-specific extension to the <code>EventTarget</code> class. If <code>type</code> is specified,\nremoves all registered listeners for <code>type</code>, otherwise removes all registered\nlisteners.</p>"
+                },
+                {
+                  "textRaw": "`nodeEventTarget.removeListener(type, listener)`",
+                  "type": "method",
+                  "name": "removeListener",
+                  "meta": {
+                    "added": [
+                      "v14.5.0"
+                    ],
+                    "changes": []
+                  },
+                  "signatures": [
+                    {
+                      "return": {
+                        "textRaw": "Returns: {EventTarget} this",
+                        "name": "return",
+                        "type": "EventTarget",
+                        "desc": "this"
+                      },
+                      "params": [
+                        {
+                          "textRaw": "`type` {string}",
+                          "name": "type",
+                          "type": "string"
+                        },
+                        {
+                          "textRaw": "`listener` {Function|EventListener}",
+                          "name": "listener",
+                          "type": "Function|EventListener"
+                        }
+                      ]
+                    }
+                  ],
+                  "desc": "<p>Node.js-specific extension to the <code>EventTarget</code> class that removes the\n<code>listener</code> for the given <code>type</code>. The only difference between <code>removeListener()</code>\nand <code>removeEventListener()</code> is that <code>removeListener()</code> will return a reference\nto the <code>EventTarget</code>.</p>"
+                }
+              ]
+            }
+          ],
+          "type": "module",
+          "displayName": "`EventTarget` and `Event` API"
         }
       ],
       "classes": [
         {
-          "textRaw": "Class: EventEmitter",
+          "textRaw": "Class: `EventEmitter`",
           "type": "class",
           "name": "EventEmitter",
           "meta": {
             "added": [
               "v0.1.26"
             ],
-            "changes": []
+            "changes": [
+              {
+                "version": [
+                  "v13.4.0",
+                  "v12.16.0"
+                ],
+                "pr-url": "https://github.com/nodejs/node/pull/27867",
+                "description": "Added captureRejections option."
+              }
+            ]
           },
-          "desc": "<p>The <code>EventEmitter</code> class is defined and exposed by the <code>events</code> module:</p>\n<pre><code class=\"language-js\">const EventEmitter = require('events');\n</code></pre>\n<p>All <code>EventEmitter</code>s emit the event <code>'newListener'</code> when new listeners are\nadded and <code>'removeListener'</code> when existing listeners are removed.</p>",
+          "desc": "<p>The <code>EventEmitter</code> class is defined and exposed by the <code>events</code> module:</p>\n<pre><code class=\"language-js\">const EventEmitter = require('events');\n</code></pre>\n<p>All <code>EventEmitter</code>s emit the event <code>'newListener'</code> when new listeners are\nadded and <code>'removeListener'</code> when existing listeners are removed.</p>\n<p>It supports the following option:</p>\n<ul>\n<li><code>captureRejections</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type\" class=\"type\">&lt;boolean&gt;</a> It enables\n<a href=\"#events_capture_rejections_of_promises\">automatic capturing of promise rejection</a>.\n<strong>Default:</strong> <code>false</code>.</li>\n</ul>",
           "events": [
             {
-              "textRaw": "Event: 'newListener'",
+              "textRaw": "Event: `'newListener'`",
               "type": "event",
               "name": "newListener",
               "meta": {
@@ -80,7 +815,7 @@
               "desc": "<p>The <code>EventEmitter</code> instance will emit its own <code>'newListener'</code> event <em>before</em>\na listener is added to its internal array of listeners.</p>\n<p>Listeners registered for the <code>'newListener'</code> event will be passed the event\nname and a reference to the listener being added.</p>\n<p>The fact that the event is triggered before adding the listener has a subtle\nbut important side effect: any <em>additional</em> listeners registered to the same\n<code>name</code> <em>within</em> the <code>'newListener'</code> callback will be inserted <em>before</em> the\nlistener that is in the process of being added.</p>\n<pre><code class=\"language-js\">const myEmitter = new MyEmitter();\n// Only do this once so we don't loop forever\nmyEmitter.once('newListener', (event, listener) => {\n  if (event === 'event') {\n    // Insert a new listener in front\n    myEmitter.on('event', () => {\n      console.log('B');\n    });\n  }\n});\nmyEmitter.on('event', () => {\n  console.log('A');\n});\nmyEmitter.emit('event');\n// Prints:\n//   B\n//   A\n</code></pre>"
             },
             {
-              "textRaw": "Event: 'removeListener'",
+              "textRaw": "Event: `'removeListener'`",
               "type": "event",
               "name": "removeListener",
               "meta": {
@@ -114,7 +849,7 @@
           ],
           "methods": [
             {
-              "textRaw": "EventEmitter.listenerCount(emitter, eventName)",
+              "textRaw": "`EventEmitter.listenerCount(emitter, eventName)`",
               "type": "method",
               "name": "listenerCount",
               "meta": {
@@ -149,7 +884,7 @@
               "desc": "<p>A class method that returns the number of listeners for the given <code>eventName</code>\nregistered on the given <code>emitter</code>.</p>\n<pre><code class=\"language-js\">const myEmitter = new MyEmitter();\nmyEmitter.on('event', () => {});\nmyEmitter.on('event', () => {});\nconsole.log(EventEmitter.listenerCount(myEmitter, 'event'));\n// Prints: 2\n</code></pre>"
             },
             {
-              "textRaw": "emitter.addListener(eventName, listener)",
+              "textRaw": "`emitter.addListener(eventName, listener)`",
               "type": "method",
               "name": "addListener",
               "meta": {
@@ -177,7 +912,7 @@
               "desc": "<p>Alias for <code>emitter.on(eventName, listener)</code>.</p>"
             },
             {
-              "textRaw": "emitter.emit(eventName[, ...args])",
+              "textRaw": "`emitter.emit(eventName[, ...args])`",
               "type": "method",
               "name": "emit",
               "meta": {
@@ -202,8 +937,7 @@
                     {
                       "textRaw": "`...args` {any}",
                       "name": "...args",
-                      "type": "any",
-                      "optional": true
+                      "type": "any"
                     }
                   ]
                 }
@@ -211,7 +945,7 @@
               "desc": "<p>Synchronously calls each of the listeners registered for the event named\n<code>eventName</code>, in the order they were registered, passing the supplied arguments\nto each.</p>\n<p>Returns <code>true</code> if the event had listeners, <code>false</code> otherwise.</p>\n<pre><code class=\"language-js\">const EventEmitter = require('events');\nconst myEmitter = new EventEmitter();\n\n// First listener\nmyEmitter.on('event', function firstListener() {\n  console.log('Helloooo! first listener');\n});\n// Second listener\nmyEmitter.on('event', function secondListener(arg1, arg2) {\n  console.log(`event with parameters ${arg1}, ${arg2} in second listener`);\n});\n// Third listener\nmyEmitter.on('event', function thirdListener(...args) {\n  const parameters = args.join(', ');\n  console.log(`event with parameters ${parameters} in third listener`);\n});\n\nconsole.log(myEmitter.listeners('event'));\n\nmyEmitter.emit('event', 1, 2, 3, 4, 5);\n\n// Prints:\n// [\n//   [Function: firstListener],\n//   [Function: secondListener],\n//   [Function: thirdListener]\n// ]\n// Helloooo! first listener\n// event with parameters 1, 2 in second listener\n// event with parameters 1, 2, 3, 4, 5 in third listener\n</code></pre>"
             },
             {
-              "textRaw": "emitter.eventNames()",
+              "textRaw": "`emitter.eventNames()`",
               "type": "method",
               "name": "eventNames",
               "meta": {
@@ -233,7 +967,7 @@
               "desc": "<p>Returns an array listing the events for which the emitter has registered\nlisteners. The values in the array will be strings or <code>Symbol</code>s.</p>\n<pre><code class=\"language-js\">const EventEmitter = require('events');\nconst myEE = new EventEmitter();\nmyEE.on('foo', () => {});\nmyEE.on('bar', () => {});\n\nconst sym = Symbol('symbol');\nmyEE.on(sym, () => {});\n\nconsole.log(myEE.eventNames());\n// Prints: [ 'foo', 'bar', Symbol(symbol) ]\n</code></pre>"
             },
             {
-              "textRaw": "emitter.getMaxListeners()",
+              "textRaw": "`emitter.getMaxListeners()`",
               "type": "method",
               "name": "getMaxListeners",
               "meta": {
@@ -255,7 +989,7 @@
               "desc": "<p>Returns the current max listener value for the <code>EventEmitter</code> which is either\nset by <a href=\"#events_emitter_setmaxlisteners_n\"><code>emitter.setMaxListeners(n)</code></a> or defaults to\n<a href=\"#events_eventemitter_defaultmaxlisteners\"><code>EventEmitter.defaultMaxListeners</code></a>.</p>"
             },
             {
-              "textRaw": "emitter.listenerCount(eventName)",
+              "textRaw": "`emitter.listenerCount(eventName)`",
               "type": "method",
               "name": "listenerCount",
               "meta": {
@@ -284,7 +1018,7 @@
               "desc": "<p>Returns the number of listeners listening to the event named <code>eventName</code>.</p>"
             },
             {
-              "textRaw": "emitter.listeners(eventName)",
+              "textRaw": "`emitter.listeners(eventName)`",
               "type": "method",
               "name": "listeners",
               "meta": {
@@ -318,7 +1052,7 @@
               "desc": "<p>Returns a copy of the array of listeners for the event named <code>eventName</code>.</p>\n<pre><code class=\"language-js\">server.on('connection', (stream) => {\n  console.log('someone connected!');\n});\nconsole.log(util.inspect(server.listeners('connection')));\n// Prints: [ [Function] ]\n</code></pre>"
             },
             {
-              "textRaw": "emitter.off(eventName, listener)",
+              "textRaw": "`emitter.off(eventName, listener)`",
               "type": "method",
               "name": "off",
               "meta": {
@@ -351,7 +1085,7 @@
               "desc": "<p>Alias for <a href=\"#events_emitter_removelistener_eventname_listener\"><code>emitter.removeListener()</code></a>.</p>"
             },
             {
-              "textRaw": "emitter.on(eventName, listener)",
+              "textRaw": "`emitter.on(eventName, listener)`",
               "type": "method",
               "name": "on",
               "meta": {
@@ -386,7 +1120,7 @@
               "desc": "<p>Adds the <code>listener</code> function to the end of the listeners array for the\nevent named <code>eventName</code>. No checks are made to see if the <code>listener</code> has\nalready been added. Multiple calls passing the same combination of <code>eventName</code>\nand <code>listener</code> will result in the <code>listener</code> being added, and called, multiple\ntimes.</p>\n<pre><code class=\"language-js\">server.on('connection', (stream) => {\n  console.log('someone connected!');\n});\n</code></pre>\n<p>Returns a reference to the <code>EventEmitter</code>, so that calls can be chained.</p>\n<p>By default, event listeners are invoked in the order they are added. The\n<code>emitter.prependListener()</code> method can be used as an alternative to add the\nevent listener to the beginning of the listeners array.</p>\n<pre><code class=\"language-js\">const myEE = new EventEmitter();\nmyEE.on('foo', () => console.log('a'));\nmyEE.prependListener('foo', () => console.log('b'));\nmyEE.emit('foo');\n// Prints:\n//   b\n//   a\n</code></pre>"
             },
             {
-              "textRaw": "emitter.once(eventName, listener)",
+              "textRaw": "`emitter.once(eventName, listener)`",
               "type": "method",
               "name": "once",
               "meta": {
@@ -421,7 +1155,7 @@
               "desc": "<p>Adds a <strong>one-time</strong> <code>listener</code> function for the event named <code>eventName</code>. The\nnext time <code>eventName</code> is triggered, this listener is removed and then invoked.</p>\n<pre><code class=\"language-js\">server.once('connection', (stream) => {\n  console.log('Ah, we have our first user!');\n});\n</code></pre>\n<p>Returns a reference to the <code>EventEmitter</code>, so that calls can be chained.</p>\n<p>By default, event listeners are invoked in the order they are added. The\n<code>emitter.prependOnceListener()</code> method can be used as an alternative to add the\nevent listener to the beginning of the listeners array.</p>\n<pre><code class=\"language-js\">const myEE = new EventEmitter();\nmyEE.once('foo', () => console.log('a'));\nmyEE.prependOnceListener('foo', () => console.log('b'));\nmyEE.emit('foo');\n// Prints:\n//   b\n//   a\n</code></pre>"
             },
             {
-              "textRaw": "emitter.prependListener(eventName, listener)",
+              "textRaw": "`emitter.prependListener(eventName, listener)`",
               "type": "method",
               "name": "prependListener",
               "meta": {
@@ -456,7 +1190,7 @@
               "desc": "<p>Adds the <code>listener</code> function to the <em>beginning</em> of the listeners array for the\nevent named <code>eventName</code>. No checks are made to see if the <code>listener</code> has\nalready been added. Multiple calls passing the same combination of <code>eventName</code>\nand <code>listener</code> will result in the <code>listener</code> being added, and called, multiple\ntimes.</p>\n<pre><code class=\"language-js\">server.prependListener('connection', (stream) => {\n  console.log('someone connected!');\n});\n</code></pre>\n<p>Returns a reference to the <code>EventEmitter</code>, so that calls can be chained.</p>"
             },
             {
-              "textRaw": "emitter.prependOnceListener(eventName, listener)",
+              "textRaw": "`emitter.prependOnceListener(eventName, listener)`",
               "type": "method",
               "name": "prependOnceListener",
               "meta": {
@@ -491,7 +1225,7 @@
               "desc": "<p>Adds a <strong>one-time</strong> <code>listener</code> function for the event named <code>eventName</code> to the\n<em>beginning</em> of the listeners array. The next time <code>eventName</code> is triggered, this\nlistener is removed, and then invoked.</p>\n<pre><code class=\"language-js\">server.prependOnceListener('connection', (stream) => {\n  console.log('Ah, we have our first user!');\n});\n</code></pre>\n<p>Returns a reference to the <code>EventEmitter</code>, so that calls can be chained.</p>"
             },
             {
-              "textRaw": "emitter.removeAllListeners([eventName])",
+              "textRaw": "`emitter.removeAllListeners([eventName])`",
               "type": "method",
               "name": "removeAllListeners",
               "meta": {
@@ -511,8 +1245,7 @@
                     {
                       "textRaw": "`eventName` {string|symbol}",
                       "name": "eventName",
-                      "type": "string|symbol",
-                      "optional": true
+                      "type": "string|symbol"
                     }
                   ]
                 }
@@ -520,7 +1253,7 @@
               "desc": "<p>Removes all listeners, or those of the specified <code>eventName</code>.</p>\n<p>It is bad practice to remove listeners added elsewhere in the code,\nparticularly when the <code>EventEmitter</code> instance was created by some other\ncomponent or module (e.g. sockets or file streams).</p>\n<p>Returns a reference to the <code>EventEmitter</code>, so that calls can be chained.</p>"
             },
             {
-              "textRaw": "emitter.removeListener(eventName, listener)",
+              "textRaw": "`emitter.removeListener(eventName, listener)`",
               "type": "method",
               "name": "removeListener",
               "meta": {
@@ -553,7 +1286,7 @@
               "desc": "<p>Removes the specified <code>listener</code> from the listener array for the event named\n<code>eventName</code>.</p>\n<pre><code class=\"language-js\">const callback = (stream) => {\n  console.log('someone connected!');\n};\nserver.on('connection', callback);\n// ...\nserver.removeListener('connection', callback);\n</code></pre>\n<p><code>removeListener()</code> will remove, at most, one instance of a listener from the\nlistener array. If any single listener has been added multiple times to the\nlistener array for the specified <code>eventName</code>, then <code>removeListener()</code> must be\ncalled multiple times to remove each instance.</p>\n<p>Once an event has been emitted, all listeners attached to it at the\ntime of emitting will be called in order. This implies that any\n<code>removeListener()</code> or <code>removeAllListeners()</code> calls <em>after</em> emitting and\n<em>before</em> the last listener finishes execution will not remove them from\n<code>emit()</code> in progress. Subsequent events will behave as expected.</p>\n<pre><code class=\"language-js\">const myEmitter = new MyEmitter();\n\nconst callbackA = () => {\n  console.log('A');\n  myEmitter.removeListener('event', callbackB);\n};\n\nconst callbackB = () => {\n  console.log('B');\n};\n\nmyEmitter.on('event', callbackA);\n\nmyEmitter.on('event', callbackB);\n\n// callbackA removes listener callbackB but it will still be called.\n// Internal listener array at time of emit [callbackA, callbackB]\nmyEmitter.emit('event');\n// Prints:\n//   A\n//   B\n\n// callbackB is now removed.\n// Internal listener array [callbackA]\nmyEmitter.emit('event');\n// Prints:\n//   A\n</code></pre>\n<p>Because listeners are managed using an internal array, calling this will\nchange the position indices of any listener registered <em>after</em> the listener\nbeing removed. This will not impact the order in which listeners are called,\nbut it means that any copies of the listener array as returned by\nthe <code>emitter.listeners()</code> method will need to be recreated.</p>\n<p>When a single function has been added as a handler multiple times for a single\nevent (as in the example below), <code>removeListener()</code> will remove the most\nrecently added instance. In the example the <code>once('ping')</code>\nlistener is removed:</p>\n<pre><code class=\"language-js\">const ee = new EventEmitter();\n\nfunction pong() {\n  console.log('pong');\n}\n\nee.on('ping', pong);\nee.once('ping', pong);\nee.removeListener('ping', pong);\n\nee.emit('ping');\nee.emit('ping');\n</code></pre>\n<p>Returns a reference to the <code>EventEmitter</code>, so that calls can be chained.</p>"
             },
             {
-              "textRaw": "emitter.setMaxListeners(n)",
+              "textRaw": "`emitter.setMaxListeners(n)`",
               "type": "method",
               "name": "setMaxListeners",
               "meta": {
@@ -578,10 +1311,10 @@
                   ]
                 }
               ],
-              "desc": "<p>By default <code>EventEmitter</code>s will print a warning if more than <code>10</code> listeners are\nadded for a particular event. This is a useful default that helps finding\nmemory leaks. Obviously, not all events should be limited to just 10 listeners.\nThe <code>emitter.setMaxListeners()</code> method allows the limit to be modified for this\nspecific <code>EventEmitter</code> instance. The value can be set to <code>Infinity</code> (or <code>0</code>)\nto indicate an unlimited number of listeners.</p>\n<p>Returns a reference to the <code>EventEmitter</code>, so that calls can be chained.</p>"
+              "desc": "<p>By default <code>EventEmitter</code>s will print a warning if more than <code>10</code> listeners are\nadded for a particular event. This is a useful default that helps finding\nmemory leaks. The <code>emitter.setMaxListeners()</code> method allows the limit to be\nmodified for this specific <code>EventEmitter</code> instance. The value can be set to\n<code>Infinity</code> (or <code>0</code>) to indicate an unlimited number of listeners.</p>\n<p>Returns a reference to the <code>EventEmitter</code>, so that calls can be chained.</p>"
             },
             {
-              "textRaw": "emitter.rawListeners(eventName)",
+              "textRaw": "`emitter.rawListeners(eventName)`",
               "type": "method",
               "name": "rawListeners",
               "meta": {
@@ -611,7 +1344,7 @@
           ],
           "properties": [
             {
-              "textRaw": "EventEmitter.defaultMaxListeners",
+              "textRaw": "`EventEmitter.defaultMaxListeners`",
               "name": "defaultMaxListeners",
               "meta": {
                 "added": [
@@ -620,18 +1353,49 @@
                 "changes": []
               },
               "desc": "<p>By default, a maximum of <code>10</code> listeners can be registered for any single\nevent. This limit can be changed for individual <code>EventEmitter</code> instances\nusing the <a href=\"#events_emitter_setmaxlisteners_n\"><code>emitter.setMaxListeners(n)</code></a> method. To change the default\nfor <em>all</em> <code>EventEmitter</code> instances, the <code>EventEmitter.defaultMaxListeners</code>\nproperty can be used. If this value is not a positive number, a <code>TypeError</code>\nwill be thrown.</p>\n<p>Take caution when setting the <code>EventEmitter.defaultMaxListeners</code> because the\nchange affects <em>all</em> <code>EventEmitter</code> instances, including those created before\nthe change is made. However, calling <a href=\"#events_emitter_setmaxlisteners_n\"><code>emitter.setMaxListeners(n)</code></a> still has\nprecedence over <code>EventEmitter.defaultMaxListeners</code>.</p>\n<p>This is not a hard limit. The <code>EventEmitter</code> instance will allow\nmore listeners to be added but will output a trace warning to stderr indicating\nthat a \"possible EventEmitter memory leak\" has been detected. For any single\n<code>EventEmitter</code>, the <code>emitter.getMaxListeners()</code> and <code>emitter.setMaxListeners()</code>\nmethods can be used to temporarily avoid this warning:</p>\n<pre><code class=\"language-js\">emitter.setMaxListeners(emitter.getMaxListeners() + 1);\nemitter.once('event', () => {\n  // do stuff\n  emitter.setMaxListeners(Math.max(emitter.getMaxListeners() - 1, 0));\n});\n</code></pre>\n<p>The <a href=\"cli.html#cli_trace_warnings\"><code>--trace-warnings</code></a> command line flag can be used to display the\nstack trace for such warnings.</p>\n<p>The emitted warning can be inspected with <a href=\"process.html#process_event_warning\"><code>process.on('warning')</code></a> and will\nhave the additional <code>emitter</code>, <code>type</code> and <code>count</code> properties, referring to\nthe event emitter instance, the event’s name and the number of attached\nlisteners, respectively.\nIts <code>name</code> property is set to <code>'MaxListenersExceededWarning'</code>.</p>"
+            },
+            {
+              "textRaw": "`EventEmitter.errorMonitor`",
+              "name": "errorMonitor",
+              "meta": {
+                "added": [
+                  "v13.6.0",
+                  "v12.16.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>This symbol shall be used to install a listener for only monitoring <code>'error'</code>\nevents. Listeners installed using this symbol are called before the regular\n<code>'error'</code> listeners are called.</p>\n<p>Installing a listener using this symbol does not change the behavior once an\n<code>'error'</code> event is emitted, therefore the process will still crash if no\nregular <code>'error'</code> listener is installed.</p>"
+            }
+          ],
+          "modules": [
+            {
+              "textRaw": "`emitter[Symbol.for('nodejs.rejection')](err, eventName[, ...args])`",
+              "name": "`emitter[symbol.for('nodejs.rejection')](err,_eventname[,_...args])`",
+              "meta": {
+                "added": [
+                  "v13.4.0",
+                  "v12.16.0"
+                ],
+                "changes": []
+              },
+              "stability": 1,
+              "stabilityText": "captureRejections is experimental.",
+              "desc": "<ul>\n<li><code>err</code> Error</li>\n<li><code>eventName</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type\" class=\"type\">&lt;string&gt;</a> | <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Symbol_type\" class=\"type\">&lt;symbol&gt;</a></li>\n<li><code>...args</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types\" class=\"type\">&lt;any&gt;</a></li>\n</ul>\n<p>The <code>Symbol.for('nodejs.rejection')</code> method is called in case a\npromise rejection happens when emitting an event and\n<a href=\"#events_capture_rejections_of_promises\"><code>captureRejections</code></a> is enabled on the emitter.\nIt is possible to use <a href=\"#events_events_capturerejectionsymbol\"><code>events.captureRejectionSymbol</code></a> in\nplace of <code>Symbol.for('nodejs.rejection')</code>.</p>\n<pre><code class=\"language-js\">const { EventEmitter, captureRejectionSymbol } = require('events');\n\nclass MyClass extends EventEmitter {\n  constructor() {\n    super({ captureRejections: true });\n  }\n\n  [captureRejectionSymbol](err, event, ...args) {\n    console.log('rejection happened for', event, 'with', err, ...args);\n    this.destroy(err);\n  }\n\n  destroy(err) {\n    // Tear the resource down here.\n  }\n}\n</code></pre>",
+              "type": "module",
+              "displayName": "`emitter[Symbol.for('nodejs.rejection')](err, eventName[, ...args])`"
             }
           ]
         }
       ],
       "methods": [
         {
-          "textRaw": "events.once(emitter, name)",
+          "textRaw": "`events.once(emitter, name)`",
           "type": "method",
           "name": "once",
           "meta": {
             "added": [
-              "v11.13.0"
+              "v11.13.0",
+              "v10.16.0"
             ],
             "changes": []
           },
@@ -656,7 +1420,82 @@
               ]
             }
           ],
-          "desc": "<p>Creates a <code>Promise</code> that is fulfilled when the <code>EventEmitter</code> emits the given\nevent or that is rejected when the <code>EventEmitter</code> emits <code>'error'</code>.\nThe <code>Promise</code> will resolve with an array of all the arguments emitted to the\ngiven event.</p>\n<p>This method is intentionally generic and works with the web platform\n<a href=\"https://dom.spec.whatwg.org/#interface-eventtarget\">EventTarget</a> interface, which has no special\n<code>'error'</code> event semantics and does not listen to the <code>'error'</code> event.</p>\n<pre><code class=\"language-js\">const { once, EventEmitter } = require('events');\n\nasync function run() {\n  const ee = new EventEmitter();\n\n  process.nextTick(() => {\n    ee.emit('myevent', 42);\n  });\n\n  const [value] = await once(ee, 'myevent');\n  console.log(value);\n\n  const err = new Error('kaboom');\n  process.nextTick(() => {\n    ee.emit('error', err);\n  });\n\n  try {\n    await once(ee, 'myevent');\n  } catch (err) {\n    console.log('error happened', err);\n  }\n}\n\nrun();\n</code></pre>"
+          "desc": "<p>Creates a <code>Promise</code> that is fulfilled when the <code>EventEmitter</code> emits the given\nevent or that is rejected if the <code>EventEmitter</code> emits <code>'error'</code> while waiting.\nThe <code>Promise</code> will resolve with an array of all the arguments emitted to the\ngiven event.</p>\n<p>This method is intentionally generic and works with the web platform\n<a href=\"https://dom.spec.whatwg.org/#interface-eventtarget\">EventTarget</a> interface, which has no special\n<code>'error'</code> event semantics and does not listen to the <code>'error'</code> event.</p>\n<pre><code class=\"language-js\">const { once, EventEmitter } = require('events');\n\nasync function run() {\n  const ee = new EventEmitter();\n\n  process.nextTick(() => {\n    ee.emit('myevent', 42);\n  });\n\n  const [value] = await once(ee, 'myevent');\n  console.log(value);\n\n  const err = new Error('kaboom');\n  process.nextTick(() => {\n    ee.emit('error', err);\n  });\n\n  try {\n    await once(ee, 'myevent');\n  } catch (err) {\n    console.log('error happened', err);\n  }\n}\n\nrun();\n</code></pre>\n<p>The special handling of the <code>'error'</code> event is only used when <code>events.once()</code>\nis used to wait for another event. If <code>events.once()</code> is used to wait for the\n'<code>error'</code> event itself, then it is treated as any other kind of event without\nspecial handling:</p>\n<pre><code class=\"language-js\">const { EventEmitter, once } = require('events');\n\nconst ee = new EventEmitter();\n\nonce(ee, 'error')\n  .then(([err]) => console.log('ok', err.message))\n  .catch((err) => console.log('error', err.message));\n\nee.emit('error', new Error('boom'));\n\n// Prints: ok boom\n</code></pre>",
+          "modules": [
+            {
+              "textRaw": "Awaiting multiple events emitted on `process.nextTick()`",
+              "name": "awaiting_multiple_events_emitted_on_`process.nexttick()`",
+              "desc": "<p>There is an edge case worth noting when using the <code>events.once()</code> function\nto await multiple events emitted on in the same batch of <code>process.nextTick()</code>\noperations, or whenever multiple events are emitted synchronously. Specifically,\nbecause the <code>process.nextTick()</code> queue is drained before the <code>Promise</code> microtask\nqueue, and because <code>EventEmitter</code> emits all events synchronously, it is possible\nfor <code>events.once()</code> to miss an event.</p>\n<pre><code class=\"language-js\">const { EventEmitter, once } = require('events');\n\nconst myEE = new EventEmitter();\n\nasync function foo() {\n  await once(myEE, 'bar');\n  console.log('bar');\n\n  // This Promise will never resolve because the 'foo' event will\n  // have already been emitted before the Promise is created.\n  await once(myEE, 'foo');\n  console.log('foo');\n}\n\nprocess.nextTick(() => {\n  myEE.emit('bar');\n  myEE.emit('foo');\n});\n\nfoo().then(() => console.log('done'));\n</code></pre>\n<p>To catch both events, create each of the Promises <em>before</em> awaiting either\nof them, then it becomes possible to use <code>Promise.all()</code>, <code>Promise.race()</code>,\nor <code>Promise.allSettled()</code>:</p>\n<pre><code class=\"language-js\">const { EventEmitter, once } = require('events');\n\nconst myEE = new EventEmitter();\n\nasync function foo() {\n  await Promise.all([once(myEE, 'bar'), once(myEE, 'foo')]);\n  console.log('foo', 'bar');\n}\n\nprocess.nextTick(() => {\n  myEE.emit('bar');\n  myEE.emit('foo');\n});\n\nfoo().then(() => console.log('done'));\n</code></pre>",
+              "type": "module",
+              "displayName": "Awaiting multiple events emitted on `process.nextTick()`"
+            }
+          ]
+        },
+        {
+          "textRaw": "`events.on(emitter, eventName)`",
+          "type": "method",
+          "name": "on",
+          "meta": {
+            "added": [
+              "v13.6.0",
+              "v12.16.0"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "return": {
+                "textRaw": "Returns: {AsyncIterator} that iterates `eventName` events emitted by the `emitter`",
+                "name": "return",
+                "type": "AsyncIterator",
+                "desc": "that iterates `eventName` events emitted by the `emitter`"
+              },
+              "params": [
+                {
+                  "textRaw": "`emitter` {EventEmitter}",
+                  "name": "emitter",
+                  "type": "EventEmitter"
+                },
+                {
+                  "textRaw": "`eventName` {string|symbol} The name of the event being listened for",
+                  "name": "eventName",
+                  "type": "string|symbol",
+                  "desc": "The name of the event being listened for"
+                }
+              ]
+            }
+          ],
+          "desc": "<pre><code class=\"language-js\">const { on, EventEmitter } = require('events');\n\n(async () => {\n  const ee = new EventEmitter();\n\n  // Emit later on\n  process.nextTick(() => {\n    ee.emit('foo', 'bar');\n    ee.emit('foo', 42);\n  });\n\n  for await (const event of on(ee, 'foo')) {\n    // The execution of this inner block is synchronous and it\n    // processes one event at a time (even with await). Do not use\n    // if concurrent execution is required.\n    console.log(event); // prints ['bar'] [42]\n  }\n  // Unreachable here\n})();\n</code></pre>\n<p>Returns an <code>AsyncIterator</code> that iterates <code>eventName</code> events. It will throw\nif the <code>EventEmitter</code> emits <code>'error'</code>. It removes all listeners when\nexiting the loop. The <code>value</code> returned by each iteration is an array\ncomposed of the emitted event arguments.</p>"
+        }
+      ],
+      "properties": [
+        {
+          "textRaw": "`events.captureRejections`",
+          "name": "captureRejections",
+          "meta": {
+            "added": [
+              "v13.4.0",
+              "v12.16.0"
+            ],
+            "changes": []
+          },
+          "stability": 1,
+          "stabilityText": "captureRejections is experimental.",
+          "desc": "<p>Value: <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type\" class=\"type\">&lt;boolean&gt;</a></p>\n<p>Change the default <code>captureRejections</code> option on all new <code>EventEmitter</code> objects.</p>"
+        },
+        {
+          "textRaw": "`events.captureRejectionSymbol`",
+          "name": "captureRejectionSymbol",
+          "meta": {
+            "added": [
+              "v13.4.0",
+              "v12.16.0"
+            ],
+            "changes": []
+          },
+          "stability": 1,
+          "stabilityText": "captureRejections is experimental.",
+          "desc": "<p>Value: <code>Symbol.for('nodejs.rejection')</code></p>\n<p>See how to write a custom <a href=\"#events_emitter_symbol_for_nodejs_rejection_err_eventname_args\">rejection handler</a>.</p>"
         }
       ]
     }

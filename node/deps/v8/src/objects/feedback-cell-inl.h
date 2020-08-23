@@ -17,12 +17,7 @@
 namespace v8 {
 namespace internal {
 
-OBJECT_CONSTRUCTORS_IMPL(FeedbackCell, Struct)
-
-CAST_ACCESSOR(FeedbackCell)
-
-ACCESSORS(FeedbackCell, value, HeapObject, kValueOffset)
-INT32_ACCESSORS(FeedbackCell, interrupt_budget, kInterruptBudgetOffset)
+TQ_OBJECT_CONSTRUCTORS_IMPL(FeedbackCell)
 
 void FeedbackCell::clear_padding() {
   if (FeedbackCell::kAlignedSize == FeedbackCell::kUnalignedSize) return;
@@ -31,9 +26,33 @@ void FeedbackCell::clear_padding() {
          FeedbackCell::kAlignedSize - FeedbackCell::kUnalignedSize);
 }
 
-void FeedbackCell::reset() {
-  set_value(GetReadOnlyRoots().undefined_value());
-  set_interrupt_budget(FeedbackCell::GetInitialInterruptBudget());
+void FeedbackCell::reset_feedback_vector(
+    base::Optional<std::function<void(HeapObject object, ObjectSlot slot,
+                                      HeapObject target)>>
+        gc_notify_updated_slot) {
+  SetInitialInterruptBudget();
+  if (value().IsUndefined() || value().IsClosureFeedbackCellArray()) return;
+
+  CHECK(value().IsFeedbackVector());
+  ClosureFeedbackCellArray closure_feedback_cell_array =
+      FeedbackVector::cast(value()).closure_feedback_cell_array();
+  set_value(closure_feedback_cell_array);
+  if (gc_notify_updated_slot) {
+    (*gc_notify_updated_slot)(*this, RawField(FeedbackCell::kValueOffset),
+                              closure_feedback_cell_array);
+  }
+}
+
+void FeedbackCell::SetInitialInterruptBudget() {
+  if (FLAG_lazy_feedback_allocation) {
+    set_interrupt_budget(FLAG_budget_for_feedback_vector_allocation);
+  } else {
+    set_interrupt_budget(FLAG_interrupt_budget);
+  }
+}
+
+void FeedbackCell::SetInterruptBudget() {
+  set_interrupt_budget(FLAG_interrupt_budget);
 }
 
 }  // namespace internal

@@ -18,7 +18,7 @@
 #include "src/execution/arm64/simulator-arm64.h"
 #elif V8_TARGET_ARCH_ARM
 #include "src/execution/arm/simulator-arm.h"
-#elif V8_TARGET_ARCH_PPC
+#elif V8_TARGET_ARCH_PPC || V8_TARGET_ARCH_PPC64
 #include "src/execution/ppc/simulator-ppc.h"
 #elif V8_TARGET_ARCH_MIPS
 #include "src/execution/mips/simulator-mips.h"
@@ -115,15 +115,19 @@ class GeneratedCode {
 #ifdef USE_SIMULATOR
   // Defined in simulator-base.h.
   Return Call(Args... args) {
+#if defined(V8_TARGET_OS_WIN) && !defined(V8_OS_WIN)
+    FATAL("Generated code execution not possible during cross-compilation.");
+#endif  // defined(V8_TARGET_OS_WIN) && !defined(V8_OS_WIN)
     return Simulator::current(isolate_)->template Call<Return>(
         reinterpret_cast<Address>(fn_ptr_), args...);
   }
-
-  DISABLE_CFI_ICALL Return CallIrregexp(Args... args) { return Call(args...); }
 #else
 
   DISABLE_CFI_ICALL Return Call(Args... args) {
     // When running without a simulator we call the entry directly.
+#if defined(V8_TARGET_OS_WIN) && !defined(V8_OS_WIN)
+    FATAL("Generated code execution not possible during cross-compilation.");
+#endif  // defined(V8_TARGET_OS_WIN) && !defined(V8_OS_WIN)
 #if V8_OS_AIX
     // AIX ABI requires function descriptors (FD).  Artificially create a pseudo
     // FD to ensure correct dispatch to generated code.  The 'volatile'
@@ -137,11 +141,6 @@ class GeneratedCode {
 #else
     return fn_ptr_(args...);
 #endif  // V8_OS_AIX
-  }
-
-  DISABLE_CFI_ICALL Return CallIrregexp(Args... args) {
-    // When running without a simulator we call the entry directly.
-    return fn_ptr_(args...);
   }
 #endif  // USE_SIMULATOR
 

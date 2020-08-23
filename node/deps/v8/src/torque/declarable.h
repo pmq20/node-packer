@@ -21,6 +21,7 @@ namespace torque {
 
 class Scope;
 class Namespace;
+class TypeArgumentInference;
 
 DECLARE_CONTEXTUAL_VARIABLE(CurrentScope, Scope*);
 
@@ -49,8 +50,8 @@ class Declarable {
     kBuiltin,
     kRuntimeFunction,
     kIntrinsic,
-    kGeneric,
-    kGenericStructType,
+    kGenericCallable,
+    kGenericType,
     kTypeAlias,
     kExternConstant,
     kNamespaceConstant
@@ -64,8 +65,8 @@ class Declarable {
   bool IsIntrinsic() const { return kind() == kIntrinsic; }
   bool IsBuiltin() const { return kind() == kBuiltin; }
   bool IsRuntimeFunction() const { return kind() == kRuntimeFunction; }
-  bool IsGeneric() const { return kind() == kGeneric; }
-  bool IsGenericStructType() const { return kind() == kGenericStructType; }
+  bool IsGenericCallable() const { return kind() == kGenericCallable; }
+  bool IsGenericType() const { return kind() == kGenericType; }
   bool IsTypeAlias() const { return kind() == kTypeAlias; }
   bool IsExternConstant() const { return kind() == kExternConstant; }
   bool IsNamespaceConstant() const { return kind() == kNamespaceConstant; }
@@ -132,6 +133,30 @@ class Declarable {
     return static_cast<const x*>(declarable);                 \
   }
 
+// Information about what code caused a specialization to exist. This is used
+// for error reporting.
+struct SpecializationRequester {
+  // The position of the expression that caused this specialization.
+  SourcePosition position;
+  // The Scope which contains the expression that caused this specialization.
+  // It may in turn also be within a specialization, which allows us to print
+  // the stack of requesters when an error occurs.
+  Scope* scope;
+  // The name of the specialization.
+  std::string name;
+
+  static SpecializationRequester None() {
+    return {SourcePosition::Invalid(), nullptr, ""};
+  }
+
+  bool IsNone() const {
+    return position == SourcePosition::Invalid() && scope == nullptr &&
+           name == "";
+  }
+  SpecializationRequester(SourcePosition position, Scope* scope,
+                          std::string name);
+};
+
 class Scope : public Declarable {
  public:
   DECLARE_DECLARABLE_BOILERPLATE(Scope, scope)
@@ -173,8 +198,20 @@ class Scope : public Declarable {
     return declarable;
   }
 
+  const SpecializationRequester& GetSpecializationRequester() const {
+    return requester_;
+  }
+  void SetSpecializationRequester(const SpecializationRequester& requester) {
+    requester_ = requester;
+  }
+
  private:
   std::unordered_map<std::string, std::vector<Declarable*>> declarations_;
+
+  // If this Scope was created for specializing a generic type or callable,
+  // then {requester_} refers to the place that caused the specialization so we
+  // can construct useful error messages.
+  SpecializationRequester requester_ = SpecializationRequester::None();
 };
 
 class Namespace : public Scope {
@@ -261,6 +298,7 @@ class Callable : public Scope {
   const std::string& ExternalName() const { return external_name_; }
   const std::string& ReadableName() const { return readable_name_; }
   const Signature& signature() const { return signature_; }
+  bool IsTransitioning() const { return signature().transitioning; }
   const NameVector& parameter_names() const {
     return signature_.parameter_names;
   }
@@ -269,7 +307,6 @@ class Callable : public Scope {
   }
   void IncrementReturns() { ++returns_; }
   bool HasReturns() const { return returns_; }
-  bool IsTransitioning() const { return transitioning_; }
   base::Optional<Statement*> body() const { return body_; }
   bool IsExternal() const { return !body_.has_value(); }
   virtual bool ShouldBeInlined() const { return false; }
@@ -277,14 +314,13 @@ class Callable : public Scope {
 
  protected:
   Callable(Declarable::Kind kind, std::string external_name,
-           std::string readable_name, Signature signature, bool transitioning,
+           std::string readable_name, Signature signature,
            base::Optional<Statement*> body)
       : Scope(kind),
         external_name_(std::move(external_name)),
 
         readable_name_(std::move(readable_name)),
         signature_(std::move(signature)),
-        transitioning_(transitioning),
         returns_(0),
         body_(body) {
     DCHECK(!body || *body);
@@ -294,7 +330,6 @@ class Callable : public Scope {
   std::string external_name_;
   std::string readable_name_;
   Signature signature_;
-  bool transitioning_;
   size_t returns_;
   base::Optional<Statement*> body_;
 };
@@ -305,7 +340,7 @@ class Macro : public Callable {
   bool ShouldBeInlined() const override {
     for (const LabelDeclaration& label : signature().labels) {
       for (const Type* type : label.types) {
-        if (type->IsStructType()) return true;
+        if (type->StructSupertype()) return true;
       }
     }
     // Intrinsics that are used internally in Torque and implemented as torque
@@ -320,9 +355,9 @@ class Macro : public Callable {
  protected:
   Macro(Declarable::Kind kind, std::string external_name,
         std::string readable_name, const Signature& signature,
-        bool transitioning, base::Optional<Statement*> body)
+        base::Optional<Statement*> body)
       : Callable(kind, std::move(external_name), std::move(readable_name),
-                 signature, transitioning, body),
+                 signature, body),
         used_(false) {
     if (signature.parameter_types.var_args) {
       ReportError("Varargs are not supported for macros.");
@@ -344,9 +379,9 @@ class ExternMacro : public Macro {
  private:
   friend class Declarations;
   ExternMacro(const std::string& name, std::string external_assembler_name,
-              Signature signature, bool transitioning)
+              Signature signature)
       : Macro(Declarable::kExternMacro, name, name, std::move(signature),
-              transitioning, base::nullopt),
+              base::nullopt),
         external_assembler_name_(std::move(external_assembler_name)) {}
 
   std::string external_assembler_name_;
@@ -360,10 +395,10 @@ class TorqueMacro : public Macro {
  protected:
   TorqueMacro(Declarable::Kind kind, std::string external_name,
               std::string readable_name, const Signature& signature,
-              bool transitioning, base::Optional<Statement*> body,
-              bool is_user_defined, bool exported_to_csa)
+              base::Optional<Statement*> body, bool is_user_defined,
+              bool exported_to_csa)
       : Macro(kind, std::move(external_name), std::move(readable_name),
-              signature, transitioning, body),
+              signature, body),
         exported_to_csa_(exported_to_csa) {
     SetIsUserDefined(is_user_defined);
   }
@@ -371,12 +406,11 @@ class TorqueMacro : public Macro {
  private:
   friend class Declarations;
   TorqueMacro(std::string external_name, std::string readable_name,
-              const Signature& signature, bool transitioning,
-              base::Optional<Statement*> body, bool is_user_defined,
-              bool exported_to_csa)
+              const Signature& signature, base::Optional<Statement*> body,
+              bool is_user_defined, bool exported_to_csa)
       : TorqueMacro(Declarable::kTorqueMacro, std::move(external_name),
-                    std::move(readable_name), signature, transitioning, body,
-                    is_user_defined, exported_to_csa) {}
+                    std::move(readable_name), signature, body, is_user_defined,
+                    exported_to_csa) {}
 
   bool exported_to_csa_ = false;
 };
@@ -395,11 +429,9 @@ class Method : public TorqueMacro {
  private:
   friend class Declarations;
   Method(AggregateType* aggregate_type, std::string external_name,
-         std::string readable_name, const Signature& signature,
-         bool transitioning, Statement* body)
+         std::string readable_name, const Signature& signature, Statement* body)
       : TorqueMacro(Declarable::kMethod, std::move(external_name),
-                    std::move(readable_name), signature, transitioning, body,
-                    true, false),
+                    std::move(readable_name), signature, body, true, false),
         aggregate_type_(aggregate_type) {}
   AggregateType* aggregate_type_;
 };
@@ -416,10 +448,10 @@ class Builtin : public Callable {
  private:
   friend class Declarations;
   Builtin(std::string external_name, std::string readable_name,
-          Builtin::Kind kind, const Signature& signature, bool transitioning,
+          Builtin::Kind kind, const Signature& signature,
           base::Optional<Statement*> body)
       : Callable(Declarable::kBuiltin, std::move(external_name),
-                 std::move(readable_name), signature, transitioning, body),
+                 std::move(readable_name), signature, body),
         kind_(kind) {}
 
   Kind kind_;
@@ -431,10 +463,9 @@ class RuntimeFunction : public Callable {
 
  private:
   friend class Declarations;
-  RuntimeFunction(const std::string& name, const Signature& signature,
-                  bool transitioning)
+  RuntimeFunction(const std::string& name, const Signature& signature)
       : Callable(Declarable::kRuntimeFunction, name, name, signature,
-                 transitioning, base::nullopt) {}
+                 base::nullopt) {}
 };
 
 class Intrinsic : public Callable {
@@ -444,27 +475,53 @@ class Intrinsic : public Callable {
  private:
   friend class Declarations;
   Intrinsic(std::string name, const Signature& signature)
-      : Callable(Declarable::kIntrinsic, name, name, signature, false,
-                 base::nullopt) {
+      : Callable(Declarable::kIntrinsic, name, name, signature, base::nullopt) {
     if (signature.parameter_types.var_args) {
       ReportError("Varargs are not supported for intrinsics.");
     }
   }
 };
 
-template <class T>
-class SpecializationMap {
+class TypeConstraint {
+ public:
+  base::Optional<std::string> IsViolated(const Type*) const;
+
+  static TypeConstraint Unconstrained() { return {}; }
+  static TypeConstraint SubtypeConstraint(const Type* upper_bound) {
+    TypeConstraint result;
+    result.upper_bound = {upper_bound};
+    return result;
+  }
+
  private:
-  using Map = std::unordered_map<TypeVector, T*, base::hash<TypeVector>>;
+  base::Optional<const Type*> upper_bound;
+};
+
+base::Optional<std::string> FindConstraintViolation(
+    const std::vector<const Type*>& types,
+    const std::vector<TypeConstraint>& constraints);
+
+std::vector<TypeConstraint> ComputeConstraints(
+    Scope* scope, const GenericParameters& parameters);
+
+template <class SpecializationType, class DeclarationType>
+class GenericDeclarable : public Declarable {
+ private:
+  using Map = std::unordered_map<TypeVector, SpecializationType,
+                                 base::hash<TypeVector>>;
 
  public:
-  SpecializationMap() {}
-
-  void Add(const TypeVector& type_arguments, T* specialization) {
+  void AddSpecialization(const TypeVector& type_arguments,
+                         SpecializationType specialization) {
     DCHECK_EQ(0, specializations_.count(type_arguments));
+    if (auto violation =
+            FindConstraintViolation(type_arguments, Constraints())) {
+      Error(*violation).Throw();
+    }
     specializations_[type_arguments] = specialization;
   }
-  base::Optional<T*> Get(const TypeVector& type_arguments) const {
+  base::Optional<SpecializationType> GetSpecialization(
+      const TypeVector& type_arguments) const {
     auto it = specializations_.find(type_arguments);
     if (it != specializations_.end()) return it->second;
     return base::nullopt;
@@ -474,66 +531,64 @@ class SpecializationMap {
   iterator begin() const { return specializations_.begin(); }
   iterator end() const { return specializations_.end(); }
 
+  const std::string& name() const { return name_; }
+  auto declaration() const { return generic_declaration_->declaration; }
+  const GenericParameters& generic_parameters() const {
+    return generic_declaration_->generic_parameters;
+  }
+
+  const std::vector<TypeConstraint>& Constraints() {
+    if (!constraints_)
+      constraints_ = {ComputeConstraints(ParentScope(), generic_parameters())};
+    return *constraints_;
+  }
+
+ protected:
+  GenericDeclarable(Declarable::Kind kind, const std::string& name,
+                    DeclarationType generic_declaration)
+      : Declarable(kind),
+        name_(name),
+        generic_declaration_(generic_declaration) {
+    DCHECK(!generic_declaration->generic_parameters.empty());
+  }
+
  private:
+  std::string name_;
+  DeclarationType generic_declaration_;
   Map specializations_;
+  base::Optional<std::vector<TypeConstraint>> constraints_;
 };
 
-class Generic : public Declarable {
+class GenericCallable
+    : public GenericDeclarable<Callable*, GenericCallableDeclaration*> {
  public:
-  DECLARE_DECLARABLE_BOILERPLATE(Generic, generic)
+  DECLARE_DECLARABLE_BOILERPLATE(GenericCallable, generic_callable)
 
-  const std::string& name() const { return name_; }
-  GenericDeclaration* declaration() const { return declaration_; }
-  const std::vector<Identifier*> generic_parameters() const {
-    return declaration()->generic_parameters;
-  }
-  SpecializationMap<Callable>& specializations() { return specializations_; }
+  base::Optional<Statement*> CallableBody();
 
-  base::Optional<TypeVector> InferSpecializationTypes(
+  TypeArgumentInference InferSpecializationTypes(
       const TypeVector& explicit_specialization_types,
       const TypeVector& arguments);
 
  private:
   friend class Declarations;
-  Generic(const std::string& name, GenericDeclaration* declaration)
-      : Declarable(Declarable::kGeneric),
-        name_(name),
-        declaration_(declaration) {}
-
-  std::string name_;
-  GenericDeclaration* declaration_;
-  SpecializationMap<Callable> specializations_;
+  GenericCallable(const std::string& name,
+                  GenericCallableDeclaration* generic_declaration)
+      : GenericDeclarable<Callable*, GenericCallableDeclaration*>(
+            Declarable::kGenericCallable, name, generic_declaration) {}
 };
 
-struct SpecializationKey {
-  Generic* generic;
-  TypeVector specialized_types;
-};
-
-class GenericStructType : public Declarable {
+class GenericType
+    : public GenericDeclarable<const Type*, GenericTypeDeclaration*> {
  public:
-  DECLARE_DECLARABLE_BOILERPLATE(GenericStructType, generic_type)
-  const std::string& name() const { return name_; }
-  StructDeclaration* declaration() const { return declaration_; }
-  const std::vector<Identifier*>& generic_parameters() const {
-    return declaration_->generic_parameters;
-  }
-  SpecializationMap<const StructType>& specializations() {
-    return specializations_;
-  }
+  DECLARE_DECLARABLE_BOILERPLATE(GenericType, generic_type)
 
  private:
   friend class Declarations;
-  GenericStructType(const std::string& name, StructDeclaration* declaration)
-      : Declarable(Declarable::kGenericStructType),
-        name_(name),
-        declaration_(declaration) {
-    DCHECK_GT(declaration->generic_parameters.size(), 0);
-  }
-
-  std::string name_;
-  StructDeclaration* declaration_;
-  SpecializationMap<const StructType> specializations_;
+  GenericType(const std::string& name,
+              GenericTypeDeclaration* generic_declaration)
+      : GenericDeclarable<const Type*, GenericTypeDeclaration*>(
+            Declarable::kGenericType, name, generic_declaration) {}
 };
 
 class TypeAlias : public Declarable {
@@ -579,7 +634,7 @@ class TypeAlias : public Declarable {
 std::ostream& operator<<(std::ostream& os, const Callable& m);
 std::ostream& operator<<(std::ostream& os, const Builtin& b);
 std::ostream& operator<<(std::ostream& os, const RuntimeFunction& b);
-std::ostream& operator<<(std::ostream& os, const Generic& g);
+std::ostream& operator<<(std::ostream& os, const GenericCallable& g);
 
 #undef DECLARE_DECLARABLE_BOILERPLATE
 

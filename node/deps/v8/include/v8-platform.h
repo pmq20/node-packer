@@ -11,11 +11,33 @@
 #include <memory>
 #include <string>
 
-#include "v8config.h"  // NOLINT(build/include)
+#include "v8config.h"  // NOLINT(build/include_directory)
 
 namespace v8 {
 
 class Isolate;
+
+// Valid priorities supported by the task scheduling infrastructure.
+enum class TaskPriority : uint8_t {
+  /**
+   * Best effort tasks are not critical for performance of the application. The
+   * platform implementation should preempt such tasks if higher priority tasks
+   * arrive.
+   */
+  kBestEffort,
+  /**
+   * User visible tasks are long running background tasks that will
+   * improve performance and memory usage of the application upon completion.
+   * Example: background compilation and garbage collection.
+   */
+  kUserVisible,
+  /**
+   * User blocking tasks are highest priority tasks that block the execution
+   * thread (e.g. major garbage collection). They must be finished as soon as
+   * possible.
+   */
+  kUserBlocking,
+};
 
 /**
  * A Task represents a unit of work.
@@ -111,6 +133,82 @@ class TaskRunner {
 
   TaskRunner(const TaskRunner&) = delete;
   TaskRunner& operator=(const TaskRunner&) = delete;
+};
+
+/**
+ * Delegate that's passed to Job's worker task, providing an entry point to
+ * communicate with the scheduler.
+ */
+class JobDelegate {
+ public:
+  /**
+   * Returns true if this thread should return from the worker task on the
+   * current thread ASAP. Workers should periodically invoke ShouldYield (or
+   * YieldIfNeeded()) as often as is reasonable.
+   */
+  virtual bool ShouldYield() = 0;
+
+  /**
+   * Notifies the scheduler that max concurrency was increased, and the number
+   * of worker should be adjusted accordingly. See Platform::PostJob() for more
+   * details.
+   */
+  virtual void NotifyConcurrencyIncrease() = 0;
+};
+
+/**
+ * Handle returned when posting a Job. Provides methods to control execution of
+ * the posted Job.
+ */
+class JobHandle {
+ public:
+  virtual ~JobHandle() = default;
+
+  /**
+   * Notifies the scheduler that max concurrency was increased, and the number
+   * of worker should be adjusted accordingly. See Platform::PostJob() for more
+   * details.
+   */
+  virtual void NotifyConcurrencyIncrease() = 0;
+
+  /**
+   * Contributes to the job on this thread. Doesn't return until all tasks have
+   * completed and max concurrency becomes 0. When Join() is called and max
+   * concurrency reaches 0, it should not increase again. This also promotes
+   * this Job's priority to be at least as high as the calling thread's
+   * priority.
+   */
+  virtual void Join() = 0;
+
+  /**
+   * Forces all existing workers to yield ASAP. Waits until they have all
+   * returned from the Job's callback before returning.
+   */
+  virtual void Cancel() = 0;
+
+  /**
+   * Returns true if associated with a Job and other methods may be called.
+   * Returns false after Join() or Cancel() was called.
+   */
+  virtual bool IsRunning() = 0;
+};
+
+/**
+ * A JobTask represents work to run in parallel from Platform::PostJob().
+ */
+class JobTask {
+ public:
+  virtual ~JobTask() = default;
+
+  virtual void Run(JobDelegate* delegate) = 0;
+
+  /**
+   * Controls the maximum number of threads calling Run() concurrently. Run() is
+   * only invoked if the number of threads previously running Run() was less
+   * than the value returned. Since GetMaxConcurrency() is a leaf function, it
+   * must not call back any JobHandle methods.
+   */
+  virtual size_t GetMaxConcurrency() const = 0;
 };
 
 /**
@@ -326,7 +424,8 @@ class Platform {
 
   /**
    * Returns a TaskRunner which can be used to post a task on the foreground.
-   * This function should only be called from a foreground thread.
+   * The TaskRunner's NonNestableTasksEnabled() must be true. This function
+   * should only be called from a foreground thread.
    */
   virtual std::shared_ptr<v8::TaskRunner> GetForegroundTaskRunner(
       Isolate* isolate) = 0;
@@ -363,45 +462,69 @@ class Platform {
                                          double delay_in_seconds) = 0;
 
   /**
-   * Schedules a task to be invoked on a foreground thread wrt a specific
-   * |isolate|. Tasks posted for the same isolate should be execute in order of
-   * scheduling. The definition of "foreground" is opaque to V8.
-   */
-  V8_DEPRECATE_SOON(
-      "Use a taskrunner acquired by GetForegroundTaskRunner instead.",
-      virtual void CallOnForegroundThread(Isolate* isolate, Task* task)) = 0;
-
-  /**
-   * Schedules a task to be invoked on a foreground thread wrt a specific
-   * |isolate| after the given number of seconds |delay_in_seconds|.
-   * Tasks posted for the same isolate should be execute in order of
-   * scheduling. The definition of "foreground" is opaque to V8.
-   */
-  V8_DEPRECATE_SOON(
-      "Use a taskrunner acquired by GetForegroundTaskRunner instead.",
-      virtual void CallDelayedOnForegroundThread(Isolate* isolate, Task* task,
-                                                 double delay_in_seconds)) = 0;
-
-  /**
-   * Schedules a task to be invoked on a foreground thread wrt a specific
-   * |isolate| when the embedder is idle.
-   * Requires that SupportsIdleTasks(isolate) is true.
-   * Idle tasks may be reordered relative to other task types and may be
-   * starved for an arbitrarily long time if no idle time is available.
-   * The definition of "foreground" is opaque to V8.
-   */
-  V8_DEPRECATE_SOON(
-      "Use a taskrunner acquired by GetForegroundTaskRunner instead.",
-      virtual void CallIdleOnForegroundThread(Isolate* isolate,
-                                              IdleTask* task)) {
-    // This must be overriden if |IdleTasksEnabled()|.
-    abort();
-  }
-
-  /**
    * Returns true if idle tasks are enabled for the given |isolate|.
    */
   virtual bool IdleTasksEnabled(Isolate* isolate) { return false; }
+
+  /**
+   * Posts |job_task| to run in parallel. Returns a JobHandle associated with
+   * the Job, which can be joined or canceled.
+   * This avoids degenerate cases:
+   * - Calling CallOnWorkerThread() for each work item, causing significant
+   *   overhead.
+   * - Fixed number of CallOnWorkerThread() calls that split the work and might
+   *   run for a long time. This is problematic when many components post
+   *   "num cores" tasks and all expect to use all the cores. In these cases,
+   *   the scheduler lacks context to be fair to multiple same-priority requests
+   *   and/or ability to request lower priority work to yield when high priority
+   *   work comes in.
+   * A canonical implementation of |job_task| looks like:
+   * class MyJobTask : public JobTask {
+   *  public:
+   *   MyJobTask(...) : worker_queue_(...) {}
+   *   // JobTask:
+   *   void Run(JobDelegate* delegate) override {
+   *     while (!delegate->ShouldYield()) {
+   *       // Smallest unit of work.
+   *       auto work_item = worker_queue_.TakeWorkItem(); // Thread safe.
+   *       if (!work_item) return;
+   *       ProcessWork(work_item);
+   *     }
+   *   }
+   *
+   *   size_t GetMaxConcurrency() const override {
+   *     return worker_queue_.GetSize(); // Thread safe.
+   *   }
+   * };
+   * auto handle = PostJob(TaskPriority::kUserVisible,
+   *                       std::make_unique<MyJobTask>(...));
+   * handle->Join();
+   *
+   * PostJob() and methods of the returned JobHandle/JobDelegate, must never be
+   * called while holding a lock that could be acquired by JobTask::Run or
+   * JobTask::GetMaxConcurrency -- that could result in a deadlock. This is
+   * because [1] JobTask::GetMaxConcurrency may be invoked while holding
+   * internal lock (A), hence JobTask::GetMaxConcurrency can only use a lock (B)
+   * if that lock is *never* held while calling back into JobHandle from any
+   * thread (A=>B/B=>A deadlock) and [2] JobTask::Run or
+   * JobTask::GetMaxConcurrency may be invoked synchronously from JobHandle
+   * (B=>JobHandle::foo=>B deadlock).
+   *
+   * A sufficient PostJob() implementation that uses the default Job provided in
+   * libplatform looks like:
+   *  std::unique_ptr<JobHandle> PostJob(
+   *      TaskPriority priority, std::unique_ptr<JobTask> job_task) override {
+   *    return std::make_unique<DefaultJobHandle>(
+   *        std::make_shared<DefaultJobState>(
+   *            this, std::move(job_task), kNumThreads));
+   * }
+   */
+  /* This is not available on Node v14.x.
+   * virtual std::unique_ptr<JobHandle> PostJob(
+   *    TaskPriority priority, std::unique_ptr<JobTask> job_task) {
+   *  return nullptr;
+   * }
+   */
 
   /**
    * Monotonically increasing time in seconds from an arbitrary fixed point in
@@ -436,14 +559,6 @@ class Platform {
    * but non-critical scenario.
    */
   virtual void DumpWithoutCrashing() {}
-
-  /**
-   * Lets the embedder to add crash keys.
-   */
-  virtual void AddCrashKey(int id, const char* name, uintptr_t value) {
-    // "noop" is a valid implementation if the embedder doesn't care to log
-    // additional data for crashes.
-  }
 
  protected:
   /**

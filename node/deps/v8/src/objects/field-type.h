@@ -41,10 +41,8 @@ class FieldType : public Object {
   bool NowIs(FieldType other) const;
   bool NowIs(Handle<FieldType> other) const;
 
+  V8_EXPORT_PRIVATE bool Equals(FieldType other) const;
   V8_EXPORT_PRIVATE void PrintTo(std::ostream& os) const;
-
-  FieldType* operator->() { return this; }
-  const FieldType* operator->() const { return this; }
 
  private:
   explicit constexpr FieldType(Address ptr) : Object(ptr) {}

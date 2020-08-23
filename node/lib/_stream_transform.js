@@ -63,7 +63,11 @@
 
 'use strict';
 
-const { Object } = primordials;
+const {
+  ObjectDefineProperty,
+  ObjectSetPrototypeOf,
+  Symbol
+} = primordials;
 
 module.exports = Transform;
 const {
@@ -73,12 +77,15 @@ const {
   ERR_TRANSFORM_WITH_LENGTH_0
 } = require('internal/errors').codes;
 const Duplex = require('_stream_duplex');
-Object.setPrototypeOf(Transform.prototype, Duplex.prototype);
-Object.setPrototypeOf(Transform, Duplex);
+const internalUtil = require('internal/util');
 
+ObjectSetPrototypeOf(Transform.prototype, Duplex.prototype);
+ObjectSetPrototypeOf(Transform, Duplex);
+
+const kTransformState = Symbol('kTransformState');
 
 function afterTransform(er, data) {
-  const ts = this._transformState;
+  const ts = this[kTransformState];
   ts.transforming = false;
 
   const cb = ts.writecb;
@@ -109,7 +116,7 @@ function Transform(options) {
 
   Duplex.call(this, options);
 
-  this._transformState = {
+  this[kTransformState] = {
     afterTransform: afterTransform.bind(this),
     needTransform: false,
     transforming: false,
@@ -145,8 +152,17 @@ function prefinish() {
   }
 }
 
+ObjectDefineProperty(Transform.prototype, '_transformState', {
+  get: internalUtil.deprecate(function() {
+    return this[kTransformState];
+  }, 'Transform.prototype._transformState is deprecated', 'DEP0143'),
+  set: internalUtil.deprecate(function(val) {
+    this[kTransformState] = val;
+  }, 'Transform.prototype._transformState is deprecated', 'DEP0143')
+});
+
 Transform.prototype.push = function(chunk, encoding) {
-  this._transformState.needTransform = false;
+  this[kTransformState].needTransform = false;
   return Duplex.prototype.push.call(this, chunk, encoding);
 };
 
@@ -161,16 +177,16 @@ Transform.prototype.push = function(chunk, encoding) {
 // an error, then that'll put the hurt on the whole operation.  If you
 // never call cb(), then you'll never get another chunk.
 Transform.prototype._transform = function(chunk, encoding, cb) {
-  cb(new ERR_METHOD_NOT_IMPLEMENTED('_transform()'));
+  throw new ERR_METHOD_NOT_IMPLEMENTED('_transform()');
 };
 
 Transform.prototype._write = function(chunk, encoding, cb) {
-  const ts = this._transformState;
+  const ts = this[kTransformState];
   ts.writecb = cb;
   ts.writechunk = chunk;
   ts.writeencoding = encoding;
   if (!ts.transforming) {
-    var rs = this._readableState;
+    const rs = this._readableState;
     if (ts.needTransform ||
         rs.needReadable ||
         rs.length < rs.highWaterMark)
@@ -182,7 +198,7 @@ Transform.prototype._write = function(chunk, encoding, cb) {
 // _transform does all the work.
 // That we got here means that the readable side wants more data.
 Transform.prototype._read = function(n) {
-  const ts = this._transformState;
+  const ts = this[kTransformState];
 
   if (ts.writechunk !== null && !ts.transforming) {
     ts.transforming = true;
@@ -213,7 +229,7 @@ function done(stream, er, data) {
   if (stream._writableState.length)
     throw new ERR_TRANSFORM_WITH_LENGTH_0();
 
-  if (stream._transformState.transforming)
+  if (stream[kTransformState].transforming)
     throw new ERR_TRANSFORM_ALREADY_TRANSFORMING();
   return stream.push(null);
 }

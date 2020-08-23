@@ -117,18 +117,22 @@ class FutexEmulation : public AllStatic {
   // |rel_timeout_ms| can be Infinity.
   // If woken, return "ok", otherwise return "timed-out". The initial check and
   // the decision to wait happen atomically.
-  static Object WaitJs(Isolate* isolate, Handle<JSArrayBuffer> array_buffer,
-                       size_t addr, int32_t value, double rel_timeout_ms);
+  static Object WaitJs32(Isolate* isolate, Handle<JSArrayBuffer> array_buffer,
+                         size_t addr, int32_t value, double rel_timeout_ms);
+
+  // An version of WaitJs32 for int64_t values.
+  static Object WaitJs64(Isolate* isolate, Handle<JSArrayBuffer> array_buffer,
+                         size_t addr, int64_t value, double rel_timeout_ms);
 
   // Same as WaitJs above except it returns 0 (ok), 1 (not equal) and 2 (timed
   // out) as expected by Wasm.
-  static Object Wait32(Isolate* isolate, Handle<JSArrayBuffer> array_buffer,
-                       size_t addr, int32_t value, double rel_timeout_ms);
+  static Object WaitWasm32(Isolate* isolate, Handle<JSArrayBuffer> array_buffer,
+                           size_t addr, int32_t value, int64_t rel_timeout_ns);
 
   // Same as Wait32 above except it checks for an int64_t value in the
   // array_buffer.
-  static Object Wait64(Isolate* isolate, Handle<JSArrayBuffer> array_buffer,
-                       size_t addr, int64_t value, double rel_timeout_ms);
+  static Object WaitWasm64(Isolate* isolate, Handle<JSArrayBuffer> array_buffer,
+                           size_t addr, int64_t value, int64_t rel_timeout_ns);
 
   // Wake |num_waiters_to_wake| threads that are waiting on the given |addr|.
   // |num_waiters_to_wake| can be kWakeAll, in which case all waiters are
@@ -149,6 +153,11 @@ class FutexEmulation : public AllStatic {
   template <typename T>
   static Object Wait(Isolate* isolate, Handle<JSArrayBuffer> array_buffer,
                      size_t addr, T value, double rel_timeout_ms);
+
+  template <typename T>
+  static Object Wait(Isolate* isolate, Handle<JSArrayBuffer> array_buffer,
+                     size_t addr, T value, bool use_timeout,
+                     int64_t rel_timeout_ns);
 
   // `mutex_` protects the composition of `wait_list_` (i.e. no elements may be
   // added or removed without holding this mutex), as well as the `waiting_`

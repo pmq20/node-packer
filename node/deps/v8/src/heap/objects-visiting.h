@@ -9,64 +9,63 @@
 #include "src/objects/map.h"
 #include "src/objects/objects.h"
 #include "src/objects/visitors.h"
+#include "torque-generated/field-offsets-tq.h"
 
 namespace v8 {
 namespace internal {
 
-// TODO(jkummerow): Drop the duplication: V(x, x) -> V(x).
-#define TYPED_VISITOR_ID_LIST(V)                                          \
-  V(AllocationSite, AllocationSite)                                       \
-  V(BigInt, BigInt)                                                       \
-  V(ByteArray, ByteArray)                                                 \
-  V(BytecodeArray, BytecodeArray)                                         \
-  V(Cell, Cell)                                                           \
-  V(Code, Code)                                                           \
-  V(CodeDataContainer, CodeDataContainer)                                 \
-  V(ConsString, ConsString)                                               \
-  V(Context, Context)                                                     \
-  V(DataHandler, DataHandler)                                             \
-  V(DescriptorArray, DescriptorArray)                                     \
-  V(EmbedderDataArray, EmbedderDataArray)                                 \
-  V(EphemeronHashTable, EphemeronHashTable)                               \
-  V(FeedbackCell, FeedbackCell)                                           \
-  V(FeedbackVector, FeedbackVector)                                       \
-  V(FixedArray, FixedArray)                                               \
-  V(FixedDoubleArray, FixedDoubleArray)                                   \
-  V(JSArrayBuffer, JSArrayBuffer)                                         \
-  V(JSDataView, JSDataView)                                               \
-  V(JSFunction, JSFunction)                                               \
-  V(JSObject, JSObject)                                                   \
-  V(JSTypedArray, JSTypedArray)                                           \
-  V(WeakCell, WeakCell)                                                   \
-  V(JSWeakCollection, JSWeakCollection)                                   \
-  V(JSWeakRef, JSWeakRef)                                                 \
-  V(Map, Map)                                                             \
-  V(NativeContext, NativeContext)                                         \
-  V(Oddball, Oddball)                                                     \
-  V(PreparseData, PreparseData)                                           \
-  V(PropertyArray, PropertyArray)                                         \
-  V(PropertyCell, PropertyCell)                                           \
-  V(PrototypeInfo, PrototypeInfo)                                         \
-  V(SeqOneByteString, SeqOneByteString)                                   \
-  V(SeqTwoByteString, SeqTwoByteString)                                   \
-  V(SharedFunctionInfo, SharedFunctionInfo)                               \
-  V(SlicedString, SlicedString)                                           \
-  V(SmallOrderedHashMap, SmallOrderedHashMap)                             \
-  V(SmallOrderedHashSet, SmallOrderedHashSet)                             \
-  V(SmallOrderedNameDictionary, SmallOrderedNameDictionary)               \
-  V(SourceTextModule, SourceTextModule)                                   \
-  V(Symbol, Symbol)                                                       \
-  V(SyntheticModule, SyntheticModule)                                     \
-  V(ThinString, ThinString)                                               \
-  V(TransitionArray, TransitionArray)                                     \
-  V(UncompiledDataWithoutPreparseData, UncompiledDataWithoutPreparseData) \
-  V(UncompiledDataWithPreparseData, UncompiledDataWithPreparseData)       \
-  V(WasmCapiFunctionData, WasmCapiFunctionData)                           \
-  V(WasmIndirectFunctionTable, WasmIndirectFunctionTable)                 \
-  V(WasmInstanceObject, WasmInstanceObject)
+#define TYPED_VISITOR_ID_LIST(V)       \
+  V(AllocationSite)                    \
+  V(BigInt)                            \
+  V(ByteArray)                         \
+  V(BytecodeArray)                     \
+  V(Cell)                              \
+  V(Code)                              \
+  V(CodeDataContainer)                 \
+  V(Context)                           \
+  V(CoverageInfo)                      \
+  V(DataHandler)                       \
+  V(DescriptorArray)                   \
+  V(EmbedderDataArray)                 \
+  V(EphemeronHashTable)                \
+  V(FeedbackCell)                      \
+  V(FeedbackMetadata)                  \
+  V(FeedbackVector)                    \
+  V(FixedDoubleArray)                  \
+  V(JSArrayBuffer)                     \
+  V(JSDataView)                        \
+  V(JSFunction)                        \
+  V(JSObject)                          \
+  V(JSTypedArray)                      \
+  V(WeakCell)                          \
+  V(JSWeakCollection)                  \
+  V(JSWeakRef)                         \
+  V(Map)                               \
+  V(NativeContext)                     \
+  V(Oddball)                           \
+  V(PreparseData)                      \
+  V(PropertyArray)                     \
+  V(PropertyCell)                      \
+  V(PrototypeInfo)                     \
+  V(SharedFunctionInfo)                \
+  V(SmallOrderedHashMap)               \
+  V(SmallOrderedHashSet)               \
+  V(SmallOrderedNameDictionary)        \
+  V(SourceTextModule)                  \
+  V(Symbol)                            \
+  V(SyntheticModule)                   \
+  V(TransitionArray)                   \
+  V(UncompiledDataWithoutPreparseData) \
+  V(UncompiledDataWithPreparseData)    \
+  V(WasmArray)                         \
+  V(WasmCapiFunctionData)              \
+  V(WasmIndirectFunctionTable)         \
+  V(WasmInstanceObject)                \
+  V(WasmStruct)
 
-#define FORWARD_DECLARE(TypeName, Type) class Type;
+#define FORWARD_DECLARE(TypeName) class TypeName;
 TYPED_VISITOR_ID_LIST(FORWARD_DECLARE)
+TORQUE_VISITOR_ID_LIST(FORWARD_DECLARE)
 #undef FORWARD_DECLARE
 
 // The base class for visitors that need to dispatch on object type. The default
@@ -99,9 +98,10 @@ class HeapVisitor : public ObjectVisitor {
   // in default Visit implemention for subclasses of JSObject.
   V8_INLINE bool AllowDefaultJSObjectVisit() { return true; }
 
-#define VISIT(TypeName, Type) \
-  V8_INLINE ResultType Visit##TypeName(Map map, Type object);
+#define VISIT(TypeName) \
+  V8_INLINE ResultType Visit##TypeName(Map map, TypeName object);
   TYPED_VISITOR_ID_LIST(VISIT)
+  TORQUE_VISITOR_ID_LIST(VISIT)
 #undef VISIT
   V8_INLINE ResultType VisitShortcutCandidate(Map map, ConsString object);
   V8_INLINE ResultType VisitDataObject(Map map, HeapObject object);
@@ -109,7 +109,6 @@ class HeapVisitor : public ObjectVisitor {
   V8_INLINE ResultType VisitJSApiObject(Map map, JSObject object);
   V8_INLINE ResultType VisitStruct(Map map, HeapObject object);
   V8_INLINE ResultType VisitFreeSpace(Map map, FreeSpace object);
-  V8_INLINE ResultType VisitWeakArray(Map map, HeapObject object);
 
   template <typename T>
   static V8_INLINE T Cast(HeapObject object);
@@ -143,8 +142,6 @@ class WeakObjectRetainer;
 // access the next-element pointers.
 template <class T>
 Object VisitWeakList(Heap* heap, Object list, WeakObjectRetainer* retainer);
-template <class T>
-Object VisitWeakList2(Heap* heap, Object list, WeakObjectRetainer* retainer);
 }  // namespace internal
 }  // namespace v8
 

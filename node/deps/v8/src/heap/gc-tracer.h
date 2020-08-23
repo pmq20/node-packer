@@ -25,16 +25,20 @@ inline BytesAndDuration MakeBytesAndDuration(uint64_t bytes, double duration) {
 
 enum ScavengeSpeedMode { kForAllObjects, kForSurvivedObjects };
 
+#define TRACE_GC_CATEGORIES \
+  "devtools.timeline," TRACE_DISABLED_BY_DEFAULT("v8.gc")
+
 #define TRACE_GC(tracer, scope_id)                             \
   GCTracer::Scope::ScopeId gc_tracer_scope_id(scope_id);       \
   GCTracer::Scope gc_tracer_scope(tracer, gc_tracer_scope_id); \
-  TRACE_EVENT0(TRACE_DISABLED_BY_DEFAULT("v8.gc"),             \
-               GCTracer::Scope::Name(gc_tracer_scope_id))
+  TRACE_EVENT0(TRACE_GC_CATEGORIES, GCTracer::Scope::Name(gc_tracer_scope_id))
 
-#define TRACE_BACKGROUND_GC(tracer, scope_id)                   \
-  GCTracer::BackgroundScope background_scope(tracer, scope_id); \
-  TRACE_EVENT0(TRACE_DISABLED_BY_DEFAULT("v8.gc"),              \
-               GCTracer::BackgroundScope::Name(scope_id))
+#define TRACE_BACKGROUND_GC(tracer, scope_id)                                 \
+  WorkerThreadRuntimeCallStatsScope runtime_call_stats_scope(                 \
+      tracer->worker_thread_runtime_call_stats());                            \
+  GCTracer::BackgroundScope background_scope(tracer, scope_id,                \
+                                             runtime_call_stats_scope.Get()); \
+  TRACE_EVENT0(TRACE_GC_CATEGORIES, GCTracer::BackgroundScope::Name(scope_id))
 
 // GCTracer collects and prints ONE line after each garbage collector
 // invocation IFF --trace_gc is used.
@@ -82,7 +86,8 @@ class V8_EXPORT_PRIVATE GCTracer {
       FIRST_TOP_MC_SCOPE = MC_CLEAR,
       LAST_TOP_MC_SCOPE = MC_SWEEP,
       FIRST_MINOR_GC_BACKGROUND_SCOPE = MINOR_MC_BACKGROUND_EVACUATE_COPY,
-      LAST_MINOR_GC_BACKGROUND_SCOPE = SCAVENGER_BACKGROUND_SCAVENGE_PARALLEL
+      LAST_MINOR_GC_BACKGROUND_SCOPE = SCAVENGER_BACKGROUND_SCAVENGE_PARALLEL,
+      FIRST_BACKGROUND_SCOPE = FIRST_GENERAL_BACKGROUND_SCOPE
     };
 
     Scope(GCTracer* tracer, ScopeId scope);
@@ -113,7 +118,8 @@ class V8_EXPORT_PRIVATE GCTracer {
       FIRST_MINOR_GC_BACKGROUND_SCOPE = MINOR_MC_BACKGROUND_EVACUATE_COPY,
       LAST_MINOR_GC_BACKGROUND_SCOPE = SCAVENGER_BACKGROUND_SCAVENGE_PARALLEL
     };
-    BackgroundScope(GCTracer* tracer, ScopeId scope);
+    BackgroundScope(GCTracer* tracer, ScopeId scope,
+                    RuntimeCallStats* runtime_stats);
     ~BackgroundScope();
 
     static const char* Name(ScopeId id);
@@ -123,8 +129,7 @@ class V8_EXPORT_PRIVATE GCTracer {
     ScopeId scope_;
     double start_time_;
     RuntimeCallTimer timer_;
-    RuntimeCallCounter counter_;
-    bool runtime_stats_enabled_;
+    RuntimeCallStats* runtime_stats_;
     DISALLOW_COPY_AND_ASSIGN(BackgroundScope);
   };
 
@@ -206,15 +211,19 @@ class V8_EXPORT_PRIVATE GCTracer {
                                                    double optional_speed);
 
   static RuntimeCallCounterId RCSCounterFromScope(Scope::ScopeId id);
+  static RuntimeCallCounterId RCSCounterFromBackgroundScope(
+      BackgroundScope::ScopeId id);
 
   explicit GCTracer(Heap* heap);
 
   // Start collecting data.
   void Start(GarbageCollector collector, GarbageCollectionReason gc_reason,
              const char* collector_reason);
+  void StartInSafepoint();
 
   // Stop collecting data and print results.
   void Stop(GarbageCollector collector);
+  void StopInSafepoint();
 
   void NotifySweepingCompleted();
 
@@ -340,12 +349,19 @@ class V8_EXPORT_PRIVATE GCTracer {
     }
   }
 
-  void AddBackgroundScopeSample(BackgroundScope::ScopeId scope, double duration,
-                                RuntimeCallCounter* runtime_call_counter);
+  void AddBackgroundScopeSample(BackgroundScope::ScopeId scope,
+                                double duration);
 
   void RecordGCPhasesHistograms(TimedHistogram* gc_timer);
 
   void RecordEmbedderSpeed(size_t bytes, double duration);
+
+  // Returns the average time between scheduling and invocation of an
+  // incremental marking task.
+  double AverageTimeToIncrementalMarkingTask() const;
+  void RecordTimeToIncrementalMarkingTask(double time_to_task);
+
+  WorkerThreadRuntimeCallStats* worker_thread_runtime_call_stats();
 
  private:
   FRIEND_TEST(GCTracer, AverageSpeed);
@@ -369,7 +385,6 @@ class V8_EXPORT_PRIVATE GCTracer {
 
   struct BackgroundCounter {
     double total_duration_ms;
-    RuntimeCallCounter runtime_call_counter;
   };
 
   // Returns the average speed of the events in the buffer.
@@ -438,6 +453,8 @@ class V8_EXPORT_PRIVATE GCTracer {
   double incremental_marking_start_time_;
 
   double recorded_incremental_marking_speed_;
+
+  double average_time_to_incremental_marking_task_ = 0.0;
 
   double recorded_embedder_speed_ = 0.0;
 

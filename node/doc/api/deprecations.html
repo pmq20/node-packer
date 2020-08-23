@@ -3,10 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Deprecated APIs | Node.js v12.13.0 Documentation</title>
+  <meta name="nodejs.org:node-version" content="v14.8.0">
+  <title>Deprecated APIs | Node.js v14.8.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
-  <link rel="stylesheet" href="assets/sh.css">
+  <link rel="stylesheet" href="assets/hljs.css">
   <link rel="canonical" href="https://nodejs.org/api/deprecations.html">
 </head>
 <body class="alt apidoc" id="api-section-deprecations">
@@ -18,29 +19,30 @@
         </a>
       </div>
       <ul>
-<li><a href="documentation.html" class="nav-documentation">About these Docs</a></li>
-<li><a href="synopsis.html" class="nav-synopsis">Usage &#x26; Example</a></li>
+<li><a href="documentation.html" class="nav-documentation">About this documentation</a></li>
+<li><a href="synopsis.html" class="nav-synopsis">Usage and example</a></li>
 </ul>
 <div class="line"></div>
 <ul>
-<li><a href="assert.html" class="nav-assert">Assertion Testing</a></li>
-<li><a href="async_hooks.html" class="nav-async_hooks">Async Hooks</a></li>
+<li><a href="assert.html" class="nav-assert">Assertion testing</a></li>
+<li><a href="async_hooks.html" class="nav-async_hooks">Async hooks</a></li>
 <li><a href="buffer.html" class="nav-buffer">Buffer</a></li>
-<li><a href="addons.html" class="nav-addons">C++ Addons</a></li>
-<li><a href="n-api.html" class="nav-n-api">C/C++ Addons - N-API</a></li>
-<li><a href="child_process.html" class="nav-child_process">Child Processes</a></li>
+<li><a href="addons.html" class="nav-addons">C++ addons</a></li>
+<li><a href="n-api.html" class="nav-n-api">C/C++ addons with N-API</a></li>
+<li><a href="embedding.html" class="nav-embedding">C++ embedder API</a></li>
+<li><a href="child_process.html" class="nav-child_process">Child processes</a></li>
 <li><a href="cluster.html" class="nav-cluster">Cluster</a></li>
-<li><a href="cli.html" class="nav-cli">Command Line Options</a></li>
+<li><a href="cli.html" class="nav-cli">Command line options</a></li>
 <li><a href="console.html" class="nav-console">Console</a></li>
 <li><a href="crypto.html" class="nav-crypto">Crypto</a></li>
 <li><a href="debugger.html" class="nav-debugger">Debugger</a></li>
 <li><a href="deprecations.html" class="nav-deprecations active">Deprecated APIs</a></li>
 <li><a href="dns.html" class="nav-dns">DNS</a></li>
 <li><a href="domain.html" class="nav-domain">Domain</a></li>
-<li><a href="esm.html" class="nav-esm">ECMAScript Modules</a></li>
+<li><a href="esm.html" class="nav-esm">ECMAScript modules</a></li>
 <li><a href="errors.html" class="nav-errors">Errors</a></li>
 <li><a href="events.html" class="nav-events">Events</a></li>
-<li><a href="fs.html" class="nav-fs">File System</a></li>
+<li><a href="fs.html" class="nav-fs">File system</a></li>
 <li><a href="globals.html" class="nav-globals">Globals</a></li>
 <li><a href="http.html" class="nav-http">HTTP</a></li>
 <li><a href="http2.html" class="nav-http2">HTTP/2</a></li>
@@ -51,37 +53,38 @@
 <li><a href="net.html" class="nav-net">Net</a></li>
 <li><a href="os.html" class="nav-os">OS</a></li>
 <li><a href="path.html" class="nav-path">Path</a></li>
-<li><a href="perf_hooks.html" class="nav-perf_hooks">Performance Hooks</a></li>
+<li><a href="perf_hooks.html" class="nav-perf_hooks">Performance hooks</a></li>
 <li><a href="policy.html" class="nav-policy">Policies</a></li>
 <li><a href="process.html" class="nav-process">Process</a></li>
 <li><a href="punycode.html" class="nav-punycode">Punycode</a></li>
-<li><a href="querystring.html" class="nav-querystring">Query Strings</a></li>
+<li><a href="querystring.html" class="nav-querystring">Query strings</a></li>
 <li><a href="readline.html" class="nav-readline">Readline</a></li>
 <li><a href="repl.html" class="nav-repl">REPL</a></li>
 <li><a href="report.html" class="nav-report">Report</a></li>
 <li><a href="stream.html" class="nav-stream">Stream</a></li>
-<li><a href="string_decoder.html" class="nav-string_decoder">String Decoder</a></li>
+<li><a href="string_decoder.html" class="nav-string_decoder">String decoder</a></li>
 <li><a href="timers.html" class="nav-timers">Timers</a></li>
 <li><a href="tls.html" class="nav-tls">TLS/SSL</a></li>
-<li><a href="tracing.html" class="nav-tracing">Trace Events</a></li>
+<li><a href="tracing.html" class="nav-tracing">Trace events</a></li>
 <li><a href="tty.html" class="nav-tty">TTY</a></li>
-<li><a href="dgram.html" class="nav-dgram">UDP/Datagram</a></li>
+<li><a href="dgram.html" class="nav-dgram">UDP/datagram</a></li>
 <li><a href="url.html" class="nav-url">URL</a></li>
 <li><a href="util.html" class="nav-util">Utilities</a></li>
 <li><a href="v8.html" class="nav-v8">V8</a></li>
 <li><a href="vm.html" class="nav-vm">VM</a></li>
-<li><a href="worker_threads.html" class="nav-worker_threads">Worker Threads</a></li>
+<li><a href="wasi.html" class="nav-wasi">WASI</a></li>
+<li><a href="worker_threads.html" class="nav-worker_threads">Worker threads</a></li>
 <li><a href="zlib.html" class="nav-zlib">Zlib</a></li>
 </ul>
 <div class="line"></div>
 <ul>
-<li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">GitHub Repo &#x26; Issue Tracker</a></li>
+<li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">Code repository and issue tracker</a></li>
 </ul>
     </div>
 
     <div id="column1" data-id="deprecations" class="interior">
       <header>
-        <h1>Node.js v12.13.0 Documentation</h1>
+        <h1>Node.js v14.8.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -96,11 +99,13 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v12.x/api/deprecations.html">12.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v14.x/api/deprecations.html">14.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v13.x/api/deprecations.html">13.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v12.x/api/deprecations.html">12.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v11.x/api/deprecations.html">11.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v10.x/api/deprecations.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/deprecations.html">9.x</a></li>
-<li><a href="https://nodejs.org/docs/latest-v8.x/api/deprecations.html">8.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v8.x/api/deprecations.html">8.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/deprecations.html">7.x</a></li></ol>
     </li>
   
@@ -118,140 +123,151 @@
 <ul>
 <li><a href="#deprecations_revoking_deprecations">Revoking deprecations</a></li>
 <li>
-<p><a href="#deprecations_list_of_deprecated_apis">List of Deprecated APIs</a></p>
+<p><a href="#deprecations_list_of_deprecated_apis">List of deprecated APIs</a></p>
 <ul>
-<li><a href="#deprecations_dep0001_http_outgoingmessage_prototype_flush">DEP0001: http.OutgoingMessage.prototype.flush</a></li>
-<li><a href="#deprecations_dep0002_require_linklist">DEP0002: require('_linklist')</a></li>
-<li><a href="#deprecations_dep0003_writablestate_buffer">DEP0003: _writableState.buffer</a></li>
-<li><a href="#deprecations_dep0004_cryptostream_prototype_readystate">DEP0004: CryptoStream.prototype.readyState</a></li>
-<li><a href="#deprecations_dep0005_buffer_constructor">DEP0005: Buffer() constructor</a></li>
-<li><a href="#deprecations_dep0006_child_process_options_customfds">DEP0006: child_process options.customFds</a></li>
-<li><a href="#deprecations_dep0007_replace_cluster_worker_suicide_with_worker_exitedafterdisconnect">DEP0007: Replace cluster worker.suicide with worker.exitedAfterDisconnect</a></li>
-<li><a href="#deprecations_dep0008_require_constants">DEP0008: require('constants')</a></li>
-<li><a href="#deprecations_dep0009_crypto_pbkdf2_without_digest">DEP0009: crypto.pbkdf2 without digest</a></li>
-<li><a href="#deprecations_dep0010_crypto_createcredentials">DEP0010: crypto.createCredentials</a></li>
-<li><a href="#deprecations_dep0011_crypto_credentials">DEP0011: crypto.Credentials</a></li>
-<li><a href="#deprecations_dep0012_domain_dispose">DEP0012: Domain.dispose</a></li>
-<li><a href="#deprecations_dep0013_fs_asynchronous_function_without_callback">DEP0013: fs asynchronous function without callback</a></li>
-<li><a href="#deprecations_dep0014_fs_read_legacy_string_interface">DEP0014: fs.read legacy String interface</a></li>
-<li><a href="#deprecations_dep0015_fs_readsync_legacy_string_interface">DEP0015: fs.readSync legacy String interface</a></li>
-<li><a href="#deprecations_dep0016_global_root">DEP0016: GLOBAL/root</a></li>
-<li><a href="#deprecations_dep0017_intl_v8breakiterator">DEP0017: Intl.v8BreakIterator</a></li>
+<li><a href="#deprecations_dep0001_http_outgoingmessage_prototype_flush">DEP0001: <code>http.OutgoingMessage.prototype.flush</code></a></li>
+<li><a href="#deprecations_dep0002_require_linklist">DEP0002: <code>require('_linklist')</code></a></li>
+<li><a href="#deprecations_dep0003_writablestate_buffer">DEP0003: <code>_writableState.buffer</code></a></li>
+<li><a href="#deprecations_dep0004_cryptostream_prototype_readystate">DEP0004: <code>CryptoStream.prototype.readyState</code></a></li>
+<li><a href="#deprecations_dep0005_buffer_constructor">DEP0005: <code>Buffer()</code> constructor</a></li>
+<li><a href="#deprecations_dep0006_child_process_options_customfds">DEP0006: <code>child_process</code> <code>options.customFds</code></a></li>
+<li><a href="#deprecations_dep0007_replace_cluster_worker_suicide_with_worker_exitedafterdisconnect">DEP0007: Replace <code>cluster</code> <code>worker.suicide</code> with <code>worker.exitedAfterDisconnect</code></a></li>
+<li><a href="#deprecations_dep0008_require_constants">DEP0008: <code>require('constants')</code></a></li>
+<li><a href="#deprecations_dep0009_crypto_pbkdf2_without_digest">DEP0009: <code>crypto.pbkdf2</code> without digest</a></li>
+<li><a href="#deprecations_dep0010_crypto_createcredentials">DEP0010: <code>crypto.createCredentials</code></a></li>
+<li><a href="#deprecations_dep0011_crypto_credentials">DEP0011: <code>crypto.Credentials</code></a></li>
+<li><a href="#deprecations_dep0012_domain_dispose">DEP0012: <code>Domain.dispose</code></a></li>
+<li><a href="#deprecations_dep0013_fs_asynchronous_function_without_callback">DEP0013: <code>fs</code> asynchronous function without callback</a></li>
+<li><a href="#deprecations_dep0014_fs_read_legacy_string_interface">DEP0014: <code>fs.read</code> legacy String interface</a></li>
+<li><a href="#deprecations_dep0015_fs_readsync_legacy_string_interface">DEP0015: <code>fs.readSync</code> legacy String interface</a></li>
+<li><a href="#deprecations_dep0016_global_root">DEP0016: <code>GLOBAL</code>/<code>root</code></a></li>
+<li><a href="#deprecations_dep0017_intl_v8breakiterator">DEP0017: <code>Intl.v8BreakIterator</code></a></li>
 <li><a href="#deprecations_dep0018_unhandled_promise_rejections">DEP0018: Unhandled promise rejections</a></li>
-<li><a href="#deprecations_dep0019_require_resolved_outside_directory">DEP0019: require('.') resolved outside directory</a></li>
-<li><a href="#deprecations_dep0020_server_connections">DEP0020: Server.connections</a></li>
-<li><a href="#deprecations_dep0021_server_listenfd">DEP0021: Server.listenFD</a></li>
-<li><a href="#deprecations_dep0022_os_tmpdir">DEP0022: os.tmpDir()</a></li>
-<li><a href="#deprecations_dep0023_os_getnetworkinterfaces">DEP0023: os.getNetworkInterfaces()</a></li>
-<li><a href="#deprecations_dep0024_replserver_prototype_converttocontext">DEP0024: REPLServer.prototype.convertToContext()</a></li>
-<li><a href="#deprecations_dep0025_require_sys">DEP0025: require('sys')</a></li>
-<li><a href="#deprecations_dep0026_util_print">DEP0026: util.print()</a></li>
-<li><a href="#deprecations_dep0027_util_puts">DEP0027: util.puts()</a></li>
-<li><a href="#deprecations_dep0028_util_debug">DEP0028: util.debug()</a></li>
-<li><a href="#deprecations_dep0029_util_error">DEP0029: util.error()</a></li>
-<li><a href="#deprecations_dep0030_slowbuffer">DEP0030: SlowBuffer</a></li>
-<li><a href="#deprecations_dep0031_ecdh_setpublickey">DEP0031: ecdh.setPublicKey()</a></li>
-<li><a href="#deprecations_dep0032_domain_module">DEP0032: domain module</a></li>
-<li><a href="#deprecations_dep0033_eventemitter_listenercount">DEP0033: EventEmitter.listenerCount()</a></li>
-<li><a href="#deprecations_dep0034_fs_exists_path_callback">DEP0034: fs.exists(path, callback)</a></li>
-<li><a href="#deprecations_dep0035_fs_lchmod_path_mode_callback">DEP0035: fs.lchmod(path, mode, callback)</a></li>
-<li><a href="#deprecations_dep0036_fs_lchmodsync_path_mode">DEP0036: fs.lchmodSync(path, mode)</a></li>
-<li><a href="#deprecations_dep0037_fs_lchown_path_uid_gid_callback">DEP0037: fs.lchown(path, uid, gid, callback)</a></li>
-<li><a href="#deprecations_dep0038_fs_lchownsync_path_uid_gid">DEP0038: fs.lchownSync(path, uid, gid)</a></li>
-<li><a href="#deprecations_dep0039_require_extensions">DEP0039: require.extensions</a></li>
-<li><a href="#deprecations_dep0040_punycode_module">DEP0040: punycode module</a></li>
-<li><a href="#deprecations_dep0041_node_repl_history_file_environment_variable">DEP0041: NODE_REPL_HISTORY_FILE environment variable</a></li>
-<li><a href="#deprecations_dep0042_tls_cryptostream">DEP0042: tls.CryptoStream</a></li>
-<li><a href="#deprecations_dep0043_tls_securepair">DEP0043: tls.SecurePair</a></li>
-<li><a href="#deprecations_dep0044_util_isarray">DEP0044: util.isArray()</a></li>
-<li><a href="#deprecations_dep0045_util_isboolean">DEP0045: util.isBoolean()</a></li>
-<li><a href="#deprecations_dep0046_util_isbuffer">DEP0046: util.isBuffer()</a></li>
-<li><a href="#deprecations_dep0047_util_isdate">DEP0047: util.isDate()</a></li>
-<li><a href="#deprecations_dep0048_util_iserror">DEP0048: util.isError()</a></li>
-<li><a href="#deprecations_dep0049_util_isfunction">DEP0049: util.isFunction()</a></li>
-<li><a href="#deprecations_dep0050_util_isnull">DEP0050: util.isNull()</a></li>
-<li><a href="#deprecations_dep0051_util_isnullorundefined">DEP0051: util.isNullOrUndefined()</a></li>
-<li><a href="#deprecations_dep0052_util_isnumber">DEP0052: util.isNumber()</a></li>
-<li><a href="#deprecations_dep0053_util_isobject">DEP0053 util.isObject()</a></li>
-<li><a href="#deprecations_dep0054_util_isprimitive">DEP0054: util.isPrimitive()</a></li>
-<li><a href="#deprecations_dep0055_util_isregexp">DEP0055: util.isRegExp()</a></li>
-<li><a href="#deprecations_dep0056_util_isstring">DEP0056: util.isString()</a></li>
-<li><a href="#deprecations_dep0057_util_issymbol">DEP0057: util.isSymbol()</a></li>
-<li><a href="#deprecations_dep0058_util_isundefined">DEP0058: util.isUndefined()</a></li>
-<li><a href="#deprecations_dep0059_util_log">DEP0059: util.log()</a></li>
-<li><a href="#deprecations_dep0060_util_extend">DEP0060: util._extend()</a></li>
-<li><a href="#deprecations_dep0061_fs_syncwritestream">DEP0061: fs.SyncWriteStream</a></li>
-<li><a href="#deprecations_dep0062_node_debug">DEP0062: node --debug</a></li>
-<li><a href="#deprecations_dep0063_serverresponse_prototype_writeheader">DEP0063: ServerResponse.prototype.writeHeader()</a></li>
-<li><a href="#deprecations_dep0064_tls_createsecurepair">DEP0064: tls.createSecurePair()</a></li>
-<li><a href="#deprecations_dep0065_repl_repl_mode_magic_and_node_repl_mode_magic">DEP0065: repl.REPL_MODE_MAGIC and NODE_REPL_MODE=magic</a></li>
-<li><a href="#deprecations_dep0066_outgoingmessage_prototype_headers_outgoingmessage_prototype_headernames">DEP0066: OutgoingMessage.prototype._headers, OutgoingMessage.prototype._headerNames</a></li>
-<li><a href="#deprecations_dep0067_outgoingmessage_prototype_renderheaders">DEP0067: OutgoingMessage.prototype._renderHeaders</a></li>
-<li><a href="#deprecations_dep0068_node_debug">DEP0068: node debug</a></li>
-<li><a href="#deprecations_dep0069_vm_runindebugcontext_string">DEP0069: vm.runInDebugContext(string)</a></li>
-<li><a href="#deprecations_dep0070_async_hooks_currentid">DEP0070: async_hooks.currentId()</a></li>
-<li><a href="#deprecations_dep0071_async_hooks_triggerid">DEP0071: async_hooks.triggerId()</a></li>
-<li><a href="#deprecations_dep0072_async_hooks_asyncresource_triggerid">DEP0072: async_hooks.AsyncResource.triggerId()</a></li>
-<li><a href="#deprecations_dep0073_several_internal_properties_of_net_server">DEP0073: Several internal properties of net.Server</a></li>
-<li><a href="#deprecations_dep0074_replserver_bufferedcommand">DEP0074: REPLServer.bufferedCommand</a></li>
-<li><a href="#deprecations_dep0075_replserver_parsereplkeyword">DEP0075: REPLServer.parseREPLKeyword()</a></li>
-<li><a href="#deprecations_dep0076_tls_parsecertstring">DEP0076: tls.parseCertString()</a></li>
-<li><a href="#deprecations_dep0077_module_debug">DEP0077: Module._debug()</a></li>
-<li><a href="#deprecations_dep0078_replserver_turnoffeditormode">DEP0078: REPLServer.turnOffEditorMode()</a></li>
-<li><a href="#deprecations_dep0079_custom_inspection_function_on_objects_via_inspect">DEP0079: Custom inspection function on Objects via .inspect()</a></li>
-<li><a href="#deprecations_dep0080_path_makelong">DEP0080: path._makeLong()</a></li>
-<li><a href="#deprecations_dep0081_fs_truncate_using_a_file_descriptor">DEP0081: fs.truncate() using a file descriptor</a></li>
-<li><a href="#deprecations_dep0082_replserver_prototype_memory">DEP0082: REPLServer.prototype.memory()</a></li>
-<li><a href="#deprecations_dep0083_disabling_ecdh_by_setting_ecdhcurve_to_false">DEP0083: Disabling ECDH by setting ecdhCurve to false</a></li>
+<li><a href="#deprecations_dep0019_require_resolved_outside_directory">DEP0019: <code>require('.')</code> resolved outside directory</a></li>
+<li><a href="#deprecations_dep0020_server_connections">DEP0020: <code>Server.connections</code></a></li>
+<li><a href="#deprecations_dep0021_server_listenfd">DEP0021: <code>Server.listenFD</code></a></li>
+<li><a href="#deprecations_dep0022_os_tmpdir">DEP0022: <code>os.tmpDir()</code></a></li>
+<li><a href="#deprecations_dep0023_os_getnetworkinterfaces">DEP0023: <code>os.getNetworkInterfaces()</code></a></li>
+<li><a href="#deprecations_dep0024_replserver_prototype_converttocontext">DEP0024: <code>REPLServer.prototype.convertToContext()</code></a></li>
+<li><a href="#deprecations_dep0025_require_sys">DEP0025: <code>require('sys')</code></a></li>
+<li><a href="#deprecations_dep0026_util_print">DEP0026: <code>util.print()</code></a></li>
+<li><a href="#deprecations_dep0027_util_puts">DEP0027: <code>util.puts()</code></a></li>
+<li><a href="#deprecations_dep0028_util_debug">DEP0028: <code>util.debug()</code></a></li>
+<li><a href="#deprecations_dep0029_util_error">DEP0029: <code>util.error()</code></a></li>
+<li><a href="#deprecations_dep0030_slowbuffer">DEP0030: <code>SlowBuffer</code></a></li>
+<li><a href="#deprecations_dep0031_ecdh_setpublickey">DEP0031: <code>ecdh.setPublicKey()</code></a></li>
+<li><a href="#deprecations_dep0032_domain_module">DEP0032: <code>domain</code> module</a></li>
+<li><a href="#deprecations_dep0033_eventemitter_listenercount">DEP0033: <code>EventEmitter.listenerCount()</code></a></li>
+<li><a href="#deprecations_dep0034_fs_exists_path_callback">DEP0034: <code>fs.exists(path, callback)</code></a></li>
+<li><a href="#deprecations_dep0035_fs_lchmod_path_mode_callback">DEP0035: <code>fs.lchmod(path, mode, callback)</code></a></li>
+<li><a href="#deprecations_dep0036_fs_lchmodsync_path_mode">DEP0036: <code>fs.lchmodSync(path, mode)</code></a></li>
+<li><a href="#deprecations_dep0037_fs_lchown_path_uid_gid_callback">DEP0037: <code>fs.lchown(path, uid, gid, callback)</code></a></li>
+<li><a href="#deprecations_dep0038_fs_lchownsync_path_uid_gid">DEP0038: <code>fs.lchownSync(path, uid, gid)</code></a></li>
+<li><a href="#deprecations_dep0039_require_extensions">DEP0039: <code>require.extensions</code></a></li>
+<li><a href="#deprecations_dep0040_punycode_module">DEP0040: <code>punycode</code> module</a></li>
+<li><a href="#deprecations_dep0041_node_repl_history_file_environment_variable">DEP0041: <code>NODE_REPL_HISTORY_FILE</code> environment variable</a></li>
+<li><a href="#deprecations_dep0042_tls_cryptostream">DEP0042: <code>tls.CryptoStream</code></a></li>
+<li><a href="#deprecations_dep0043_tls_securepair">DEP0043: <code>tls.SecurePair</code></a></li>
+<li><a href="#deprecations_dep0044_util_isarray">DEP0044: <code>util.isArray()</code></a></li>
+<li><a href="#deprecations_dep0045_util_isboolean">DEP0045: <code>util.isBoolean()</code></a></li>
+<li><a href="#deprecations_dep0046_util_isbuffer">DEP0046: <code>util.isBuffer()</code></a></li>
+<li><a href="#deprecations_dep0047_util_isdate">DEP0047: <code>util.isDate()</code></a></li>
+<li><a href="#deprecations_dep0048_util_iserror">DEP0048: <code>util.isError()</code></a></li>
+<li><a href="#deprecations_dep0049_util_isfunction">DEP0049: <code>util.isFunction()</code></a></li>
+<li><a href="#deprecations_dep0050_util_isnull">DEP0050: <code>util.isNull()</code></a></li>
+<li><a href="#deprecations_dep0051_util_isnullorundefined">DEP0051: <code>util.isNullOrUndefined()</code></a></li>
+<li><a href="#deprecations_dep0052_util_isnumber">DEP0052: <code>util.isNumber()</code></a></li>
+<li><a href="#deprecations_dep0053_util_isobject">DEP0053 <code>util.isObject()</code></a></li>
+<li><a href="#deprecations_dep0054_util_isprimitive">DEP0054: <code>util.isPrimitive()</code></a></li>
+<li><a href="#deprecations_dep0055_util_isregexp">DEP0055: <code>util.isRegExp()</code></a></li>
+<li><a href="#deprecations_dep0056_util_isstring">DEP0056: <code>util.isString()</code></a></li>
+<li><a href="#deprecations_dep0057_util_issymbol">DEP0057: <code>util.isSymbol()</code></a></li>
+<li><a href="#deprecations_dep0058_util_isundefined">DEP0058: <code>util.isUndefined()</code></a></li>
+<li><a href="#deprecations_dep0059_util_log">DEP0059: <code>util.log()</code></a></li>
+<li><a href="#deprecations_dep0060_util_extend">DEP0060: <code>util._extend()</code></a></li>
+<li><a href="#deprecations_dep0061_fs_syncwritestream">DEP0061: <code>fs.SyncWriteStream</code></a></li>
+<li><a href="#deprecations_dep0062_node_debug">DEP0062: <code>node --debug</code></a></li>
+<li><a href="#deprecations_dep0063_serverresponse_prototype_writeheader">DEP0063: <code>ServerResponse.prototype.writeHeader()</code></a></li>
+<li><a href="#deprecations_dep0064_tls_createsecurepair">DEP0064: <code>tls.createSecurePair()</code></a></li>
+<li><a href="#deprecations_dep0065_repl_repl_mode_magic_and_node_repl_mode_magic">DEP0065: <code>repl.REPL_MODE_MAGIC</code> and <code>NODE_REPL_MODE=magic</code></a></li>
+<li><a href="#deprecations_dep0066_outgoingmessage_prototype_headers_outgoingmessage_prototype_headernames">DEP0066: <code>OutgoingMessage.prototype._headers, OutgoingMessage.prototype._headerNames</code></a></li>
+<li><a href="#deprecations_dep0067_outgoingmessage_prototype_renderheaders">DEP0067: <code>OutgoingMessage.prototype._renderHeaders</code></a></li>
+<li><a href="#deprecations_dep0068_node_debug">DEP0068: <code>node debug</code></a></li>
+<li><a href="#deprecations_dep0069_vm_runindebugcontext_string">DEP0069: <code>vm.runInDebugContext(string)</code></a></li>
+<li><a href="#deprecations_dep0070_async_hooks_currentid">DEP0070: <code>async_hooks.currentId()</code></a></li>
+<li><a href="#deprecations_dep0071_async_hooks_triggerid">DEP0071: <code>async_hooks.triggerId()</code></a></li>
+<li><a href="#deprecations_dep0072_async_hooks_asyncresource_triggerid">DEP0072: <code>async_hooks.AsyncResource.triggerId()</code></a></li>
+<li><a href="#deprecations_dep0073_several_internal_properties_of_net_server">DEP0073: Several internal properties of <code>net.Server</code></a></li>
+<li><a href="#deprecations_dep0074_replserver_bufferedcommand">DEP0074: <code>REPLServer.bufferedCommand</code></a></li>
+<li><a href="#deprecations_dep0075_replserver_parsereplkeyword">DEP0075: <code>REPLServer.parseREPLKeyword()</code></a></li>
+<li><a href="#deprecations_dep0076_tls_parsecertstring">DEP0076: <code>tls.parseCertString()</code></a></li>
+<li><a href="#deprecations_dep0077_module_debug">DEP0077: <code>Module._debug()</code></a></li>
+<li><a href="#deprecations_dep0078_replserver_turnoffeditormode">DEP0078: <code>REPLServer.turnOffEditorMode()</code></a></li>
+<li><a href="#deprecations_dep0079_custom_inspection_function_on_objects_via_inspect">DEP0079: Custom inspection function on objects via <code>.inspect()</code></a></li>
+<li><a href="#deprecations_dep0080_path_makelong">DEP0080: <code>path._makeLong()</code></a></li>
+<li><a href="#deprecations_dep0081_fs_truncate_using_a_file_descriptor">DEP0081: <code>fs.truncate()</code> using a file descriptor</a></li>
+<li><a href="#deprecations_dep0082_replserver_prototype_memory">DEP0082: <code>REPLServer.prototype.memory()</code></a></li>
+<li><a href="#deprecations_dep0083_disabling_ecdh_by_setting_ecdhcurve_to_false">DEP0083: Disabling ECDH by setting <code>ecdhCurve</code> to <code>false</code></a></li>
 <li><a href="#deprecations_dep0084_requiring_bundled_internal_dependencies">DEP0084: requiring bundled internal dependencies</a></li>
-<li><a href="#deprecations_dep0085_asynchooks_sensitive_api">DEP0085: AsyncHooks Sensitive API</a></li>
-<li><a href="#deprecations_dep0086_remove_runinasyncidscope">DEP0086: Remove runInAsyncIdScope</a></li>
-<li><a href="#deprecations_dep0089_require_assert">DEP0089: require('assert')</a></li>
+<li><a href="#deprecations_dep0085_asynchooks_sensitive_api">DEP0085: AsyncHooks sensitive API</a></li>
+<li><a href="#deprecations_dep0086_remove_runinasyncidscope">DEP0086: Remove <code>runInAsyncIdScope</code></a></li>
+<li><a href="#deprecations_dep0089_require_assert">DEP0089: <code>require('assert')</code></a></li>
 <li><a href="#deprecations_dep0090_invalid_gcm_authentication_tag_lengths">DEP0090: Invalid GCM authentication tag lengths</a></li>
-<li><a href="#deprecations_dep0091_crypto_default_encoding">DEP0091: crypto.DEFAULT_ENCODING</a></li>
+<li><a href="#deprecations_dep0091_crypto_default_encoding">DEP0091: <code>crypto.DEFAULT_ENCODING</code></a></li>
 <li><a href="#deprecations_dep0092_top_level_this_bound_to_module_exports">DEP0092: Top-level <code>this</code> bound to <code>module.exports</code></a></li>
-<li><a href="#deprecations_dep0093_crypto_fips_is_deprecated_and_replaced">DEP0093: crypto.fips is deprecated and replaced.</a></li>
+<li><a href="#deprecations_dep0093_crypto_fips_is_deprecated_and_replaced">DEP0093: <code>crypto.fips</code> is deprecated and replaced.</a></li>
 <li><a href="#deprecations_dep0094_using_assert_fail_with_more_than_one_argument">DEP0094: Using <code>assert.fail()</code> with more than one argument.</a></li>
-<li><a href="#deprecations_dep0095_timers_enroll">DEP0095: timers.enroll()</a></li>
-<li><a href="#deprecations_dep0096_timers_unenroll">DEP0096: timers.unenroll()</a></li>
-<li><a href="#deprecations_dep0097_makecallback_with_domain_property">DEP0097: MakeCallback with domain property</a></li>
-<li><a href="#deprecations_dep0098_asynchooks_embedder_asyncresource_emitbefore_and_asyncresource_emitafter_apis">DEP0098: AsyncHooks Embedder AsyncResource.emitBefore and AsyncResource.emitAfter APIs</a></li>
-<li><a href="#deprecations_dep0099_async_context_unaware_node_makecallback_c_apis">DEP0099: async context-unaware node::MakeCallback C++ APIs</a></li>
-<li><a href="#deprecations_dep0100_process_assert">DEP0100: process.assert()</a></li>
-<li><a href="#deprecations_dep0101_with_lttng">DEP0101: --with-lttng</a></li>
-<li><a href="#deprecations_dep0102_using_noassert_in_buffer_read_write_operations">DEP0102: Using <code>noAssert</code> in Buffer#(read|write) operations.</a></li>
-<li><a href="#deprecations_dep0103_process_binding_util_is_typechecks">DEP0103: process.binding('util').is[...] typechecks</a></li>
-<li><a href="#deprecations_dep0104_process_env_string_coercion">DEP0104: process.env string coercion</a></li>
-<li><a href="#deprecations_dep0105_decipher_finaltol">DEP0105: decipher.finaltol</a></li>
-<li><a href="#deprecations_dep0106_crypto_createcipher_and_crypto_createdecipher">DEP0106: crypto.createCipher and crypto.createDecipher</a></li>
-<li><a href="#deprecations_dep0107_tls_convertnpnprotocols">DEP0107: tls.convertNPNProtocols()</a></li>
-<li><a href="#deprecations_dep0108_zlib_bytesread">DEP0108: zlib.bytesRead</a></li>
-<li><a href="#deprecations_dep0109_http_https_and_tls_support_for_invalid_urls">DEP0109: http, https, and tls support for invalid URLs</a></li>
-<li><a href="#deprecations_dep0110_vm_script_cached_data">DEP0110: vm.Script cached data</a></li>
-<li><a href="#deprecations_dep0111_process_binding">DEP0111: process.binding()</a></li>
-<li><a href="#deprecations_dep0112_dgram_private_apis">DEP0112: dgram private APIs</a></li>
-<li><a href="#deprecations_dep0113_cipher_setauthtag_decipher_getauthtag">DEP0113: Cipher.setAuthTag(), Decipher.getAuthTag()</a></li>
-<li><a href="#deprecations_dep0114_crypto_tobuf">DEP0114: crypto._toBuf()</a></li>
-<li><a href="#deprecations_dep0115_crypto_prng_crypto_pseudorandombytes_crypto_rng">DEP0115: crypto.prng(), crypto.pseudoRandomBytes(), crypto.rng()</a></li>
+<li><a href="#deprecations_dep0095_timers_enroll">DEP0095: <code>timers.enroll()</code></a></li>
+<li><a href="#deprecations_dep0096_timers_unenroll">DEP0096: <code>timers.unenroll()</code></a></li>
+<li><a href="#deprecations_dep0097_makecallback_with_domain_property">DEP0097: <code>MakeCallback</code> with <code>domain</code> property</a></li>
+<li><a href="#deprecations_dep0098_asynchooks_embedder_asyncresource_emitbefore_and_asyncresource_emitafter_apis">DEP0098: AsyncHooks embedder <code>AsyncResource.emitBefore</code> and <code>AsyncResource.emitAfter</code> APIs</a></li>
+<li><a href="#deprecations_dep0099_async_context_unaware_node_makecallback_c_apis">DEP0099: Async context-unaware <code>node::MakeCallback</code> C++ APIs</a></li>
+<li><a href="#deprecations_dep0100_process_assert">DEP0100: <code>process.assert()</code></a></li>
+<li><a href="#deprecations_dep0101_with_lttng">DEP0101: <code>--with-lttng</code></a></li>
+<li><a href="#deprecations_dep0102_using_noassert_in_buffer_read_write_operations">DEP0102: Using <code>noAssert</code> in <code>Buffer#(read|write)</code> operations.</a></li>
+<li><a href="#deprecations_dep0103_process_binding_util_is_typechecks">DEP0103: <code>process.binding('util').is[...]</code> typechecks</a></li>
+<li><a href="#deprecations_dep0104_process_env_string_coercion">DEP0104: <code>process.env</code> string coercion</a></li>
+<li><a href="#deprecations_dep0105_decipher_finaltol">DEP0105: <code>decipher.finaltol</code></a></li>
+<li><a href="#deprecations_dep0106_crypto_createcipher_and_crypto_createdecipher">DEP0106: <code>crypto.createCipher</code> and <code>crypto.createDecipher</code></a></li>
+<li><a href="#deprecations_dep0107_tls_convertnpnprotocols">DEP0107: <code>tls.convertNPNProtocols()</code></a></li>
+<li><a href="#deprecations_dep0108_zlib_bytesread">DEP0108: <code>zlib.bytesRead</code></a></li>
+<li><a href="#deprecations_dep0109_http_https_and_tls_support_for_invalid_urls">DEP0109: <code>http</code>, <code>https</code>, and <code>tls</code> support for invalid URLs</a></li>
+<li><a href="#deprecations_dep0110_vm_script_cached_data">DEP0110: <code>vm.Script</code> cached data</a></li>
+<li><a href="#deprecations_dep0111_process_binding">DEP0111: <code>process.binding()</code></a></li>
+<li><a href="#deprecations_dep0112_dgram_private_apis">DEP0112: <code>dgram</code> private APIs</a></li>
+<li><a href="#deprecations_dep0113_cipher_setauthtag_decipher_getauthtag">DEP0113: <code>Cipher.setAuthTag()</code>, <code>Decipher.getAuthTag()</code></a></li>
+<li><a href="#deprecations_dep0114_crypto_tobuf">DEP0114: <code>crypto._toBuf()</code></a></li>
+<li><a href="#deprecations_dep0115_crypto_prng_crypto_pseudorandombytes_crypto_rng">DEP0115: <code>crypto.prng()</code>, <code>crypto.pseudoRandomBytes()</code>, <code>crypto.rng()</code></a></li>
 <li><a href="#deprecations_dep0116_legacy_url_api">DEP0116: Legacy URL API</a></li>
 <li><a href="#deprecations_dep0117_native_crypto_handles">DEP0117: Native crypto handles</a></li>
-<li><a href="#deprecations_dep0118_dns_lookup_support_for_a_falsy_hostname">DEP0118: dns.lookup() support for a falsy hostname</a></li>
-<li><a href="#deprecations_dep0119_process_binding_uv_errname_private_api">DEP0119: process.binding('uv').errname() private API</a></li>
-<li><a href="#deprecations_dep0120_windows_performance_counter_support">DEP0120: Windows Performance Counter Support</a></li>
-<li><a href="#deprecations_dep0121_net_setsimultaneousaccepts">DEP0121: net._setSimultaneousAccepts()</a></li>
-<li><a href="#deprecations_dep0122_tls_server_prototype_setoptions">DEP0122: tls Server.prototype.setOptions()</a></li>
+<li><a href="#deprecations_dep0118_dns_lookup_support_for_a_falsy_host_name">DEP0118: <code>dns.lookup()</code> support for a falsy host name</a></li>
+<li><a href="#deprecations_dep0119_process_binding_uv_errname_private_api">DEP0119: <code>process.binding('uv').errname()</code> private API</a></li>
+<li><a href="#deprecations_dep0120_windows_performance_counter_support">DEP0120: Windows Performance Counter support</a></li>
+<li><a href="#deprecations_dep0121_net_setsimultaneousaccepts">DEP0121: <code>net._setSimultaneousAccepts()</code></a></li>
+<li><a href="#deprecations_dep0122_tls_server_prototype_setoptions">DEP0122: <code>tls</code> <code>Server.prototype.setOptions()</code></a></li>
 <li><a href="#deprecations_dep0123_setting_the_tls_servername_to_an_ip_address">DEP0123: setting the TLS ServerName to an IP address</a></li>
-<li><a href="#deprecations_dep0124_using_replserver_rli">DEP0124: using REPLServer.rli</a></li>
-<li><a href="#deprecations_dep0125_require_stream_wrap">DEP0125: require('_stream_wrap')</a></li>
-<li><a href="#deprecations_dep0126_timers_active">DEP0126: timers.active()</a></li>
-<li><a href="#deprecations_dep0127_timers_unrefactive">DEP0127: timers._unrefActive()</a></li>
+<li><a href="#deprecations_dep0124_using_replserver_rli">DEP0124: using <code>REPLServer.rli</code></a></li>
+<li><a href="#deprecations_dep0125_require_stream_wrap">DEP0125: <code>require('_stream_wrap')</code></a></li>
+<li><a href="#deprecations_dep0126_timers_active">DEP0126: <code>timers.active()</code></a></li>
+<li><a href="#deprecations_dep0127_timers_unrefactive">DEP0127: <code>timers._unrefActive()</code></a></li>
 <li><a href="#deprecations_dep0128_modules_with_an_invalid_main_entry_and_an_index_js_file">DEP0128: modules with an invalid <code>main</code> entry and an <code>index.js</code> file</a></li>
-<li><a href="#deprecations_dep0129_childprocess_channel">DEP0129: ChildProcess._channel</a></li>
-<li><a href="#deprecations_dep0130_module_createrequirefrompath">DEP0130: Module.createRequireFromPath()</a></li>
+<li><a href="#deprecations_dep0129_childprocess_channel">DEP0129: <code>ChildProcess._channel</code></a></li>
+<li><a href="#deprecations_dep0130_module_createrequirefrompath">DEP0130: <code>Module.createRequireFromPath()</code></a></li>
 <li><a href="#deprecations_dep0131_legacy_http_parser">DEP0131: Legacy HTTP parser</a></li>
-<li><a href="#deprecations_dep0132_worker_terminate_with_callback">DEP0132: worker.terminate() with callback</a></li>
-<li><a href="#deprecations_dep0133_http_connection">DEP0133: http connection</a></li>
-<li><a href="#deprecations_dep0134_process_tickcallback">DEP0134: process._tickCallback</a></li>
+<li><a href="#deprecations_dep0132_worker_terminate_with_callback">DEP0132: <code>worker.terminate()</code> with callback</a></li>
+<li><a href="#deprecations_dep0133_http_connection">DEP0133: <code>http</code> <code>connection</code></a></li>
+<li><a href="#deprecations_dep0134_process_tickcallback">DEP0134: <code>process._tickCallback</code></a></li>
+<li><a href="#deprecations_dep0135_writestream_open_and_readstream_open_are_internal">DEP0135: <code>WriteStream.open()</code> and <code>ReadStream.open()</code> are internal</a></li>
+<li><a href="#deprecations_dep0136_http_finished">DEP0136: <code>http</code> <code>finished</code></a></li>
+<li><a href="#deprecations_dep0137_closing_fs_filehandle_on_garbage_collection">DEP0137: Closing fs.FileHandle on garbage collection</a></li>
+<li><a href="#deprecations_dep0138_process_mainmodule">DEP0138: <code>process.mainModule</code></a></li>
+<li><a href="#deprecations_dep0139_process_umask_with_no_arguments">DEP0139: <code>process.umask()</code> with no arguments</a></li>
+<li><a href="#deprecations_dep0140_use_request_destroy_instead_of_request_abort">DEP0140: Use <code>request.destroy()</code> instead of <code>request.abort()</code></a></li>
+<li><a href="#deprecations_dep0141_repl_inputstream_and_repl_outputstream">DEP0141: <code>repl.inputStream</code> and <code>repl.outputStream</code></a></li>
+<li><a href="#deprecations_dep0142_repl_builtinlibs">DEP0142: <code>repl._builtinLibs</code></a></li>
+<li><a href="#deprecations_dep0143_transform_transformstate">DEP0143: <code>Transform._transformState</code></a></li>
+<li><a href="#deprecations_dep0144_module_parent">DEP0144: <code>module.parent</code></a></li>
+<li><a href="#deprecations_dep0145_socket_buffersize">DEP0145: <code>socket.bufferSize</code></a></li>
 </ul>
 </li>
 </ul>
@@ -293,13 +309,15 @@ from Node.js.</p>
 <p>Occasionally, the deprecation of an API may be reversed. In such situations,
 this document will be updated with information relevant to the decision.
 However, the deprecation identifier will not be modified.</p>
-<h2>List of Deprecated APIs<span><a class="mark" href="#deprecations_list_of_deprecated_apis" id="deprecations_list_of_deprecated_apis">#</a></span></h2>
+<h2>List of deprecated APIs<span><a class="mark" href="#deprecations_list_of_deprecated_apis" id="deprecations_list_of_deprecated_apis">#</a></span></h2>
 <p><a id="DEP0001"></a></p>
-<h3>DEP0001: http.OutgoingMessage.prototype.flush<span><a class="mark" href="#deprecations_dep0001_http_outgoingmessage_prototype_flush" id="deprecations_dep0001_http_outgoingmessage_prototype_flush">#</a></span></h3>
+<h3>DEP0001: <code>http.OutgoingMessage.prototype.flush</code><span><a class="mark" href="#deprecations_dep0001_http_outgoingmessage_prototype_flush" id="deprecations_dep0001_http_outgoingmessage_prototype_flush">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v14.0.0</td>
+<td><p>End-of-Life.</p></td></tr>
 <tr><td>v4.8.6, v6.12.0</td>
 <td><p>A deprecation code has been assigned.</p></td></tr>
 <tr><td>v1.6.0</td>
@@ -307,11 +325,11 @@ However, the deprecation identifier will not be modified.</p>
 </tbody></table>
 </details>
 </div>
-<p>Type: Runtime</p>
-<p>The <code>OutgoingMessage.prototype.flush()</code> method is deprecated. Use
+<p>Type: End-of-Life</p>
+<p><code>OutgoingMessage.prototype.flush()</code> has been removed. Use
 <code>OutgoingMessage.prototype.flushHeaders()</code> instead.</p>
 <p><a id="DEP0002"></a></p>
-<h3>DEP0002: require('_linklist')<span><a class="mark" href="#deprecations_dep0002_require_linklist" id="deprecations_dep0002_require_linklist">#</a></span></h3>
+<h3>DEP0002: <code>require('_linklist')</code><span><a class="mark" href="#deprecations_dep0002_require_linklist" id="deprecations_dep0002_require_linklist">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -328,11 +346,13 @@ However, the deprecation identifier will not be modified.</p>
 <p>Type: End-of-Life</p>
 <p>The <code>_linklist</code> module is deprecated. Please use a userland alternative.</p>
 <p><a id="DEP0003"></a></p>
-<h3>DEP0003: _writableState.buffer<span><a class="mark" href="#deprecations_dep0003_writablestate_buffer" id="deprecations_dep0003_writablestate_buffer">#</a></span></h3>
+<h3>DEP0003: <code>_writableState.buffer</code><span><a class="mark" href="#deprecations_dep0003_writablestate_buffer" id="deprecations_dep0003_writablestate_buffer">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v14.0.0</td>
+<td><p>End-of-Life</p></td></tr>
 <tr><td>v4.8.6, v6.12.0</td>
 <td><p>A deprecation code has been assigned.</p></td></tr>
 <tr><td>v0.11.15</td>
@@ -340,11 +360,11 @@ However, the deprecation identifier will not be modified.</p>
 </tbody></table>
 </details>
 </div>
-<p>Type: Runtime</p>
-<p>The <code>_writableState.buffer</code> property is deprecated. Use the
-<code>_writableState.getBuffer()</code> method instead.</p>
+<p>Type: End-of-Life</p>
+<p>The <code>_writableState.buffer</code> has been removed. Use <code>_writableState.getBuffer()</code>
+instead.</p>
 <p><a id="DEP0004"></a></p>
-<h3>DEP0004: CryptoStream.prototype.readyState<span><a class="mark" href="#deprecations_dep0004_cryptostream_prototype_readystate" id="deprecations_dep0004_cryptostream_prototype_readystate">#</a></span></h3>
+<h3>DEP0004: <code>CryptoStream.prototype.readyState</code><span><a class="mark" href="#deprecations_dep0004_cryptostream_prototype_readystate" id="deprecations_dep0004_cryptostream_prototype_readystate">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -361,7 +381,7 @@ However, the deprecation identifier will not be modified.</p>
 <p>Type: End-of-Life</p>
 <p>The <code>CryptoStream.prototype.readyState</code> property was removed.</p>
 <p><a id="DEP0005"></a></p>
-<h3>DEP0005: Buffer() constructor<span><a class="mark" href="#deprecations_dep0005_buffer_constructor" id="deprecations_dep0005_buffer_constructor">#</a></span></h3>
+<h3>DEP0005: <code>Buffer()</code> constructor<span><a class="mark" href="#deprecations_dep0005_buffer_constructor" id="deprecations_dep0005_buffer_constructor">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -381,17 +401,17 @@ API usability issues that can lead to accidental security issues.</p>
 <p>As an alternative, use one of the following methods of constructing <code>Buffer</code>
 objects:</p>
 <ul>
-<li><a href="buffer.html#buffer_class_method_buffer_alloc_size_fill_encoding"><code>Buffer.alloc(size[, fill[, encoding]])</code></a> - Create a <code>Buffer</code> with
+<li><a href="buffer.html#buffer_static_method_buffer_alloc_size_fill_encoding"><code>Buffer.alloc(size[, fill[, encoding]])</code></a>: Create a <code>Buffer</code> with
 <em>initialized</em> memory.</li>
-<li><a href="buffer.html#buffer_class_method_buffer_allocunsafe_size"><code>Buffer.allocUnsafe(size)</code></a> - Create a <code>Buffer</code> with
+<li><a href="buffer.html#buffer_static_method_buffer_allocunsafe_size"><code>Buffer.allocUnsafe(size)</code></a>: Create a <code>Buffer</code> with
 <em>uninitialized</em> memory.</li>
-<li><a href="buffer.html#buffer_class_method_buffer_allocunsafeslow_size"><code>Buffer.allocUnsafeSlow(size)</code></a> - Create a <code>Buffer</code> with <em>uninitialized</em>
+<li><a href="buffer.html#buffer_static_method_buffer_allocunsafeslow_size"><code>Buffer.allocUnsafeSlow(size)</code></a>: Create a <code>Buffer</code> with <em>uninitialized</em>
 memory.</li>
-<li><a href="buffer.html#buffer_class_method_buffer_from_array"><code>Buffer.from(array)</code></a> - Create a <code>Buffer</code> with a copy of <code>array</code></li>
-<li><a href="buffer.html#buffer_class_method_buffer_from_arraybuffer_byteoffset_length"><code>Buffer.from(arrayBuffer[, byteOffset[, length]])</code></a> -
+<li><a href="buffer.html#buffer_static_method_buffer_from_array"><code>Buffer.from(array)</code></a>: Create a <code>Buffer</code> with a copy of <code>array</code></li>
+<li><a href="buffer.html#buffer_static_method_buffer_from_arraybuffer_byteoffset_length"><code>Buffer.from(arrayBuffer[, byteOffset[, length]])</code></a> -
 Create a <code>Buffer</code> that wraps the given <code>arrayBuffer</code>.</li>
-<li><a href="buffer.html#buffer_class_method_buffer_from_buffer"><code>Buffer.from(buffer)</code></a> - Create a <code>Buffer</code> that copies <code>buffer</code>.</li>
-<li><a href="buffer.html#buffer_class_method_buffer_from_string_encoding"><code>Buffer.from(string[, encoding])</code></a> - Create a <code>Buffer</code>
+<li><a href="buffer.html#buffer_static_method_buffer_from_buffer"><code>Buffer.from(buffer)</code></a>: Create a <code>Buffer</code> that copies <code>buffer</code>.</li>
+<li><a href="buffer.html#buffer_static_method_buffer_from_string_encoding"><code>Buffer.from(string[, encoding])</code></a>: Create a <code>Buffer</code>
 that copies <code>string</code>.</li>
 </ul>
 <p>Without <code>--pending-deprecation</code>, runtime warnings occur only for code not in
@@ -399,7 +419,7 @@ that copies <code>string</code>.</li>
 <code>Buffer()</code> usage in dependencies. With <code>--pending-deprecation</code>, a runtime
 warning results no matter where the <code>Buffer()</code> usage occurs.</p>
 <p><a id="DEP0006"></a></p>
-<h3>DEP0006: child_process options.customFds<span><a class="mark" href="#deprecations_dep0006_child_process_options_customfds" id="deprecations_dep0006_child_process_options_customfds">#</a></span></h3>
+<h3>DEP0006: <code>child_process</code> <code>options.customFds</code><span><a class="mark" href="#deprecations_dep0006_child_process_options_customfds" id="deprecations_dep0006_child_process_options_customfds">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -420,7 +440,7 @@ warning results no matter where the <code>Buffer()</code> usage occurs.</p>
 methods, the <code>options.customFds</code> option is deprecated. The <code>options.stdio</code>
 option should be used instead.</p>
 <p><a id="DEP0007"></a></p>
-<h3>DEP0007: Replace cluster worker.suicide with worker.exitedAfterDisconnect<span><a class="mark" href="#deprecations_dep0007_replace_cluster_worker_suicide_with_worker_exitedafterdisconnect" id="deprecations_dep0007_replace_cluster_worker_suicide_with_worker_exitedafterdisconnect">#</a></span></h3>
+<h3>DEP0007: Replace <code>cluster</code> <code>worker.suicide</code> with <code>worker.exitedAfterDisconnect</code><span><a class="mark" href="#deprecations_dep0007_replace_cluster_worker_suicide_with_worker_exitedafterdisconnect" id="deprecations_dep0007_replace_cluster_worker_suicide_with_worker_exitedafterdisconnect">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -444,7 +464,7 @@ provide an indication of how and why the <code>Worker</code> instance exited. In
 <a href="cluster.html#cluster_worker_exitedafterdisconnect"><code>worker.exitedAfterDisconnect</code></a> property. The old property name did not
 precisely describe the actual semantics and was unnecessarily emotion-laden.</p>
 <p><a id="DEP0008"></a></p>
-<h3>DEP0008: require('constants')<span><a class="mark" href="#deprecations_dep0008_require_constants" id="deprecations_dep0008_require_constants">#</a></span></h3>
+<h3>DEP0008: <code>require('constants')</code><span><a class="mark" href="#deprecations_dep0008_require_constants" id="deprecations_dep0008_require_constants">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -462,11 +482,13 @@ relevant to specific Node.js builtin modules, developers should instead refer
 to the <code>constants</code> property exposed by the relevant module. For instance,
 <code>require('fs').constants</code> and <code>require('os').constants</code>.</p>
 <p><a id="DEP0009"></a></p>
-<h3>DEP0009: crypto.pbkdf2 without digest<span><a class="mark" href="#deprecations_dep0009_crypto_pbkdf2_without_digest" id="deprecations_dep0009_crypto_pbkdf2_without_digest">#</a></span></h3>
+<h3>DEP0009: <code>crypto.pbkdf2</code> without digest<span><a class="mark" href="#deprecations_dep0009_crypto_pbkdf2_without_digest" id="deprecations_dep0009_crypto_pbkdf2_without_digest">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v14.0.0</td>
+<td><p>End-of-Life (for <code>digest === null</code>)</p></td></tr>
 <tr><td>v11.0.0</td>
 <td><p>Runtime deprecation (for <code>digest === null</code>).</p></td></tr>
 <tr><td>v8.0.0</td>
@@ -478,17 +500,18 @@ to the <code>constants</code> property exposed by the relevant module. For insta
 </tbody></table>
 </details>
 </div>
-<p>Type: Runtime</p>
+<p>Type: End-of-Life</p>
 <p>Use of the <a href="crypto.html#crypto_crypto_pbkdf2_password_salt_iterations_keylen_digest_callback"><code>crypto.pbkdf2()</code></a> API without specifying a digest was deprecated
 in Node.js 6.0 because the method defaulted to using the non-recommended
 <code>'SHA1'</code> digest. Previously, a deprecation warning was printed. Starting in
 Node.js 8.0.0, calling <code>crypto.pbkdf2()</code> or <code>crypto.pbkdf2Sync()</code> with
 <code>digest</code> set to <code>undefined</code> will throw a <code>TypeError</code>.</p>
 <p>Beginning in Node.js v11.0.0, calling these functions with <code>digest</code> set to
-<code>null</code> will print a deprecation warning to align with the behavior when <code>digest</code>
+<code>null</code> would print a deprecation warning to align with the behavior when <code>digest</code>
 is <code>undefined</code>.</p>
+<p>Now, however, passing either <code>undefined</code> or <code>null</code> will throw a <code>TypeError</code>.</p>
 <p><a id="DEP0010"></a></p>
-<h3>DEP0010: crypto.createCredentials<span><a class="mark" href="#deprecations_dep0010_crypto_createcredentials" id="deprecations_dep0010_crypto_createcredentials">#</a></span></h3>
+<h3>DEP0010: <code>crypto.createCredentials</code><span><a class="mark" href="#deprecations_dep0010_crypto_createcredentials" id="deprecations_dep0010_crypto_createcredentials">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -506,7 +529,7 @@ is <code>undefined</code>.</p>
 <p>The <code>crypto.createCredentials()</code> API was removed. Please use
 <a href="tls.html#tls_tls_createsecurecontext_options"><code>tls.createSecureContext()</code></a> instead.</p>
 <p><a id="DEP0011"></a></p>
-<h3>DEP0011: crypto.Credentials<span><a class="mark" href="#deprecations_dep0011_crypto_credentials" id="deprecations_dep0011_crypto_credentials">#</a></span></h3>
+<h3>DEP0011: <code>crypto.Credentials</code><span><a class="mark" href="#deprecations_dep0011_crypto_credentials" id="deprecations_dep0011_crypto_credentials">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -524,7 +547,7 @@ is <code>undefined</code>.</p>
 <p>The <code>crypto.Credentials</code> class was removed. Please use <a href="tls.html#tls_tls_createsecurecontext_options"><code>tls.SecureContext</code></a>
 instead.</p>
 <p><a id="DEP0012"></a></p>
-<h3>DEP0012: Domain.dispose<span><a class="mark" href="#deprecations_dep0012_domain_dispose" id="deprecations_dep0012_domain_dispose">#</a></span></h3>
+<h3>DEP0012: <code>Domain.dispose</code><span><a class="mark" href="#deprecations_dep0012_domain_dispose" id="deprecations_dep0012_domain_dispose">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -542,7 +565,7 @@ instead.</p>
 <p><code>Domain.dispose()</code> has been removed. Recover from failed I/O actions
 explicitly via error event handlers set on the domain instead.</p>
 <p><a id="DEP0013"></a></p>
-<h3>DEP0013: fs asynchronous function without callback<span><a class="mark" href="#deprecations_dep0013_fs_asynchronous_function_without_callback" id="deprecations_dep0013_fs_asynchronous_function_without_callback">#</a></span></h3>
+<h3>DEP0013: <code>fs</code> asynchronous function without callback<span><a class="mark" href="#deprecations_dep0013_fs_asynchronous_function_without_callback" id="deprecations_dep0013_fs_asynchronous_function_without_callback">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -558,7 +581,7 @@ explicitly via error event handlers set on the domain instead.</p>
 <p>Calling an asynchronous function without a callback throws a <code>TypeError</code>
 in Node.js 10.0.0 onwards. See <a href="https://github.com/nodejs/node/pull/12562">https://github.com/nodejs/node/pull/12562</a>.</p>
 <p><a id="DEP0014"></a></p>
-<h3>DEP0014: fs.read legacy String interface<span><a class="mark" href="#deprecations_dep0014_fs_read_legacy_string_interface" id="deprecations_dep0014_fs_read_legacy_string_interface">#</a></span></h3>
+<h3>DEP0014: <code>fs.read</code> legacy String interface<span><a class="mark" href="#deprecations_dep0014_fs_read_legacy_string_interface" id="deprecations_dep0014_fs_read_legacy_string_interface">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -578,7 +601,7 @@ in Node.js 10.0.0 onwards. See <a href="https://github.com/nodejs/node/pull/1256
 <p>The <a href="fs.html#fs_fs_read_fd_buffer_offset_length_position_callback"><code>fs.read()</code></a> legacy <code>String</code> interface is deprecated. Use the <code>Buffer</code>
 API as mentioned in the documentation instead.</p>
 <p><a id="DEP0015"></a></p>
-<h3>DEP0015: fs.readSync legacy String interface<span><a class="mark" href="#deprecations_dep0015_fs_readsync_legacy_string_interface" id="deprecations_dep0015_fs_readsync_legacy_string_interface">#</a></span></h3>
+<h3>DEP0015: <code>fs.readSync</code> legacy String interface<span><a class="mark" href="#deprecations_dep0015_fs_readsync_legacy_string_interface" id="deprecations_dep0015_fs_readsync_legacy_string_interface">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -598,11 +621,13 @@ API as mentioned in the documentation instead.</p>
 <p>The <a href="fs.html#fs_fs_readsync_fd_buffer_offset_length_position"><code>fs.readSync()</code></a> legacy <code>String</code> interface is deprecated. Use the
 <code>Buffer</code> API as mentioned in the documentation instead.</p>
 <p><a id="DEP0016"></a></p>
-<h3>DEP0016: GLOBAL/root<span><a class="mark" href="#deprecations_dep0016_global_root" id="deprecations_dep0016_global_root">#</a></span></h3>
+<h3>DEP0016: <code>GLOBAL</code>/<code>root</code><span><a class="mark" href="#deprecations_dep0016_global_root" id="deprecations_dep0016_global_root">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v14.0.0</td>
+<td><p>End-of-Life</p></td></tr>
 <tr><td>v6.12.0</td>
 <td><p>A deprecation code has been assigned.</p></td></tr>
 <tr><td>v6.0.0</td>
@@ -610,11 +635,11 @@ API as mentioned in the documentation instead.</p>
 </tbody></table>
 </details>
 </div>
-<p>Type: Runtime</p>
-<p>The <code>GLOBAL</code> and <code>root</code> aliases for the <code>global</code> property are deprecated
-and should no longer be used.</p>
+<p>Type: End-of-Life</p>
+<p>The <code>GLOBAL</code> and <code>root</code> aliases for the <code>global</code> property were deprecated
+in Node.js 6.0.0 and have since been removed.</p>
 <p><a id="DEP0017"></a></p>
-<h3>DEP0017: Intl.v8BreakIterator<span><a class="mark" href="#deprecations_dep0017_intl_v8breakiterator" id="deprecations_dep0017_intl_v8breakiterator">#</a></span></h3>
+<h3>DEP0017: <code>Intl.v8BreakIterator</code><span><a class="mark" href="#deprecations_dep0017_intl_v8breakiterator" id="deprecations_dep0017_intl_v8breakiterator">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -645,7 +670,7 @@ See <a href="https://github.com/tc39/proposal-intl-segmenter"><code>Intl.Segment
 that are not handled will terminate the Node.js process with a non-zero exit
 code.</p>
 <p><a id="DEP0019"></a></p>
-<h3>DEP0019: require('.') resolved outside directory<span><a class="mark" href="#deprecations_dep0019_require_resolved_outside_directory" id="deprecations_dep0019_require_resolved_outside_directory">#</a></span></h3>
+<h3>DEP0019: <code>require('.')</code> resolved outside directory<span><a class="mark" href="#deprecations_dep0019_require_resolved_outside_directory" id="deprecations_dep0019_require_resolved_outside_directory">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -663,7 +688,7 @@ code.</p>
 <p>In certain cases, <code>require('.')</code> could resolve outside the package directory.
 This behavior has been removed.</p>
 <p><a id="DEP0020"></a></p>
-<h3>DEP0020: Server.connections<span><a class="mark" href="#deprecations_dep0020_server_connections" id="deprecations_dep0020_server_connections">#</a></span></h3>
+<h3>DEP0020: <code>Server.connections</code><span><a class="mark" href="#deprecations_dep0020_server_connections" id="deprecations_dep0020_server_connections">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -679,7 +704,7 @@ This behavior has been removed.</p>
 <p>The <a href="net.html#net_server_connections"><code>Server.connections</code></a> property is deprecated. Please use the
 <a href="net.html#net_server_getconnections_callback"><code>Server.getConnections()</code></a> method instead.</p>
 <p><a id="DEP0021"></a></p>
-<h3>DEP0021: Server.listenFD<span><a class="mark" href="#deprecations_dep0021_server_listenfd" id="deprecations_dep0021_server_listenfd">#</a></span></h3>
+<h3>DEP0021: <code>Server.listenFD</code><span><a class="mark" href="#deprecations_dep0021_server_listenfd" id="deprecations_dep0021_server_listenfd">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -697,20 +722,23 @@ This behavior has been removed.</p>
 <p>The <code>Server.listenFD()</code> method was deprecated and removed. Please use
 <a href="net.html#net_server_listen_handle_backlog_callback"><code>Server.listen({fd: &#x3C;number>})</code></a> instead.</p>
 <p><a id="DEP0022"></a></p>
-<h3>DEP0022: os.tmpDir()<span><a class="mark" href="#deprecations_dep0022_os_tmpdir" id="deprecations_dep0022_os_tmpdir">#</a></span></h3>
+<h3>DEP0022: <code>os.tmpDir()</code><span><a class="mark" href="#deprecations_dep0022_os_tmpdir" id="deprecations_dep0022_os_tmpdir">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v14.0.0</td>
+<td><p>End-of-Life.</p></td></tr>
 <tr><td>v7.0.0</td>
 <td><p>Runtime deprecation.</p></td></tr>
 </tbody></table>
 </details>
 </div>
-<p>Type: Runtime</p>
-<p>The <code>os.tmpDir()</code> API is deprecated. Please use <a href="os.html#os_os_tmpdir"><code>os.tmpdir()</code></a> instead.</p>
+<p>Type: End-of-Life</p>
+<p>The <code>os.tmpDir()</code> API was deprecated in Node.js 7.0.0 and has since been
+removed. Please use <a href="os.html#os_os_tmpdir"><code>os.tmpdir()</code></a> instead.</p>
 <p><a id="DEP0023"></a></p>
-<h3>DEP0023: os.getNetworkInterfaces()<span><a class="mark" href="#deprecations_dep0023_os_getnetworkinterfaces" id="deprecations_dep0023_os_getnetworkinterfaces">#</a></span></h3>
+<h3>DEP0023: <code>os.getNetworkInterfaces()</code><span><a class="mark" href="#deprecations_dep0023_os_getnetworkinterfaces" id="deprecations_dep0023_os_getnetworkinterfaces">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -728,7 +756,7 @@ This behavior has been removed.</p>
 <p>The <code>os.getNetworkInterfaces()</code> method is deprecated. Please use the
 <a href="os.html#os_os_networkinterfaces"><code>os.networkInterfaces()</code></a> method instead.</p>
 <p><a id="DEP0024"></a></p>
-<h3>DEP0024: REPLServer.prototype.convertToContext()<span><a class="mark" href="#deprecations_dep0024_replserver_prototype_converttocontext" id="deprecations_dep0024_replserver_prototype_converttocontext">#</a></span></h3>
+<h3>DEP0024: <code>REPLServer.prototype.convertToContext()</code><span><a class="mark" href="#deprecations_dep0024_replserver_prototype_converttocontext" id="deprecations_dep0024_replserver_prototype_converttocontext">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -743,7 +771,7 @@ This behavior has been removed.</p>
 <p>Type: End-of-Life</p>
 <p>The <code>REPLServer.prototype.convertToContext()</code> API has been removed.</p>
 <p><a id="DEP0025"></a></p>
-<h3>DEP0025: require('sys')<span><a class="mark" href="#deprecations_dep0025_require_sys" id="deprecations_dep0025_require_sys">#</a></span></h3>
+<h3>DEP0025: <code>require('sys')</code><span><a class="mark" href="#deprecations_dep0025_require_sys" id="deprecations_dep0025_require_sys">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -758,7 +786,7 @@ This behavior has been removed.</p>
 <p>Type: Runtime</p>
 <p>The <code>sys</code> module is deprecated. Please use the <a href="util.html"><code>util</code></a> module instead.</p>
 <p><a id="DEP0026"></a></p>
-<h3>DEP0026: util.print()<span><a class="mark" href="#deprecations_dep0026_util_print" id="deprecations_dep0026_util_print">#</a></span></h3>
+<h3>DEP0026: <code>util.print()</code><span><a class="mark" href="#deprecations_dep0026_util_print" id="deprecations_dep0026_util_print">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -775,7 +803,7 @@ This behavior has been removed.</p>
 <p>Type: End-of-Life</p>
 <p><code>util.print()</code> has been removed. Please use <a href="console.html#console_console_log_data_args"><code>console.log()</code></a> instead.</p>
 <p><a id="DEP0027"></a></p>
-<h3>DEP0027: util.puts()<span><a class="mark" href="#deprecations_dep0027_util_puts" id="deprecations_dep0027_util_puts">#</a></span></h3>
+<h3>DEP0027: <code>util.puts()</code><span><a class="mark" href="#deprecations_dep0027_util_puts" id="deprecations_dep0027_util_puts">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -792,7 +820,7 @@ This behavior has been removed.</p>
 <p>Type: End-of-Life</p>
 <p><code>util.puts()</code> has been removed. Please use <a href="console.html#console_console_log_data_args"><code>console.log()</code></a> instead.</p>
 <p><a id="DEP0028"></a></p>
-<h3>DEP0028: util.debug()<span><a class="mark" href="#deprecations_dep0028_util_debug" id="deprecations_dep0028_util_debug">#</a></span></h3>
+<h3>DEP0028: <code>util.debug()</code><span><a class="mark" href="#deprecations_dep0028_util_debug" id="deprecations_dep0028_util_debug">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -809,7 +837,7 @@ This behavior has been removed.</p>
 <p>Type: End-of-Life</p>
 <p><code>util.debug()</code> has been removed. Please use <a href="console.html#console_console_error_data_args"><code>console.error()</code></a> instead.</p>
 <p><a id="DEP0029"></a></p>
-<h3>DEP0029: util.error()<span><a class="mark" href="#deprecations_dep0029_util_error" id="deprecations_dep0029_util_error">#</a></span></h3>
+<h3>DEP0029: <code>util.error()</code><span><a class="mark" href="#deprecations_dep0029_util_error" id="deprecations_dep0029_util_error">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -826,7 +854,7 @@ This behavior has been removed.</p>
 <p>Type: End-of-Life</p>
 <p><code>util.error()</code> has been removed. Please use <a href="console.html#console_console_error_data_args"><code>console.error()</code></a> instead.</p>
 <p><a id="DEP0030"></a></p>
-<h3>DEP0030: SlowBuffer<span><a class="mark" href="#deprecations_dep0030_slowbuffer" id="deprecations_dep0030_slowbuffer">#</a></span></h3>
+<h3>DEP0030: <code>SlowBuffer</code><span><a class="mark" href="#deprecations_dep0030_slowbuffer" id="deprecations_dep0030_slowbuffer">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -840,9 +868,9 @@ This behavior has been removed.</p>
 </div>
 <p>Type: Documentation-only</p>
 <p>The <a href="buffer.html#buffer_class_slowbuffer"><code>SlowBuffer</code></a> class is deprecated. Please use
-<a href="buffer.html#buffer_class_method_buffer_allocunsafeslow_size"><code>Buffer.allocUnsafeSlow(size)</code></a> instead.</p>
+<a href="buffer.html#buffer_static_method_buffer_allocunsafeslow_size"><code>Buffer.allocUnsafeSlow(size)</code></a> instead.</p>
 <p><a id="DEP0031"></a></p>
-<h3>DEP0031: ecdh.setPublicKey()<span><a class="mark" href="#deprecations_dep0031_ecdh_setpublickey" id="deprecations_dep0031_ecdh_setpublickey">#</a></span></h3>
+<h3>DEP0031: <code>ecdh.setPublicKey()</code><span><a class="mark" href="#deprecations_dep0031_ecdh_setpublickey" id="deprecations_dep0031_ecdh_setpublickey">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -858,7 +886,7 @@ This behavior has been removed.</p>
 <p>The <a href="crypto.html#crypto_ecdh_setpublickey_publickey_encoding"><code>ecdh.setPublicKey()</code></a> method is now deprecated as its inclusion in the
 API is not useful.</p>
 <p><a id="DEP0032"></a></p>
-<h3>DEP0032: domain module<span><a class="mark" href="#deprecations_dep0032_domain_module" id="deprecations_dep0032_domain_module">#</a></span></h3>
+<h3>DEP0032: <code>domain</code> module<span><a class="mark" href="#deprecations_dep0032_domain_module" id="deprecations_dep0032_domain_module">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -873,7 +901,7 @@ API is not useful.</p>
 <p>Type: Documentation-only</p>
 <p>The <a href="domain.html"><code>domain</code></a> module is deprecated and should not be used.</p>
 <p><a id="DEP0033"></a></p>
-<h3>DEP0033: EventEmitter.listenerCount()<span><a class="mark" href="#deprecations_dep0033_eventemitter_listenercount" id="deprecations_dep0033_eventemitter_listenercount">#</a></span></h3>
+<h3>DEP0033: <code>EventEmitter.listenerCount()</code><span><a class="mark" href="#deprecations_dep0033_eventemitter_listenercount" id="deprecations_dep0033_eventemitter_listenercount">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -889,7 +917,7 @@ API is not useful.</p>
 <p>The <a href="events.html#events_eventemitter_listenercount_emitter_eventname"><code>EventEmitter.listenerCount(emitter, eventName)</code></a> API is
 deprecated. Please use <a href="events.html#events_emitter_listenercount_eventname"><code>emitter.listenerCount(eventName)</code></a> instead.</p>
 <p><a id="DEP0034"></a></p>
-<h3>DEP0034: fs.exists(path, callback)<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/fs.js#L198">[src]</a><span><a class="mark" href="#deprecations_dep0034_fs_exists_path_callback" id="deprecations_dep0034_fs_exists_path_callback">#</a></span></h3>
+<h3>DEP0034: <code>fs.exists(path, callback)</code><span><a class="mark" href="#deprecations_dep0034_fs_exists_path_callback" id="deprecations_dep0034_fs_exists_path_callback">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -905,7 +933,7 @@ deprecated. Please use <a href="events.html#events_emitter_listenercount_eventna
 <p>The <a href="fs.html#fs_fs_exists_path_callback"><code>fs.exists(path, callback)</code></a> API is deprecated. Please use
 <a href="fs.html#fs_fs_stat_path_options_callback"><code>fs.stat()</code></a> or <a href="fs.html#fs_fs_access_path_mode_callback"><code>fs.access()</code></a> instead.</p>
 <p><a id="DEP0035"></a></p>
-<h3>DEP0035: fs.lchmod(path, mode, callback)<span><a class="mark" href="#deprecations_dep0035_fs_lchmod_path_mode_callback" id="deprecations_dep0035_fs_lchmod_path_mode_callback">#</a></span></h3>
+<h3>DEP0035: <code>fs.lchmod(path, mode, callback)</code><span><a class="mark" href="#deprecations_dep0035_fs_lchmod_path_mode_callback" id="deprecations_dep0035_fs_lchmod_path_mode_callback">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -920,7 +948,7 @@ deprecated. Please use <a href="events.html#events_emitter_listenercount_eventna
 <p>Type: Documentation-only</p>
 <p>The <a href="fs.html#fs_fs_lchmod_path_mode_callback"><code>fs.lchmod(path, mode, callback)</code></a> API is deprecated.</p>
 <p><a id="DEP0036"></a></p>
-<h3>DEP0036: fs.lchmodSync(path, mode)<span><a class="mark" href="#deprecations_dep0036_fs_lchmodsync_path_mode" id="deprecations_dep0036_fs_lchmodsync_path_mode">#</a></span></h3>
+<h3>DEP0036: <code>fs.lchmodSync(path, mode)</code><span><a class="mark" href="#deprecations_dep0036_fs_lchmodsync_path_mode" id="deprecations_dep0036_fs_lchmodsync_path_mode">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -935,7 +963,7 @@ deprecated. Please use <a href="events.html#events_emitter_listenercount_eventna
 <p>Type: Documentation-only</p>
 <p>The <a href="fs.html#fs_fs_lchmodsync_path_mode"><code>fs.lchmodSync(path, mode)</code></a> API is deprecated.</p>
 <p><a id="DEP0037"></a></p>
-<h3>DEP0037: fs.lchown(path, uid, gid, callback)<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/fs.js#L1107">[src]</a><span><a class="mark" href="#deprecations_dep0037_fs_lchown_path_uid_gid_callback" id="deprecations_dep0037_fs_lchown_path_uid_gid_callback">#</a></span></h3>
+<h3>DEP0037: <code>fs.lchown(path, uid, gid, callback)</code><span><a class="mark" href="#deprecations_dep0037_fs_lchown_path_uid_gid_callback" id="deprecations_dep0037_fs_lchown_path_uid_gid_callback">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -954,7 +982,7 @@ deprecated. Please use <a href="events.html#events_emitter_listenercount_eventna
 deprecation was revoked because the requisite supporting APIs were added in
 libuv.</p>
 <p><a id="DEP0038"></a></p>
-<h3>DEP0038: fs.lchownSync(path, uid, gid)<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/fs.js#L1117">[src]</a><span><a class="mark" href="#deprecations_dep0038_fs_lchownsync_path_uid_gid" id="deprecations_dep0038_fs_lchownsync_path_uid_gid">#</a></span></h3>
+<h3>DEP0038: <code>fs.lchownSync(path, uid, gid)</code><span><a class="mark" href="#deprecations_dep0038_fs_lchownsync_path_uid_gid" id="deprecations_dep0038_fs_lchownsync_path_uid_gid">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -972,7 +1000,7 @@ libuv.</p>
 <p>The <a href="fs.html#fs_fs_lchownsync_path_uid_gid"><code>fs.lchownSync(path, uid, gid)</code></a> API was deprecated. The deprecation was
 revoked because the requisite supporting APIs were added in libuv.</p>
 <p><a id="DEP0039"></a></p>
-<h3>DEP0039: require.extensions<span><a class="mark" href="#deprecations_dep0039_require_extensions" id="deprecations_dep0039_require_extensions">#</a></span></h3>
+<h3>DEP0039: <code>require.extensions</code><span><a class="mark" href="#deprecations_dep0039_require_extensions" id="deprecations_dep0039_require_extensions">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -987,7 +1015,7 @@ revoked because the requisite supporting APIs were added in libuv.</p>
 <p>Type: Documentation-only</p>
 <p>The <a href="modules.html#modules_require_extensions"><code>require.extensions</code></a> property is deprecated.</p>
 <p><a id="DEP0040"></a></p>
-<h3>DEP0040: punycode module<span><a class="mark" href="#deprecations_dep0040_punycode_module" id="deprecations_dep0040_punycode_module">#</a></span></h3>
+<h3>DEP0040: <code>punycode</code> module<span><a class="mark" href="#deprecations_dep0040_punycode_module" id="deprecations_dep0040_punycode_module">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1001,7 +1029,7 @@ revoked because the requisite supporting APIs were added in libuv.</p>
 <p>The <a href="punycode.html"><code>punycode</code></a> module is deprecated. Please use a userland alternative
 instead.</p>
 <p><a id="DEP0041"></a></p>
-<h3>DEP0041: NODE_REPL_HISTORY_FILE environment variable<span><a class="mark" href="#deprecations_dep0041_node_repl_history_file_environment_variable" id="deprecations_dep0041_node_repl_history_file_environment_variable">#</a></span></h3>
+<h3>DEP0041: <code>NODE_REPL_HISTORY_FILE</code> environment variable<span><a class="mark" href="#deprecations_dep0041_node_repl_history_file_environment_variable" id="deprecations_dep0041_node_repl_history_file_environment_variable">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1019,7 +1047,7 @@ instead.</p>
 <p>The <code>NODE_REPL_HISTORY_FILE</code> environment variable was removed. Please use
 <code>NODE_REPL_HISTORY</code> instead.</p>
 <p><a id="DEP0042"></a></p>
-<h3>DEP0042: tls.CryptoStream<span><a class="mark" href="#deprecations_dep0042_tls_cryptostream" id="deprecations_dep0042_tls_cryptostream">#</a></span></h3>
+<h3>DEP0042: <code>tls.CryptoStream</code><span><a class="mark" href="#deprecations_dep0042_tls_cryptostream" id="deprecations_dep0042_tls_cryptostream">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1037,7 +1065,7 @@ instead.</p>
 <p>The <a href="tls.html#tls_class_cryptostream"><code>tls.CryptoStream</code></a> class was removed. Please use
 <a href="tls.html#tls_class_tls_tlssocket"><code>tls.TLSSocket</code></a> instead.</p>
 <p><a id="DEP0043"></a></p>
-<h3>DEP0043: tls.SecurePair<span><a class="mark" href="#deprecations_dep0043_tls_securepair" id="deprecations_dep0043_tls_securepair">#</a></span></h3>
+<h3>DEP0043: <code>tls.SecurePair</code><span><a class="mark" href="#deprecations_dep0043_tls_securepair" id="deprecations_dep0043_tls_securepair">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1059,7 +1087,7 @@ instead.</p>
 <p>The <a href="tls.html#tls_class_securepair"><code>tls.SecurePair</code></a> class is deprecated. Please use
 <a href="tls.html#tls_class_tls_tlssocket"><code>tls.TLSSocket</code></a> instead.</p>
 <p><a id="DEP0044"></a></p>
-<h3>DEP0044: util.isArray()<span><a class="mark" href="#deprecations_dep0044_util_isarray" id="deprecations_dep0044_util_isarray">#</a></span></h3>
+<h3>DEP0044: <code>util.isArray()</code><span><a class="mark" href="#deprecations_dep0044_util_isarray" id="deprecations_dep0044_util_isarray">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1075,7 +1103,7 @@ instead.</p>
 <p>The <a href="util.html#util_util_isarray_object"><code>util.isArray()</code></a> API is deprecated. Please use <code>Array.isArray()</code>
 instead.</p>
 <p><a id="DEP0045"></a></p>
-<h3>DEP0045: util.isBoolean()<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/util.js#L55">[src]</a><span><a class="mark" href="#deprecations_dep0045_util_isboolean" id="deprecations_dep0045_util_isboolean">#</a></span></h3>
+<h3>DEP0045: <code>util.isBoolean()</code><span><a class="mark" href="#deprecations_dep0045_util_isboolean" id="deprecations_dep0045_util_isboolean">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1090,7 +1118,7 @@ instead.</p>
 <p>Type: Documentation-only</p>
 <p>The <a href="util.html#util_util_isboolean_object"><code>util.isBoolean()</code></a> API is deprecated.</p>
 <p><a id="DEP0046"></a></p>
-<h3>DEP0046: util.isBuffer()<span><a class="mark" href="#deprecations_dep0046_util_isbuffer" id="deprecations_dep0046_util_isbuffer">#</a></span></h3>
+<h3>DEP0046: <code>util.isBuffer()</code><span><a class="mark" href="#deprecations_dep0046_util_isbuffer" id="deprecations_dep0046_util_isbuffer">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1104,9 +1132,9 @@ instead.</p>
 </div>
 <p>Type: Documentation-only</p>
 <p>The <a href="util.html#util_util_isbuffer_object"><code>util.isBuffer()</code></a> API is deprecated. Please use
-<a href="buffer.html#buffer_class_method_buffer_isbuffer_obj"><code>Buffer.isBuffer()</code></a> instead.</p>
+<a href="buffer.html#buffer_static_method_buffer_isbuffer_obj"><code>Buffer.isBuffer()</code></a> instead.</p>
 <p><a id="DEP0047"></a></p>
-<h3>DEP0047: util.isDate()<span><a class="mark" href="#deprecations_dep0047_util_isdate" id="deprecations_dep0047_util_isdate">#</a></span></h3>
+<h3>DEP0047: <code>util.isDate()</code><span><a class="mark" href="#deprecations_dep0047_util_isdate" id="deprecations_dep0047_util_isdate">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1121,7 +1149,7 @@ instead.</p>
 <p>Type: Documentation-only</p>
 <p>The <a href="util.html#util_util_isdate_object"><code>util.isDate()</code></a> API is deprecated.</p>
 <p><a id="DEP0048"></a></p>
-<h3>DEP0048: util.isError()<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/util.js#L87">[src]</a><span><a class="mark" href="#deprecations_dep0048_util_iserror" id="deprecations_dep0048_util_iserror">#</a></span></h3>
+<h3>DEP0048: <code>util.isError()</code><span><a class="mark" href="#deprecations_dep0048_util_iserror" id="deprecations_dep0048_util_iserror">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1136,7 +1164,7 @@ instead.</p>
 <p>Type: Documentation-only</p>
 <p>The <a href="util.html#util_util_iserror_object"><code>util.isError()</code></a> API is deprecated.</p>
 <p><a id="DEP0049"></a></p>
-<h3>DEP0049: util.isFunction()<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/util.js#L91">[src]</a><span><a class="mark" href="#deprecations_dep0049_util_isfunction" id="deprecations_dep0049_util_isfunction">#</a></span></h3>
+<h3>DEP0049: <code>util.isFunction()</code><span><a class="mark" href="#deprecations_dep0049_util_isfunction" id="deprecations_dep0049_util_isfunction">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1151,7 +1179,7 @@ instead.</p>
 <p>Type: Documentation-only</p>
 <p>The <a href="util.html#util_util_isfunction_object"><code>util.isFunction()</code></a> API is deprecated.</p>
 <p><a id="DEP0050"></a></p>
-<h3>DEP0050: util.isNull()<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/util.js#L59">[src]</a><span><a class="mark" href="#deprecations_dep0050_util_isnull" id="deprecations_dep0050_util_isnull">#</a></span></h3>
+<h3>DEP0050: <code>util.isNull()</code><span><a class="mark" href="#deprecations_dep0050_util_isnull" id="deprecations_dep0050_util_isnull">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1166,7 +1194,7 @@ instead.</p>
 <p>Type: Documentation-only</p>
 <p>The <a href="util.html#util_util_isnull_object"><code>util.isNull()</code></a> API is deprecated.</p>
 <p><a id="DEP0051"></a></p>
-<h3>DEP0051: util.isNullOrUndefined()<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/util.js#L63">[src]</a><span><a class="mark" href="#deprecations_dep0051_util_isnullorundefined" id="deprecations_dep0051_util_isnullorundefined">#</a></span></h3>
+<h3>DEP0051: <code>util.isNullOrUndefined()</code><span><a class="mark" href="#deprecations_dep0051_util_isnullorundefined" id="deprecations_dep0051_util_isnullorundefined">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1181,7 +1209,7 @@ instead.</p>
 <p>Type: Documentation-only</p>
 <p>The <a href="util.html#util_util_isnullorundefined_object"><code>util.isNullOrUndefined()</code></a> API is deprecated.</p>
 <p><a id="DEP0052"></a></p>
-<h3>DEP0052: util.isNumber()<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/util.js#L67">[src]</a><span><a class="mark" href="#deprecations_dep0052_util_isnumber" id="deprecations_dep0052_util_isnumber">#</a></span></h3>
+<h3>DEP0052: <code>util.isNumber()</code><span><a class="mark" href="#deprecations_dep0052_util_isnumber" id="deprecations_dep0052_util_isnumber">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1196,7 +1224,7 @@ instead.</p>
 <p>Type: Documentation-only</p>
 <p>The <a href="util.html#util_util_isnumber_object"><code>util.isNumber()</code></a> API is deprecated.</p>
 <p><a id="DEP0053"></a></p>
-<h3>DEP0053 util.isObject()<span><a class="mark" href="#deprecations_dep0053_util_isobject" id="deprecations_dep0053_util_isobject">#</a></span></h3>
+<h3>DEP0053 <code>util.isObject()</code><span><a class="mark" href="#deprecations_dep0053_util_isobject" id="deprecations_dep0053_util_isobject">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1211,7 +1239,7 @@ instead.</p>
 <p>Type: Documentation-only</p>
 <p>The <a href="util.html#util_util_isobject_object"><code>util.isObject()</code></a> API is deprecated.</p>
 <p><a id="DEP0054"></a></p>
-<h3>DEP0054: util.isPrimitive()<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/util.js#L95">[src]</a><span><a class="mark" href="#deprecations_dep0054_util_isprimitive" id="deprecations_dep0054_util_isprimitive">#</a></span></h3>
+<h3>DEP0054: <code>util.isPrimitive()</code><span><a class="mark" href="#deprecations_dep0054_util_isprimitive" id="deprecations_dep0054_util_isprimitive">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1226,7 +1254,7 @@ instead.</p>
 <p>Type: Documentation-only</p>
 <p>The <a href="util.html#util_util_isprimitive_object"><code>util.isPrimitive()</code></a> API is deprecated.</p>
 <p><a id="DEP0055"></a></p>
-<h3>DEP0055: util.isRegExp()<span><a class="mark" href="#deprecations_dep0055_util_isregexp" id="deprecations_dep0055_util_isregexp">#</a></span></h3>
+<h3>DEP0055: <code>util.isRegExp()</code><span><a class="mark" href="#deprecations_dep0055_util_isregexp" id="deprecations_dep0055_util_isregexp">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1241,7 +1269,7 @@ instead.</p>
 <p>Type: Documentation-only</p>
 <p>The <a href="util.html#util_util_isregexp_object"><code>util.isRegExp()</code></a> API is deprecated.</p>
 <p><a id="DEP0056"></a></p>
-<h3>DEP0056: util.isString()<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/util.js#L71">[src]</a><span><a class="mark" href="#deprecations_dep0056_util_isstring" id="deprecations_dep0056_util_isstring">#</a></span></h3>
+<h3>DEP0056: <code>util.isString()</code><span><a class="mark" href="#deprecations_dep0056_util_isstring" id="deprecations_dep0056_util_isstring">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1256,7 +1284,7 @@ instead.</p>
 <p>Type: Documentation-only</p>
 <p>The <a href="util.html#util_util_isstring_object"><code>util.isString()</code></a> API is deprecated.</p>
 <p><a id="DEP0057"></a></p>
-<h3>DEP0057: util.isSymbol()<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/util.js#L75">[src]</a><span><a class="mark" href="#deprecations_dep0057_util_issymbol" id="deprecations_dep0057_util_issymbol">#</a></span></h3>
+<h3>DEP0057: <code>util.isSymbol()</code><span><a class="mark" href="#deprecations_dep0057_util_issymbol" id="deprecations_dep0057_util_issymbol">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1271,7 +1299,7 @@ instead.</p>
 <p>Type: Documentation-only</p>
 <p>The <a href="util.html#util_util_issymbol_object"><code>util.isSymbol()</code></a> API is deprecated.</p>
 <p><a id="DEP0058"></a></p>
-<h3>DEP0058: util.isUndefined()<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/util.js#L79">[src]</a><span><a class="mark" href="#deprecations_dep0058_util_isundefined" id="deprecations_dep0058_util_isundefined">#</a></span></h3>
+<h3>DEP0058: <code>util.isUndefined()</code><span><a class="mark" href="#deprecations_dep0058_util_isundefined" id="deprecations_dep0058_util_isundefined">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1286,7 +1314,7 @@ instead.</p>
 <p>Type: Documentation-only</p>
 <p>The <a href="util.html#util_util_isundefined_object"><code>util.isUndefined()</code></a> API is deprecated.</p>
 <p><a id="DEP0059"></a></p>
-<h3>DEP0059: util.log()<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/util.js#L118">[src]</a><span><a class="mark" href="#deprecations_dep0059_util_log" id="deprecations_dep0059_util_log">#</a></span></h3>
+<h3>DEP0059: <code>util.log()</code><span><a class="mark" href="#deprecations_dep0059_util_log" id="deprecations_dep0059_util_log">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1301,7 +1329,7 @@ instead.</p>
 <p>Type: Documentation-only</p>
 <p>The <a href="util.html#util_util_log_string"><code>util.log()</code></a> API is deprecated.</p>
 <p><a id="DEP0060"></a></p>
-<h3>DEP0060: util._extend()<span><a class="mark" href="#deprecations_dep0060_util_extend" id="deprecations_dep0060_util_extend">#</a></span></h3>
+<h3>DEP0060: <code>util._extend()</code><span><a class="mark" href="#deprecations_dep0060_util_extend" id="deprecations_dep0060_util_extend">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1316,7 +1344,7 @@ instead.</p>
 <p>Type: Documentation-only</p>
 <p>The <a href="util.html#util_util_extend_target_source"><code>util._extend()</code></a> API is deprecated.</p>
 <p><a id="DEP0061"></a></p>
-<h3>DEP0061: fs.SyncWriteStream<span><a class="mark" href="#deprecations_dep0061_fs_syncwritestream" id="deprecations_dep0061_fs_syncwritestream">#</a></span></h3>
+<h3>DEP0061: <code>fs.SyncWriteStream</code><span><a class="mark" href="#deprecations_dep0061_fs_syncwritestream" id="deprecations_dep0061_fs_syncwritestream">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1335,7 +1363,7 @@ instead.</p>
 API and has been removed. No alternative API is available. Please use a userland
 alternative.</p>
 <p><a id="DEP0062"></a></p>
-<h3>DEP0062: node --debug<span><a class="mark" href="#deprecations_dep0062_node_debug" id="deprecations_dep0062_node_debug">#</a></span></h3>
+<h3>DEP0062: <code>node --debug</code><span><a class="mark" href="#deprecations_dep0062_node_debug" id="deprecations_dep0062_node_debug">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1352,7 +1380,7 @@ alternative.</p>
 of V8 5.8. It is replaced by Inspector which is activated with <code>--inspect</code>
 instead.</p>
 <p><a id="DEP0063"></a></p>
-<h3>DEP0063: ServerResponse.prototype.writeHeader()<span><a class="mark" href="#deprecations_dep0063_serverresponse_prototype_writeheader" id="deprecations_dep0063_serverresponse_prototype_writeheader">#</a></span></h3>
+<h3>DEP0063: <code>ServerResponse.prototype.writeHeader()</code><span><a class="mark" href="#deprecations_dep0063_serverresponse_prototype_writeheader" id="deprecations_dep0063_serverresponse_prototype_writeheader">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1368,7 +1396,7 @@ deprecated. Please use <code>ServerResponse.prototype.writeHead()</code> instead
 <p>The <code>ServerResponse.prototype.writeHeader()</code> method was never documented as an
 officially supported API.</p>
 <p><a id="DEP0064"></a></p>
-<h3>DEP0064: tls.createSecurePair()<span><a class="mark" href="#deprecations_dep0064_tls_createsecurepair" id="deprecations_dep0064_tls_createsecurepair">#</a></span></h3>
+<h3>DEP0064: <code>tls.createSecurePair()</code><span><a class="mark" href="#deprecations_dep0064_tls_createsecurepair" id="deprecations_dep0064_tls_createsecurepair">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1390,7 +1418,7 @@ officially supported API.</p>
 <p>The <code>tls.createSecurePair()</code> API was deprecated in documentation in Node.js
 0.11.3. Users should use <code>tls.Socket</code> instead.</p>
 <p><a id="DEP0065"></a></p>
-<h3>DEP0065: repl.REPL_MODE_MAGIC and NODE_REPL_MODE=magic<span><a class="mark" href="#deprecations_dep0065_repl_repl_mode_magic_and_node_repl_mode_magic" id="deprecations_dep0065_repl_repl_mode_magic_and_node_repl_mode_magic">#</a></span></h3>
+<h3>DEP0065: <code>repl.REPL_MODE_MAGIC</code> and <code>NODE_REPL_MODE=magic</code><span><a class="mark" href="#deprecations_dep0065_repl_repl_mode_magic_and_node_repl_mode_magic" id="deprecations_dep0065_repl_repl_mode_magic_and_node_repl_mode_magic">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1411,7 +1439,7 @@ been removed. Its behavior has been functionally identical to that of
 <code>replMode</code> of an interactive <code>node</code> session. Its value, <code>magic</code>, is also
 removed. Please use <code>sloppy</code> instead.</p>
 <p><a id="DEP0066"></a></p>
-<h3>DEP0066: OutgoingMessage.prototype._headers, OutgoingMessage.prototype._headerNames<span><a class="mark" href="#deprecations_dep0066_outgoingmessage_prototype_headers_outgoingmessage_prototype_headernames" id="deprecations_dep0066_outgoingmessage_prototype_headers_outgoingmessage_prototype_headernames">#</a></span></h3>
+<h3>DEP0066: <code>OutgoingMessage.prototype._headers, OutgoingMessage.prototype._headerNames</code><span><a class="mark" href="#deprecations_dep0066_outgoingmessage_prototype_headers_outgoingmessage_prototype_headernames" id="deprecations_dep0066_outgoingmessage_prototype_headers_outgoingmessage_prototype_headernames">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1436,7 +1464,7 @@ the public methods (e.g. <code>OutgoingMessage.prototype.getHeader()</code>,
 <code>OutgoingMessage.prototype._headerNames</code> properties were never documented as
 officially supported properties.</p>
 <p><a id="DEP0067"></a></p>
-<h3>DEP0067: OutgoingMessage.prototype._renderHeaders<span><a class="mark" href="#deprecations_dep0067_outgoingmessage_prototype_renderheaders" id="deprecations_dep0067_outgoingmessage_prototype_renderheaders">#</a></span></h3>
+<h3>DEP0067: <code>OutgoingMessage.prototype._renderHeaders</code><span><a class="mark" href="#deprecations_dep0067_outgoingmessage_prototype_renderheaders" id="deprecations_dep0067_outgoingmessage_prototype_renderheaders">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1452,7 +1480,7 @@ deprecated.</p>
 <p>The <code>OutgoingMessage.prototype._renderHeaders</code> property was never documented as
 an officially supported API.</p>
 <p><a id="DEP0068"></a></p>
-<h3>DEP0068: node debug<span><a class="mark" href="#deprecations_dep0068_node_debug" id="deprecations_dep0068_node_debug">#</a></span></h3>
+<h3>DEP0068: <code>node debug</code><span><a class="mark" href="#deprecations_dep0068_node_debug" id="deprecations_dep0068_node_debug">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1466,7 +1494,7 @@ an officially supported API.</p>
 <p><code>node debug</code> corresponds to the legacy CLI debugger which has been replaced with
 a V8-inspector based CLI debugger available through <code>node inspect</code>.</p>
 <p><a id="DEP0069"></a></p>
-<h3>DEP0069: vm.runInDebugContext(string)<span><a class="mark" href="#deprecations_dep0069_vm_runindebugcontext_string" id="deprecations_dep0069_vm_runindebugcontext_string">#</a></span></h3>
+<h3>DEP0069: <code>vm.runInDebugContext(string)</code><span><a class="mark" href="#deprecations_dep0069_vm_runindebugcontext_string" id="deprecations_dep0069_vm_runindebugcontext_string">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1484,7 +1512,7 @@ a V8-inspector based CLI debugger available through <code>node inspect</code>.</
 <p>DebugContext has been removed in V8 and is not available in Node.js 10+.</p>
 <p>DebugContext was an experimental API.</p>
 <p><a id="DEP0070"></a></p>
-<h3>DEP0070: async_hooks.currentId()<span><a class="mark" href="#deprecations_dep0070_async_hooks_currentid" id="deprecations_dep0070_async_hooks_currentid">#</a></span></h3>
+<h3>DEP0070: <code>async_hooks.currentId()</code><span><a class="mark" href="#deprecations_dep0070_async_hooks_currentid" id="deprecations_dep0070_async_hooks_currentid">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1501,7 +1529,7 @@ a V8-inspector based CLI debugger available through <code>node inspect</code>.</
 clarity.</p>
 <p>This change was made while <code>async_hooks</code> was an experimental API.</p>
 <p><a id="DEP0071"></a></p>
-<h3>DEP0071: async_hooks.triggerId()<span><a class="mark" href="#deprecations_dep0071_async_hooks_triggerid" id="deprecations_dep0071_async_hooks_triggerid">#</a></span></h3>
+<h3>DEP0071: <code>async_hooks.triggerId()</code><span><a class="mark" href="#deprecations_dep0071_async_hooks_triggerid" id="deprecations_dep0071_async_hooks_triggerid">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1518,7 +1546,7 @@ clarity.</p>
 clarity.</p>
 <p>This change was made while <code>async_hooks</code> was an experimental API.</p>
 <p><a id="DEP0072"></a></p>
-<h3>DEP0072: async_hooks.AsyncResource.triggerId()<span><a class="mark" href="#deprecations_dep0072_async_hooks_asyncresource_triggerid" id="deprecations_dep0072_async_hooks_asyncresource_triggerid">#</a></span></h3>
+<h3>DEP0072: <code>async_hooks.AsyncResource.triggerId()</code><span><a class="mark" href="#deprecations_dep0072_async_hooks_asyncresource_triggerid" id="deprecations_dep0072_async_hooks_asyncresource_triggerid">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1535,7 +1563,7 @@ clarity.</p>
 <code>async_hooks.AsyncResource.triggerAsyncId()</code> for clarity.</p>
 <p>This change was made while <code>async_hooks</code> was an experimental API.</p>
 <p><a id="DEP0073"></a></p>
-<h3>DEP0073: Several internal properties of net.Server<span><a class="mark" href="#deprecations_dep0073_several_internal_properties_of_net_server" id="deprecations_dep0073_several_internal_properties_of_net_server">#</a></span></h3>
+<h3>DEP0073: Several internal properties of <code>net.Server</code><span><a class="mark" href="#deprecations_dep0073_several_internal_properties_of_net_server" id="deprecations_dep0073_several_internal_properties_of_net_server">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1553,7 +1581,7 @@ with inappropriate names is deprecated.</p>
 <p>As the original API was undocumented and not generally useful for non-internal
 code, no replacement API is provided.</p>
 <p><a id="DEP0074"></a></p>
-<h3>DEP0074: REPLServer.bufferedCommand<span><a class="mark" href="#deprecations_dep0074_replserver_bufferedcommand" id="deprecations_dep0074_replserver_bufferedcommand">#</a></span></h3>
+<h3>DEP0074: <code>REPLServer.bufferedCommand</code><span><a class="mark" href="#deprecations_dep0074_replserver_bufferedcommand" id="deprecations_dep0074_replserver_bufferedcommand">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1567,7 +1595,7 @@ code, no replacement API is provided.</p>
 <p>The <code>REPLServer.bufferedCommand</code> property was deprecated in favor of
 <a href="repl.html#repl_replserver_clearbufferedcommand"><code>REPLServer.clearBufferedCommand()</code></a>.</p>
 <p><a id="DEP0075"></a></p>
-<h3>DEP0075: REPLServer.parseREPLKeyword()<span><a class="mark" href="#deprecations_dep0075_replserver_parsereplkeyword" id="deprecations_dep0075_replserver_parsereplkeyword">#</a></span></h3>
+<h3>DEP0075: <code>REPLServer.parseREPLKeyword()</code><span><a class="mark" href="#deprecations_dep0075_replserver_parsereplkeyword" id="deprecations_dep0075_replserver_parsereplkeyword">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1580,7 +1608,7 @@ code, no replacement API is provided.</p>
 <p>Type: Runtime</p>
 <p><code>REPLServer.parseREPLKeyword()</code> was removed from userland visibility.</p>
 <p><a id="DEP0076"></a></p>
-<h3>DEP0076: tls.parseCertString()<span><a class="mark" href="#deprecations_dep0076_tls_parsecertstring" id="deprecations_dep0076_tls_parsecertstring">#</a></span></h3>
+<h3>DEP0076: <code>tls.parseCertString()</code><span><a class="mark" href="#deprecations_dep0076_tls_parsecertstring" id="deprecations_dep0076_tls_parsecertstring">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1595,18 +1623,16 @@ code, no replacement API is provided.</p>
 <p>Type: Runtime</p>
 <p><code>tls.parseCertString()</code> is a trivial parsing helper that was made public by
 mistake. This function can usually be replaced with:</p>
-<pre><code class="language-js">const querystring = require('querystring');
-querystring.parse(str, '\n', '=');
-</code></pre>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> querystring = <span class="hljs-built_in">require</span>(<span class="hljs-string">'querystring'</span>);
+querystring.parse(str, <span class="hljs-string">'\n'</span>, <span class="hljs-string">'='</span>);</code></pre>
 <p>This function is not completely equivalent to <code>querystring.parse()</code>. One
 difference is that <code>querystring.parse()</code> does url decoding:</p>
-<pre><code class="language-sh">> querystring.parse('%E5%A5%BD=1', '\n', '=');
+<pre><code class="language-console"><span class="hljs-meta">></span><span class="bash"> querystring.parse(<span class="hljs-string">'%E5%A5%BD=1'</span>, <span class="hljs-string">'\n'</span>, <span class="hljs-string">'='</span>);</span>
 { '好': '1' }
-> tls.parseCertString('%E5%A5%BD=1');
-{ '%E5%A5%BD': '1' }
-</code></pre>
+<span class="hljs-meta">></span><span class="bash"> tls.parseCertString(<span class="hljs-string">'%E5%A5%BD=1'</span>);</span>
+{ '%E5%A5%BD': '1' }</code></pre>
 <p><a id="DEP0077"></a></p>
-<h3>DEP0077: Module._debug()<span><a class="mark" href="#deprecations_dep0077_module_debug" id="deprecations_dep0077_module_debug">#</a></span></h3>
+<h3>DEP0077: <code>Module._debug()</code><span><a class="mark" href="#deprecations_dep0077_module_debug" id="deprecations_dep0077_module_debug">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1621,7 +1647,7 @@ difference is that <code>querystring.parse()</code> does url decoding:</p>
 <p>The <code>Module._debug()</code> function was never documented as an officially
 supported API.</p>
 <p><a id="DEP0078"></a></p>
-<h3>DEP0078: REPLServer.turnOffEditorMode()<span><a class="mark" href="#deprecations_dep0078_replserver_turnoffeditormode" id="deprecations_dep0078_replserver_turnoffeditormode">#</a></span></h3>
+<h3>DEP0078: <code>REPLServer.turnOffEditorMode()</code><span><a class="mark" href="#deprecations_dep0078_replserver_turnoffeditormode" id="deprecations_dep0078_replserver_turnoffeditormode">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1634,7 +1660,7 @@ supported API.</p>
 <p>Type: Runtime</p>
 <p><code>REPLServer.turnOffEditorMode()</code> was removed from userland visibility.</p>
 <p><a id="DEP0079"></a></p>
-<h3>DEP0079: Custom inspection function on Objects via .inspect()<span><a class="mark" href="#deprecations_dep0079_custom_inspection_function_on_objects_via_inspect" id="deprecations_dep0079_custom_inspection_function_on_objects_via_inspect">#</a></span></h3>
+<h3>DEP0079: Custom inspection function on objects via <code>.inspect()</code><span><a class="mark" href="#deprecations_dep0079_custom_inspection_function_on_objects_via_inspect" id="deprecations_dep0079_custom_inspection_function_on_objects_via_inspect">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1654,7 +1680,7 @@ function for <a href="util.html#util_util_inspect_object_options"><code>util.ins
 instead. For backward compatibility with Node.js prior to version 6.4.0, both
 may be specified.</p>
 <p><a id="DEP0080"></a></p>
-<h3>DEP0080: path._makeLong()<span><a class="mark" href="#deprecations_dep0080_path_makelong" id="deprecations_dep0080_path_makelong">#</a></span></h3>
+<h3>DEP0080: <code>path._makeLong()</code><span><a class="mark" href="#deprecations_dep0080_path_makelong" id="deprecations_dep0080_path_makelong">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1669,7 +1695,7 @@ may be specified.</p>
 userland modules have found it useful. The internal API is deprecated
 and replaced with an identical, public <code>path.toNamespacedPath()</code> method.</p>
 <p><a id="DEP0081"></a></p>
-<h3>DEP0081: fs.truncate() using a file descriptor<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/fs.js#L646">[src]</a><span><a class="mark" href="#deprecations_dep0081_fs_truncate_using_a_file_descriptor" id="deprecations_dep0081_fs_truncate_using_a_file_descriptor">#</a></span></h3>
+<h3>DEP0081: <code>fs.truncate()</code> using a file descriptor<span><a class="mark" href="#deprecations_dep0081_fs_truncate_using_a_file_descriptor" id="deprecations_dep0081_fs_truncate_using_a_file_descriptor">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1684,7 +1710,7 @@ and replaced with an identical, public <code>path.toNamespacedPath()</code> meth
 deprecated. Please use <code>fs.ftruncate()</code> or <code>fs.ftruncateSync()</code> to work with
 file descriptors.</p>
 <p><a id="DEP0082"></a></p>
-<h3>DEP0082: REPLServer.prototype.memory()<span><a class="mark" href="#deprecations_dep0082_replserver_prototype_memory" id="deprecations_dep0082_replserver_prototype_memory">#</a></span></h3>
+<h3>DEP0082: <code>REPLServer.prototype.memory()</code><span><a class="mark" href="#deprecations_dep0082_replserver_prototype_memory" id="deprecations_dep0082_replserver_prototype_memory">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1698,7 +1724,7 @@ file descriptors.</p>
 <p><code>REPLServer.prototype.memory()</code> is only necessary for the internal mechanics of
 the <code>REPLServer</code> itself. Do not use this function.</p>
 <p><a id="DEP0083"></a></p>
-<h3>DEP0083: Disabling ECDH by setting ecdhCurve to false<span><a class="mark" href="#deprecations_dep0083_disabling_ecdh_by_setting_ecdhcurve_to_false" id="deprecations_dep0083_disabling_ecdh_by_setting_ecdhcurve_to_false">#</a></span></h3>
+<h3>DEP0083: Disabling ECDH by setting <code>ecdhCurve</code> to <code>false</code><span><a class="mark" href="#deprecations_dep0083_disabling_ecdh_by_setting_ecdhcurve_to_false" id="deprecations_dep0083_disabling_ecdh_by_setting_ecdhcurve_to_false">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1754,7 +1780,7 @@ cases for importing them through <code>require()</code>.</p>
 manager, as it is published on the npm registry under the same name. No source
 code modification is necessary if that is done.</p>
 <p><a id="DEP0085"></a></p>
-<h3>DEP0085: AsyncHooks Sensitive API<span><a class="mark" href="#deprecations_dep0085_asynchooks_sensitive_api" id="deprecations_dep0085_asynchooks_sensitive_api">#</a></span></h3>
+<h3>DEP0085: AsyncHooks sensitive API<span><a class="mark" href="#deprecations_dep0085_asynchooks_sensitive_api" id="deprecations_dep0085_asynchooks_sensitive_api">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1767,11 +1793,11 @@ code modification is necessary if that is done.</p>
 </details>
 </div>
 <p>Type: End-of-Life</p>
-<p>The AsyncHooks Sensitive API was never documented and had various minor issues.
+<p>The AsyncHooks sensitive API was never documented and had various minor issues.
 Use the <code>AsyncResource</code> API instead. See
 <a href="https://github.com/nodejs/node/issues/15572">https://github.com/nodejs/node/issues/15572</a>.</p>
 <p><a id="DEP0086"></a></p>
-<h3>DEP0086: Remove runInAsyncIdScope<span><a class="mark" href="#deprecations_dep0086_remove_runinasyncidscope" id="deprecations_dep0086_remove_runinasyncidscope">#</a></span></h3>
+<h3>DEP0086: Remove <code>runInAsyncIdScope</code><span><a class="mark" href="#deprecations_dep0086_remove_runinasyncidscope" id="deprecations_dep0086_remove_runinasyncidscope">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1787,7 +1813,7 @@ Use the <code>AsyncResource</code> API instead. See
 <p><code>runInAsyncIdScope</code> doesn't emit the <code>'before'</code> or <code>'after'</code> event and can thus
 cause a lot of issues. See <a href="https://github.com/nodejs/node/issues/14328">https://github.com/nodejs/node/issues/14328</a>.</p>
 <p><a id="DEP0089"></a></p>
-<h3>DEP0089: require('assert')<span><a class="mark" href="#deprecations_dep0089_require_assert" id="deprecations_dep0089_require_assert">#</a></span></h3>
+<h3>DEP0089: <code>require('assert')</code><span><a class="mark" href="#deprecations_dep0089_require_assert" id="deprecations_dep0089_require_assert">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1823,7 +1849,7 @@ v11.0.0, only authentication tag lengths of 128, 120, 112, 104, 96, 64, and 32
 bits are allowed. Authentication tags of other lengths are invalid per
 <a href="https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf">NIST SP 800-38D</a>.</p>
 <p><a id="DEP0091"></a></p>
-<h3>DEP0091: crypto.DEFAULT_ENCODING<span><a class="mark" href="#deprecations_dep0091_crypto_default_encoding" id="deprecations_dep0091_crypto_default_encoding">#</a></span></h3>
+<h3>DEP0091: <code>crypto.DEFAULT_ENCODING</code><span><a class="mark" href="#deprecations_dep0091_crypto_default_encoding" id="deprecations_dep0091_crypto_default_encoding">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1851,7 +1877,7 @@ bits are allowed. Authentication tags of other lengths are invalid per
 to <code>module.exports</code> is deprecated. Developers should use <code>exports</code>
 or <code>module.exports</code> instead.</p>
 <p><a id="DEP0093"></a></p>
-<h3>DEP0093: crypto.fips is deprecated and replaced.<span><a class="mark" href="#deprecations_dep0093_crypto_fips_is_deprecated_and_replaced" id="deprecations_dep0093_crypto_fips_is_deprecated_and_replaced">#</a></span></h3>
+<h3>DEP0093: <code>crypto.fips</code> is deprecated and replaced.<span><a class="mark" href="#deprecations_dep0093_crypto_fips_is_deprecated_and_replaced" id="deprecations_dep0093_crypto_fips_is_deprecated_and_replaced">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1880,7 +1906,7 @@ and <code>crypto.getFips()</code> instead.</p>
 <code>assert.fail()</code> with only one argument or use a different <code>assert</code> module
 method.</p>
 <p><a id="DEP0095"></a></p>
-<h3>DEP0095: timers.enroll()<span><a class="mark" href="#deprecations_dep0095_timers_enroll" id="deprecations_dep0095_timers_enroll">#</a></span></h3>
+<h3>DEP0095: <code>timers.enroll()</code><span><a class="mark" href="#deprecations_dep0095_timers_enroll" id="deprecations_dep0095_timers_enroll">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1894,7 +1920,7 @@ method.</p>
 <p><code>timers.enroll()</code> is deprecated. Please use the publicly documented
 <a href="timers.html#timers_settimeout_callback_delay_args"><code>setTimeout()</code></a> or <a href="timers.html#timers_setinterval_callback_delay_args"><code>setInterval()</code></a> instead.</p>
 <p><a id="DEP0096"></a></p>
-<h3>DEP0096: timers.unenroll()<span><a class="mark" href="#deprecations_dep0096_timers_unenroll" id="deprecations_dep0096_timers_unenroll">#</a></span></h3>
+<h3>DEP0096: <code>timers.unenroll()</code><span><a class="mark" href="#deprecations_dep0096_timers_unenroll" id="deprecations_dep0096_timers_unenroll">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1908,7 +1934,7 @@ method.</p>
 <p><code>timers.unenroll()</code> is deprecated. Please use the publicly documented
 <a href="timers.html#timers_cleartimeout_timeout"><code>clearTimeout()</code></a> or <a href="timers.html#timers_clearinterval_timeout"><code>clearInterval()</code></a> instead.</p>
 <p><a id="DEP0097"></a></p>
-<h3>DEP0097: MakeCallback with domain property<span><a class="mark" href="#deprecations_dep0097_makecallback_with_domain_property" id="deprecations_dep0097_makecallback_with_domain_property">#</a></span></h3>
+<h3>DEP0097: <code>MakeCallback</code> with <code>domain</code> property<span><a class="mark" href="#deprecations_dep0097_makecallback_with_domain_property" id="deprecations_dep0097_makecallback_with_domain_property">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1923,7 +1949,7 @@ method.</p>
 should start using the <code>async_context</code> variant of <code>MakeCallback</code> or
 <code>CallbackScope</code>, or the high-level <code>AsyncResource</code> class.</p>
 <p><a id="DEP0098"></a></p>
-<h3>DEP0098: AsyncHooks Embedder AsyncResource.emitBefore and AsyncResource.emitAfter APIs<span><a class="mark" href="#deprecations_dep0098_asynchooks_embedder_asyncresource_emitbefore_and_asyncresource_emitafter_apis" id="deprecations_dep0098_asynchooks_embedder_asyncresource_emitbefore_and_asyncresource_emitafter_apis">#</a></span></h3>
+<h3>DEP0098: AsyncHooks embedder <code>AsyncResource.emitBefore</code> and <code>AsyncResource.emitAfter</code> APIs<span><a class="mark" href="#deprecations_dep0098_asynchooks_embedder_asyncresource_emitbefore_and_asyncresource_emitafter_apis" id="deprecations_dep0098_asynchooks_embedder_asyncresource_emitbefore_and_asyncresource_emitafter_apis">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1943,7 +1969,7 @@ to unrecoverable errors.</p>
 safer, and more convenient, alternative. See
 <a href="https://github.com/nodejs/node/pull/18513">https://github.com/nodejs/node/pull/18513</a>.</p>
 <p><a id="DEP0099"></a></p>
-<h3>DEP0099: async context-unaware node::MakeCallback C++ APIs<span><a class="mark" href="#deprecations_dep0099_async_context_unaware_node_makecallback_c_apis" id="deprecations_dep0099_async_context_unaware_node_makecallback_c_apis">#</a></span></h3>
+<h3>DEP0099: Async context-unaware <code>node::MakeCallback</code> C++ APIs<span><a class="mark" href="#deprecations_dep0099_async_context_unaware_node_makecallback_c_apis" id="deprecations_dep0099_async_context_unaware_node_makecallback_c_apis">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1958,7 +1984,7 @@ safer, and more convenient, alternative. See
 deprecated. Please use the versions of the API that accept an <code>async_context</code>
 parameter.</p>
 <p><a id="DEP0100"></a></p>
-<h3>DEP0100: process.assert()<span><a class="mark" href="#deprecations_dep0100_process_assert" id="deprecations_dep0100_process_assert">#</a></span></h3>
+<h3>DEP0100: <code>process.assert()</code><span><a class="mark" href="#deprecations_dep0100_process_assert" id="deprecations_dep0100_process_assert">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1974,7 +2000,7 @@ parameter.</p>
 <p><code>process.assert()</code> is deprecated. Please use the <a href="assert.html"><code>assert</code></a> module instead.</p>
 <p>This was never a documented feature.</p>
 <p><a id="DEP0101"></a></p>
-<h3>DEP0101: --with-lttng<span><a class="mark" href="#deprecations_dep0101_with_lttng" id="deprecations_dep0101_with_lttng">#</a></span></h3>
+<h3>DEP0101: <code>--with-lttng</code><span><a class="mark" href="#deprecations_dep0101_with_lttng" id="deprecations_dep0101_with_lttng">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1987,7 +2013,7 @@ parameter.</p>
 <p>Type: End-of-Life</p>
 <p>The <code>--with-lttng</code> compile-time option has been removed.</p>
 <p><a id="DEP0102"></a></p>
-<h3>DEP0102: Using <code>noAssert</code> in Buffer#(read|write) operations.<span><a class="mark" href="#deprecations_dep0102_using_noassert_in_buffer_read_write_operations" id="deprecations_dep0102_using_noassert_in_buffer_read_write_operations">#</a></span></h3>
+<h3>DEP0102: Using <code>noAssert</code> in <code>Buffer#(read|write)</code> operations.<span><a class="mark" href="#deprecations_dep0102_using_noassert_in_buffer_read_write_operations" id="deprecations_dep0102_using_noassert_in_buffer_read_write_operations">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2002,7 +2028,7 @@ parameter.</p>
 to be verified, no matter if it is set to true or not. Skipping the verification
 could lead to hard to find errors and crashes.</p>
 <p><a id="DEP0103"></a></p>
-<h3>DEP0103: process.binding('util').is[...] typechecks<span><a class="mark" href="#deprecations_dep0103_process_binding_util_is_typechecks" id="deprecations_dep0103_process_binding_util_is_typechecks">#</a></span></h3>
+<h3>DEP0103: <code>process.binding('util').is[...]</code> typechecks<span><a class="mark" href="#deprecations_dep0103_process_binding_util_is_typechecks" id="deprecations_dep0103_process_binding_util_is_typechecks">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2020,7 +2046,7 @@ methods in particular can be replaced by using <a href="util.html#util_util_type
 <p>This deprecation has been superseded by the deprecation of the
 <code>process.binding()</code> API (<a href="#DEP0111">DEP0111</a>).</p>
 <p><a id="DEP0104"></a></p>
-<h3>DEP0104: process.env string coercion<span><a class="mark" href="#deprecations_dep0104_process_env_string_coercion" id="deprecations_dep0104_process_env_string_coercion">#</a></span></h3>
+<h3>DEP0104: <code>process.env</code> string coercion<span><a class="mark" href="#deprecations_dep0104_process_env_string_coercion" id="deprecations_dep0104_process_env_string_coercion">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2037,7 +2063,7 @@ value is not a string, boolean, or number. In the future, such assignment may
 result in a thrown error. Please convert the property to a string before
 assigning it to <code>process.env</code>.</p>
 <p><a id="DEP0105"></a></p>
-<h3>DEP0105: decipher.finaltol<span><a class="mark" href="#deprecations_dep0105_decipher_finaltol" id="deprecations_dep0105_decipher_finaltol">#</a></span></h3>
+<h3>DEP0105: <code>decipher.finaltol</code><span><a class="mark" href="#deprecations_dep0105_decipher_finaltol" id="deprecations_dep0105_decipher_finaltol">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2054,7 +2080,7 @@ assigning it to <code>process.env</code>.</p>
 <a href="crypto.html#crypto_decipher_final_outputencoding"><code>decipher.final()</code></a>. This API has been removed, and it is recommended to use
 <a href="crypto.html#crypto_decipher_final_outputencoding"><code>decipher.final()</code></a> instead.</p>
 <p><a id="DEP0106"></a></p>
-<h3>DEP0106: crypto.createCipher and crypto.createDecipher<span><a class="mark" href="#deprecations_dep0106_crypto_createcipher_and_crypto_createdecipher" id="deprecations_dep0106_crypto_createcipher_and_crypto_createdecipher">#</a></span></h3>
+<h3>DEP0106: <code>crypto.createCipher</code> and <code>crypto.createDecipher</code><span><a class="mark" href="#deprecations_dep0106_crypto_createcipher_and_crypto_createdecipher" id="deprecations_dep0106_crypto_createcipher_and_crypto_createdecipher">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2074,7 +2100,7 @@ initialization vectors. It is recommended to derive a key using
 <a href="crypto.html#crypto_crypto_createcipheriv_algorithm_key_iv_options"><code>crypto.createCipheriv()</code></a> and <a href="crypto.html#crypto_crypto_createdecipheriv_algorithm_key_iv_options"><code>crypto.createDecipheriv()</code></a> to obtain the
 <a href="crypto.html#crypto_class_cipher"><code>Cipher</code></a> and <a href="crypto.html#crypto_class_decipher"><code>Decipher</code></a> objects respectively.</p>
 <p><a id="DEP0107"></a></p>
-<h3>DEP0107: tls.convertNPNProtocols()<span><a class="mark" href="#deprecations_dep0107_tls_convertnpnprotocols" id="deprecations_dep0107_tls_convertnpnprotocols">#</a></span></h3>
+<h3>DEP0107: <code>tls.convertNPNProtocols()</code><span><a class="mark" href="#deprecations_dep0107_tls_convertnpnprotocols" id="deprecations_dep0107_tls_convertnpnprotocols">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2090,7 +2116,7 @@ initialization vectors. It is recommended to derive a key using
 <p>This was an undocumented helper function not intended for use outside Node.js
 core and obsoleted by the removal of NPN (Next Protocol Negotiation) support.</p>
 <p><a id="DEP0108"></a></p>
-<h3>DEP0108: zlib.bytesRead<span><a class="mark" href="#deprecations_dep0108_zlib_bytesread" id="deprecations_dep0108_zlib_bytesread">#</a></span></h3>
+<h3>DEP0108: <code>zlib.bytesRead</code><span><a class="mark" href="#deprecations_dep0108_zlib_bytesread" id="deprecations_dep0108_zlib_bytesread">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2108,7 +2134,7 @@ because it also made sense to interpret the value as the number of bytes
 read by the engine, but is inconsistent with other streams in Node.js that
 expose values under these names.</p>
 <p><a id="DEP0109"></a></p>
-<h3>DEP0109: http, https, and tls support for invalid URLs<span><a class="mark" href="#deprecations_dep0109_http_https_and_tls_support_for_invalid_urls" id="deprecations_dep0109_http_https_and_tls_support_for_invalid_urls">#</a></span></h3>
+<h3>DEP0109: <code>http</code>, <code>https</code>, and <code>tls</code> support for invalid URLs<span><a class="mark" href="#deprecations_dep0109_http_https_and_tls_support_for_invalid_urls" id="deprecations_dep0109_http_https_and_tls_support_for_invalid_urls">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2126,7 +2152,7 @@ accepted by the legacy <code>url.parse()</code> API. The mentioned APIs now use 
 URL parser that requires strictly valid URLs. Passing an invalid URL is
 deprecated and support will be removed in the future.</p>
 <p><a id="DEP0110"></a></p>
-<h3>DEP0110: vm.Script cached data<span><a class="mark" href="#deprecations_dep0110_vm_script_cached_data" id="deprecations_dep0110_vm_script_cached_data">#</a></span></h3>
+<h3>DEP0110: <code>vm.Script</code> cached data<span><a class="mark" href="#deprecations_dep0110_vm_script_cached_data" id="deprecations_dep0110_vm_script_cached_data">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2140,7 +2166,7 @@ deprecated and support will be removed in the future.</p>
 <p>The <code>produceCachedData</code> option is deprecated. Use
 <a href="vm.html#vm_script_createcacheddata"><code>script.createCachedData()</code></a> instead.</p>
 <p><a id="DEP0111"></a></p>
-<h3>DEP0111: process.binding()<span><a class="mark" href="#deprecations_dep0111_process_binding" id="deprecations_dep0111_process_binding">#</a></span></h3>
+<h3>DEP0111: <code>process.binding()</code><span><a class="mark" href="#deprecations_dep0111_process_binding" id="deprecations_dep0111_process_binding">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2155,7 +2181,7 @@ deprecated and support will be removed in the future.</p>
 <p>Type: Documentation-only (supports <a href="cli.html#cli_pending_deprecation"><code>--pending-deprecation</code></a>)</p>
 <p><code>process.binding()</code> is for use by Node.js internal code only.</p>
 <p><a id="DEP0112"></a></p>
-<h3>DEP0112: dgram private APIs<span><a class="mark" href="#deprecations_dep0112_dgram_private_apis" id="deprecations_dep0112_dgram_private_apis">#</a></span></h3>
+<h3>DEP0112: <code>dgram</code> private APIs<span><a class="mark" href="#deprecations_dep0112_dgram_private_apis" id="deprecations_dep0112_dgram_private_apis">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2173,7 +2199,7 @@ accessed outside of Node.js core: <code>Socket.prototype._handle</code>,
 <code>Socket.prototype._healthCheck()</code>, <code>Socket.prototype._stopReceiving()</code>, and
 <code>dgram._createSocketHandle()</code>.</p>
 <p><a id="DEP0113"></a></p>
-<h3>DEP0113: Cipher.setAuthTag(), Decipher.getAuthTag()<span><a class="mark" href="#deprecations_dep0113_cipher_setauthtag_decipher_getauthtag" id="deprecations_dep0113_cipher_setauthtag_decipher_getauthtag">#</a></span></h3>
+<h3>DEP0113: <code>Cipher.setAuthTag()</code>, <code>Decipher.getAuthTag()</code><span><a class="mark" href="#deprecations_dep0113_cipher_setauthtag_decipher_getauthtag" id="deprecations_dep0113_cipher_setauthtag_decipher_getauthtag">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2189,7 +2215,7 @@ accessed outside of Node.js core: <code>Socket.prototype._handle</code>,
 <p><code>Cipher.setAuthTag()</code> and <code>Decipher.getAuthTag()</code> are no longer available. They
 were never documented and would throw when called.</p>
 <p><a id="DEP0114"></a></p>
-<h3>DEP0114: crypto._toBuf()<span><a class="mark" href="#deprecations_dep0114_crypto_tobuf" id="deprecations_dep0114_crypto_tobuf">#</a></span></h3>
+<h3>DEP0114: <code>crypto._toBuf()</code><span><a class="mark" href="#deprecations_dep0114_crypto_tobuf" id="deprecations_dep0114_crypto_tobuf">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2205,7 +2231,7 @@ were never documented and would throw when called.</p>
 <p>The <code>crypto._toBuf()</code> function was not designed to be used by modules outside
 of Node.js core and was removed.</p>
 <p><a id="DEP0115"></a></p>
-<h3>DEP0115: crypto.prng(), crypto.pseudoRandomBytes(), crypto.rng()<span><a class="mark" href="#deprecations_dep0115_crypto_prng_crypto_pseudorandombytes_crypto_rng" id="deprecations_dep0115_crypto_prng_crypto_pseudorandombytes_crypto_rng">#</a></span></h3>
+<h3>DEP0115: <code>crypto.prng()</code>, <code>crypto.pseudoRandomBytes()</code>, <code>crypto.rng()</code><span><a class="mark" href="#deprecations_dep0115_crypto_prng_crypto_pseudorandombytes_crypto_rng" id="deprecations_dep0115_crypto_prng_crypto_pseudorandombytes_crypto_rng">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2256,7 +2282,7 @@ the <code>_handle</code> property of the <code>Cipher</code>, <code>Decipher</co
 The <code>_handle</code> property has been removed because improper use of the native
 object can lead to crashing the application.</p>
 <p><a id="DEP0118"></a></p>
-<h3>DEP0118: dns.lookup() support for a falsy hostname<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/dns.js#L90">[src]</a><span><a class="mark" href="#deprecations_dep0118_dns_lookup_support_for_a_falsy_hostname" id="deprecations_dep0118_dns_lookup_support_for_a_falsy_hostname">#</a></span></h3>
+<h3>DEP0118: <code>dns.lookup()</code> support for a falsy host name<span><a class="mark" href="#deprecations_dep0118_dns_lookup_support_for_a_falsy_host_name" id="deprecations_dep0118_dns_lookup_support_for_a_falsy_host_name">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2267,12 +2293,12 @@ object can lead to crashing the application.</p>
 </details>
 </div>
 <p>Type: Runtime</p>
-<p>Previous versions of Node.js supported <code>dns.lookup()</code> with a falsy hostname
+<p>Previous versions of Node.js supported <code>dns.lookup()</code> with a falsy host name
 like <code>dns.lookup(false)</code> due to backward compatibility.
 This behavior is undocumented and is thought to be unused in real world apps.
 It will become an error in future versions of Node.js.</p>
 <p><a id="DEP0119"></a></p>
-<h3>DEP0119: process.binding('uv').errname() private API<span><a class="mark" href="#deprecations_dep0119_process_binding_uv_errname_private_api" id="deprecations_dep0119_process_binding_uv_errname_private_api">#</a></span></h3>
+<h3>DEP0119: <code>process.binding('uv').errname()</code> private API<span><a class="mark" href="#deprecations_dep0119_process_binding_uv_errname_private_api" id="deprecations_dep0119_process_binding_uv_errname_private_api">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2286,7 +2312,7 @@ It will become an error in future versions of Node.js.</p>
 <p><code>process.binding('uv').errname()</code> is deprecated. Please use
 <a href="util.html#util_util_getsystemerrorname_err"><code>util.getSystemErrorName()</code></a> instead.</p>
 <p><a id="DEP0120"></a></p>
-<h3>DEP0120: Windows Performance Counter Support<span><a class="mark" href="#deprecations_dep0120_windows_performance_counter_support" id="deprecations_dep0120_windows_performance_counter_support">#</a></span></h3>
+<h3>DEP0120: Windows Performance Counter support<span><a class="mark" href="#deprecations_dep0120_windows_performance_counter_support" id="deprecations_dep0120_windows_performance_counter_support">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2305,7 +2331,7 @@ undocumented <code>COUNTER_NET_SERVER_CONNECTION()</code>,
 <code>COUNTER_HTTP_SERVER_RESPONSE()</code>, <code>COUNTER_HTTP_CLIENT_REQUEST()</code>, and
 <code>COUNTER_HTTP_CLIENT_RESPONSE()</code> functions have been deprecated.</p>
 <p><a id="DEP0121"></a></p>
-<h3>DEP0121: net._setSimultaneousAccepts()<span><a class="mark" href="#deprecations_dep0121_net_setsimultaneousaccepts" id="deprecations_dep0121_net_setsimultaneousaccepts">#</a></span></h3>
+<h3>DEP0121: <code>net._setSimultaneousAccepts()</code><span><a class="mark" href="#deprecations_dep0121_net_setsimultaneousaccepts" id="deprecations_dep0121_net_setsimultaneousaccepts">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2322,7 +2348,7 @@ and <code>cluster</code> modules on Windows. The function is not generally usefu
 is being removed. See discussion here:
 <a href="https://github.com/nodejs/node/issues/18391">https://github.com/nodejs/node/issues/18391</a></p>
 <p><a id="DEP0122"></a></p>
-<h3>DEP0122: tls Server.prototype.setOptions()<span><a class="mark" href="#deprecations_dep0122_tls_server_prototype_setoptions" id="deprecations_dep0122_tls_server_prototype_setoptions">#</a></span></h3>
+<h3>DEP0122: <code>tls</code> <code>Server.prototype.setOptions()</code><span><a class="mark" href="#deprecations_dep0122_tls_server_prototype_setoptions" id="deprecations_dep0122_tls_server_prototype_setoptions">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2349,7 +2375,7 @@ is being removed. See discussion here:
 <p>Setting the TLS ServerName to an IP address is not permitted by
 <a href="https://tools.ietf.org/html/rfc6066#section-3">RFC 6066</a>. This will be ignored in a future version.</p>
 <p><a id="DEP0124"></a></p>
-<h3>DEP0124: using REPLServer.rli<span><a class="mark" href="#deprecations_dep0124_using_replserver_rli" id="deprecations_dep0124_using_replserver_rli">#</a></span></h3>
+<h3>DEP0124: using <code>REPLServer.rli</code><span><a class="mark" href="#deprecations_dep0124_using_replserver_rli" id="deprecations_dep0124_using_replserver_rli">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2362,7 +2388,7 @@ is being removed. See discussion here:
 <p>Type: Runtime</p>
 <p>This property is a reference to the instance itself.</p>
 <p><a id="DEP0125"></a></p>
-<h3>DEP0125: require('_stream_wrap')<span><a class="mark" href="#deprecations_dep0125_require_stream_wrap" id="deprecations_dep0125_require_stream_wrap">#</a></span></h3>
+<h3>DEP0125: <code>require('_stream_wrap')</code><span><a class="mark" href="#deprecations_dep0125_require_stream_wrap" id="deprecations_dep0125_require_stream_wrap">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2375,7 +2401,7 @@ is being removed. See discussion here:
 <p>Type: Runtime</p>
 <p>The <code>_stream_wrap</code> module is deprecated.</p>
 <p><a id="DEP0126"></a></p>
-<h3>DEP0126: timers.active()<span><a class="mark" href="#deprecations_dep0126_timers_active" id="deprecations_dep0126_timers_active">#</a></span></h3>
+<h3>DEP0126: <code>timers.active()</code><span><a class="mark" href="#deprecations_dep0126_timers_active" id="deprecations_dep0126_timers_active">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2391,7 +2417,7 @@ Please use the publicly documented <a href="timers.html#timers_timeout_refresh">
 If re-referencing the timeout is necessary, <a href="timers.html#timers_timeout_ref"><code>timeout.ref()</code></a> can be used
 with no performance impact since Node.js 10.</p>
 <p><a id="DEP0127"></a></p>
-<h3>DEP0127: timers._unrefActive()<span><a class="mark" href="#deprecations_dep0127_timers_unrefactive" id="deprecations_dep0127_timers_unrefactive">#</a></span></h3>
+<h3>DEP0127: <code>timers._unrefActive()</code><span><a class="mark" href="#deprecations_dep0127_timers_unrefactive" id="deprecations_dep0127_timers_unrefactive">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2423,50 +2449,58 @@ also have an <code>index.js</code> file in the top level directory will resolve 
 <code>index.js</code> file. That is deprecated and is going to throw an error in future
 Node.js versions.</p>
 <p><a id="DEP0129"></a></p>
-<h3>DEP0129: ChildProcess._channel<span><a class="mark" href="#deprecations_dep0129_childprocess_channel" id="deprecations_dep0129_childprocess_channel">#</a></span></h3>
+<h3>DEP0129: <code>ChildProcess._channel</code><span><a class="mark" href="#deprecations_dep0129_childprocess_channel" id="deprecations_dep0129_childprocess_channel">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v13.0.0</td>
+<td><p>Runtime deprecation.</p></td></tr>
 <tr><td>v11.14.0</td>
 <td><p>Documentation-only.</p></td></tr>
 </tbody></table>
 </details>
 </div>
-<p>Type: Documentation-only</p>
+<p>Type: Runtime</p>
 <p>The <code>_channel</code> property of child process objects returned by <code>spawn()</code> and
 similar functions is not intended for public use. Use <code>ChildProcess.channel</code>
 instead.</p>
 <p><a id="DEP0130"></a></p>
-<h3>DEP0130: Module.createRequireFromPath()<span><a class="mark" href="#deprecations_dep0130_module_createrequirefrompath" id="deprecations_dep0130_module_createrequirefrompath">#</a></span></h3>
+<h3>DEP0130: <code>Module.createRequireFromPath()</code><span><a class="mark" href="#deprecations_dep0130_module_createrequirefrompath" id="deprecations_dep0130_module_createrequirefrompath">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v13.0.0</td>
+<td><p>Runtime deprecation.</p></td></tr>
 <tr><td>v12.2.0</td>
 <td><p>Documentation-only.</p></td></tr>
 </tbody></table>
 </details>
 </div>
-<p>Type: Documentation-only</p>
-<p>Module.createRequireFromPath() is deprecated. Please use <a href="modules.html#modules_module_createrequire_filename"><code>module.createRequire()</code></a> instead.</p>
+<p>Type: Runtime</p>
+<p>Module.createRequireFromPath() is deprecated. Please use
+<a href="modules.html#modules_module_createrequire_filename"><code>module.createRequire()</code></a> instead.</p>
 <p><a id="DEP0131"></a></p>
 <h3>DEP0131: Legacy HTTP parser<span><a class="mark" href="#deprecations_dep0131_legacy_http_parser" id="deprecations_dep0131_legacy_http_parser">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v13.0.0</td>
+<td><p>This feature has been removed.</p></td></tr>
 <tr><td>v12.3.0</td>
 <td><p>Documentation-only.</p></td></tr>
 </tbody></table>
 </details>
 </div>
-<p>Type: Documentation-only</p>
+<p>Type: End-of-Life</p>
 <p>The legacy HTTP parser, used by default in versions of Node.js prior to 12.0.0,
-is deprecated. This deprecation applies to users of the
-<a href="cli.html#cli_http_parser_library"><code>--http-parser=legacy</code></a> command-line flag.</p>
+is deprecated and has been removed in v13.0.0. Prior to v13.0.0, the
+<code>--http-parser=legacy</code> command-line flag could be used to revert to using the
+legacy parser.</p>
 <p><a id="DEP0132"></a></p>
-<h3>DEP0132: worker.terminate() with callback<span><a class="mark" href="#deprecations_dep0132_worker_terminate_with_callback" id="deprecations_dep0132_worker_terminate_with_callback">#</a></span></h3>
+<h3>DEP0132: <code>worker.terminate()</code> with callback<span><a class="mark" href="#deprecations_dep0132_worker_terminate_with_callback" id="deprecations_dep0132_worker_terminate_with_callback">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2480,7 +2514,7 @@ is deprecated. This deprecation applies to users of the
 <p>Passing a callback to <a href="worker_threads.html#worker_threads_worker_terminate"><code>worker.terminate()</code></a> is deprecated. Use the returned
 <code>Promise</code> instead, or a listener to the worker’s <code>'exit'</code> event.</p>
 <p><a id="DEP0133"></a></p>
-<h3>DEP0133: http connection<span><a class="mark" href="#deprecations_dep0133_http_connection" id="deprecations_dep0133_http_connection">#</a></span></h3>
+<h3>DEP0133: <code>http</code> <code>connection</code><span><a class="mark" href="#deprecations_dep0133_http_connection" id="deprecations_dep0133_http_connection">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2491,10 +2525,10 @@ is deprecated. This deprecation applies to users of the
 </details>
 </div>
 <p>Type: Documentation-only</p>
-<p>Prefer [<code>response.socket</code>][] over [<code>response.connection</code>][] and
-[<code>request.socket</code>][] over [<code>request.connection</code>][].</p>
+<p>Prefer <a href="http.html#http_response_socket"><code>response.socket</code></a> over <a href="http.html#http_response_connection"><code>response.connection</code></a> and
+<a href="http.html#http_request_socket"><code>request.socket</code></a> over <a href="http.html#http_request_connection"><code>request.connection</code></a>.</p>
 <p><a id="DEP0134"></a></p>
-<h3>DEP0134: process._tickCallback<span><a class="mark" href="#deprecations_dep0134_process_tickcallback" id="deprecations_dep0134_process_tickcallback">#</a></span></h3>
+<h3>DEP0134: <code>process._tickCallback</code><span><a class="mark" href="#deprecations_dep0134_process_tickcallback" id="deprecations_dep0134_process_tickcallback">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2507,11 +2541,198 @@ is deprecated. This deprecation applies to users of the
 <p>Type: Documentation-only (supports <a href="cli.html#cli_pending_deprecation"><code>--pending-deprecation</code></a>)</p>
 <p>The <code>process._tickCallback</code> property was never documented as
 an officially supported API.</p>
+<p><a id="DEP0135"></a></p>
+<h3>DEP0135: <code>WriteStream.open()</code> and <code>ReadStream.open()</code> are internal<span><a class="mark" href="#deprecations_dep0135_writestream_open_and_readstream_open_are_internal" id="deprecations_dep0135_writestream_open_and_readstream_open_are_internal">#</a></span></h3>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v13.0.0</td>
+<td></td></tr>
+</tbody></table>
+</details>
+</div>
+<p>Type: Runtime</p>
+<p><a href="fs.html#fs_class_fs_writestream"><code>WriteStream.open()</code></a> and <a href="fs.html#fs_class_fs_readstream"><code>ReadStream.open()</code></a> are undocumented internal
+APIs that do not make sense to use in userland. File streams should always be
+opened through their corresponding factory methods <a href="fs.html#fs_fs_createwritestream_path_options"><code>fs.createWriteStream()</code></a>
+and <a href="fs.html#fs_fs_createreadstream_path_options"><code>fs.createReadStream()</code></a>) or by passing a file descriptor in options.</p>
+<p><a id="DEP0136"></a></p>
+<h3>DEP0136: <code>http</code> <code>finished</code><span><a class="mark" href="#deprecations_dep0136_http_finished" id="deprecations_dep0136_http_finished">#</a></span></h3>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v13.4.0, v12.16.0</td>
+<td><p>Documentation-only deprecation.</p></td></tr>
+</tbody></table>
+</details>
+</div>
+<p>Type: Documentation-only</p>
+<p><a href="#http_response_finished"><code>response.finished</code></a> indicates whether <a href="http.html#http_response_end_data_encoding_callback"><code>response.end()</code></a> has been
+called, not whether <code>'finish'</code> has been emitted and the underlying data
+is flushed.</p>
+<p>Use <a href="#http_response_writablefinished"><code>response.writableFinished</code></a> or <a href="#http_response_writableended"><code>response.writableEnded</code></a>
+accordingly instead to avoid the ambigiuty.</p>
+<p>To maintain existing behaviour <code>response.finished</code> should be replaced with
+<code>response.writableEnded</code>.</p>
+<p><a id="DEP0137"></a></p>
+<h3>DEP0137: Closing fs.FileHandle on garbage collection<span><a class="mark" href="#deprecations_dep0137_closing_fs_filehandle_on_garbage_collection" id="deprecations_dep0137_closing_fs_filehandle_on_garbage_collection">#</a></span></h3>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v14.0.0</td>
+<td><p>Runtime deprecation.</p></td></tr>
+</tbody></table>
+</details>
+</div>
+<p>Type: Runtime</p>
+<p>Allowing a <a href="fs.html#fs_class_filehandle"><code>fs.FileHandle</code></a> object to be closed on garbage collection is
+deprecated. In the future, doing so may result in a thrown error that will
+terminate the process.</p>
+<p>Please ensure that all <code>fs.FileHandle</code> objects are explicitly closed using
+<code>FileHandle.prototype.close()</code> when the <code>fs.FileHandle</code> is no longer needed:</p>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> fsPromises = <span class="hljs-built_in">require</span>(<span class="hljs-string">'fs'</span>).promises;
+<span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">openAndClose</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">let</span> filehandle;
+  <span class="hljs-keyword">try</span> {
+    filehandle = <span class="hljs-keyword">await</span> fsPromises.open(<span class="hljs-string">'thefile.txt'</span>, <span class="hljs-string">'r'</span>);
+  } <span class="hljs-keyword">finally</span> {
+    <span class="hljs-keyword">if</span> (filehandle !== <span class="hljs-literal">undefined</span>)
+      <span class="hljs-keyword">await</span> filehandle.close();
+  }
+}</code></pre>
+<p><a id="DEP0138"></a></p>
+<h3>DEP0138: <code>process.mainModule</code><span><a class="mark" href="#deprecations_dep0138_process_mainmodule" id="deprecations_dep0138_process_mainmodule">#</a></span></h3>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v14.0.0</td>
+<td><p>Documentation-only deprecation.</p></td></tr>
+</tbody></table>
+</details>
+</div>
+<p>Type: Documentation-only</p>
+<p><a href="process.html#process_process_mainmodule"><code>process.mainModule</code></a> is a CommonJS-only feature while <code>process</code> global
+object is shared with non-CommonJS environment. Its use within ECMAScript
+modules is unsupported.</p>
+<p>It is deprecated in favor of <a href="modules.html#modules_accessing_the_main_module"><code>require.main</code></a>, because it serves the same
+purpose and is only available on CommonJS environment.</p>
+<p><a id="DEP0139"></a></p>
+<h3>DEP0139: <code>process.umask()</code> with no arguments<span><a class="mark" href="#deprecations_dep0139_process_umask_with_no_arguments" id="deprecations_dep0139_process_umask_with_no_arguments">#</a></span></h3>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v14.0.0</td>
+<td><p>Documentation-only deprecation.</p></td></tr>
+</tbody></table>
+</details>
+</div>
+<p>Type: Documentation-only</p>
+<p>Calling <code>process.umask()</code> with no argument causes the process-wide umask to be
+written twice. This introduces a race condition between threads, and is a
+potential security vulnerability. There is no safe, cross-platform alternative
+API.</p>
+<p><a id="DEP0140"></a></p>
+<h3>DEP0140: Use <code>request.destroy()</code> instead of <code>request.abort()</code><span><a class="mark" href="#deprecations_dep0140_use_request_destroy_instead_of_request_abort" id="deprecations_dep0140_use_request_destroy_instead_of_request_abort">#</a></span></h3>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v14.1.0</td>
+<td><p>Documentation-only deprecation.</p></td></tr>
+</tbody></table>
+</details>
+</div>
+<p>Type: Documentation-only</p>
+<p>Use <a href="http.html#http_request_destroy_error"><code>request.destroy()</code></a> instead of <a href="http.html#http_request_abort"><code>request.abort()</code></a>.</p>
+<p><a id="DEP0141"></a></p>
+<h3>DEP0141: <code>repl.inputStream</code> and <code>repl.outputStream</code><span><a class="mark" href="#deprecations_dep0141_repl_inputstream_and_repl_outputstream" id="deprecations_dep0141_repl_inputstream_and_repl_outputstream">#</a></span></h3>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v14.3.0</td>
+<td><p>Documentation-only (supports [<code>--pending-deprecation</code>][]).</p></td></tr>
+</tbody></table>
+</details>
+</div>
+<p>Type: Documentation-only (supports <a href="cli.html#cli_pending_deprecation"><code>--pending-deprecation</code></a>)</p>
+<p>The <code>repl</code> module exported the input and output stream twice. Use <code>.input</code>
+instead of <code>.inputStream</code> and <code>.output</code> instead of <code>.outputStream</code>.</p>
+<p><a id="DEP0142"></a></p>
+<h3>DEP0142: <code>repl._builtinLibs</code><span><a class="mark" href="#deprecations_dep0142_repl_builtinlibs" id="deprecations_dep0142_repl_builtinlibs">#</a></span></h3>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v14.3.0</td>
+<td><p>Documentation-only (supports [<code>--pending-deprecation</code>][]).</p></td></tr>
+</tbody></table>
+</details>
+</div>
+<p>Type: Documentation-only</p>
+<p>The <code>repl</code> module exports a <code>_builtinLibs</code> property that contains an array with
+native modules. It was incomplete so far and instead it's better to rely upon
+<code>require('module').builtinModules</code>.</p>
+<p><a id="DEP0143"></a></p>
+<h3>DEP0143: <code>Transform._transformState</code><span><a class="mark" href="#deprecations_dep0143_transform_transformstate" id="deprecations_dep0143_transform_transformstate">#</a></span></h3>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v14.5.0</td>
+<td><p>Runtime deprecation.</p></td></tr>
+</tbody></table>
+</details>
+</div>
+<p>Type: Runtime
+<code>Transform._transformState</code> will be removed in future versions where it is
+no longer required due to simplification of the implementation.</p>
+<p><a id="DEP0144"></a></p>
+<h3>DEP0144: <code>module.parent</code><span><a class="mark" href="#deprecations_dep0144_module_parent" id="deprecations_dep0144_module_parent">#</a></span></h3>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v14.6.0</td>
+<td><p>Documentation-only deprecation.</p></td></tr>
+</tbody></table>
+</details>
+</div>
+<p>Type: Documentation-only</p>
+<p>A CommonJS module can access the first module that required it using
+<code>module.parent</code>. This feature is deprecated because it does not work
+consistently in the presence of ECMAScript modules and because it gives an
+inaccurate representation of the CommonJS module graph.</p>
+<p>Some modules use it to check if they are the entry point of the current process.
+Instead, it is recommended to compare <code>require.main</code> and <code>module</code>:</p>
+<pre><code class="language-js"><span class="hljs-keyword">if</span> (<span class="hljs-built_in">require</span>.main === <span class="hljs-built_in">module</span>) {
+  <span class="hljs-comment">// Code section that will run only if current file is the entry point.</span>
+}</code></pre>
+<p>When looking for the CommonJS modules that have required the current one,
+<code>require.cache</code> and <code>module.children</code> can be used:</p>
+<pre><code class="language-js"><span class="hljs-keyword">const</span> moduleParents = <span class="hljs-built_in">Object</span>.values(<span class="hljs-built_in">require</span>.cache)
+  .filter(<span class="hljs-function">(<span class="hljs-params">m</span>) =></span> m.children.includes(<span class="hljs-built_in">module</span>));</code></pre>
+<p><a id="DEP0145"></a></p>
+<h3>DEP0145: <code>socket.bufferSize</code><span><a class="mark" href="#deprecations_dep0145_socket_buffersize" id="deprecations_dep0145_socket_buffersize">#</a></span></h3>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v14.6.0</td>
+<td><p>Documentation-only deprecation.</p></td></tr>
+</tbody></table>
+</details>
+</div>
+<p>Type: Documentation-only</p>
+<p><a href="net.html#net_socket_buffersize"><code>socket.bufferSize</code></a> is just an alias for <a href="stream.html#stream_writable_writablelength"><code>writable.writableLength</code></a>.</p>
+        <!-- API END -->
       </div>
     </div>
   </div>
-  <script src="assets/sh_main.js"></script>
-  <script src="assets/sh_javascript.min.js"></script>
-  <script>highlight(undefined, undefined, 'pre');</script>
 </body>
 </html>

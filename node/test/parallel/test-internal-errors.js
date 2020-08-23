@@ -1,6 +1,6 @@
 // Flags: --expose-internals
 'use strict';
-const common = require('../common');
+require('../common');
 const {
   hijackStdout,
   restoreStdout,
@@ -50,30 +50,33 @@ errors.E('TEST_ERROR_2', (a, b) => `${a} ${b}`, Error);
 }
 
 {
-  common.expectsInternalAssertion(
+  assert.throws(
     () => new errors.codes.TEST_ERROR_1(),
-    'Code: TEST_ERROR_1; The provided arguments ' +
-    'length (0) does not match the required ones (1).'
+    {
+      message: /^Code: TEST_ERROR_1; The provided arguments length \(0\) does not match the required ones \(1\)\./,
+      name: 'Error',
+      code: 'ERR_INTERNAL_ASSERTION'
+    }
   );
 }
 
 // Tests for common.expectsError
-common.expectsError(() => {
+assert.throws(() => {
   throw new errors.codes.TEST_ERROR_1.TypeError('a');
 }, { code: 'TEST_ERROR_1' });
-common.expectsError(() => {
+assert.throws(() => {
   throw new errors.codes.TEST_ERROR_1.TypeError('a');
 }, { code: 'TEST_ERROR_1',
-     type: TypeError,
+     name: 'TypeError',
      message: /^Error for testing/ });
-common.expectsError(() => {
+assert.throws(() => {
   throw new errors.codes.TEST_ERROR_1.TypeError('a');
-}, { code: 'TEST_ERROR_1', type: TypeError });
-common.expectsError(() => {
+}, { code: 'TEST_ERROR_1', name: 'TypeError' });
+assert.throws(() => {
   throw new errors.codes.TEST_ERROR_1.TypeError('a');
 }, {
   code: 'TEST_ERROR_1',
-  type: TypeError,
+  name: 'TypeError',
   message: 'Error for testing purposes: a'
 });
 

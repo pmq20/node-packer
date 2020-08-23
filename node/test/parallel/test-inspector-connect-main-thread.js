@@ -50,28 +50,19 @@ function startWorker(skipChild, sharedBuffer) {
       console.error(e);
       throw e;
     });
-    worker.once('message', (m) => {
+    // Add 2 promises to the worker, one resolved when a message with a
+    // .doConsoleLog property is received and one resolved when a .messagesSent
+    // property is received.
+    let resolveConsoleRequest;
+    let resolveMessagesSent;
+    worker.onConsoleRequest =
+      new Promise((resolve) => resolveConsoleRequest = resolve);
+    worker.onMessagesSent =
+      new Promise((resolve) => resolveMessagesSent = resolve);
+    worker.on('message', (m) => {
       resolve(worker);
-    });
-  });
-}
-
-function waitForConsoleRequest(worker) {
-  return new Promise((resolve) => {
-    worker.on('message', ({ doConsoleLog }) => {
-      if (doConsoleLog) {
-        resolve();
-      }
-    });
-  });
-}
-
-function waitForMessagesSent(worker) {
-  return new Promise((resolve) => {
-    worker.on('message', ({ messagesSent }) => {
-      if (messagesSent) {
-        resolve(messagesSent);
-      }
+      if (m.doConsoleLog) resolveConsoleRequest();
+      if (m.messagesSent) resolveMessagesSent(m.messagesSent);
     });
   });
 }
@@ -85,6 +76,12 @@ function doConsoleLog(arrayBuffer) {
 // and do not interrupt the main code. Interrupting the code flow
 // can lead to unexpected behaviors.
 async function ensureListenerDoesNotInterrupt(session) {
+  // Make sure that the following code is not affected by the fact that it may
+  // run inside an inspector message callback, during which other inspector
+  // message callbacks (such as the one triggered by doConsoleLog()) would
+  // not be processed.
+  await new Promise(setImmediate);
+
   const currentTime = Date.now();
   let consoleLogHappened = false;
   session.once('Runtime.consoleAPICalled',
@@ -107,10 +104,9 @@ async function main() {
   const arrayBuffer = new Uint8Array(sharedBuffer);
   arrayBuffer[0] = 1;
   const worker = await startWorker(false, sharedBuffer);
-  waitForConsoleRequest(worker).then(doConsoleLog.bind(null, arrayBuffer));
-  const workerDonePromise = waitForMessagesSent(worker);
+  worker.onConsoleRequest.then(doConsoleLog.bind(null, arrayBuffer));
   assert.strictEqual(toDebug(), 400);
-  assert.deepStrictEqual(await workerDonePromise, [
+  assert.deepStrictEqual(await worker.onMessagesSent, [
     'Debugger.enable',
     'Runtime.enable',
     'Debugger.setBreakpointByUrl',
@@ -122,7 +118,7 @@ async function main() {
 async function childMain() {
   // Ensures the worker does not terminate too soon
   parentPort.on('message', () => { });
-  await waitForMessagesSent(await startWorker(true));
+  await (await startWorker(true)).onMessagesSent;
   const session = new Session();
   session.connectToMainThread();
   await post(session, 'Debugger.enable');

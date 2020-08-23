@@ -21,7 +21,26 @@
 
 'use strict';
 
-const { Math, Object } = primordials;
+const {
+  Array,
+  ArrayIsArray,
+  Error,
+  MathFloor,
+  MathMin,
+  MathTrunc,
+  NumberIsNaN,
+  NumberMAX_SAFE_INTEGER,
+  NumberMIN_SAFE_INTEGER,
+  ObjectCreate,
+  ObjectDefineProperties,
+  ObjectDefineProperty,
+  ObjectGetOwnPropertyDescriptor,
+  ObjectGetPrototypeOf,
+  ObjectSetPrototypeOf,
+  SymbolSpecies,
+  SymbolToPrimitive,
+  Uint8ArrayPrototype,
+} = primordials;
 
 const {
   byteLengthUtf8,
@@ -44,7 +63,7 @@ const {
   propertyFilter: {
     ALL_PROPERTIES,
     ONLY_ENUMERABLE
-  }
+  },
 } = internalBinding('util');
 const {
   customInspectSymbol,
@@ -62,7 +81,6 @@ const {
 } = require('internal/util/inspect');
 const { encodings } = internalBinding('string_decoder');
 
-
 const {
   codes: {
     ERR_BUFFER_OUT_OF_BOUNDS,
@@ -76,20 +94,29 @@ const {
   hideStackFrames
 } = require('internal/errors');
 const {
+  validateBuffer,
   validateInt32,
   validateString
 } = require('internal/validators');
 
 const {
   FastBuffer,
+  markAsUntransferable,
   addBufferPrototypeMethods
 } = require('internal/buffer');
+
+const TypedArrayPrototype = ObjectGetPrototypeOf(Uint8ArrayPrototype);
+
+const TypedArrayProto_byteLength =
+      ObjectGetOwnPropertyDescriptor(TypedArrayPrototype,
+                                     'byteLength').get;
+const TypedArrayFill = TypedArrayPrototype.fill;
 
 FastBuffer.prototype.constructor = Buffer;
 Buffer.prototype = FastBuffer.prototype;
 addBufferPrototypeMethods(Buffer.prototype);
 
-const constants = Object.defineProperties({}, {
+const constants = ObjectDefineProperties({}, {
   MAX_LENGTH: {
     value: kMaxLength,
     writable: false,
@@ -111,7 +138,7 @@ let poolSize, poolOffset, allocPool;
 // do not own the ArrayBuffer allocator.  Zero fill is always on in that case.
 const zeroFill = bindingZeroFill || [0];
 
-const encodingsMap = Object.create(null);
+const encodingsMap = ObjectCreate(null);
 for (let i = 0; i < encodings.length; ++i)
   encodingsMap[encodings[i]] = i;
 
@@ -127,6 +154,7 @@ function createUnsafeBuffer(size) {
 function createPool() {
   poolSize = Buffer.poolSize;
   allocPool = createUnsafeBuffer(poolSize).buffer;
+  markAsUntransferable(allocPool);
   poolOffset = 0;
 }
 createPool();
@@ -165,10 +193,10 @@ function showFlaggedDeprecation() {
 
 function toInteger(n, defaultVal) {
   n = +n;
-  if (!Number.isNaN(n) &&
-      n >= Number.MIN_SAFE_INTEGER &&
-      n <= Number.MAX_SAFE_INTEGER) {
-    return ((n % 1) === 0 ? n : Math.floor(n));
+  if (!NumberIsNaN(n) &&
+      n >= NumberMIN_SAFE_INTEGER &&
+      n <= NumberMAX_SAFE_INTEGER) {
+    return ((n % 1) === 0 ? n : MathFloor(n));
   }
   return defaultVal;
 }
@@ -212,6 +240,10 @@ function _copy(source, target, targetStart, sourceStart, sourceEnd) {
                                sourceStart);
   }
 
+  return _copyActual(source, target, targetStart, sourceStart, sourceEnd);
+}
+
+function _copyActual(source, target, targetStart, sourceStart, sourceEnd) {
   if (sourceEnd - sourceStart > target.length - targetStart)
     sourceEnd = sourceStart + target.length - targetStart;
 
@@ -223,7 +255,7 @@ function _copy(source, target, targetStart, sourceStart, sourceEnd) {
   if (nb > sourceLen)
     nb = sourceLen;
 
-  if (sourceStart !== 0 || sourceEnd !== source.length)
+  if (sourceStart !== 0 || sourceEnd < source.length)
     source = new Uint8Array(source.buffer, source.byteOffset + sourceStart, nb);
 
   target.set(source, targetStart);
@@ -253,7 +285,7 @@ function Buffer(arg, encodingOrOffset, length) {
   return Buffer.from(arg, encodingOrOffset, length);
 }
 
-Object.defineProperty(Buffer, Symbol.species, {
+ObjectDefineProperty(Buffer, SymbolSpecies, {
   enumerable: false,
   configurable: true,
   get() { return FastBuffer; }
@@ -276,17 +308,21 @@ Buffer.from = function from(value, encodingOrOffset, length) {
       return fromArrayBuffer(value, encodingOrOffset, length);
 
     const valueOf = value.valueOf && value.valueOf();
-    if (valueOf !== null && valueOf !== undefined && valueOf !== value)
-      return Buffer.from(valueOf, encodingOrOffset, length);
+    if (valueOf != null &&
+        valueOf !== value &&
+        (typeof valueOf === 'string' || typeof valueOf === 'object')) {
+      return from(valueOf, encodingOrOffset, length);
+    }
 
     const b = fromObject(value);
     if (b)
       return b;
 
-    if (typeof value[Symbol.toPrimitive] === 'function') {
-      return Buffer.from(value[Symbol.toPrimitive]('string'),
-                         encodingOrOffset,
-                         length);
+    if (typeof value[SymbolToPrimitive] === 'function') {
+      const primitive = value[SymbolToPrimitive]('string');
+      if (typeof primitive === 'string') {
+        return fromString(primitive, encodingOrOffset);
+      }
     }
   }
 
@@ -305,13 +341,13 @@ Buffer.from = function from(value, encodingOrOffset, length) {
 // Refs: https://esdiscuss.org/topic/isconstructor#content-11
 const of = (...items) => {
   const newObj = createUnsafeBuffer(items.length);
-  for (var k = 0; k < items.length; k++)
+  for (let k = 0; k < items.length; k++)
     newObj[k] = items[k];
   return newObj;
 };
 Buffer.of = of;
 
-Object.setPrototypeOf(Buffer, Uint8Array);
+ObjectSetPrototypeOf(Buffer, Uint8Array);
 
 // The 'assertSize' method will remove itself from the callstack when an error
 // occurs. This is done simply to keep the internal details of the
@@ -364,8 +400,8 @@ function SlowBuffer(length) {
   return createUnsafeBuffer(length);
 }
 
-Object.setPrototypeOf(SlowBuffer.prototype, Uint8Array.prototype);
-Object.setPrototypeOf(SlowBuffer, Uint8Array);
+ObjectSetPrototypeOf(SlowBuffer.prototype, Uint8Array.prototype);
+ObjectSetPrototypeOf(SlowBuffer, Uint8Array);
 
 function allocate(size) {
   if (size <= 0) {
@@ -418,21 +454,13 @@ function fromString(string, encoding) {
   return fromStringFast(string, ops);
 }
 
-function fromArrayLike(obj) {
-  const length = obj.length;
-  const b = allocate(length);
-  for (var i = 0; i < length; i++)
-    b[i] = obj[i];
-  return b;
-}
-
 function fromArrayBuffer(obj, byteOffset, length) {
   // Convert byteOffset to integer
   if (byteOffset === undefined) {
     byteOffset = 0;
   } else {
     byteOffset = +byteOffset;
-    if (Number.isNaN(byteOffset))
+    if (NumberIsNaN(byteOffset))
       byteOffset = 0;
   }
 
@@ -457,17 +485,22 @@ function fromArrayBuffer(obj, byteOffset, length) {
   return new FastBuffer(obj, byteOffset, length);
 }
 
-function fromObject(obj) {
-  if (isUint8Array(obj)) {
-    const b = allocate(obj.length);
-
-    if (b.length === 0)
-      return b;
-
-    _copy(obj, b, 0, 0, obj.length);
+function fromArrayLike(obj) {
+  if (obj.length <= 0)
+    return new FastBuffer();
+  if (obj.length < (Buffer.poolSize >>> 1)) {
+    if (obj.length > (poolSize - poolOffset))
+      createPool();
+    const b = new FastBuffer(allocPool, poolOffset, obj.length);
+    b.set(obj, 0);
+    poolOffset += obj.length;
+    alignPool();
     return b;
   }
+  return new FastBuffer(obj);
+}
 
+function fromObject(obj) {
   if (obj.length !== undefined || isAnyArrayBuffer(obj.buffer)) {
     if (typeof obj.length !== 'number') {
       return new FastBuffer();
@@ -475,7 +508,7 @@ function fromObject(obj) {
     return fromArrayLike(obj);
   }
 
-  if (obj.type === 'Buffer' && Array.isArray(obj.data)) {
+  if (obj.type === 'Buffer' && ArrayIsArray(obj.data)) {
     return fromArrayLike(obj.data);
   }
 }
@@ -509,8 +542,7 @@ Buffer.isEncoding = function isEncoding(encoding) {
 Buffer[kIsEncodingSymbol] = Buffer.isEncoding;
 
 Buffer.concat = function concat(list, length) {
-  let i;
-  if (!Array.isArray(list)) {
+  if (!ArrayIsArray(list)) {
     throw new ERR_INVALID_ARG_TYPE('list', 'Array', list);
   }
 
@@ -519,7 +551,7 @@ Buffer.concat = function concat(list, length) {
 
   if (length === undefined) {
     length = 0;
-    for (i = 0; i < list.length; i++) {
+    for (let i = 0; i < list.length; i++) {
       if (list[i].length) {
         length += list[i].length;
       }
@@ -530,7 +562,7 @@ Buffer.concat = function concat(list, length) {
 
   const buffer = Buffer.allocUnsafe(length);
   let pos = 0;
-  for (i = 0; i < list.length; i++) {
+  for (let i = 0; i < list.length; i++) {
     const buf = list[i];
     if (!isUint8Array(buf)) {
       // TODO(BridgeAR): This should not be of type ERR_INVALID_ARG_TYPE.
@@ -538,8 +570,7 @@ Buffer.concat = function concat(list, length) {
       throw new ERR_INVALID_ARG_TYPE(
         `list[${i}]`, ['Buffer', 'Uint8Array'], list[i]);
     }
-    _copy(buf, buffer, pos);
-    pos += buf.length;
+    pos += _copyActual(buf, buffer, pos, 0, buf.length);
   }
 
   // Note: `length` is always equal to `buffer.length` at this point
@@ -547,7 +578,7 @@ Buffer.concat = function concat(list, length) {
     // Zero-fill the remaining bytes if the specified `length` was more than
     // the actual total length, i.e. if we have some remaining allocated bytes
     // there were not initialized.
-    buffer.fill(0, pos, length);
+    TypedArrayFill.call(buffer, 0, pos, length);
   }
 
   return buffer;
@@ -712,7 +743,7 @@ function byteLength(string, encoding) {
 Buffer.byteLength = byteLength;
 
 // For backwards compatibility.
-Object.defineProperty(Buffer.prototype, 'parent', {
+ObjectDefineProperty(Buffer.prototype, 'parent', {
   enumerable: true,
   get() {
     if (!(this instanceof Buffer))
@@ -720,7 +751,7 @@ Object.defineProperty(Buffer.prototype, 'parent', {
     return this.buffer;
   }
 });
-Object.defineProperty(Buffer.prototype, 'offset', {
+ObjectDefineProperty(Buffer.prototype, 'offset', {
   enumerable: true,
   get() {
     if (!(this instanceof Buffer))
@@ -789,7 +820,7 @@ let INSPECT_MAX_BYTES = 50;
 // Override how buffers are presented by util.inspect().
 Buffer.prototype[customInspectSymbol] = function inspect(recurseTimes, ctx) {
   const max = INSPECT_MAX_BYTES;
-  const actualMax = Math.min(max, this.length);
+  const actualMax = MathMin(max, this.length);
   const remaining = this.length - max;
   let str = this.hexSlice(0, actualMax).replace(/(.{2})/g, '$1 ').trim();
   if (remaining > 0)
@@ -802,7 +833,7 @@ Buffer.prototype[customInspectSymbol] = function inspect(recurseTimes, ctx) {
       extras = true;
       obj[key] = this[key];
       return obj;
-    }, Object.create(null));
+    }, ObjectCreate(null));
     if (extras) {
       if (this.length !== 0)
         str += ', ';
@@ -869,6 +900,8 @@ Buffer.prototype.compare = function compare(target,
 // - encoding - an optional encoding, relevant if val is a string
 // - dir - true for indexOf, false for lastIndexOf
 function bidirectionalIndexOf(buffer, val, byteOffset, encoding, dir) {
+  validateBuffer(buffer);
+
   if (typeof byteOffset === 'string') {
     encoding = byteOffset;
     byteOffset = undefined;
@@ -880,8 +913,8 @@ function bidirectionalIndexOf(buffer, val, byteOffset, encoding, dir) {
   // Coerce to Number. Values like null and [] become 0.
   byteOffset = +byteOffset;
   // If the offset is undefined, "foo", {}, coerces to NaN, search whole buffer.
-  if (Number.isNaN(byteOffset)) {
-    byteOffset = dir ? 0 : buffer.length;
+  if (NumberIsNaN(byteOffset)) {
+    byteOffset = dir ? 0 : (buffer.length || buffer.byteLength);
   }
   dir = !!dir;  // Cast to bool.
 
@@ -981,11 +1014,22 @@ function _fill(buf, value, offset, end, encoding) {
       return buf;
   }
 
-  const res = bindingFill(buf, value, offset, end, encoding);
-  if (res < 0) {
-    if (res === -1)
-      throw new ERR_INVALID_ARG_VALUE('value', value);
-    throw new ERR_BUFFER_OUT_OF_BOUNDS();
+
+  if (typeof value === 'number') {
+    // OOB check
+    const byteLen = TypedArrayProto_byteLength.call(buf);
+    const fillLength = end - offset;
+    if (offset > end || fillLength + offset > byteLen)
+      throw new ERR_BUFFER_OUT_OF_BOUNDS();
+
+    TypedArrayFill.call(buf, value, offset, end);
+  } else {
+    const res = bindingFill(buf, value, offset, end, encoding);
+    if (res < 0) {
+      if (res === -1)
+        throw new ERR_INVALID_ARG_VALUE('value', value);
+      throw new ERR_BUFFER_OUT_OF_BOUNDS();
+    }
   }
 
   return buf;
@@ -1032,7 +1076,7 @@ Buffer.prototype.write = function write(string, offset, length, encoding) {
 Buffer.prototype.toJSON = function toJSON() {
   if (this.length > 0) {
     const data = new Array(this.length);
-    for (var i = 0; i < this.length; ++i)
+    for (let i = 0; i < this.length; ++i)
       data[i] = this[i];
     return { type: 'Buffer', data };
   }
@@ -1042,7 +1086,7 @@ Buffer.prototype.toJSON = function toJSON() {
 function adjustOffset(offset, length) {
   // Use Math.trunc() to convert offset to an integer value that can be larger
   // than an Int32. Hence, don't use offset | 0 or similar techniques.
-  offset = Math.trunc(offset);
+  offset = MathTrunc(offset);
   if (offset === 0) {
     return 0;
   }
@@ -1053,7 +1097,7 @@ function adjustOffset(offset, length) {
   if (offset < length) {
     return offset;
   }
-  return Number.isNaN(offset) ? 0 : length;
+  return NumberIsNaN(offset) ? 0 : length;
 }
 
 Buffer.prototype.slice = function slice(start, end) {
@@ -1078,7 +1122,7 @@ Buffer.prototype.swap16 = function swap16() {
   if (len % 2 !== 0)
     throw new ERR_INVALID_BUFFER_SIZE('16-bits');
   if (len < 128) {
-    for (var i = 0; i < len; i += 2)
+    for (let i = 0; i < len; i += 2)
       swap(this, i, i + 1);
     return this;
   }
@@ -1093,7 +1137,7 @@ Buffer.prototype.swap32 = function swap32() {
   if (len % 4 !== 0)
     throw new ERR_INVALID_BUFFER_SIZE('32-bits');
   if (len < 192) {
-    for (var i = 0; i < len; i += 4) {
+    for (let i = 0; i < len; i += 4) {
       swap(this, i, i + 3);
       swap(this, i + 1, i + 2);
     }
@@ -1110,7 +1154,7 @@ Buffer.prototype.swap64 = function swap64() {
   if (len % 8 !== 0)
     throw new ERR_INVALID_BUFFER_SIZE('64-bits');
   if (len < 192) {
-    for (var i = 0; i < len; i += 8) {
+    for (let i = 0; i < len; i += 8) {
       swap(this, i, i + 7);
       swap(this, i + 1, i + 6);
       swap(this, i + 2, i + 5);
@@ -1163,7 +1207,7 @@ module.exports = {
   kStringMaxLength
 };
 
-Object.defineProperties(module.exports, {
+ObjectDefineProperties(module.exports, {
   constants: {
     configurable: false,
     enumerable: true,

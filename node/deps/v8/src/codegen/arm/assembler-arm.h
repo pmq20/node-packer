@@ -41,6 +41,7 @@
 #define V8_CODEGEN_ARM_ASSEMBLER_ARM_H_
 
 #include <stdio.h>
+#include <memory>
 #include <vector>
 
 #include "src/codegen/arm/constants-arm.h"
@@ -305,9 +306,9 @@ class V8_EXPORT_PRIVATE Assembler : public AssemblerBase {
   explicit Assembler(const AssemblerOptions&,
                      std::unique_ptr<AssemblerBuffer> = {});
 
-  virtual ~Assembler();
+  ~Assembler() override;
 
-  virtual void AbortedCodeGeneration() { pending_32_bit_constants_.clear(); }
+  void AbortedCodeGeneration() override { pending_32_bit_constants_.clear(); }
 
   // GetCode emits any pending (non-emitted) code and fills the descriptor desc.
   static constexpr int kNoHandlerTable = 0;
@@ -838,17 +839,21 @@ class V8_EXPORT_PRIVATE Assembler : public AssemblerBase {
   // All these APIs support D0 to D31 and Q0 to Q15.
   void vld1(NeonSize size, const NeonListOperand& dst,
             const NeonMemOperand& src);
+  void vld1r(NeonSize size, const NeonListOperand& dst,
+             const NeonMemOperand& src);
   void vst1(NeonSize size, const NeonListOperand& src,
             const NeonMemOperand& dst);
   // dt represents the narrower type
   void vmovl(NeonDataType dt, QwNeonRegister dst, DwVfpRegister src);
-  // dt represents the narrower type.
-  void vqmovn(NeonDataType dt, DwVfpRegister dst, QwNeonRegister src);
+  // dst_dt represents the narrower type, src_dt represents the src type.
+  void vqmovn(NeonDataType dst_dt, NeonDataType src_dt, DwVfpRegister dst,
+              QwNeonRegister src);
 
   // Only unconditional core <-> scalar moves are currently supported.
   void vmov(NeonDataType dt, DwVfpRegister dst, int index, Register src);
   void vmov(NeonDataType dt, Register dst, DwVfpRegister src, int index);
 
+  void vmov(QwNeonRegister dst, uint64_t imm);
   void vmov(QwNeonRegister dst, QwNeonRegister src);
   void vdup(NeonSize size, QwNeonRegister dst, Register src);
   void vdup(NeonSize size, QwNeonRegister dst, DwVfpRegister src, int index);
@@ -868,6 +873,7 @@ class V8_EXPORT_PRIVATE Assembler : public AssemblerBase {
   void vneg(NeonSize size, QwNeonRegister dst, QwNeonRegister src);
 
   void vand(QwNeonRegister dst, QwNeonRegister src1, QwNeonRegister src2);
+  void vbic(QwNeonRegister dst, QwNeonRegister src1, QwNeonRegister src2);
   void veor(DwVfpRegister dst, DwVfpRegister src1, DwVfpRegister src2);
   void veor(QwNeonRegister dst, QwNeonRegister src1, QwNeonRegister src2);
   void vbsl(QwNeonRegister dst, QwNeonRegister src1, QwNeonRegister src2);
@@ -882,9 +888,13 @@ class V8_EXPORT_PRIVATE Assembler : public AssemblerBase {
             QwNeonRegister src2);
   void vqsub(NeonDataType dt, QwNeonRegister dst, QwNeonRegister src1,
              QwNeonRegister src2);
+  void vmlal(NeonDataType size, QwNeonRegister dst, DwVfpRegister src1,
+             DwVfpRegister src2);
   void vmul(QwNeonRegister dst, QwNeonRegister src1, QwNeonRegister src2);
   void vmul(NeonSize size, QwNeonRegister dst, QwNeonRegister src1,
             QwNeonRegister src2);
+  void vmull(NeonDataType size, QwNeonRegister dst, DwVfpRegister src1,
+             DwVfpRegister src2);
   void vmin(QwNeonRegister dst, QwNeonRegister src1, QwNeonRegister src2);
   void vmin(NeonDataType dt, QwNeonRegister dst, QwNeonRegister src1,
             QwNeonRegister src2);
@@ -899,6 +909,8 @@ class V8_EXPORT_PRIVATE Assembler : public AssemblerBase {
   void vpmax(NeonDataType dt, DwVfpRegister dst, DwVfpRegister src1,
              DwVfpRegister src2);
   void vshl(NeonDataType dt, QwNeonRegister dst, QwNeonRegister src, int shift);
+  void vshl(NeonDataType dt, QwNeonRegister dst, QwNeonRegister src,
+            QwNeonRegister shift);
   void vshr(NeonDataType dt, QwNeonRegister dst, QwNeonRegister src, int shift);
   void vsli(NeonSize size, DwVfpRegister dst, DwVfpRegister src, int shift);
   void vsri(NeonSize size, DwVfpRegister dst, DwVfpRegister src, int shift);
@@ -918,6 +930,8 @@ class V8_EXPORT_PRIVATE Assembler : public AssemblerBase {
   void vcgt(QwNeonRegister dst, QwNeonRegister src1, QwNeonRegister src2);
   void vcgt(NeonDataType dt, QwNeonRegister dst, QwNeonRegister src1,
             QwNeonRegister src2);
+  void vrhadd(NeonDataType dt, QwNeonRegister dst, QwNeonRegister src1,
+              QwNeonRegister src2);
   void vext(QwNeonRegister dst, QwNeonRegister src1, QwNeonRegister src2,
             int bytes);
   void vzip(NeonSize size, DwVfpRegister src1, DwVfpRegister src2);
@@ -1195,6 +1209,7 @@ class V8_EXPORT_PRIVATE Assembler : public AssemblerBase {
   // not have to check for overflow. The same is true for writes of large
   // relocation info entries.
   static constexpr int kGap = 32;
+  STATIC_ASSERT(AssemblerBase::kMinimalBufferSize >= 2 * kGap);
 
   // Relocation info generation
   // Each relocation is encoded as a variable size value

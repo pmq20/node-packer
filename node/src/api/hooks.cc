@@ -10,10 +10,10 @@ using v8::HandleScope;
 using v8::Integer;
 using v8::Isolate;
 using v8::Local;
+using v8::NewStringType;
 using v8::Object;
 using v8::String;
 using v8::Value;
-using v8::NewStringType;
 
 void RunAtExit(Environment* env) {
   env->RunAtExitCallbacks();
@@ -30,13 +30,21 @@ void AtExit(Environment* env, void (*cb)(void* arg), void* arg) {
 }
 
 void EmitBeforeExit(Environment* env) {
+  TraceEventScope trace_scope(TRACING_CATEGORY_NODE1(environment),
+                              "BeforeExit", env);
+  if (!env->destroy_async_id_list()->empty())
+    AsyncWrap::DestroyAsyncIdsCallback(env);
+
   HandleScope handle_scope(env->isolate());
   Context::Scope context_scope(env->context());
-  Local<Value> exit_code = env->process_object()
-                               ->Get(env->context(), env->exit_code_string())
-                               .ToLocalChecked()
-                               ->ToInteger(env->context())
-                               .ToLocalChecked();
+
+  Local<Value> exit_code_v;
+  if (!env->process_object()->Get(env->context(), env->exit_code_string())
+      .ToLocal(&exit_code_v)) return;
+
+  Local<Integer> exit_code;
+  if (!exit_code_v->ToInteger(env->context()).ToLocal(&exit_code)) return;
+
   ProcessEmit(env, "beforeExit", exit_code).ToLocalChecked();
 }
 
@@ -65,8 +73,35 @@ int EmitExit(Environment* env) {
       .ToChecked();
 }
 
+typedef void (*CleanupHook)(void* arg);
+typedef void (*AsyncCleanupHook)(void* arg, void(*)(void*), void*);
+
+struct AsyncCleanupHookInfo final {
+  Environment* env;
+  AsyncCleanupHook fun;
+  void* arg;
+  bool started = false;
+  // Use a self-reference to make sure the storage is kept alive while the
+  // cleanup hook is registered but not yet finished.
+  std::shared_ptr<AsyncCleanupHookInfo> self;
+};
+
+// Opaque type that is basically an alias for `shared_ptr<AsyncCleanupHookInfo>`
+// (but not publicly so for easier ABI/API changes). In particular,
+// std::shared_ptr does not generally maintain a consistent ABI even on a
+// specific platform.
+struct ACHHandle final {
+  std::shared_ptr<AsyncCleanupHookInfo> info;
+};
+// This is implemented as an operator on a struct because otherwise you can't
+// default-initialize AsyncCleanupHookHandle, because in C++ for a
+// std::unique_ptr to be default-initializable the deleter type also needs
+// to be default-initializable; in particular, function types don't satisfy
+// this.
+void DeleteACHHandle::operator ()(ACHHandle* handle) const { delete handle; }
+
 void AddEnvironmentCleanupHook(Isolate* isolate,
-                               void (*fun)(void* arg),
+                               CleanupHook fun,
                                void* arg) {
   Environment* env = Environment::GetCurrent(isolate);
   CHECK_NOT_NULL(env);
@@ -74,11 +109,48 @@ void AddEnvironmentCleanupHook(Isolate* isolate,
 }
 
 void RemoveEnvironmentCleanupHook(Isolate* isolate,
-                                  void (*fun)(void* arg),
+                                  CleanupHook fun,
                                   void* arg) {
   Environment* env = Environment::GetCurrent(isolate);
   CHECK_NOT_NULL(env);
   env->RemoveCleanupHook(fun, arg);
+}
+
+static void FinishAsyncCleanupHook(void* arg) {
+  AsyncCleanupHookInfo* info = static_cast<AsyncCleanupHookInfo*>(arg);
+  std::shared_ptr<AsyncCleanupHookInfo> keep_alive = info->self;
+
+  info->env->DecreaseWaitingRequestCounter();
+  info->self.reset();
+}
+
+static void RunAsyncCleanupHook(void* arg) {
+  AsyncCleanupHookInfo* info = static_cast<AsyncCleanupHookInfo*>(arg);
+  info->env->IncreaseWaitingRequestCounter();
+  info->started = true;
+  info->fun(info->arg, FinishAsyncCleanupHook, info);
+}
+
+AsyncCleanupHookHandle AddEnvironmentCleanupHook(
+    Isolate* isolate,
+    AsyncCleanupHook fun,
+    void* arg) {
+  Environment* env = Environment::GetCurrent(isolate);
+  CHECK_NOT_NULL(env);
+  auto info = std::make_shared<AsyncCleanupHookInfo>();
+  info->env = env;
+  info->fun = fun;
+  info->arg = arg;
+  info->self = info;
+  env->AddCleanupHook(RunAsyncCleanupHook, info.get());
+  return AsyncCleanupHookHandle(new ACHHandle { info });
+}
+
+void RemoveEnvironmentCleanupHook(
+    AsyncCleanupHookHandle handle) {
+  if (handle->info->started) return;
+  handle->info->self.reset();
+  handle->info->env->RemoveCleanupHook(RunAsyncCleanupHook, handle->info.get());
 }
 
 async_id AsyncHooksGetExecutionAsyncId(Isolate* isolate) {

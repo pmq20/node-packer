@@ -352,13 +352,14 @@ assert.strictEqual(Buffer.from('aaaaa').indexOf('b', 'ucs2'), -1);
   {},
   []
 ].forEach((val) => {
-  common.expectsError(
+  assert.throws(
     () => b.indexOf(val),
     {
       code: 'ERR_INVALID_ARG_TYPE',
-      type: TypeError,
-      message: 'The "value" argument must be one of type number, string, ' +
-               `Buffer, or Uint8Array. Received type ${typeof val}`
+      name: 'TypeError',
+      message: 'The "value" argument must be one of type number or string ' +
+               'or an instance of Buffer or Uint8Array.' +
+               common.invalidArgTypeHelper(val)
     }
   );
 });
@@ -604,4 +605,19 @@ assert.strictEqual(reallyLong.lastIndexOf(pattern), 0);
   const haystack = Buffer.from('a foo b foo');
   assert.strictEqual(haystack.indexOf(needle), 2);
   assert.strictEqual(haystack.lastIndexOf(needle), haystack.length - 3);
+}
+
+// Avoid abort because of invalid usage
+// see https://github.com/nodejs/node/issues/32753
+{
+  assert.throws(() => {
+    const buffer = require('buffer');
+    new buffer.Buffer.prototype.lastIndexOf(1, 'str');
+  }, {
+    code: 'ERR_INVALID_ARG_TYPE',
+    name: 'TypeError',
+    message: 'The "buffer" argument must be an instance of Buffer, ' +
+             'TypedArray, or DataView. ' +
+             'Received an instance of lastIndexOf'
+  });
 }

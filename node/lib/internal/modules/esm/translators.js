@@ -3,59 +3,73 @@
 /* global WebAssembly */
 
 const {
-  JSON,
-  Object,
+  JSONParse,
+  ObjectKeys,
+  PromisePrototypeCatch,
+  PromiseReject,
   SafeMap,
-  StringPrototype
+  StringPrototypeReplace,
 } = primordials;
 
-const { Buffer } = require('buffer');
+let _TYPES = null;
+function lazyTypes() {
+  if (_TYPES !== null) return _TYPES;
+  return _TYPES = require('internal/util/types');
+}
 
 const {
-  stripShebang,
   stripBOM,
   loadNativeModule
 } = require('internal/modules/cjs/helpers');
-const CJSModule = require('internal/modules/cjs/loader');
+const CJSModule = require('internal/modules/cjs/loader').Module;
 const internalURLModule = require('internal/url');
+const { defaultGetSource } = require(
+  'internal/modules/esm/get_source');
+const { defaultTransformSource } = require(
+  'internal/modules/esm/transform_source');
 const createDynamicModule = require(
   'internal/modules/esm/create_dynamic_module');
-const fs = require('fs');
 const { fileURLToPath, URL } = require('url');
-const { debuglog } = require('internal/util/debuglog');
-const { promisify } = require('internal/util');
-const esmLoader = require('internal/process/esm_loader');
+let debug = require('internal/util/debuglog').debuglog('esm', (fn) => {
+  debug = fn;
+});
+const { emitExperimentalWarning } = require('internal/util');
 const {
-  ERR_INVALID_URL,
-  ERR_INVALID_URL_SCHEME,
-  ERR_UNKNOWN_BUILTIN_MODULE
+  ERR_UNKNOWN_BUILTIN_MODULE,
+  ERR_INVALID_RETURN_PROPERTY_VALUE
 } = require('internal/errors').codes;
-const readFileAsync = promisify(fs.readFile);
-const JsonParse = JSON.parse;
 const { maybeCacheSourceMap } = require('internal/source_map/source_map_cache');
 const moduleWrap = internalBinding('module_wrap');
 const { ModuleWrap } = moduleWrap;
-
-const debug = debuglog('esm');
+const { getOptionValue } = require('internal/options');
+const experimentalImportMetaResolve =
+    getOptionValue('--experimental-import-meta-resolve');
 
 const translators = new SafeMap();
 exports.translators = translators;
 
-const DATA_URL_PATTERN = /^[^/]+\/[^,;]+(;base64)?,([\s\S]*)$/;
-function getSource(url) {
-  const parsed = new URL(url);
-  if (parsed.protocol === 'file:') {
-    return readFileAsync(parsed);
-  } else if (parsed.protocol === 'data:') {
-    const match = DATA_URL_PATTERN.exec(parsed.pathname);
-    if (!match) {
-      throw new ERR_INVALID_URL(url);
-    }
-    const [ , base64, body ] = match;
-    return Buffer.from(body, base64 ? 'base64' : 'utf8');
-  } else {
-    throw new ERR_INVALID_URL_SCHEME(['file', 'data']);
+let DECODER = null;
+function assertBufferSource(body, allowString, hookName) {
+  if (allowString && typeof body === 'string') {
+    return;
   }
+  const { isArrayBufferView, isAnyArrayBuffer } = lazyTypes();
+  if (isArrayBufferView(body) || isAnyArrayBuffer(body)) {
+    return;
+  }
+  throw new ERR_INVALID_RETURN_PROPERTY_VALUE(
+    `${allowString ? 'string, ' : ''}array buffer, or typed array`,
+    hookName,
+    'source',
+    body
+  );
+}
+
+function stringify(body) {
+  if (typeof body === 'string') return body;
+  assertBufferSource(body, false, 'transformSource');
+  DECODER = DECODER === null ? new TextDecoder() : DECODER;
+  return DECODER.decode(body);
 }
 
 function errPath(url) {
@@ -66,21 +80,46 @@ function errPath(url) {
   return url;
 }
 
-function initializeImportMeta(meta, { url }) {
-  meta.url = url;
+let esmLoader;
+async function importModuleDynamically(specifier, { url }) {
+  if (!esmLoader) {
+    esmLoader = require('internal/process/esm_loader').ESMLoader;
+  }
+  return esmLoader.import(specifier, url);
 }
 
-async function importModuleDynamically(specifier, { url }) {
-  const loader = await esmLoader.loaderPromise;
-  return loader.import(specifier, url);
+function createImportMetaResolve(defaultParentUrl) {
+  return async function resolve(specifier, parentUrl = defaultParentUrl) {
+    if (!esmLoader) {
+      esmLoader = require('internal/process/esm_loader').ESMLoader;
+    }
+    return PromisePrototypeCatch(
+      esmLoader.resolve(specifier, parentUrl),
+      (error) => (
+        error.code === 'ERR_UNSUPPORTED_DIR_IMPORT' ?
+          error.url : PromiseReject(error))
+    );
+  };
+}
+
+function initializeImportMeta(meta, { url }) {
+  // Alphabetical
+  if (experimentalImportMetaResolve)
+    meta.resolve = createImportMetaResolve(url);
+  meta.url = url;
 }
 
 // Strategy for loading a standard JavaScript module
 translators.set('module', async function moduleStrategy(url) {
-  const source = `${await getSource(url)}`;
+  let { source } = await this._getSource(
+    url, { format: 'module' }, defaultGetSource);
+  assertBufferSource(source, true, 'getSource');
+  ({ source } = await this._transformSource(
+    source, { url, format: 'module' }, defaultTransformSource));
+  source = stringify(source);
   maybeCacheSourceMap(url, source);
   debug(`Translating StandardModule ${url}`);
-  const module = new ModuleWrap(stripShebang(source), url);
+  const module = new ModuleWrap(url, undefined, source, 0, 0);
   moduleWrap.callbackMap.set(module, {
     initializeImportMeta,
     importModuleDynamically,
@@ -100,31 +139,31 @@ translators.set('commonjs', function commonjsStrategy(url, isMain) {
     return cached;
   }
   const module = CJSModule._cache[
-    isWindows ? StringPrototype.replace(pathname, winSepRegEx, '\\') : pathname
+    isWindows ? StringPrototypeReplace(pathname, winSepRegEx, '\\') : pathname
   ];
   if (module && module.loaded) {
     const exports = module.exports;
-    return new ModuleWrap(function() {
+    return new ModuleWrap(url, undefined, ['default'], function() {
       this.setExport('default', exports);
-    }, ['default'], url);
+    });
   }
-  return new ModuleWrap(function() {
+  return new ModuleWrap(url, undefined, ['default'], function() {
     debug(`Loading CJSModule ${url}`);
     // We don't care about the return val of _load here because Module#load
     // will handle it for us by checking the loader registry and filling the
     // exports like above
     CJSModule._load(pathname, undefined, isMain);
-  }, ['default'], url);
+  });
 });
 
 // Strategy for loading a node builtin CommonJS module that isn't
 // through normal resolution
 translators.set('builtin', async function builtinStrategy(url) {
   debug(`Translating BuiltinModule ${url}`);
-  // Slice 'node:' scheme
-  const id = url.slice(5);
+  // Slice 'nodejs:' scheme
+  const id = url.slice(7);
   const module = loadNativeModule(id, url, true);
-  if (!module) {
+  if (!url.startsWith('nodejs:') || !module) {
     throw new ERR_UNKNOWN_BUILTIN_MODULE(id);
   }
   debug(`Loading BuiltinModule ${url}`);
@@ -133,6 +172,7 @@ translators.set('builtin', async function builtinStrategy(url) {
 
 // Strategy for loading a JSON file
 translators.set('json', async function jsonStrategy(url) {
+  emitExperimentalWarning('Importing JSON modules');
   debug(`Translating JSONModule ${url}`);
   debug(`Loading JSONModule ${url}`);
   const pathname = url.startsWith('file:') ? fileURLToPath(url) : null;
@@ -140,16 +180,21 @@ translators.set('json', async function jsonStrategy(url) {
   let module;
   if (pathname) {
     modulePath = isWindows ?
-      StringPrototype.replace(pathname, winSepRegEx, '\\') : pathname;
+      StringPrototypeReplace(pathname, winSepRegEx, '\\') : pathname;
     module = CJSModule._cache[modulePath];
     if (module && module.loaded) {
       const exports = module.exports;
-      return new ModuleWrap(function() {
+      return new ModuleWrap(url, undefined, ['default'], function() {
         this.setExport('default', exports);
-      }, ['default'], url);
+      });
     }
   }
-  const content = `${await getSource(url)}`;
+  let { source } = await this._getSource(
+    url, { format: 'json' }, defaultGetSource);
+  assertBufferSource(source, true, 'getSource');
+  ({ source } = await this._transformSource(
+    source, { url, format: 'json' }, defaultTransformSource));
+  source = stringify(source);
   if (pathname) {
     // A require call could have been called on the same file during loading and
     // that resolves synchronously. To make sure we always return the identical
@@ -157,13 +202,13 @@ translators.set('json', async function jsonStrategy(url) {
     module = CJSModule._cache[modulePath];
     if (module && module.loaded) {
       const exports = module.exports;
-      return new ModuleWrap(function() {
+      return new ModuleWrap(url, undefined, ['default'], function() {
         this.setExport('default', exports);
-      }, ['default'], url);
+      });
     }
   }
   try {
-    const exports = JsonParse(stripBOM(content));
+    const exports = JSONParse(stripBOM(source));
     module = {
       exports,
       loaded: true
@@ -179,19 +224,25 @@ translators.set('json', async function jsonStrategy(url) {
   if (pathname) {
     CJSModule._cache[modulePath] = module;
   }
-  return new ModuleWrap(function() {
+  return new ModuleWrap(url, undefined, ['default'], function() {
     debug(`Parsing JSONModule ${url}`);
     this.setExport('default', module.exports);
-  }, ['default'], url);
+  });
 });
 
 // Strategy for loading a wasm module
 translators.set('wasm', async function(url) {
-  const buffer = await getSource(url);
+  emitExperimentalWarning('Importing Web Assembly modules');
+  let { source } = await this._getSource(
+    url, { format: 'wasm' }, defaultGetSource);
+  assertBufferSource(source, false, 'getSource');
+  ({ source } = await this._transformSource(
+    source, { url, format: 'wasm' }, defaultTransformSource));
+  assertBufferSource(source, false, 'transformSource');
   debug(`Translating WASMModule ${url}`);
   let compiled;
   try {
-    compiled = await WebAssembly.compile(buffer);
+    compiled = await WebAssembly.compile(source);
   } catch (err) {
     err.message = errPath(url) + ': ' + err.message;
     throw err;
@@ -203,7 +254,7 @@ translators.set('wasm', async function(url) {
 
   return createDynamicModule(imports, exports, url, (reflect) => {
     const { exports } = new WebAssembly.Instance(compiled, reflect.imports);
-    for (const expt of Object.keys(exports))
+    for (const expt of ObjectKeys(exports))
       reflect.exports[expt].set(exports[expt]);
   }).module;
 });

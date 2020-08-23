@@ -6,12 +6,98 @@
 
 #include <cinttypes>
 #include <cmath>
+#include <cstddef>
 
 #include "src/base/platform/platform.h"
 #include "src/inspector/protocol/Protocol.h"
 #include "src/numbers/conversions.h"
 
 namespace v8_inspector {
+
+namespace protocol {
+namespace {
+std::pair<uint8_t, uint8_t> SplitByte(uint8_t byte, uint8_t split) {
+  return {byte >> split, (byte & ((1 << split) - 1)) << (6 - split)};
+}
+
+v8::Maybe<uint8_t> DecodeByte(char byte) {
+  if ('A' <= byte && byte <= 'Z') return v8::Just<uint8_t>(byte - 'A');
+  if ('a' <= byte && byte <= 'z') return v8::Just<uint8_t>(byte - 'a' + 26);
+  if ('0' <= byte && byte <= '9')
+    return v8::Just<uint8_t>(byte - '0' + 26 + 26);
+  if (byte == '+') return v8::Just<uint8_t>(62);
+  if (byte == '/') return v8::Just<uint8_t>(63);
+  return v8::Nothing<uint8_t>();
+}
+}  // namespace
+
+String Binary::toBase64() const {
+  const char* table =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  if (size() == 0) return {};
+  std::basic_string<UChar> result;
+  result.reserve(4 * ((size() + 2) / 3));
+  uint8_t last = 0;
+  for (size_t n = 0; n < size();) {
+    auto split = SplitByte((*bytes_)[n], 2 + 2 * (n % 3));
+    result.push_back(table[split.first | last]);
+
+    ++n;
+    if (n < size() && n % 3 == 0) {
+      result.push_back(table[split.second]);
+      last = 0;
+    } else {
+      last = split.second;
+    }
+  }
+  result.push_back(table[last]);
+  while (result.size() % 4 > 0) result.push_back('=');
+  return String16(std::move(result));
+}
+
+/* static */
+Binary Binary::fromBase64(const String& base64, bool* success) {
+  if (base64.isEmpty()) {
+    *success = true;
+    return Binary::fromSpan(nullptr, 0);
+  }
+
+  *success = false;
+  // Fail if the length is invalid or decoding would overflow.
+  if (base64.length() % 4 != 0 || base64.length() + 4 < base64.length()) {
+    return Binary::fromSpan(nullptr, 0);
+  }
+
+  std::vector<uint8_t> result;
+  result.reserve(3 * base64.length() / 4);
+  char pad = '=';
+  // Iterate groups of four
+  for (size_t i = 0; i < base64.length(); i += 4) {
+    uint8_t a = 0, b = 0, c = 0, d = 0;
+    if (!DecodeByte(base64[i + 0]).To(&a)) return Binary::fromSpan(nullptr, 0);
+    if (!DecodeByte(base64[i + 1]).To(&b)) return Binary::fromSpan(nullptr, 0);
+    if (!DecodeByte(base64[i + 2]).To(&c)) {
+      // Padding is allowed only in the group on the last two positions
+      if (i + 4 < base64.length() || base64[i + 2] != pad ||
+          base64[i + 3] != pad) {
+        return Binary::fromSpan(nullptr, 0);
+      }
+    }
+    if (!DecodeByte(base64[i + 3]).To(&d)) {
+      // Padding is allowed only in the group on the last two positions
+      if (i + 4 < base64.length() || base64[i + 3] != pad) {
+        return Binary::fromSpan(nullptr, 0);
+      }
+    }
+
+    result.push_back((a << 2) | (b >> 4));
+    if (base64[i + 2] != '=') result.push_back((0xFF & (b << 4)) | (c >> 2));
+    if (base64[i + 3] != '=') result.push_back((0xFF & (c << 6)) | d);
+  }
+  *success = true;
+  return Binary(std::make_shared<std::vector<uint8_t>>(std::move(result)));
+}
+}  // namespace protocol
 
 v8::Local<v8::String> toV8String(v8::Isolate* isolate, const String16& string) {
   if (string.isEmpty()) return v8::String::Empty(isolate);
@@ -73,14 +159,12 @@ String16 toString16(const StringView& string) {
   if (string.is8Bit())
     return String16(reinterpret_cast<const char*>(string.characters8()),
                     string.length());
-  return String16(reinterpret_cast<const UChar*>(string.characters16()),
-                  string.length());
+  return String16(string.characters16(), string.length());
 }
 
 StringView toStringView(const String16& string) {
   if (string.isEmpty()) return StringView();
-  return StringView(reinterpret_cast<const uint16_t*>(string.characters16()),
-                    string.length());
+  return StringView(string.characters16(), string.length());
 }
 
 bool stringViewStartsWith(const StringView& string, const char* prefix) {
@@ -97,85 +181,60 @@ bool stringViewStartsWith(const StringView& string, const char* prefix) {
   return true;
 }
 
-namespace protocol {
+namespace {
+// An empty string buffer doesn't own any string data; its ::string() returns a
+// default-constructed StringView instance.
+class EmptyStringBuffer : public StringBuffer {
+ public:
+  StringView string() const override { return StringView(); }
+};
+
+// Contains LATIN1 text data or CBOR encoded binary data in a vector.
+class StringBuffer8 : public StringBuffer {
+ public:
+  explicit StringBuffer8(std::vector<uint8_t> data) : data_(std::move(data)) {}
+
+  StringView string() const override {
+    return StringView(data_.data(), data_.size());
+  }
+
+ private:
+  std::vector<uint8_t> data_;
+};
+
+// Contains a 16 bit string (String16).
+class StringBuffer16 : public StringBuffer {
+ public:
+  explicit StringBuffer16(String16 data) : data_(std::move(data)) {}
+
+  StringView string() const override {
+    return StringView(data_.characters16(), data_.length());
+  }
+
+ private:
+  String16 data_;
+};
+}  // namespace
 
 // static
-double StringUtil::toDouble(const char* s, size_t len, bool* isOk) {
-  int flags = v8::internal::ALLOW_HEX | v8::internal::ALLOW_OCTAL |
-              v8::internal::ALLOW_BINARY;
-  double result = v8::internal::StringToDouble(s, flags);
-  *isOk = !std::isnan(result);
-  return result;
-}
-
-std::unique_ptr<protocol::Value> StringUtil::parseJSON(
-    const StringView& string) {
-  if (!string.length()) return nullptr;
+std::unique_ptr<StringBuffer> StringBuffer::create(StringView string) {
+  if (string.length() == 0) return std::make_unique<EmptyStringBuffer>();
   if (string.is8Bit()) {
-    return parseJSONCharacters(string.characters8(),
-                               static_cast<int>(string.length()));
+    return std::make_unique<StringBuffer8>(std::vector<uint8_t>(
+        string.characters8(), string.characters8() + string.length()));
   }
-  return parseJSONCharacters(string.characters16(),
-                             static_cast<int>(string.length()));
+  return std::make_unique<StringBuffer16>(
+      String16(string.characters16(), string.length()));
 }
 
-std::unique_ptr<protocol::Value> StringUtil::parseJSON(const String16& string) {
-  if (!string.length()) return nullptr;
-  return parseJSONCharacters(string.characters16(),
-                             static_cast<int>(string.length()));
+std::unique_ptr<StringBuffer> StringBufferFrom(String16 str) {
+  if (str.isEmpty()) return std::make_unique<EmptyStringBuffer>();
+  return std::make_unique<StringBuffer16>(std::move(str));
 }
 
-// static
-ProtocolMessage StringUtil::jsonToMessage(String message) {
-  ProtocolMessage result;
-  result.json = std::move(message);
-  return result;
-}
-
-// static
-ProtocolMessage StringUtil::binaryToMessage(std::vector<uint8_t> message) {
-  ProtocolMessage result;
-  result.binary = std::move(message);
-  return result;
-}
-
-// static
-void StringUtil::builderAppendQuotedString(StringBuilder& builder,
-                                           const String& str) {
-  builder.append('"');
-  if (!str.isEmpty()) {
-    escapeWideStringForJSON(
-        reinterpret_cast<const uint16_t*>(str.characters16()),
-        static_cast<int>(str.length()), &builder);
-  }
-  builder.append('"');
-}
-
-}  // namespace protocol
-
-// static
-std::unique_ptr<StringBuffer> StringBuffer::create(const StringView& string) {
-  String16 owner = toString16(string);
-  return StringBufferImpl::adopt(owner);
-}
-
-// static
-std::unique_ptr<StringBufferImpl> StringBufferImpl::adopt(String16& string) {
-  return std::unique_ptr<StringBufferImpl>(new StringBufferImpl(string));
-}
-
-StringBufferImpl::StringBufferImpl(String16& string) {
-  m_owner.swap(string);
-  m_string = toStringView(m_owner);
-}
-
-String16 debuggerIdToString(const std::pair<int64_t, int64_t>& debuggerId) {
-  const size_t kBufferSize = 35;
-
-  char buffer[kBufferSize];
-  v8::base::OS::SNPrintF(buffer, kBufferSize, "(%08" PRIX64 "%08" PRIX64 ")",
-                         debuggerId.first, debuggerId.second);
-  return String16(buffer);
+std::unique_ptr<StringBuffer> StringBufferFrom(std::vector<uint8_t> str) {
+  if (str.empty()) return std::make_unique<EmptyStringBuffer>();
+  return std::make_unique<StringBuffer8>(std::move(str));
 }
 
 String16 stackTraceIdToString(uintptr_t id) {
@@ -185,3 +244,10 @@ String16 stackTraceIdToString(uintptr_t id) {
 }
 
 }  // namespace v8_inspector
+
+namespace v8_crdtp {
+void SerializerTraits<v8_inspector::protocol::Binary>::Serialize(
+    const v8_inspector::protocol::Binary& binary, std::vector<uint8_t>* out) {
+  cbor::EncodeBinary(span<uint8_t>(binary.data(), binary.size()), out);
+}
+}  // namespace v8_crdtp

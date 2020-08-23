@@ -21,6 +21,7 @@ OptimizedCompilationInfo::OptimizedCompilationInfo(
     Zone* zone, Isolate* isolate, Handle<SharedFunctionInfo> shared,
     Handle<JSFunction> closure)
     : OptimizedCompilationInfo(Code::OPTIMIZED_FUNCTION, zone) {
+  DCHECK_EQ(*shared, closure->shared());
   DCHECK(shared->is_compiled());
   bytecode_array_ = handle(shared->GetBytecodeArray(), isolate);
   shared_info_ = shared;
@@ -110,15 +111,9 @@ OptimizedCompilationInfo::~OptimizedCompilationInfo() {
 }
 
 void OptimizedCompilationInfo::set_deferred_handles(
-    std::shared_ptr<DeferredHandles> deferred_handles) {
+    std::unique_ptr<DeferredHandles> deferred_handles) {
   DCHECK_NULL(deferred_handles_);
-  deferred_handles_.swap(deferred_handles);
-}
-
-void OptimizedCompilationInfo::set_deferred_handles(
-    DeferredHandles* deferred_handles) {
-  DCHECK_NULL(deferred_handles_);
-  deferred_handles_.reset(deferred_handles);
+  deferred_handles_ = std::move(deferred_handles);
 }
 
 void OptimizedCompilationInfo::ReopenHandlesInNewHandleScope(Isolate* isolate) {
@@ -131,15 +126,12 @@ void OptimizedCompilationInfo::ReopenHandlesInNewHandleScope(Isolate* isolate) {
   if (!closure_.is_null()) {
     closure_ = Handle<JSFunction>(*closure_, isolate);
   }
+  DCHECK(code_.is_null());
 }
 
 void OptimizedCompilationInfo::AbortOptimization(BailoutReason reason) {
   DCHECK_NE(reason, BailoutReason::kNoReason);
   if (bailout_reason_ == BailoutReason::kNoReason) {
-    TRACE_EVENT_INSTANT2(TRACE_DISABLED_BY_DEFAULT("v8.compile"),
-                         "V8.AbortOptimization", TRACE_EVENT_SCOPE_THREAD,
-                         "reason", GetBailoutReason(reason), "function",
-                         shared_info()->TraceIDRef());
     bailout_reason_ = reason;
   }
   SetFlag(kDisableFutureOptimization);
@@ -148,10 +140,6 @@ void OptimizedCompilationInfo::AbortOptimization(BailoutReason reason) {
 void OptimizedCompilationInfo::RetryOptimization(BailoutReason reason) {
   DCHECK_NE(reason, BailoutReason::kNoReason);
   if (GetFlag(kDisableFutureOptimization)) return;
-  TRACE_EVENT_INSTANT2(TRACE_DISABLED_BY_DEFAULT("v8.compile"),
-                       "V8.RetryOptimization", TRACE_EVENT_SCOPE_THREAD,
-                       "reason", GetBailoutReason(reason), "function",
-                       shared_info()->TraceIDRef());
   bailout_reason_ = reason;
 }
 
@@ -174,15 +162,13 @@ StackFrame::Type OptimizedCompilationInfo::GetOutputStackFrameType() const {
     case Code::BUILTIN:
       return StackFrame::STUB;
     case Code::WASM_FUNCTION:
-      return StackFrame::WASM_COMPILED;
+      return StackFrame::WASM;
     case Code::WASM_TO_CAPI_FUNCTION:
       return StackFrame::WASM_EXIT;
     case Code::JS_TO_WASM_FUNCTION:
       return StackFrame::JS_TO_WASM;
     case Code::WASM_TO_JS_FUNCTION:
       return StackFrame::WASM_TO_JS;
-    case Code::WASM_INTERPRETER_ENTRY:
-      return StackFrame::WASM_INTERPRETER_ENTRY;
     case Code::C_WASM_ENTRY:
       return StackFrame::C_WASM_ENTRY;
     default:
@@ -253,34 +239,6 @@ OptimizedCompilationInfo::InlinedFunctionHolder::InlinedFunctionHolder(
   position.position = pos;
   // initialized when generating the deoptimization literals
   position.inlined_function_id = DeoptimizationData::kNotInlinedIndex;
-}
-
-std::unique_ptr<v8::tracing::TracedValue>
-OptimizedCompilationInfo::ToTracedValue() {
-  auto value = v8::tracing::TracedValue::Create();
-  value->SetBoolean("osr", is_osr());
-  value->SetBoolean("functionContextSpecialized",
-                    is_function_context_specializing());
-  if (has_shared_info()) {
-    value->SetValue("function", shared_info()->TraceIDRef());
-  }
-  if (bailout_reason() != BailoutReason::kNoReason) {
-    value->SetString("bailoutReason", GetBailoutReason(bailout_reason()));
-    value->SetBoolean("disableFutureOptimization",
-                      is_disable_future_optimization());
-  } else {
-    value->SetInteger("optimizationId", optimization_id());
-    value->BeginArray("inlinedFunctions");
-    for (auto const& inlined_function : inlined_functions()) {
-      value->BeginDictionary();
-      value->SetValue("function", inlined_function.shared_info->TraceIDRef());
-      // TODO(bmeurer): Also include the source position from the
-      // {inlined_function} here as dedicated "sourcePosition" field.
-      value->EndDictionary();
-    }
-    value->EndArray();
-  }
-  return value;
 }
 
 }  // namespace internal

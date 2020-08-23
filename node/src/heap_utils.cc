@@ -1,4 +1,3 @@
-#define NODE_WANT_INTERNALS 1
 #include "diagnosticfilename-inl.h"
 #include "env-inl.h"
 #include "memory_tracker-inl.h"
@@ -16,7 +15,6 @@ using v8::Global;
 using v8::HandleScope;
 using v8::HeapSnapshot;
 using v8::Isolate;
-using v8::JSON;
 using v8::Local;
 using v8::MaybeLocal;
 using v8::Number;
@@ -69,9 +67,10 @@ class JSGraph : public EmbedderGraph {
   explicit JSGraph(Isolate* isolate) : isolate_(isolate) {}
 
   Node* V8Node(const Local<Value>& value) override {
-    std::unique_ptr<JSGraphJSNode> n{new JSGraphJSNode(isolate_, value)};
+    std::unique_ptr<JSGraphJSNode> n { new JSGraphJSNode(isolate_, value) };
     auto it = engine_nodes_.find(n.get());
-    if (it != engine_nodes_.end()) return *it;
+    if (it != engine_nodes_.end())
+      return *it;
     engine_nodes_.insert(n.get());
     return AddNode(std::unique_ptr<Node>(n.release()));
   }
@@ -89,14 +88,15 @@ class JSGraph : public EmbedderGraph {
   MaybeLocal<Array> CreateObject() const {
     EscapableHandleScope handle_scope(isolate_);
     Local<Context> context = isolate_->GetCurrentContext();
+    Environment* env = Environment::GetCurrent(context);
 
     std::unordered_map<Node*, Local<Object>> info_objects;
     Local<Array> nodes = Array::New(isolate_, nodes_.size());
     Local<String> edges_string = FIXED_ONE_BYTE_STRING(isolate_, "edges");
     Local<String> is_root_string = FIXED_ONE_BYTE_STRING(isolate_, "isRoot");
-    Local<String> name_string = FIXED_ONE_BYTE_STRING(isolate_, "name");
-    Local<String> size_string = FIXED_ONE_BYTE_STRING(isolate_, "size");
-    Local<String> value_string = FIXED_ONE_BYTE_STRING(isolate_, "value");
+    Local<String> name_string = env->name_string();
+    Local<String> size_string = env->size_string();
+    Local<String> value_string = env->value_string();
     Local<String> wraps_string = FIXED_ONE_BYTE_STRING(isolate_, "wraps");
     Local<String> to_string = FIXED_ONE_BYTE_STRING(isolate_, "to");
 
@@ -118,8 +118,7 @@ class JSGraph : public EmbedderGraph {
           name_str += " ";
           name_str += n->Name();
         }
-        if (!String::NewFromUtf8(
-                 isolate_, name_str.c_str(), v8::NewStringType::kNormal)
+        if (!String::NewFromUtf8(isolate_, name_str.c_str())
                  .ToLocal(&value) ||
             obj->Set(context, name_string, value).IsNothing() ||
             obj->Set(context,
@@ -168,9 +167,8 @@ class JSGraph : public EmbedderGraph {
         Local<Value> edge_name_value;
         const char* edge_name = edge.first;
         if (edge_name != nullptr) {
-          if (!String::NewFromUtf8(
-                   isolate_, edge_name, v8::NewStringType::kNormal)
-                   .ToLocal(&edge_name_value)) {
+          if (!String::NewFromUtf8(isolate_, edge_name)
+              .ToLocal(&edge_name_value)) {
             return MaybeLocal<Array>();
           }
         } else {
@@ -200,7 +198,8 @@ void BuildEmbedderGraph(const FunctionCallbackInfo<Value>& args) {
   JSGraph graph(env->isolate());
   Environment::BuildEmbedderGraph(env->isolate(), &graph, env);
   Local<Array> ret;
-  if (graph.CreateObject().ToLocal(&ret)) args.GetReturnValue().Set(ret);
+  if (graph.CreateObject().ToLocal(&ret))
+    args.GetReturnValue().Set(ret);
 }
 
 namespace {
@@ -232,17 +231,18 @@ class HeapSnapshotStream : public AsyncWrap,
                            public StreamBase,
                            public v8::OutputStream {
  public:
-  HeapSnapshotStream(Environment* env,
-                     const HeapSnapshot* snapshot,
-                     v8::Local<v8::Object> obj)
-      : AsyncWrap(env, obj, AsyncWrap::PROVIDER_HEAPSNAPSHOT),
-        StreamBase(env),
-        snapshot_(snapshot) {
+  HeapSnapshotStream(
+      Environment* env,
+      HeapSnapshotPointer&& snapshot,
+      Local<Object> obj) :
+      AsyncWrap(env, obj, AsyncWrap::PROVIDER_HEAPSNAPSHOT),
+      StreamBase(env),
+      snapshot_(std::move(snapshot)) {
     MakeWeak();
     StreamBase::AttachToObject(GetObject());
   }
 
-  ~HeapSnapshotStream() override { Cleanup(); }
+  ~HeapSnapshotStream() override {}
 
   int GetChunkSize() override {
     return 65536;  // big chunks == faster
@@ -250,7 +250,7 @@ class HeapSnapshotStream : public AsyncWrap,
 
   void EndOfStream() override {
     EmitRead(UV_EOF);
-    Cleanup();
+    snapshot_.reset();
   }
 
   WriteResult WriteAsciiChunk(char* data, int size) override {
@@ -258,7 +258,8 @@ class HeapSnapshotStream : public AsyncWrap,
     while (len != 0) {
       uv_buf_t buf = EmitAlloc(size);
       ssize_t avail = len;
-      if (static_cast<ssize_t>(buf.len) < avail) avail = buf.len;
+      if (static_cast<ssize_t>(buf.len) < avail)
+        avail = buf.len;
       memcpy(buf.base, data, avail);
       data += avail;
       len -= avail;
@@ -273,9 +274,13 @@ class HeapSnapshotStream : public AsyncWrap,
     return 0;
   }
 
-  int ReadStop() override { return 0; }
+  int ReadStop() override {
+    return 0;
+  }
 
-  int DoShutdown(ShutdownWrap* req_wrap) override { UNREACHABLE(); }
+  int DoShutdown(ShutdownWrap* req_wrap) override {
+    UNREACHABLE();
+  }
 
   int DoWrite(WriteWrap* w,
               uv_buf_t* bufs,
@@ -299,26 +304,19 @@ class HeapSnapshotStream : public AsyncWrap,
   SET_SELF_SIZE(HeapSnapshotStream)
 
  private:
-  void Cleanup() {
-    if (snapshot_ != nullptr) {
-      const_cast<HeapSnapshot*>(snapshot_)->Delete();
-      snapshot_ = nullptr;
-    }
-  }
-
-  const HeapSnapshot* snapshot_;
+  HeapSnapshotPointer snapshot_;
 };
 
 inline void TakeSnapshot(Isolate* isolate, v8::OutputStream* out) {
-  const HeapSnapshot* const snapshot =
-      isolate->GetHeapProfiler()->TakeHeapSnapshot();
+  HeapSnapshotPointer snapshot {
+      isolate->GetHeapProfiler()->TakeHeapSnapshot() };
   snapshot->Serialize(out, HeapSnapshot::kJSON);
-  const_cast<HeapSnapshot*>(snapshot)->Delete();
 }
 
 inline bool WriteSnapshot(Isolate* isolate, const char* filename) {
   FILE* fp = fopen(filename, "w");
-  if (fp == nullptr) return false;
+  if (fp == nullptr)
+    return false;
   FileOutputStream stream(fp);
   TakeSnapshot(isolate, &stream);
   fclose(fp);
@@ -327,20 +325,44 @@ inline bool WriteSnapshot(Isolate* isolate, const char* filename) {
 
 }  // namespace
 
-void CreateHeapSnapshotStream(const FunctionCallbackInfo<Value>& args) {
-  Environment* env = Environment::GetCurrent(args);
+void DeleteHeapSnapshot(const HeapSnapshot* snapshot) {
+  const_cast<HeapSnapshot*>(snapshot)->Delete();
+}
+
+BaseObjectPtr<AsyncWrap> CreateHeapSnapshotStream(
+    Environment* env, HeapSnapshotPointer&& snapshot) {
   HandleScope scope(env->isolate());
-  const HeapSnapshot* const snapshot =
-      env->isolate()->GetHeapProfiler()->TakeHeapSnapshot();
-  CHECK_NOT_NULL(snapshot);
+
+  if (env->streambaseoutputstream_constructor_template().IsEmpty()) {
+    // Create FunctionTemplate for HeapSnapshotStream
+    Local<FunctionTemplate> os = FunctionTemplate::New(env->isolate());
+    os->Inherit(AsyncWrap::GetConstructorTemplate(env));
+    Local<ObjectTemplate> ost = os->InstanceTemplate();
+    ost->SetInternalFieldCount(StreamBase::kInternalFieldCount);
+    os->SetClassName(
+        FIXED_ONE_BYTE_STRING(env->isolate(), "HeapSnapshotStream"));
+    StreamBase::AddMethods(env, os);
+    env->set_streambaseoutputstream_constructor_template(ost);
+  }
+
   Local<Object> obj;
   if (!env->streambaseoutputstream_constructor_template()
            ->NewInstance(env->context())
            .ToLocal(&obj)) {
-    return;
+    return {};
   }
-  HeapSnapshotStream* out = new HeapSnapshotStream(env, snapshot, obj);
-  args.GetReturnValue().Set(out->object());
+  return MakeBaseObject<HeapSnapshotStream>(env, std::move(snapshot), obj);
+}
+
+void CreateHeapSnapshotStream(const FunctionCallbackInfo<Value>& args) {
+  Environment* env = Environment::GetCurrent(args);
+  HeapSnapshotPointer snapshot {
+      env->isolate()->GetHeapProfiler()->TakeHeapSnapshot() };
+  CHECK(snapshot);
+  BaseObjectPtr<AsyncWrap> stream =
+      CreateHeapSnapshotStream(env, std::move(snapshot));
+  if (stream)
+    args.GetReturnValue().Set(stream->object());
 }
 
 void TriggerHeapSnapshot(const FunctionCallbackInfo<Value>& args) {
@@ -351,9 +373,9 @@ void TriggerHeapSnapshot(const FunctionCallbackInfo<Value>& args) {
 
   if (filename_v->IsUndefined()) {
     DiagnosticFilename name(env, "Heap", "heapsnapshot");
-    if (!WriteSnapshot(isolate, *name)) return;
-    if (String::NewFromUtf8(isolate, *name, v8::NewStringType::kNormal)
-            .ToLocal(&filename_v)) {
+    if (!WriteSnapshot(isolate, *name))
+      return;
+    if (String::NewFromUtf8(isolate, *name).ToLocal(&filename_v)) {
       args.GetReturnValue().Set(filename_v);
     }
     return;
@@ -361,7 +383,8 @@ void TriggerHeapSnapshot(const FunctionCallbackInfo<Value>& args) {
 
   BufferValue path(isolate, filename_v);
   CHECK_NOT_NULL(*path);
-  if (!WriteSnapshot(isolate, *path)) return;
+  if (!WriteSnapshot(isolate, *path))
+    return;
   return args.GetReturnValue().Set(filename_v);
 }
 
@@ -371,20 +394,9 @@ void Initialize(Local<Object> target,
                 void* priv) {
   Environment* env = Environment::GetCurrent(context);
 
-  env->SetMethodNoSideEffect(target, "buildEmbedderGraph", BuildEmbedderGraph);
-  env->SetMethodNoSideEffect(
-      target, "triggerHeapSnapshot", TriggerHeapSnapshot);
-  env->SetMethodNoSideEffect(
-      target, "createHeapSnapshotStream", CreateHeapSnapshotStream);
-
-  // Create FunctionTemplate for HeapSnapshotStream
-  Local<FunctionTemplate> os = FunctionTemplate::New(env->isolate());
-  os->Inherit(AsyncWrap::GetConstructorTemplate(env));
-  Local<ObjectTemplate> ost = os->InstanceTemplate();
-  ost->SetInternalFieldCount(StreamBase::kStreamBaseFieldCount);
-  os->SetClassName(FIXED_ONE_BYTE_STRING(env->isolate(), "HeapSnapshotStream"));
-  StreamBase::AddMethods(env, os);
-  env->set_streambaseoutputstream_constructor_template(ost);
+  env->SetMethod(target, "buildEmbedderGraph", BuildEmbedderGraph);
+  env->SetMethod(target, "triggerHeapSnapshot", TriggerHeapSnapshot);
+  env->SetMethod(target, "createHeapSnapshotStream", CreateHeapSnapshotStream);
 }
 
 }  // namespace heap

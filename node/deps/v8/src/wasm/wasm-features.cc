@@ -11,30 +11,28 @@ namespace v8 {
 namespace internal {
 namespace wasm {
 
-#define COMMA ,
-#define SPACE
-#define DO_UNION(feat, desc, val) dst->feat |= src.feat;
-#define FLAG_REF(feat, desc, val) FLAG_experimental_wasm_##feat
-
-void UnionFeaturesInto(WasmFeatures* dst, const WasmFeatures& src) {
-  FOREACH_WASM_FEATURE(DO_UNION, SPACE);
-}
-
-WasmFeatures WasmFeaturesFromFlags() {
-  return WasmFeatures{FOREACH_WASM_FEATURE(FLAG_REF, COMMA)};
-}
-
-WasmFeatures WasmFeaturesFromIsolate(Isolate* isolate) {
-  WasmFeatures features = WasmFeaturesFromFlags();
-  features.threads |=
-      isolate->AreWasmThreadsEnabled(handle(isolate->context(), isolate));
+// static
+WasmFeatures WasmFeatures::FromFlags() {
+  WasmFeatures features = WasmFeatures::None();
+#define FLAG_REF(feat, ...) \
+  if (FLAG_experimental_wasm_##feat) features.Add(kFeature_##feat);
+  FOREACH_WASM_FEATURE(FLAG_REF)
+#undef FLAG_REF
   return features;
 }
 
-#undef DO_UNION
-#undef FLAG_REF
-#undef SPACE
-#undef COMMA
+// static
+WasmFeatures WasmFeatures::FromIsolate(Isolate* isolate) {
+  WasmFeatures features = WasmFeatures::FromFlags();
+  if (isolate->AreWasmThreadsEnabled(handle(isolate->context(), isolate))) {
+    features.Add(kFeature_threads);
+  }
+  if (isolate->IsWasmSimdEnabled(handle(isolate->context(), isolate))) {
+    features.Add(kFeature_simd);
+  }
+  return features;
+}
+
 }  // namespace wasm
 }  // namespace internal
 }  // namespace v8

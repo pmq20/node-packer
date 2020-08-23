@@ -42,12 +42,6 @@ inline AtomicWord Relaxed_AtomicIncrement(volatile AtomicWord* ptr,
                                  increment);
 }
 
-inline AtomicWord Barrier_AtomicIncrement(volatile AtomicWord* ptr,
-                                          AtomicWord increment) {
-  return Barrier_AtomicIncrement(
-      reinterpret_cast<volatile Atomic32*>(ptr), increment);
-}
-
 inline AtomicWord Acquire_CompareAndSwap(volatile AtomicWord* ptr,
                                          AtomicWord old_value,
                                          AtomicWord new_value) {
@@ -59,6 +53,13 @@ inline AtomicWord Release_CompareAndSwap(volatile AtomicWord* ptr,
                                          AtomicWord old_value,
                                          AtomicWord new_value) {
   return v8::base::Release_CompareAndSwap(
+      reinterpret_cast<volatile Atomic32*>(ptr), old_value, new_value);
+}
+
+inline AtomicWord AcquireRelease_CompareAndSwap(volatile AtomicWord* ptr,
+                                                AtomicWord old_value,
+                                                AtomicWord new_value) {
+  return v8::base::AcquireRelease_CompareAndSwap(
       reinterpret_cast<volatile Atomic32*>(ptr), old_value, new_value);
 }
 

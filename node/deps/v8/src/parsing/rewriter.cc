@@ -17,12 +17,12 @@ namespace internal {
 class Processor final : public AstVisitor<Processor> {
  public:
   Processor(uintptr_t stack_limit, DeclarationScope* closure_scope,
-            Variable* result, AstValueFactory* ast_value_factory)
+            Variable* result, AstValueFactory* ast_value_factory, Zone* zone)
       : result_(result),
         replacement_(nullptr),
-        zone_(ast_value_factory->zone()),
+        zone_(zone),
         closure_scope_(closure_scope),
-        factory_(ast_value_factory, ast_value_factory->zone()),
+        factory_(ast_value_factory, zone),
         result_assigned_(false),
         is_set_(false),
         breakable_(false) {
@@ -31,10 +31,10 @@ class Processor final : public AstVisitor<Processor> {
   }
 
   Processor(Parser* parser, DeclarationScope* closure_scope, Variable* result,
-            AstValueFactory* ast_value_factory)
+            AstValueFactory* ast_value_factory, Zone* zone)
       : result_(result),
         replacement_(nullptr),
-        zone_(ast_value_factory->zone()),
+        zone_(zone),
         closure_scope_(closure_scope),
         factory_(ast_value_factory, zone_),
         result_assigned_(false),
@@ -146,7 +146,7 @@ void Processor::VisitBlock(Block* node) {
   // returns 'undefined'. To obtain the same behavior with v8, we need
   // to prevent rewriting in that case.
   if (!node->ignore_completion_value()) {
-    BreakableScope scope(this, node->labels() != nullptr);
+    BreakableScope scope(this, node->is_breakable());
     Process(node->statements());
   }
   replacement_ = node;
@@ -360,15 +360,10 @@ DECLARATION_NODE_LIST(DEF_VISIT)
 // Assumes code has been parsed.  Mutates the AST, so the AST should not
 // continue to be used in the case of failure.
 bool Rewriter::Rewrite(ParseInfo* info) {
-  DisallowHeapAllocation no_allocation;
-  DisallowHandleAllocation no_handles;
-  DisallowHandleDereference no_deref;
-
   RuntimeCallTimerScope runtimeTimer(
       info->runtime_call_stats(),
-      info->on_background_thread()
-          ? RuntimeCallCounterId::kCompileBackgroundRewriteReturnResult
-          : RuntimeCallCounterId::kCompileRewriteReturnResult);
+      RuntimeCallCounterId::kCompileRewriteReturnResult,
+      RuntimeCallStats::kThreadSpecific);
 
   FunctionLiteral* function = info->literal();
   DCHECK_NOT_NULL(function);
@@ -376,34 +371,49 @@ bool Rewriter::Rewrite(ParseInfo* info) {
   DCHECK_NOT_NULL(scope);
   DCHECK_EQ(scope, scope->GetClosureScope());
 
+  if (scope->is_repl_mode_scope()) return true;
   if (!(scope->is_script_scope() || scope->is_eval_scope() ||
         scope->is_module_scope())) {
     return true;
   }
 
   ZonePtrList<Statement>* body = function->body();
+  return RewriteBody(info, scope, body).has_value();
+}
+
+base::Optional<VariableProxy*> Rewriter::RewriteBody(
+    ParseInfo* info, Scope* scope, ZonePtrList<Statement>* body) {
+  DisallowHeapAllocation no_allocation;
+  DisallowHandleAllocation no_handles;
+  DisallowHandleDereference no_deref;
+
   DCHECK_IMPLIES(scope->is_module_scope(), !body->is_empty());
   if (!body->is_empty()) {
     Variable* result = scope->AsDeclarationScope()->NewTemporary(
         info->ast_value_factory()->dot_result_string());
     Processor processor(info->stack_limit(), scope->AsDeclarationScope(),
-                        result, info->ast_value_factory());
+                        result, info->ast_value_factory(), info->zone());
     processor.Process(body);
 
     DCHECK_IMPLIES(scope->is_module_scope(), processor.result_assigned());
     if (processor.result_assigned()) {
       int pos = kNoSourcePosition;
-      Expression* result_value =
+      VariableProxy* result_value =
           processor.factory()->NewVariableProxy(result, pos);
-      Statement* result_statement =
-          processor.factory()->NewReturnStatement(result_value, pos);
-      body->Add(result_statement, info->zone());
+      if (!info->flags().is_repl_mode()) {
+        Statement* result_statement =
+            processor.factory()->NewReturnStatement(result_value, pos);
+        body->Add(result_statement, info->zone());
+      }
+      return result_value;
     }
 
-    if (processor.HasStackOverflow()) return false;
+    if (processor.HasStackOverflow()) {
+      info->pending_error_handler()->set_stack_overflow();
+      return base::nullopt;
+    }
   }
-
-  return true;
+  return nullptr;
 }
 
 }  // namespace internal

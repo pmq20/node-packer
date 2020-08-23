@@ -99,8 +99,8 @@ async function testBreakpoint(session) {
 }
 
 async function runTest() {
-  const child = new NodeInstance(['--inspect-brk=0', '--experimental-modules'],
-                                 '', fixtures.path('es-modules/loop.mjs'));
+  const child = new NodeInstance(['--inspect-brk=0'], '',
+                                 fixtures.path('es-modules/loop.mjs'));
 
   const session = await child.connectInspectorSession();
   await testBreakpointOnStart(session);
@@ -109,4 +109,4 @@ async function runTest() {
   assert.strictEqual((await child.expectShutdown()).exitCode, 55);
 }
 
-runTest();
+runTest().then(common.mustCall());

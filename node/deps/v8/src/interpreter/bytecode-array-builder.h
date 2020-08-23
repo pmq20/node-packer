@@ -7,6 +7,7 @@
 
 #include "src/ast/ast.h"
 #include "src/base/compiler-specific.h"
+#include "src/base/export-template.h"
 #include "src/common/globals.h"
 #include "src/interpreter/bytecode-array-writer.h"
 #include "src/interpreter/bytecode-flags.h"
@@ -21,6 +22,7 @@
 namespace v8 {
 namespace internal {
 
+class BytecodeArray;
 class FeedbackVectorSpec;
 class Isolate;
 
@@ -41,7 +43,16 @@ class V8_EXPORT_PRIVATE BytecodeArrayBuilder final {
       SourcePositionTableBuilder::RecordingMode source_position_mode =
           SourcePositionTableBuilder::RECORD_SOURCE_POSITIONS);
 
-  Handle<BytecodeArray> ToBytecodeArray(Isolate* isolate);
+  template <typename LocalIsolate>
+  EXPORT_TEMPLATE_DECLARE(V8_EXPORT_PRIVATE)
+  Handle<BytecodeArray> ToBytecodeArray(LocalIsolate* isolate);
+  template <typename LocalIsolate>
+  EXPORT_TEMPLATE_DECLARE(V8_EXPORT_PRIVATE)
+  Handle<ByteArray> ToSourcePositionTable(LocalIsolate* isolate);
+
+#ifdef DEBUG
+  int CheckBytecodeMatches(BytecodeArray bytecode);
+#endif
 
   // Get the number of parameters expected by function.
   int parameter_count() const {
@@ -127,9 +138,15 @@ class V8_EXPORT_PRIVATE BytecodeArrayBuilder final {
 
   // Keyed load property. The key should be in the accumulator.
   BytecodeArrayBuilder& LoadKeyedProperty(Register object, int feedback_slot);
+
   // Named load property of the @@iterator symbol.
   BytecodeArrayBuilder& LoadIteratorProperty(Register object,
                                              int feedback_slot);
+
+  // Load and call property of the @@iterator symbol
+  BytecodeArrayBuilder& GetIterator(Register object, int load_feedback_slot,
+                                    int call_feedback_slot);
+
   // Named load property of the @@asyncIterator symbol.
   BytecodeArrayBuilder& LoadAsyncIteratorProperty(Register object,
                                                   int feedback_slot);
@@ -410,7 +427,7 @@ class V8_EXPORT_PRIVATE BytecodeArrayBuilder final {
 
   BytecodeArrayBuilder& Jump(BytecodeLabel* label);
   BytecodeArrayBuilder& JumpLoop(BytecodeLoopHeader* loop_header,
-                                 int loop_depth);
+                                 int loop_depth, int position);
 
   BytecodeArrayBuilder& JumpIfTrue(ToBooleanMode mode, BytecodeLabel* label);
   BytecodeArrayBuilder& JumpIfFalse(ToBooleanMode mode, BytecodeLabel* label);
@@ -418,6 +435,7 @@ class V8_EXPORT_PRIVATE BytecodeArrayBuilder final {
   BytecodeArrayBuilder& JumpIfNull(BytecodeLabel* label);
   BytecodeArrayBuilder& JumpIfNotNull(BytecodeLabel* label);
   BytecodeArrayBuilder& JumpIfUndefined(BytecodeLabel* label);
+  BytecodeArrayBuilder& JumpIfUndefinedOrNull(BytecodeLabel* label);
   BytecodeArrayBuilder& JumpIfNotUndefined(BytecodeLabel* label);
   BytecodeArrayBuilder& JumpIfNil(BytecodeLabel* label, Token::Value op,
                                   NilValue nil);
@@ -425,8 +443,6 @@ class V8_EXPORT_PRIVATE BytecodeArrayBuilder final {
                                      NilValue nil);
 
   BytecodeArrayBuilder& SwitchOnSmiNoFeedback(BytecodeJumpTable* jump_table);
-
-  BytecodeArrayBuilder& StackCheck(int position);
 
   // Sets the pending message to the value in the accumulator, and returns the
   // previous pending message in the accumulator.
@@ -535,6 +551,8 @@ class V8_EXPORT_PRIVATE BytecodeArrayBuilder final {
   void OutputLdarRaw(Register reg);
   void OutputStarRaw(Register reg);
   void OutputMovRaw(Register src, Register dest);
+
+  void EmitFunctionStartSourcePosition(int position);
 
   // Accessors
   BytecodeRegisterAllocator* register_allocator() {

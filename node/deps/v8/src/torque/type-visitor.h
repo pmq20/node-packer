@@ -14,6 +14,8 @@ namespace v8 {
 namespace internal {
 namespace torque {
 
+class Scope;
+
 class TypeVisitor {
  public:
   static TypeVector ComputeTypeVector(const std::vector<TypeExpression*>& v) {
@@ -27,15 +29,32 @@ class TypeVisitor {
   static const Type* ComputeType(TypeExpression* type_expression);
   static void VisitClassFieldsAndMethods(
       ClassType* class_type, const ClassDeclaration* class_declaration);
-  static Signature MakeSignature(const CallableNodeSignature* signature);
+  static void VisitStructMethods(StructType* struct_type,
+                                 const StructDeclaration* struct_declaration);
+  static Signature MakeSignature(const CallableDeclaration* declaration);
+  // Can return either StructType or BitFieldStructType, since they can both be
+  // used in struct expressions like `MyStruct{ a: 0, b: foo }`
+  static const Type* ComputeTypeForStructExpression(
+      TypeExpression* type_expression,
+      const std::vector<const Type*>& term_argument_types);
 
  private:
   friend class TypeAlias;
-  static const Type* ComputeType(TypeDeclaration* decl);
-  static const AbstractType* ComputeType(AbstractTypeDeclaration* decl);
-  static const Type* ComputeType(TypeAliasDeclaration* decl);
-  static const StructType* ComputeType(StructDeclaration* decl);
-  static const ClassType* ComputeType(ClassDeclaration* decl);
+  friend class TypeOracle;
+  static const Type* ComputeType(
+      TypeDeclaration* decl,
+      MaybeSpecializationKey specialized_from = base::nullopt,
+      Scope* specialization_requester = nullptr);
+  static const AbstractType* ComputeType(
+      AbstractTypeDeclaration* decl, MaybeSpecializationKey specialized_from);
+  static const Type* ComputeType(TypeAliasDeclaration* decl,
+                                 MaybeSpecializationKey specialized_from);
+  static const BitFieldStructType* ComputeType(
+      BitFieldStructDeclaration* decl, MaybeSpecializationKey specialized_from);
+  static const StructType* ComputeType(StructDeclaration* decl,
+                                       MaybeSpecializationKey specialized_from);
+  static const ClassType* ComputeType(ClassDeclaration* decl,
+                                      MaybeSpecializationKey specialized_from);
 };
 
 }  // namespace torque

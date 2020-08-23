@@ -3,12 +3,12 @@
   "source": "doc/api/worker_threads.md",
   "modules": [
     {
-      "textRaw": "Worker Threads",
+      "textRaw": "Worker threads",
       "name": "worker_threads",
       "introduced_in": "v10.5.0",
       "stability": 2,
       "stabilityText": "Stable",
-      "desc": "<p>The <code>worker_threads</code> module enables the use of threads that execute JavaScript\nin parallel. To access it:</p>\n<pre><code class=\"language-js\">const worker = require('worker_threads');\n</code></pre>\n<p>Workers (threads) are useful for performing CPU-intensive JavaScript operations.\nThey will not help much with I/O-intensive work. Node.js’s built-in asynchronous\nI/O operations are more efficient than Workers can be.</p>\n<p>Unlike <code>child_process</code> or <code>cluster</code>, <code>worker_threads</code> can share memory. They do\nso by transferring <code>ArrayBuffer</code> instances or sharing <code>SharedArrayBuffer</code>\ninstances.</p>\n<pre><code class=\"language-js\">const {\n  Worker, isMainThread, parentPort, workerData\n} = require('worker_threads');\n\nif (isMainThread) {\n  module.exports = function parseJSAsync(script) {\n    return new Promise((resolve, reject) => {\n      const worker = new Worker(__filename, {\n        workerData: script\n      });\n      worker.on('message', resolve);\n      worker.on('error', reject);\n      worker.on('exit', (code) => {\n        if (code !== 0)\n          reject(new Error(`Worker stopped with exit code ${code}`));\n      });\n    });\n  };\n} else {\n  const { parse } = require('some-js-parsing-library');\n  const script = workerData;\n  parentPort.postMessage(parse(script));\n}\n</code></pre>\n<p>The above example spawns a Worker thread for each <code>parse()</code> call. In actual\npractice, use a pool of Workers instead for these kinds of tasks. Otherwise, the\noverhead of creating Workers would likely exceed their benefit.</p>\n<p>When implementing a worker pool, use the <a href=\"async_hooks.html#async_hooks_class_asyncresource\"><code>AsyncResource</code></a> API to inform\ndiagnostic tools (e.g. in order to provide asynchronous stack traces) about the\ncorrelation between tasks and their outcomes.</p>",
+      "desc": "<p><strong>Source Code:</strong> <a href=\"https://github.com/nodejs/node/blob/v14.8.0/lib/worker_threads.js\">lib/worker_threads.js</a></p>\n<p>The <code>worker_threads</code> module enables the use of threads that execute JavaScript\nin parallel. To access it:</p>\n<pre><code class=\"language-js\">const worker = require('worker_threads');\n</code></pre>\n<p>Workers (threads) are useful for performing CPU-intensive JavaScript operations.\nThey will not help much with I/O-intensive work. Node.js’s built-in asynchronous\nI/O operations are more efficient than Workers can be.</p>\n<p>Unlike <code>child_process</code> or <code>cluster</code>, <code>worker_threads</code> can share memory. They do\nso by transferring <code>ArrayBuffer</code> instances or sharing <code>SharedArrayBuffer</code>\ninstances.</p>\n<pre><code class=\"language-js\">const {\n  Worker, isMainThread, parentPort, workerData\n} = require('worker_threads');\n\nif (isMainThread) {\n  module.exports = function parseJSAsync(script) {\n    return new Promise((resolve, reject) => {\n      const worker = new Worker(__filename, {\n        workerData: script\n      });\n      worker.on('message', resolve);\n      worker.on('error', reject);\n      worker.on('exit', (code) => {\n        if (code !== 0)\n          reject(new Error(`Worker stopped with exit code ${code}`));\n      });\n    });\n  };\n} else {\n  const { parse } = require('some-js-parsing-library');\n  const script = workerData;\n  parentPort.postMessage(parse(script));\n}\n</code></pre>\n<p>The above example spawns a Worker thread for each <code>parse()</code> call. In actual\npractice, use a pool of Workers instead for these kinds of tasks. Otherwise, the\noverhead of creating Workers would likely exceed their benefit.</p>\n<p>When implementing a worker pool, use the <a href=\"async_hooks.html#async_hooks_class_asyncresource\"><code>AsyncResource</code></a> API to inform\ndiagnostic tools (e.g. in order to provide asynchronous stack traces) about the\ncorrelation between tasks and their outcomes. See\n<a href=\"async_hooks.html#async-resource-worker-pool\">\"Using <code>AsyncResource</code> for a <code>Worker</code> thread pool\"</a>\nin the <code>async_hooks</code> documentation for an example implementation.</p>\n<p>Worker threads inherit non-process-specific options by default. Refer to\n<a href=\"#worker_threads_new_worker_filename_options\"><code>Worker constructor options</code></a> to know how to customize worker thread options,\nspecifically <code>argv</code> and <code>execArgv</code> options.</p>",
       "properties": [
         {
           "textRaw": "`isMainThread` {boolean}",
@@ -35,6 +35,41 @@
           "desc": "<p>If this thread was spawned as a <a href=\"#worker_threads_class_worker\"><code>Worker</code></a>, this will be a <a href=\"#worker_threads_class_messageport\"><code>MessagePort</code></a>\nallowing communication with the parent thread. Messages sent using\n<code>parentPort.postMessage()</code> will be available in the parent thread\nusing <code>worker.on('message')</code>, and messages sent from the parent thread\nusing <code>worker.postMessage()</code> will be available in this thread using\n<code>parentPort.on('message')</code>.</p>\n<pre><code class=\"language-js\">const { Worker, isMainThread, parentPort } = require('worker_threads');\n\nif (isMainThread) {\n  const worker = new Worker(__filename);\n  worker.once('message', (message) => {\n    console.log(message);  // Prints 'Hello, world!'.\n  });\n  worker.postMessage('Hello, world!');\n} else {\n  // When a message from the parent thread is received, send it back:\n  parentPort.once('message', (message) => {\n    parentPort.postMessage(message);\n  });\n}\n</code></pre>"
         },
         {
+          "textRaw": "`resourceLimits` {Object}",
+          "type": "Object",
+          "name": "resourceLimits",
+          "meta": {
+            "added": [
+              "v13.2.0",
+              "v12.16.0"
+            ],
+            "changes": []
+          },
+          "options": [
+            {
+              "textRaw": "`maxYoungGenerationSizeMb` {number}",
+              "name": "maxYoungGenerationSizeMb",
+              "type": "number"
+            },
+            {
+              "textRaw": "`maxOldGenerationSizeMb` {number}",
+              "name": "maxOldGenerationSizeMb",
+              "type": "number"
+            },
+            {
+              "textRaw": "`codeRangeSizeMb` {number}",
+              "name": "codeRangeSizeMb",
+              "type": "number"
+            },
+            {
+              "textRaw": "`stackSizeMb` {number}",
+              "name": "stackSizeMb",
+              "type": "number"
+            }
+          ],
+          "desc": "<p>Provides the set of JS engine resource constraints inside this Worker thread.\nIf the <code>resourceLimits</code> option was passed to the <a href=\"#worker_threads_class_worker\"><code>Worker</code></a> constructor,\nthis matches its values.</p>\n<p>If this is used in the main thread, its value is an empty object.</p>"
+        },
+        {
           "textRaw": "`SHARE_ENV` {symbol}",
           "type": "symbol",
           "name": "SHARE_ENV",
@@ -59,7 +94,7 @@
           "desc": "<p>An integer identifier for the current thread. On the corresponding worker object\n(if there is any), it is available as <a href=\"#worker_threads_worker_threadid_1\"><code>worker.threadId</code></a>.\nThis value is unique for each <a href=\"#worker_threads_class_worker\"><code>Worker</code></a> instance inside a single process.</p>"
         },
         {
-          "textRaw": "worker.workerData",
+          "textRaw": "`worker.workerData`",
           "name": "workerData",
           "meta": {
             "added": [
@@ -72,7 +107,24 @@
       ],
       "methods": [
         {
-          "textRaw": "worker.moveMessagePortToContext(port, contextifiedSandbox)",
+          "textRaw": "`worker.markAsUntransferable(object)`",
+          "type": "method",
+          "name": "markAsUntransferable",
+          "meta": {
+            "added": [
+              "v14.5.0"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "params": []
+            }
+          ],
+          "desc": "<p>Mark an object as not transferable. If <code>object</code> occurs in the transfer list of\na <a href=\"#worker_threads_port_postmessage_value_transferlist\"><code>port.postMessage()</code></a> call, it will be ignored.</p>\n<p>In particular, this makes sense for objects that can be cloned, rather than\ntransferred, and which are used by other objects on the sending side.\nFor example, Node.js marks the <code>ArrayBuffer</code>s it uses for its\n<a href=\"buffer.html#buffer_static_method_buffer_allocunsafe_size\"><code>Buffer</code> pool</a> with this.</p>\n<p>This operation cannot be undone.</p>\n<pre><code class=\"language-js\">const { MessageChannel, markAsUntransferable } = require('worker_threads');\n\nconst pooledBuffer = new ArrayBuffer(8);\nconst typedArray1 = new Uint8Array(pooledBuffer);\nconst typedArray2 = new Float64Array(pooledBuffer);\n\nmarkAsUntransferable(pooledBuffer);\n\nconst { port1 } = new MessageChannel();\nport1.postMessage(typedArray1, [ typedArray1.buffer ]);\n\n// The following line prints the contents of typedArray1 -- it still owns\n// its memory and has been cloned, not transferred. Without\n// `markAsUntransferable()`, this would print an empty Uint8Array.\n// typedArray2 is intact as well.\nconsole.log(typedArray1);\nconsole.log(typedArray2);\n</code></pre>\n<p>There is no equivalent to this API in browsers.</p>"
+        },
+        {
+          "textRaw": "`worker.moveMessagePortToContext(port, contextifiedSandbox)`",
           "type": "method",
           "name": "moveMessagePortToContext",
           "meta": {
@@ -107,7 +159,7 @@
           "desc": "<p>Transfer a <code>MessagePort</code> to a different <a href=\"vm.html\"><code>vm</code></a> Context. The original <code>port</code>\nobject will be rendered unusable, and the returned <code>MessagePort</code> instance will\ntake its place.</p>\n<p>The returned <code>MessagePort</code> will be an object in the target context, and will\ninherit from its global <code>Object</code> class. Objects passed to the\n<a href=\"https://developer.mozilla.org/en-US/docs/Web/API/MessagePort/onmessage\"><code>port.onmessage()</code></a> listener will also be created in the target context\nand inherit from its global <code>Object</code> class.</p>\n<p>However, the created <code>MessagePort</code> will no longer inherit from\n<a href=\"events.html\"><code>EventEmitter</code></a>, and only <a href=\"https://developer.mozilla.org/en-US/docs/Web/API/MessagePort/onmessage\"><code>port.onmessage()</code></a> can be used to receive\nevents using it.</p>"
         },
         {
-          "textRaw": "worker.receiveMessageOnPort(port)",
+          "textRaw": "`worker.receiveMessageOnPort(port)`",
           "type": "method",
           "name": "receiveMessageOnPort",
           "meta": {
@@ -137,7 +189,7 @@
       ],
       "classes": [
         {
-          "textRaw": "Class: MessageChannel",
+          "textRaw": "Class: `MessageChannel`",
           "type": "class",
           "name": "MessageChannel",
           "meta": {
@@ -149,7 +201,7 @@
           "desc": "<p>Instances of the <code>worker.MessageChannel</code> class represent an asynchronous,\ntwo-way communications channel.\nThe <code>MessageChannel</code> has no methods of its own. <code>new MessageChannel()</code>\nyields an object with <code>port1</code> and <code>port2</code> properties, which refer to linked\n<a href=\"#worker_threads_class_messageport\"><code>MessagePort</code></a> instances.</p>\n<pre><code class=\"language-js\">const { MessageChannel } = require('worker_threads');\n\nconst { port1, port2 } = new MessageChannel();\nport1.on('message', (message) => console.log('received', message));\nport2.postMessage({ foo: 'bar' });\n// Prints: received { foo: 'bar' } from the `port1.on('message')` listener\n</code></pre>"
         },
         {
-          "textRaw": "Class: MessagePort",
+          "textRaw": "Class: `MessagePort`",
           "type": "class",
           "name": "MessagePort",
           "meta": {
@@ -161,7 +213,7 @@
           "desc": "<ul>\n<li>Extends: <a href=\"events.html#events_class_eventemitter\" class=\"type\">&lt;EventEmitter&gt;</a></li>\n</ul>\n<p>Instances of the <code>worker.MessagePort</code> class represent one end of an\nasynchronous, two-way communications channel. It can be used to transfer\nstructured data, memory regions and other <code>MessagePort</code>s between different\n<a href=\"#worker_threads_class_worker\"><code>Worker</code></a>s.</p>\n<p>With the exception of <code>MessagePort</code>s being <a href=\"events.html\"><code>EventEmitter</code></a>s rather\nthan <a href=\"https://developer.mozilla.org/en-US/docs/Web/API/EventTarget\"><code>EventTarget</code></a>s, this implementation matches <a href=\"https://developer.mozilla.org/en-US/docs/Web/API/MessagePort\">browser <code>MessagePort</code></a>s.</p>",
           "events": [
             {
-              "textRaw": "Event: 'close'",
+              "textRaw": "Event: `'close'`",
               "type": "event",
               "name": "close",
               "meta": {
@@ -174,7 +226,7 @@
               "desc": "<p>The <code>'close'</code> event is emitted once either side of the channel has been\ndisconnected.</p>\n<pre><code class=\"language-js\">const { MessageChannel } = require('worker_threads');\nconst { port1, port2 } = new MessageChannel();\n\n// Prints:\n//   foobar\n//   closed!\nport2.on('message', (message) => console.log(message));\nport2.on('close', () => console.log('closed!'));\n\nport1.postMessage('foobar');\nport1.close();\n</code></pre>"
             },
             {
-              "textRaw": "Event: 'message'",
+              "textRaw": "Event: `'message'`",
               "type": "event",
               "name": "message",
               "meta": {
@@ -192,11 +244,31 @@
                 }
               ],
               "desc": "<p>The <code>'message'</code> event is emitted for any incoming message, containing the cloned\ninput of <a href=\"#worker_threads_port_postmessage_value_transferlist\"><code>port.postMessage()</code></a>.</p>\n<p>Listeners on this event will receive a clone of the <code>value</code> parameter as passed\nto <code>postMessage()</code> and no further arguments.</p>"
+            },
+            {
+              "textRaw": "Event: `'messageerror'`",
+              "type": "event",
+              "name": "messageerror",
+              "meta": {
+                "added": [
+                  "v14.5.0"
+                ],
+                "changes": []
+              },
+              "params": [
+                {
+                  "textRaw": "`error` {Error} An Error object",
+                  "name": "error",
+                  "type": "Error",
+                  "desc": "An Error object"
+                }
+              ],
+              "desc": "<p>The <code>'messageerror'</code> event is emitted when deserializing a message failed.</p>"
             }
           ],
           "methods": [
             {
-              "textRaw": "port.close()",
+              "textRaw": "`port.close()`",
               "type": "method",
               "name": "close",
               "meta": {
@@ -213,14 +285,25 @@
               "desc": "<p>Disables further sending of messages on either side of the connection.\nThis method can be called when no further communication will happen over this\n<code>MessagePort</code>.</p>\n<p>The <a href=\"#worker_threads_event_close\"><code>'close'</code> event</a> will be emitted on both <code>MessagePort</code> instances that\nare part of the channel.</p>"
             },
             {
-              "textRaw": "port.postMessage(value[, transferList])",
+              "textRaw": "`port.postMessage(value[, transferList])`",
               "type": "method",
               "name": "postMessage",
               "meta": {
                 "added": [
                   "v10.5.0"
                 ],
-                "changes": []
+                "changes": [
+                  {
+                    "version": "v14.5.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/33360",
+                    "description": "Added `KeyObject` to the list of cloneable types."
+                  },
+                  {
+                    "version": "v14.5.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/33772",
+                    "description": "Added `FileHandle` to the list of transferable types."
+                  }
+                ]
               },
               "signatures": [
                 {
@@ -233,16 +316,24 @@
                     {
                       "textRaw": "`transferList` {Object[]}",
                       "name": "transferList",
-                      "type": "Object[]",
-                      "optional": true
+                      "type": "Object[]"
                     }
                   ]
                 }
               ],
-              "desc": "<p>Sends a JavaScript value to the receiving side of this channel.\n<code>value</code> will be transferred in a way which is compatible with\nthe <a href=\"https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm\">HTML structured clone algorithm</a>.</p>\n<p>In particular, the significant differences to <code>JSON</code> are:</p>\n<ul>\n<li><code>value</code> may contain circular references.</li>\n<li><code>value</code> may contain instances of builtin JS types such as <code>RegExp</code>s,\n<code>BigInt</code>s, <code>Map</code>s, <code>Set</code>s, etc.</li>\n<li><code>value</code> may contain typed arrays, both using <code>ArrayBuffer</code>s\nand <code>SharedArrayBuffer</code>s.</li>\n<li><code>value</code> may contain <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WebAssembly/Module\"><code>WebAssembly.Module</code></a> instances.</li>\n<li><code>value</code> may not contain native (C++-backed) objects other than <code>MessagePort</code>s.</li>\n</ul>\n<pre><code class=\"language-js\">const { MessageChannel } = require('worker_threads');\nconst { port1, port2 } = new MessageChannel();\n\nport1.on('message', (message) => console.log(message));\n\nconst circularData = {};\ncircularData.foo = circularData;\n// Prints: { foo: [Circular] }\nport2.postMessage(circularData);\n</code></pre>\n<p><code>transferList</code> may be a list of <code>ArrayBuffer</code> and <code>MessagePort</code> objects.\nAfter transferring, they will not be usable on the sending side of the channel\nanymore (even if they are not contained in <code>value</code>). Unlike with\n<a href=\"child_process.html\">child processes</a>, transferring handles such as network sockets is currently\nnot supported.</p>\n<p>If <code>value</code> contains <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SharedArrayBuffer\"><code>SharedArrayBuffer</code></a> instances, those will be accessible\nfrom either thread. They cannot be listed in <code>transferList</code>.</p>\n<p><code>value</code> may still contain <code>ArrayBuffer</code> instances that are not in\n<code>transferList</code>; in that case, the underlying memory is copied rather than moved.</p>\n<pre><code class=\"language-js\">const { MessageChannel } = require('worker_threads');\nconst { port1, port2 } = new MessageChannel();\n\nport1.on('message', (message) => console.log(message));\n\nconst uint8Array = new Uint8Array([ 1, 2, 3, 4 ]);\n// This posts a copy of `uint8Array`:\nport2.postMessage(uint8Array);\n// This does not copy data, but renders `uint8Array` unusable:\nport2.postMessage(uint8Array, [ uint8Array.buffer ]);\n\n// The memory for the `sharedUint8Array` will be accessible from both the\n// original and the copy received by `.on('message')`:\nconst sharedUint8Array = new Uint8Array(new SharedArrayBuffer(4));\nport2.postMessage(sharedUint8Array);\n\n// This transfers a freshly created message port to the receiver.\n// This can be used, for example, to create communication channels between\n// multiple `Worker` threads that are children of the same parent thread.\nconst otherChannel = new MessageChannel();\nport2.postMessage({ port: otherChannel.port1 }, [ otherChannel.port1 ]);\n</code></pre>\n<p>Because the object cloning uses the structured clone algorithm,\nnon-enumerable properties, property accessors, and object prototypes are\nnot preserved. In particular, <a href=\"buffer.html\"><code>Buffer</code></a> objects will be read as\nplain <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array\"><code>Uint8Array</code></a>s on the receiving side.</p>\n<p>The message object will be cloned immediately, and can be modified after\nposting without having side effects.</p>\n<p>For more information on the serialization and deserialization mechanisms\nbehind this API, see the <a href=\"v8.html#v8_serialization_api\">serialization API of the <code>v8</code> module</a>.</p>"
+              "desc": "<p>Sends a JavaScript value to the receiving side of this channel.\n<code>value</code> will be transferred in a way which is compatible with\nthe <a href=\"https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm\">HTML structured clone algorithm</a>.</p>\n<p>In particular, the significant differences to <code>JSON</code> are:</p>\n<ul>\n<li><code>value</code> may contain circular references.</li>\n<li><code>value</code> may contain instances of builtin JS types such as <code>RegExp</code>s,\n<code>BigInt</code>s, <code>Map</code>s, <code>Set</code>s, etc.</li>\n<li><code>value</code> may contain typed arrays, both using <code>ArrayBuffer</code>s\nand <code>SharedArrayBuffer</code>s.</li>\n<li><code>value</code> may contain <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WebAssembly/Module\"><code>WebAssembly.Module</code></a> instances.</li>\n<li><code>value</code> may not contain native (C++-backed) objects other than <code>MessagePort</code>s,\n<a href=\"fs.html#fs_class_filehandle\"><code>FileHandle</code></a>s, and <a href=\"crypto.html#crypto_class_keyobject\"><code>KeyObject</code></a>s.</li>\n</ul>\n<pre><code class=\"language-js\">const { MessageChannel } = require('worker_threads');\nconst { port1, port2 } = new MessageChannel();\n\nport1.on('message', (message) => console.log(message));\n\nconst circularData = {};\ncircularData.foo = circularData;\n// Prints: { foo: [Circular] }\nport2.postMessage(circularData);\n</code></pre>\n<p><code>transferList</code> may be a list of <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer\"><code>ArrayBuffer</code></a>, <a href=\"#worker_threads_class_messageport\"><code>MessagePort</code></a> and\n<a href=\"fs.html#fs_class_filehandle\"><code>FileHandle</code></a> objects.\nAfter transferring, they will not be usable on the sending side of the channel\nanymore (even if they are not contained in <code>value</code>). Unlike with\n<a href=\"child_process.html\">child processes</a>, transferring handles such as network sockets is currently\nnot supported.</p>\n<p>If <code>value</code> contains <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SharedArrayBuffer\"><code>SharedArrayBuffer</code></a> instances, those will be accessible\nfrom either thread. They cannot be listed in <code>transferList</code>.</p>\n<p><code>value</code> may still contain <code>ArrayBuffer</code> instances that are not in\n<code>transferList</code>; in that case, the underlying memory is copied rather than moved.</p>\n<pre><code class=\"language-js\">const { MessageChannel } = require('worker_threads');\nconst { port1, port2 } = new MessageChannel();\n\nport1.on('message', (message) => console.log(message));\n\nconst uint8Array = new Uint8Array([ 1, 2, 3, 4 ]);\n// This posts a copy of `uint8Array`:\nport2.postMessage(uint8Array);\n// This does not copy data, but renders `uint8Array` unusable:\nport2.postMessage(uint8Array, [ uint8Array.buffer ]);\n\n// The memory for the `sharedUint8Array` will be accessible from both the\n// original and the copy received by `.on('message')`:\nconst sharedUint8Array = new Uint8Array(new SharedArrayBuffer(4));\nport2.postMessage(sharedUint8Array);\n\n// This transfers a freshly created message port to the receiver.\n// This can be used, for example, to create communication channels between\n// multiple `Worker` threads that are children of the same parent thread.\nconst otherChannel = new MessageChannel();\nport2.postMessage({ port: otherChannel.port1 }, [ otherChannel.port1 ]);\n</code></pre>\n<p>Because the object cloning uses the structured clone algorithm,\nnon-enumerable properties, property accessors, and object prototypes are\nnot preserved. In particular, <a href=\"buffer.html\"><code>Buffer</code></a> objects will be read as\nplain <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array\"><code>Uint8Array</code></a>s on the receiving side.</p>\n<p>The message object will be cloned immediately, and can be modified after\nposting without having side effects.</p>\n<p>For more information on the serialization and deserialization mechanisms\nbehind this API, see the <a href=\"v8.html#v8_serialization_api\">serialization API of the <code>v8</code> module</a>.</p>",
+              "modules": [
+                {
+                  "textRaw": "Considerations when transferring TypedArrays and Buffers",
+                  "name": "considerations_when_transferring_typedarrays_and_buffers",
+                  "desc": "<p>All <code>TypedArray</code> and <code>Buffer</code> instances are views over an underlying\n<code>ArrayBuffer</code>. That is, it is the <code>ArrayBuffer</code> that actually stores\nthe raw data while the <code>TypedArray</code> and <code>Buffer</code> objects provide a\nway of viewing and manipulating the data. It is possible and common\nfor multiple views to be created over the same <code>ArrayBuffer</code> instance.\nGreat care must be taken when using a transfer list to transfer an\n<code>ArrayBuffer</code> as doing so will cause all <code>TypedArray</code> and <code>Buffer</code>\ninstances that share that same <code>ArrayBuffer</code> to become unusable.</p>\n<pre><code class=\"language-js\">const ab = new ArrayBuffer(10);\n\nconst u1 = new Uint8Array(ab);\nconst u2 = new Uint16Array(ab);\n\nconsole.log(u2.length);  // prints 5\n\nport.postMessage(u1, [u1.buffer]);\n\nconsole.log(u2.length);  // prints 0\n</code></pre>\n<p>For <code>Buffer</code> instances, specifically, whether the underlying\n<code>ArrayBuffer</code> can be transferred or cloned depends entirely on how\ninstances were created, which often cannot be reliably determined.</p>\n<p>An <code>ArrayBuffer</code> can be marked with <a href=\"#worker_threads_worker_markasuntransferable_object\"><code>markAsUntransferable()</code></a> to indicate\nthat it should always be cloned and never transferred.</p>\n<p>Depending on how a <code>Buffer</code> instance was created, it may or may\nnot own its underlying <code>ArrayBuffer</code>. An <code>ArrayBuffer</code> must not\nbe transferred unless it is known that the <code>Buffer</code> instance\nowns it. In particular, for <code>Buffer</code>s created from the internal\n<code>Buffer</code> pool (using, for instance <code>Buffer.from()</code> or <code>Buffer.alloc()</code>),\ntransferring them is not possible and they will always be cloned,\nwhich sends a copy of the entire <code>Buffer</code> pool.\nThis behavior may come with unintended higher memory\nusage and possible security concerns.</p>\n<p>See <a href=\"buffer.html#buffer_static_method_buffer_allocunsafe_size\"><code>Buffer.allocUnsafe()</code></a> for more details on <code>Buffer</code> pooling.</p>\n<p>The <code>ArrayBuffer</code>s for <code>Buffer</code> instances created using\n<code>Buffer.alloc()</code> or <code>Buffer.allocUnsafeSlow()</code> can always be\ntransferred but doing so will render all other existing views of\nthose <code>ArrayBuffer</code>s unusable.</p>",
+                  "type": "module",
+                  "displayName": "Considerations when transferring TypedArrays and Buffers"
+                }
+              ]
             },
             {
-              "textRaw": "port.ref()",
+              "textRaw": "`port.ref()`",
               "type": "method",
               "name": "ref",
               "meta": {
@@ -259,7 +350,7 @@
               "desc": "<p>Opposite of <code>unref()</code>. Calling <code>ref()</code> on a previously <code>unref()</code>ed port will\n<em>not</em> let the program exit if it's the only active handle left (the default\nbehavior). If the port is <code>ref()</code>ed, calling <code>ref()</code> again will have no effect.</p>\n<p>If listeners are attached or removed using <code>.on('message')</code>, the port will\nbe <code>ref()</code>ed and <code>unref()</code>ed automatically depending on whether\nlisteners for the event exist.</p>"
             },
             {
-              "textRaw": "port.start()",
+              "textRaw": "`port.start()`",
               "type": "method",
               "name": "start",
               "meta": {
@@ -276,7 +367,7 @@
               "desc": "<p>Starts receiving messages on this <code>MessagePort</code>. When using this port\nas an event emitter, this will be called automatically once <code>'message'</code>\nlisteners are attached.</p>\n<p>This method exists for parity with the Web <code>MessagePort</code> API. In Node.js,\nit is only useful for ignoring messages when no event listener is present.\nNode.js also diverges in its handling of <code>.onmessage</code>. Setting it will\nautomatically call <code>.start()</code>, but unsetting it will let messages queue up\nuntil a new handler is set or the port is discarded.</p>"
             },
             {
-              "textRaw": "port.unref()",
+              "textRaw": "`port.unref()`",
               "type": "method",
               "name": "unref",
               "meta": {
@@ -295,7 +386,7 @@
           ]
         },
         {
-          "textRaw": "Class: Worker",
+          "textRaw": "Class: `Worker`",
           "type": "class",
           "name": "Worker",
           "meta": {
@@ -307,7 +398,7 @@
           "desc": "<ul>\n<li>Extends: <a href=\"events.html#events_class_eventemitter\" class=\"type\">&lt;EventEmitter&gt;</a></li>\n</ul>\n<p>The <code>Worker</code> class represents an independent JavaScript execution thread.\nMost Node.js APIs are available inside of it.</p>\n<p>Notable differences inside a Worker environment are:</p>\n<ul>\n<li>The <a href=\"process.html#process_process_stdin\"><code>process.stdin</code></a>, <a href=\"process.html#process_process_stdout\"><code>process.stdout</code></a> and <a href=\"process.html#process_process_stderr\"><code>process.stderr</code></a>\nmay be redirected by the parent thread.</li>\n<li>The <a href=\"#worker_threads_worker_ismainthread\"><code>require('worker_threads').isMainThread</code></a> property is set to <code>false</code>.</li>\n<li>The <a href=\"#worker_threads_worker_parentport\"><code>require('worker_threads').parentPort</code></a> message port is available.</li>\n<li><a href=\"process.html#process_process_exit_code\"><code>process.exit()</code></a> does not stop the whole program, just the single thread,\nand <a href=\"process.html#process_process_abort\"><code>process.abort()</code></a> is not available.</li>\n<li><a href=\"process.html#process_process_chdir_directory\"><code>process.chdir()</code></a> and <code>process</code> methods that set group or user ids\nare not available.</li>\n<li><a href=\"process.html#process_process_env\"><code>process.env</code></a> is a copy of the parent thread's environment variables,\nunless otherwise specified. Changes to one copy will not be visible in other\nthreads, and will not be visible to native add-ons (unless\n<a href=\"#worker_threads_worker_share_env\"><code>worker.SHARE_ENV</code></a> has been passed as the <code>env</code> option to the\n<a href=\"#worker_threads_class_worker\"><code>Worker</code></a> constructor).</li>\n<li><a href=\"process.html#process_process_title\"><code>process.title</code></a> cannot be modified.</li>\n<li>Signals will not be delivered through <a href=\"process.html#process_signal_events\"><code>process.on('...')</code></a>.</li>\n<li>Execution may stop at any point as a result of <a href=\"#worker_threads_worker_terminate\"><code>worker.terminate()</code></a>\nbeing invoked.</li>\n<li>IPC channels from parent processes are not accessible.</li>\n<li>The <a href=\"tracing.html\"><code>trace_events</code></a> module is not supported.</li>\n<li>Native add-ons can only be loaded from multiple threads if they fulfill\n<a href=\"addons.html#addons_worker_support\">certain conditions</a>.</li>\n</ul>\n<p>Creating <code>Worker</code> instances inside of other <code>Worker</code>s is possible.</p>\n<p>Like <a href=\"https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API\">Web Workers</a> and the <a href=\"cluster.html\"><code>cluster</code> module</a>, two-way communication can be\nachieved through inter-thread message passing. Internally, a <code>Worker</code> has a\nbuilt-in pair of <a href=\"#worker_threads_class_messageport\"><code>MessagePort</code></a>s that are already associated with each other\nwhen the <code>Worker</code> is created. While the <code>MessagePort</code> object on the parent side\nis not directly exposed, its functionalities are exposed through\n<a href=\"#worker_threads_worker_postmessage_value_transferlist\"><code>worker.postMessage()</code></a> and the <a href=\"#worker_threads_event_message_1\"><code>worker.on('message')</code></a> event\non the <code>Worker</code> object for the parent thread.</p>\n<p>To create custom messaging channels (which is encouraged over using the default\nglobal channel because it facilitates separation of concerns), users can create\na <code>MessageChannel</code> object on either thread and pass one of the\n<code>MessagePort</code>s on that <code>MessageChannel</code> to the other thread through a\npre-existing channel, such as the global one.</p>\n<p>See <a href=\"#worker_threads_port_postmessage_value_transferlist\"><code>port.postMessage()</code></a> for more information on how messages are passed,\nand what kind of JavaScript values can be successfully transported through\nthe thread barrier.</p>\n<pre><code class=\"language-js\">const assert = require('assert');\nconst {\n  Worker, MessageChannel, MessagePort, isMainThread, parentPort\n} = require('worker_threads');\nif (isMainThread) {\n  const worker = new Worker(__filename);\n  const subChannel = new MessageChannel();\n  worker.postMessage({ hereIsYourPort: subChannel.port1 }, [subChannel.port1]);\n  subChannel.port2.on('message', (value) => {\n    console.log('received:', value);\n  });\n} else {\n  parentPort.once('message', (value) => {\n    assert(value.hereIsYourPort instanceof MessagePort);\n    value.hereIsYourPort.postMessage('the worker is sending this');\n    value.hereIsYourPort.close();\n  });\n}\n</code></pre>",
           "events": [
             {
-              "textRaw": "Event: 'error'",
+              "textRaw": "Event: `'error'`",
               "type": "event",
               "name": "error",
               "meta": {
@@ -326,7 +417,7 @@
               "desc": "<p>The <code>'error'</code> event is emitted if the worker thread throws an uncaught\nexception. In that case, the worker will be terminated.</p>"
             },
             {
-              "textRaw": "Event: 'exit'",
+              "textRaw": "Event: `'exit'`",
               "type": "event",
               "name": "exit",
               "meta": {
@@ -342,10 +433,10 @@
                   "type": "integer"
                 }
               ],
-              "desc": "<p>The <code>'exit'</code> event is emitted once the worker has stopped. If the worker\nexited by calling <a href=\"process.html#process_process_exit_code\"><code>process.exit()</code></a>, the <code>exitCode</code> parameter will be the\npassed exit code. If the worker was terminated, the <code>exitCode</code> parameter will\nbe <code>1</code>.</p>"
+              "desc": "<p>The <code>'exit'</code> event is emitted once the worker has stopped. If the worker\nexited by calling <a href=\"process.html#process_process_exit_code\"><code>process.exit()</code></a>, the <code>exitCode</code> parameter will be the\npassed exit code. If the worker was terminated, the <code>exitCode</code> parameter will\nbe <code>1</code>.</p>\n<p>This is the final event emitted by any <code>Worker</code> instance.</p>"
             },
             {
-              "textRaw": "Event: 'message'",
+              "textRaw": "Event: `'message'`",
               "type": "event",
               "name": "message",
               "meta": {
@@ -362,10 +453,30 @@
                   "desc": "The transmitted value"
                 }
               ],
-              "desc": "<p>The <code>'message'</code> event is emitted when the worker thread has invoked\n<a href=\"#worker_threads_worker_postmessage_value_transferlist\"><code>require('worker_threads').parentPort.postMessage()</code></a>.\nSee the <a href=\"#worker_threads_event_message\"><code>port.on('message')</code></a> event for more details.</p>"
+              "desc": "<p>The <code>'message'</code> event is emitted when the worker thread has invoked\n<a href=\"#worker_threads_worker_postmessage_value_transferlist\"><code>require('worker_threads').parentPort.postMessage()</code></a>.\nSee the <a href=\"#worker_threads_event_message\"><code>port.on('message')</code></a> event for more details.</p>\n<p>All messages sent from the worker thread will be emitted before the\n<a href=\"#worker_threads_event_exit\"><code>'exit'</code> event</a> is emitted on the <code>Worker</code> object.</p>"
             },
             {
-              "textRaw": "Event: 'online'",
+              "textRaw": "Event: `'messageerror'`",
+              "type": "event",
+              "name": "messageerror",
+              "meta": {
+                "added": [
+                  "v14.5.0"
+                ],
+                "changes": []
+              },
+              "params": [
+                {
+                  "textRaw": "`error` {Error} An Error object",
+                  "name": "error",
+                  "type": "Error",
+                  "desc": "An Error object"
+                }
+              ],
+              "desc": "<p>The <code>'messageerror'</code> event is emitted when deserializing a message failed.</p>"
+            },
+            {
+              "textRaw": "Event: `'online'`",
               "type": "event",
               "name": "online",
               "meta": {
@@ -380,7 +491,30 @@
           ],
           "methods": [
             {
-              "textRaw": "worker.postMessage(value[, transferList])",
+              "textRaw": "`worker.getHeapSnapshot()`",
+              "type": "method",
+              "name": "getHeapSnapshot",
+              "meta": {
+                "added": [
+                  "v13.9.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {Promise} A promise for a Readable Stream containing a V8 heap snapshot",
+                    "name": "return",
+                    "type": "Promise",
+                    "desc": "A promise for a Readable Stream containing a V8 heap snapshot"
+                  },
+                  "params": []
+                }
+              ],
+              "desc": "<p>Returns a readable stream for a V8 snapshot of the current state of the Worker.\nSee <a href=\"v8.html#v8_v8_getheapsnapshot\"><code>v8.getHeapSnapshot()</code></a> for more details.</p>\n<p>If the Worker thread is no longer running, which may occur before the\n<a href=\"#worker_threads_event_exit\"><code>'exit'</code> event</a> is emitted, the returned <code>Promise</code> will be rejected\nimmediately with an <a href=\"errors.html#ERR_WORKER_NOT_RUNNING\"><code>ERR_WORKER_NOT_RUNNING</code></a> error.</p>"
+            },
+            {
+              "textRaw": "`worker.postMessage(value[, transferList])`",
               "type": "method",
               "name": "postMessage",
               "meta": {
@@ -400,8 +534,7 @@
                     {
                       "textRaw": "`transferList` {Object[]}",
                       "name": "transferList",
-                      "type": "Object[]",
-                      "optional": true
+                      "type": "Object[]"
                     }
                   ]
                 }
@@ -409,7 +542,7 @@
               "desc": "<p>Send a message to the worker that will be received via\n<a href=\"#worker_threads_event_message\"><code>require('worker_threads').parentPort.on('message')</code></a>.\nSee <a href=\"#worker_threads_port_postmessage_value_transferlist\"><code>port.postMessage()</code></a> for more details.</p>"
             },
             {
-              "textRaw": "worker.ref()",
+              "textRaw": "`worker.ref()`",
               "type": "method",
               "name": "ref",
               "meta": {
@@ -426,7 +559,7 @@
               "desc": "<p>Opposite of <code>unref()</code>, calling <code>ref()</code> on a previously <code>unref()</code>ed worker will\n<em>not</em> let the program exit if it's the only active handle left (the default\nbehavior). If the worker is <code>ref()</code>ed, calling <code>ref()</code> again will have\nno effect.</p>"
             },
             {
-              "textRaw": "worker.terminate()",
+              "textRaw": "`worker.terminate()`",
               "type": "method",
               "name": "terminate",
               "meta": {
@@ -454,7 +587,7 @@
               "desc": "<p>Stop all JavaScript execution in the worker thread as soon as possible.\nReturns a Promise for the exit code that is fulfilled when the\n<a href=\"#worker_threads_event_exit\"><code>'exit'</code> event</a> is emitted.</p>"
             },
             {
-              "textRaw": "worker.unref()",
+              "textRaw": "`worker.unref()`",
               "type": "method",
               "name": "unref",
               "meta": {
@@ -472,6 +605,41 @@
             }
           ],
           "properties": [
+            {
+              "textRaw": "`resourceLimits` {Object}",
+              "type": "Object",
+              "name": "resourceLimits",
+              "meta": {
+                "added": [
+                  "v13.2.0",
+                  "v12.16.0"
+                ],
+                "changes": []
+              },
+              "options": [
+                {
+                  "textRaw": "`maxYoungGenerationSizeMb` {number}",
+                  "name": "maxYoungGenerationSizeMb",
+                  "type": "number"
+                },
+                {
+                  "textRaw": "`maxOldGenerationSizeMb` {number}",
+                  "name": "maxOldGenerationSizeMb",
+                  "type": "number"
+                },
+                {
+                  "textRaw": "`codeRangeSizeMb` {number}",
+                  "name": "codeRangeSizeMb",
+                  "type": "number"
+                },
+                {
+                  "textRaw": "`stackSizeMb` {number}",
+                  "name": "stackSizeMb",
+                  "type": "number"
+                }
+              ],
+              "desc": "<p>Provides the set of JS engine resource constraints for this Worker thread.\nIf the <code>resourceLimits</code> option was passed to the <a href=\"#worker_threads_class_worker\"><code>Worker</code></a> constructor,\nthis matches its values.</p>\n<p>If the worker has stopped, the return value is an empty object.</p>"
+            },
             {
               "textRaw": "`stderr` {stream.Readable}",
               "type": "stream.Readable",
@@ -525,16 +693,22 @@
             {
               "params": [
                 {
-                  "textRaw": "`filename` {string} The path to the Worker’s main script. Must be either an absolute path or a relative path (i.e. relative to the current working directory) starting with `./` or `../`. If `options.eval` is `true`, this is a string containing JavaScript code rather than a path.",
+                  "textRaw": "`filename` {string|URL} The path to the Worker’s main script or module. Must be either an absolute path or a relative path (i.e. relative to the current working directory) starting with `./` or `../`, or a WHATWG `URL` object using `file:` protocol. If `options.eval` is `true`, this is a string containing JavaScript code rather than a path.",
                   "name": "filename",
-                  "type": "string",
-                  "desc": "The path to the Worker’s main script. Must be either an absolute path or a relative path (i.e. relative to the current working directory) starting with `./` or `../`. If `options.eval` is `true`, this is a string containing JavaScript code rather than a path."
+                  "type": "string|URL",
+                  "desc": "The path to the Worker’s main script or module. Must be either an absolute path or a relative path (i.e. relative to the current working directory) starting with `./` or `../`, or a WHATWG `URL` object using `file:` protocol. If `options.eval` is `true`, this is a string containing JavaScript code rather than a path."
                 },
                 {
                   "textRaw": "`options` {Object}",
                   "name": "options",
                   "type": "Object",
                   "options": [
+                    {
+                      "textRaw": "`argv` {any[]} List of arguments which would be stringified and appended to `process.argv` in the worker. This is mostly similar to the `workerData` but the values will be available on the global `process.argv` as if they were passed as CLI options to the script.",
+                      "name": "argv",
+                      "type": "any[]",
+                      "desc": "List of arguments which would be stringified and appended to `process.argv` in the worker. This is mostly similar to the `workerData` but the values will be available on the global `process.argv` as if they were passed as CLI options to the script."
+                    },
                     {
                       "textRaw": "`env` {Object} If set, specifies the initial value of `process.env` inside the Worker thread. As a special value, [`worker.SHARE_ENV`][] may be used to specify that the parent thread and the child thread should share their environment variables; in that case, changes to one thread’s `process.env` object will affect the other thread as well. **Default:** `process.env`.",
                       "name": "env",
@@ -543,10 +717,10 @@
                       "desc": "If set, specifies the initial value of `process.env` inside the Worker thread. As a special value, [`worker.SHARE_ENV`][] may be used to specify that the parent thread and the child thread should share their environment variables; in that case, changes to one thread’s `process.env` object will affect the other thread as well."
                     },
                     {
-                      "textRaw": "`eval` {boolean} If `true`, interpret the first argument to the constructor as a script that is executed once the worker is online.",
+                      "textRaw": "`eval` {boolean} If `true` and the first argument is a `string`, interpret the first argument to the constructor as a script that is executed once the worker is online.",
                       "name": "eval",
                       "type": "boolean",
-                      "desc": "If `true`, interpret the first argument to the constructor as a script that is executed once the worker is online."
+                      "desc": "If `true` and the first argument is a `string`, interpret the first argument to the constructor as a script that is executed once the worker is online."
                     },
                     {
                       "textRaw": "`execArgv` {string[]} List of node CLI options passed to the worker. V8 options (such as `--max-old-space-size`) and options that affect the process (such as `--title`) are not supported. If set, this will be provided as [`process.execArgv`][] inside the worker. By default, options will be inherited from the parent thread.",
@@ -577,9 +751,53 @@
                       "name": "workerData",
                       "type": "any",
                       "desc": "Any JavaScript value that will be cloned and made available as [`require('worker_threads').workerData`][]. The cloning will occur as described in the [HTML structured clone algorithm][], and an error will be thrown if the object cannot be cloned (e.g. because it contains `function`s)."
+                    },
+                    {
+                      "textRaw": "`trackUnmanagedFds` {boolean} If this is set to `true`, then the Worker will track raw file descriptors managed through [`fs.open()`][] and [`fs.close()`][], and close them when the Worker exits, similar to other resources like network sockets or file descriptors managed through the [`FileHandle`][] API. This option is automatically inherited by all nested `Worker`s. **Default**: `false`.",
+                      "name": "trackUnmanagedFds",
+                      "type": "boolean",
+                      "desc": "If this is set to `true`, then the Worker will track raw file descriptors managed through [`fs.open()`][] and [`fs.close()`][], and close them when the Worker exits, similar to other resources like network sockets or file descriptors managed through the [`FileHandle`][] API. This option is automatically inherited by all nested `Worker`s. **Default**: `false`."
+                    },
+                    {
+                      "textRaw": "`transferList` {Object[]} If one or more `MessagePort`-like objects are passed in `workerData`, a `transferList` is required for those items or [`ERR_MISSING_MESSAGE_PORT_IN_TRANSFER_LIST`][] will be thrown. See [`port.postMessage()`][] for more information.",
+                      "name": "transferList",
+                      "type": "Object[]",
+                      "desc": "If one or more `MessagePort`-like objects are passed in `workerData`, a `transferList` is required for those items or [`ERR_MISSING_MESSAGE_PORT_IN_TRANSFER_LIST`][] will be thrown. See [`port.postMessage()`][] for more information."
+                    },
+                    {
+                      "textRaw": "`resourceLimits` {Object} An optional set of resource limits for the new JS engine instance. Reaching these limits will lead to termination of the `Worker` instance. These limits only affect the JS engine, and no external data, including no `ArrayBuffer`s. Even if these limits are set, the process may still abort if it encounters a global out-of-memory situation.",
+                      "name": "resourceLimits",
+                      "type": "Object",
+                      "desc": "An optional set of resource limits for the new JS engine instance. Reaching these limits will lead to termination of the `Worker` instance. These limits only affect the JS engine, and no external data, including no `ArrayBuffer`s. Even if these limits are set, the process may still abort if it encounters a global out-of-memory situation.",
+                      "options": [
+                        {
+                          "textRaw": "`maxOldGenerationSizeMb` {number} The maximum size of the main heap in MB.",
+                          "name": "maxOldGenerationSizeMb",
+                          "type": "number",
+                          "desc": "The maximum size of the main heap in MB."
+                        },
+                        {
+                          "textRaw": "`maxYoungGenerationSizeMb` {number} The maximum size of a heap space for recently created objects.",
+                          "name": "maxYoungGenerationSizeMb",
+                          "type": "number",
+                          "desc": "The maximum size of a heap space for recently created objects."
+                        },
+                        {
+                          "textRaw": "`codeRangeSizeMb` {number} The size of a pre-allocated memory range used for generated code.",
+                          "name": "codeRangeSizeMb",
+                          "type": "number",
+                          "desc": "The size of a pre-allocated memory range used for generated code."
+                        },
+                        {
+                          "textRaw": "`stackSizeMb` {number} The default maximum stack size for the thread. Small values may lead to unusable Worker instances. **Default:** `4`.",
+                          "name": "stackSizeMb",
+                          "type": "number",
+                          "default": "`4`",
+                          "desc": "The default maximum stack size for the thread. Small values may lead to unusable Worker instances."
+                        }
+                      ]
                     }
-                  ],
-                  "optional": true
+                  ]
                 }
               ]
             }
@@ -587,7 +805,7 @@
         }
       ],
       "type": "module",
-      "displayName": "Worker Threads"
+      "displayName": "Worker threads"
     }
   ]
 }

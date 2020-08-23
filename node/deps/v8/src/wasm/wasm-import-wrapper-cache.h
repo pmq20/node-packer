@@ -23,7 +23,7 @@ using FunctionSig = Signature<ValueType>;
 // Implements a cache for import wrappers.
 class WasmImportWrapperCache {
  public:
-  using CacheKey = std::pair<compiler::WasmImportCallKind, FunctionSig*>;
+  using CacheKey = std::pair<compiler::WasmImportCallKind, const FunctionSig*>;
 
   class CacheKeyHash {
    public:
@@ -49,14 +49,14 @@ class WasmImportWrapperCache {
   // cache.
   V8_EXPORT_PRIVATE WasmCode*& operator[](const CacheKey& key);
 
-  // Assumes the key exists in the map.
+  // Thread-safe. Assumes the key exists in the map.
   V8_EXPORT_PRIVATE WasmCode* Get(compiler::WasmImportCallKind kind,
-                                  FunctionSig* sig) const;
+                                  const FunctionSig* sig) const;
 
   ~WasmImportWrapperCache();
 
  private:
-  base::Mutex mutex_;
+  mutable base::Mutex mutex_;
   std::unordered_map<CacheKey, WasmCode*, CacheKeyHash> entry_map_;
 };
 

@@ -132,8 +132,6 @@ The original maintainer did not specify how to build this repo into single execu
           --npm-package-version=VER    Downloads and compiles the specified version of the npm package
           --auto-update-url=URL        Enables auto-update and specifies the URL to get the latest version
           --auto-update-base=STRING    Enables auto-update and specifies the base version string
-          --msi                        Generates a .msi installer for Windows
-          --pkg                        Generates a .pkg installer for macOS
           --debug                      Enable debug mode
       -o, --dest-os=OS                 Destination operating system (enum: win mac solaris freebsd openbsd linux android aix)
       -a, --dest-arch=ARCH             Destination CPU architecture (enum: arm arm64 ia32 mips mipsel ppc ppc64 x32 x64 x86 s390 s390x)

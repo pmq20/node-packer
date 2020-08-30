@@ -6,9 +6,11 @@
 # This file is part of Node.js Packer, distributed under the MIT License
 # For full terms see the included LICENSE file
 
-$LOAD_PATH.unshift File.expand_path('../lib', __dir__)
+require 'rubygems'
+require 'bundler/setup'
+Bundler.require(:default)
 
-require 'compiler'
+require_relative '../lib/compiler'
 require 'optparse'
 
 # took directly from https://github.com/nodejs/node/blob/master/configure#L47,L50
@@ -31,7 +33,7 @@ EXAMPLES = %{
 
 Note
 
-  If `ENTRANCE` was not provided, then a single Node.js interpreter executable will be produced.
+  If ENTRANCE was not provided, a single raw Node.js interpreter executable would be produced.
 
 Examples
 
@@ -62,6 +64,14 @@ end
 
 OptionParser.new do |opts|
   opts.banner = USAGE
+
+  opts.on('--current', 'Uses the current Node.js release') do
+    options[:current] = true
+  end
+
+  opts.on('--lts', 'Uses the LTS Node.js release') do
+    options[:lts] = true
+  end
 
   opts.on('-rDIR', '--root=DIR', 'Specifies the path to the root of the application') do |dir|
     options[:root] = dir
@@ -105,14 +115,6 @@ OptionParser.new do |opts|
 
   opts.on('--auto-update-base=STRING', 'Enables auto-update and specifies the base version string') do |string|
     options[:auto_update_base] = string
-  end
-
-  opts.on('--current', 'Uses the current Node.js release') do
-    options[:current] = true
-  end
-
-  opts.on('--lts', 'Uses the LTS Node.js release') do
-    options[:lts] = true
   end
 
   opts.on('--debug', 'Enables debug mode') do

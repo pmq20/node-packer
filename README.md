@@ -19,7 +19,7 @@ http://enclose.io/nodec
 
 ## Supported Node.js Versions
 
-We maintain support for both the latest *Current* Node.js release and the latest *LTS* Node.js release. Currently the `master` branch has been updated to the following versions.
+We maintain support for both the latest Current Node.js release and the latest LTS Node.js release. At the moment, the `master` branch has been updated to support the following Node.js versions.
 
 |                       |  Master Branch Updated to  |            How to Use               |
 |:---------------------:|:--------------------------:|:-----------------------------------:|
@@ -127,24 +127,27 @@ The original maintainer did not specify how to build this repo into single execu
 ## Usage
 
     nodec [OPTION]... [ENTRANCE]
+          --current                    Uses the current Node.js release
+          --lts                        Uses the LTS Node.js release
       -r, --root=DIR                   Specifies the path to the root of the application
-      -o, --output=FILE                Specifies the path of the output file
+          --output=FILE                Specifies the path of the output file
       -d, --tmpdir=DIR                 Specifies the directory for temporary files
           --clean-tmpdir               Cleans all temporary files that were generated last time
           --keep-tmpdir                Keeps all temporary files that were generated last time
           --make-args=ARGS             Passes extra arguments to make
           --vcbuild-args=ARGS          Passes extra arguments to vcbuild.bat
+      -n, --npm=FILE                   Specifies the path of npm
+          --skip-npm-install           Skips the npm install process
           --auto-update-url=URL        Enables auto-update and specifies the URL to get the latest version
           --auto-update-base=STRING    Enables auto-update and specifies the base version string
-          --debug                      Enable debug mode
-      -o, --dest-os=OS                 Destination operating system (enum: win mac solaris freebsd openbsd linux android aix)
-      -a, --dest-arch=ARCH             Destination CPU architecture (enum: arm arm64 ia32 mips mipsel ppc ppc64 x32 x64 x86 s390 s390x)
-          --quiet                      Enable quiet mode
+          --debug                      Enables debug mode
+      -o, --dest-os=OS                 Specifies the destination operating system (enum: win mac solaris freebsd openbsd linux android aix)
+      -a, --dest-arch=ARCH             Specifies the destination CPU architecture (enum: arm arm64 ia32 mips mipsel ppc ppc64 x32 x64 x86 s390 s390x)
+          --quiet                      Enables quiet mode
       -v, --version                    Prints the version of nodec and exit
-      -V, --node-version               Prints the version of the Node.js runtime and exit
       -h, --help                       Prints this help and exit
 
-Note: if `ENTRANCE` was not provided, then a single Node.js interpreter executable will be produced.
+Note: if ENTRANCE was not provided, a single raw Node.js interpreter executable would be produced.
 
 Note: To compile to 32-bit windows OS compatible programs on a 64-bit machine, you should use a x64 x32 cross compiling environment. You should be able to find it in your Start Menu after installing Visual Studio. Also, you have to use a 32-bit Node.js, because the arch information is detected via `node -pe process.arch`.
 

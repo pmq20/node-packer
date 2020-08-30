@@ -5,9 +5,10 @@
 # This file is part of Node.js Packer, distributed under the MIT License
 # For full terms see the included LICENSE file
 
-require 'compiler/constants'
-require 'compiler/error'
-require 'compiler/utils'
+require_relative './compiler/constants'
+require_relative './compiler/error'
+require_relative './compiler/utils'
+
 require 'shellwords'
 require 'tmpdir'
 require 'fileutils'
@@ -60,8 +61,12 @@ class Compiler
   end
 
   def init_options
+    @current_or_lts = 'current'
+    raise Error, 'Please specify either --current or --lts' if @options[:current] && @options[:lts]
+    @current_or_lts = 'lts' if @options[:lts]
+
     @options[:npm] ||= 'npm'
-    @node_dir = "node-#{VERSION}"
+    @node_dir = "node-#{VERSION}-#{@current_or_lts}"
     @options[:make_args] ||= '-j4'
     @options[:vcbuild_args] ||= `node -pe process.arch`.to_s.strip
     @options[:output] ||= if Gem.win_platform?
@@ -91,7 +96,7 @@ class Compiler
     @utils.rm_rf(@options[:tmpdir]) if @options[:clean_tmpdir]
     @utils.mkdir_p(@options[:tmpdir])
     @tmpdir_node = File.join(@options[:tmpdir], @node_dir)
-    @utils.cp_r(File.join(PRJ_ROOT, 'node'), @tmpdir_node, preserve: true) unless Dir.exist?(@tmpdir_node)
+    @utils.cp_r(File.join(PRJ_ROOT, @current_or_lts), @tmpdir_node, preserve: true) unless Dir.exist?(@tmpdir_node)
   end
 
   def run!

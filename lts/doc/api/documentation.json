@@ -1,0 +1,49 @@
+{
+  "type": "module",
+  "source": "doc/api/documentation.md",
+  "introduced_in": "v0.10.0",
+  "miscs": [
+    {
+      "textRaw": "About this documentation",
+      "name": "About this documentation",
+      "introduced_in": "v0.10.0",
+      "type": "misc",
+      "desc": "<p>Welcome to the official API reference documentation for Node.js!</p>\n<p>Node.js is a JavaScript runtime built on the <a href=\"https://v8.dev/\">V8 JavaScript engine</a>.</p>",
+      "miscs": [
+        {
+          "textRaw": "Contributing",
+          "name": "contributing",
+          "desc": "<p>Report errors in this documentation in <a href=\"https://github.com/nodejs/node/issues/new\">the issue tracker</a>. See\n<a href=\"https://github.com/nodejs/node/blob/master/CONTRIBUTING.md\">the contributing guide</a> for directions on how to submit pull requests.</p>",
+          "type": "misc",
+          "displayName": "Contributing"
+        },
+        {
+          "textRaw": "Stability index",
+          "name": "Stability index",
+          "type": "misc",
+          "desc": "<p>Throughout the documentation are indications of a section's stability. Some APIs\nare so proven and so relied upon that they are unlikely to ever change at all.\nOthers are brand new and experimental, or known to be hazardous.</p>\n<p>The stability indices are as follows:</p>\n<blockquote>\n<p>Stability: 0 - Deprecated. The feature may emit warnings. Backward\ncompatibility is not guaranteed.</p>\n</blockquote>\n<!-- separator -->\n<blockquote>\n<p>Stability: 1 - Experimental. The feature is not subject to\n<a href=\"https://semver.org/\">Semantic Versioning</a> rules. Non-backward compatible changes or removal may\noccur in any future release. Use of the feature is not recommended in\nproduction environments.</p>\n</blockquote>\n<!-- separator -->\n<blockquote>\n<p>Stability: 2 - Stable. Compatibility with the npm ecosystem is a high\npriority.</p>\n</blockquote>\n<p>Use caution when making use of Experimental features, particularly within\nmodules. End users may not be aware that experimental features are being used.\nBugs or behavior changes may surprise end users when Experimental API\nmodifications occur. To avoid surprises, use of an Experimental feature may need\na command-line flag. Experimental features may also emit a <a href=\"process.html#process_event_warning\">warning</a>.</p>"
+        },
+        {
+          "textRaw": "JSON output",
+          "name": "json_output",
+          "meta": {
+            "added": [
+              "v0.6.12"
+            ],
+            "changes": []
+          },
+          "desc": "<p>Every <code>.html</code> document has a corresponding <code>.json</code> document. This is for IDEs\nand other utilities that consume the documentation.</p>",
+          "type": "misc",
+          "displayName": "JSON output"
+        },
+        {
+          "textRaw": "System calls and man pages",
+          "name": "system_calls_and_man_pages",
+          "desc": "<p>Node.js functions which wrap a system call will document that. The docs link\nto the corresponding man pages which describe how the system call works.</p>\n<p>Most Unix system calls have Windows analogues. Still, behavior differences may\nbe unavoidable.</p>",
+          "type": "misc",
+          "displayName": "System calls and man pages"
+        }
+      ]
+    }
+  ]
+}

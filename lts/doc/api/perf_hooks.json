@@ -1,0 +1,780 @@
+{
+  "type": "module",
+  "source": "doc/api/perf_hooks.md",
+  "modules": [
+    {
+      "textRaw": "Performance measurement APIs",
+      "name": "performance_measurement_apis",
+      "introduced_in": "v8.5.0",
+      "stability": 2,
+      "stabilityText": "Stable",
+      "desc": "<p>This module provides an implementation of a subset of the W3C\n<a href=\"https://w3c.github.io/perf-timing-primer/\">Web Performance APIs</a> as well as additional APIs for\nNode.js-specific performance measurements.</p>\n<p>Node.js supports the following <a href=\"https://w3c.github.io/perf-timing-primer/\">Web Performance APIs</a>:</p>\n<ul>\n<li><a href=\"https://www.w3.org/TR/hr-time-2\">High Resolution Time</a></li>\n<li><a href=\"https://w3c.github.io/performance-timeline/\">Performance Timeline</a></li>\n<li><a href=\"https://www.w3.org/TR/user-timing/\">User Timing</a></li>\n</ul>\n<pre><code class=\"language-js\">const { PerformanceObserver, performance } = require('perf_hooks');\n\nconst obs = new PerformanceObserver((items) => {\n  console.log(items.getEntries()[0].duration);\n  performance.clearMarks();\n});\nobs.observe({ entryTypes: ['measure'] });\nperformance.measure('Start to Now');\n\nperformance.mark('A');\ndoSomeLongRunningProcess(() => {\n  performance.measure('A to Now', 'A');\n\n  performance.mark('B');\n  performance.measure('A to B', 'A', 'B');\n});\n</code></pre>",
+      "properties": [
+        {
+          "textRaw": "`perf_hooks.performance`",
+          "name": "performance",
+          "meta": {
+            "added": [
+              "v8.5.0"
+            ],
+            "changes": []
+          },
+          "desc": "<p>An object that can be used to collect performance metrics from the current\nNode.js instance. It is similar to <a href=\"https://developer.mozilla.org/en-US/docs/Web/API/Window/performance\"><code>window.performance</code></a> in browsers.</p>",
+          "methods": [
+            {
+              "textRaw": "`performance.clearMarks([name])`",
+              "type": "method",
+              "name": "clearMarks",
+              "meta": {
+                "added": [
+                  "v8.5.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`name` {string}",
+                      "name": "name",
+                      "type": "string"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>If <code>name</code> is not provided, removes all <code>PerformanceMark</code> objects from the\nPerformance Timeline. If <code>name</code> is provided, removes only the named mark.</p>"
+            },
+            {
+              "textRaw": "`performance.mark([name])`",
+              "type": "method",
+              "name": "mark",
+              "meta": {
+                "added": [
+                  "v8.5.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`name` {string}",
+                      "name": "name",
+                      "type": "string"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Creates a new <code>PerformanceMark</code> entry in the Performance Timeline. A\n<code>PerformanceMark</code> is a subclass of <code>PerformanceEntry</code> whose\n<code>performanceEntry.entryType</code> is always <code>'mark'</code>, and whose\n<code>performanceEntry.duration</code> is always <code>0</code>. Performance marks are used\nto mark specific significant moments in the Performance Timeline.</p>"
+            },
+            {
+              "textRaw": "`performance.measure(name[, startMark[, endMark]])`",
+              "type": "method",
+              "name": "measure",
+              "meta": {
+                "added": [
+                  "v8.5.0"
+                ],
+                "changes": [
+                  {
+                    "version": "v12.16.3",
+                    "pr-url": "https://github.com/nodejs/node/pull/32651",
+                    "description": "Make `startMark` and `endMark` parameters optional."
+                  }
+                ]
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`name` {string}",
+                      "name": "name",
+                      "type": "string"
+                    },
+                    {
+                      "textRaw": "`startMark` {string} Optional.",
+                      "name": "startMark",
+                      "type": "string",
+                      "desc": "Optional."
+                    },
+                    {
+                      "textRaw": "`endMark` {string} Optional.",
+                      "name": "endMark",
+                      "type": "string",
+                      "desc": "Optional."
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Creates a new <code>PerformanceMeasure</code> entry in the Performance Timeline. A\n<code>PerformanceMeasure</code> is a subclass of <code>PerformanceEntry</code> whose\n<code>performanceEntry.entryType</code> is always <code>'measure'</code>, and whose\n<code>performanceEntry.duration</code> measures the number of milliseconds elapsed since\n<code>startMark</code> and <code>endMark</code>.</p>\n<p>The <code>startMark</code> argument may identify any <em>existing</em> <code>PerformanceMark</code> in the\nPerformance Timeline, or <em>may</em> identify any of the timestamp properties\nprovided by the <code>PerformanceNodeTiming</code> class. If the named <code>startMark</code> does\nnot exist, then <code>startMark</code> is set to <a href=\"https://w3c.github.io/hr-time/#dom-performance-timeorigin\"><code>timeOrigin</code></a> by default.</p>\n<p>The optional <code>endMark</code> argument must identify any <em>existing</em> <code>PerformanceMark</code>\nin the Performance Timeline or any of the timestamp properties provided by the\n<code>PerformanceNodeTiming</code> class. <code>endMark</code> will be <code>performance.now()</code>\nif no parameter is passed, otherwise if the named <code>endMark</code> does not exist, an\nerror will be thrown.</p>"
+            },
+            {
+              "textRaw": "`performance.now()`",
+              "type": "method",
+              "name": "now",
+              "meta": {
+                "added": [
+                  "v8.5.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {number}",
+                    "name": "return",
+                    "type": "number"
+                  },
+                  "params": []
+                }
+              ],
+              "desc": "<p>Returns the current high resolution millisecond timestamp, where 0 represents\nthe start of the current <code>node</code> process.</p>"
+            },
+            {
+              "textRaw": "`performance.timerify(fn)`",
+              "type": "method",
+              "name": "timerify",
+              "meta": {
+                "added": [
+                  "v8.5.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`fn` {Function}",
+                      "name": "fn",
+                      "type": "Function"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p><em>This property is an extension by Node.js. It is not available in Web browsers.</em></p>\n<p>Wraps a function within a new function that measures the running time of the\nwrapped function. A <code>PerformanceObserver</code> must be subscribed to the <code>'function'</code>\nevent type in order for the timing details to be accessed.</p>\n<pre><code class=\"language-js\">const {\n  performance,\n  PerformanceObserver\n} = require('perf_hooks');\n\nfunction someFunction() {\n  console.log('hello world');\n}\n\nconst wrapped = performance.timerify(someFunction);\n\nconst obs = new PerformanceObserver((list) => {\n  console.log(list.getEntries()[0].duration);\n  obs.disconnect();\n});\nobs.observe({ entryTypes: ['function'] });\n\n// A performance timeline entry will be created\nwrapped();\n</code></pre>"
+            }
+          ],
+          "properties": [
+            {
+              "textRaw": "`nodeTiming` {PerformanceNodeTiming}",
+              "type": "PerformanceNodeTiming",
+              "name": "nodeTiming",
+              "meta": {
+                "added": [
+                  "v8.5.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p><em>This property is an extension by Node.js. It is not available in Web browsers.</em></p>\n<p>An instance of the <code>PerformanceNodeTiming</code> class that provides performance\nmetrics for specific Node.js operational milestones.</p>"
+            },
+            {
+              "textRaw": "`timeOrigin` {number}",
+              "type": "number",
+              "name": "timeOrigin",
+              "meta": {
+                "added": [
+                  "v8.5.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>The <a href=\"https://w3c.github.io/hr-time/#dom-performance-timeorigin\"><code>timeOrigin</code></a> specifies the high resolution millisecond timestamp at\nwhich the current <code>node</code> process began, measured in Unix time.</p>"
+            }
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "textRaw": "Class: `PerformanceEntry`",
+          "type": "class",
+          "name": "PerformanceEntry",
+          "meta": {
+            "added": [
+              "v8.5.0"
+            ],
+            "changes": []
+          },
+          "properties": [
+            {
+              "textRaw": "`duration` {number}",
+              "type": "number",
+              "name": "duration",
+              "meta": {
+                "added": [
+                  "v8.5.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>The total number of milliseconds elapsed for this entry. This value will not\nbe meaningful for all Performance Entry types.</p>"
+            },
+            {
+              "textRaw": "`name` {string}",
+              "type": "string",
+              "name": "name",
+              "meta": {
+                "added": [
+                  "v8.5.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>The name of the performance entry.</p>"
+            },
+            {
+              "textRaw": "`startTime` {number}",
+              "type": "number",
+              "name": "startTime",
+              "meta": {
+                "added": [
+                  "v8.5.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>The high resolution millisecond timestamp marking the starting time of the\nPerformance Entry.</p>"
+            },
+            {
+              "textRaw": "`entryType` {string}",
+              "type": "string",
+              "name": "entryType",
+              "meta": {
+                "added": [
+                  "v8.5.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>The type of the performance entry. It may be one of:</p>\n<ul>\n<li><code>'node'</code> (Node.js only)</li>\n<li><code>'mark'</code> (available on the Web)</li>\n<li><code>'measure'</code> (available on the Web)</li>\n<li><code>'gc'</code> (Node.js only)</li>\n<li><code>'function'</code> (Node.js only)</li>\n<li><code>'http2'</code> (Node.js only)</li>\n<li><code>'http'</code> (Node.js only)</li>\n</ul>"
+            },
+            {
+              "textRaw": "`kind` {number}",
+              "type": "number",
+              "name": "kind",
+              "meta": {
+                "added": [
+                  "v8.5.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p><em>This property is an extension by Node.js. It is not available in Web browsers.</em></p>\n<p>When <code>performanceEntry.entryType</code> is equal to <code>'gc'</code>, the <code>performance.kind</code>\nproperty identifies the type of garbage collection operation that occurred.\nThe value may be one of:</p>\n<ul>\n<li><code>perf_hooks.constants.NODE_PERFORMANCE_GC_MAJOR</code></li>\n<li><code>perf_hooks.constants.NODE_PERFORMANCE_GC_MINOR</code></li>\n<li><code>perf_hooks.constants.NODE_PERFORMANCE_GC_INCREMENTAL</code></li>\n<li><code>perf_hooks.constants.NODE_PERFORMANCE_GC_WEAKCB</code></li>\n</ul>"
+            },
+            {
+              "textRaw": "`flags` {number}",
+              "type": "number",
+              "name": "flags",
+              "meta": {
+                "added": [
+                  "v12.17.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p><em>This property is an extension by Node.js. It is not available in Web browsers.</em></p>\n<p>When <code>performanceEntry.entryType</code> is equal to <code>'gc'</code>, the <code>performance.flags</code>\nproperty contains additional information about garbage collection operation.\nThe value may be one of:</p>\n<ul>\n<li><code>perf_hooks.constants.NODE_PERFORMANCE_GC_FLAGS_NO</code></li>\n<li><code>perf_hooks.constants.NODE_PERFORMANCE_GC_FLAGS_CONSTRUCT_RETAINED</code></li>\n<li><code>perf_hooks.constants.NODE_PERFORMANCE_GC_FLAGS_FORCED</code></li>\n<li><code>perf_hooks.constants.NODE_PERFORMANCE_GC_FLAGS_SYNCHRONOUS_PHANTOM_PROCESSING</code></li>\n<li><code>perf_hooks.constants.NODE_PERFORMANCE_GC_FLAGS_ALL_AVAILABLE_GARBAGE</code></li>\n<li><code>perf_hooks.constants.NODE_PERFORMANCE_GC_FLAGS_ALL_EXTERNAL_MEMORY</code></li>\n<li><code>perf_hooks.constants.NODE_PERFORMANCE_GC_FLAGS_SCHEDULE_IDLE</code></li>\n</ul>"
+            }
+          ]
+        },
+        {
+          "textRaw": "Class: `PerformanceNodeTiming extends PerformanceEntry`",
+          "type": "class",
+          "name": "PerformanceNodeTiming",
+          "meta": {
+            "added": [
+              "v8.5.0"
+            ],
+            "changes": []
+          },
+          "desc": "<p><em>This property is an extension by Node.js. It is not available in Web browsers.</em></p>\n<p>Provides timing details for Node.js itself. The constructor of this class\nis not exposed to users.</p>",
+          "properties": [
+            {
+              "textRaw": "`bootstrapComplete` {number}",
+              "type": "number",
+              "name": "bootstrapComplete",
+              "meta": {
+                "added": [
+                  "v8.5.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>The high resolution millisecond timestamp at which the Node.js process\ncompleted bootstrapping. If bootstrapping has not yet finished, the property\nhas the value of -1.</p>"
+            },
+            {
+              "textRaw": "`environment` {number}",
+              "type": "number",
+              "name": "environment",
+              "meta": {
+                "added": [
+                  "v8.5.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>The high resolution millisecond timestamp at which the Node.js environment was\ninitialized.</p>"
+            },
+            {
+              "textRaw": "`loopExit` {number}",
+              "type": "number",
+              "name": "loopExit",
+              "meta": {
+                "added": [
+                  "v8.5.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>The high resolution millisecond timestamp at which the Node.js event loop\nexited. If the event loop has not yet exited, the property has the value of -1.\nIt can only have a value of not -1 in a handler of the <a href=\"process.html#process_event_exit\"><code>'exit'</code></a> event.</p>"
+            },
+            {
+              "textRaw": "`loopStart` {number}",
+              "type": "number",
+              "name": "loopStart",
+              "meta": {
+                "added": [
+                  "v8.5.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>The high resolution millisecond timestamp at which the Node.js event loop\nstarted. If the event loop has not yet started (e.g., in the first tick of the\nmain script), the property has the value of -1.</p>"
+            },
+            {
+              "textRaw": "`nodeStart` {number}",
+              "type": "number",
+              "name": "nodeStart",
+              "meta": {
+                "added": [
+                  "v8.5.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>The high resolution millisecond timestamp at which the Node.js process was\ninitialized.</p>"
+            },
+            {
+              "textRaw": "`v8Start` {number}",
+              "type": "number",
+              "name": "v8Start",
+              "meta": {
+                "added": [
+                  "v8.5.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>The high resolution millisecond timestamp at which the V8 platform was\ninitialized.</p>"
+            }
+          ]
+        },
+        {
+          "textRaw": "Class: `perf_hooks.PerformanceObserver`",
+          "type": "class",
+          "name": "perf_hooks.PerformanceObserver",
+          "methods": [
+            {
+              "textRaw": "`performanceObserver.disconnect()`",
+              "type": "method",
+              "name": "disconnect",
+              "meta": {
+                "added": [
+                  "v8.5.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": []
+                }
+              ],
+              "desc": "<p>Disconnects the <code>PerformanceObserver</code> instance from all notifications.</p>"
+            },
+            {
+              "textRaw": "`performanceObserver.observe(options)`",
+              "type": "method",
+              "name": "observe",
+              "meta": {
+                "added": [
+                  "v8.5.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`options` {Object}",
+                      "name": "options",
+                      "type": "Object",
+                      "options": [
+                        {
+                          "textRaw": "`entryTypes` {string[]} An array of strings identifying the types of `PerformanceEntry` instances the observer is interested in. If not provided an error will be thrown.",
+                          "name": "entryTypes",
+                          "type": "string[]",
+                          "desc": "An array of strings identifying the types of `PerformanceEntry` instances the observer is interested in. If not provided an error will be thrown."
+                        },
+                        {
+                          "textRaw": "`buffered` {boolean} If true, the notification callback will be called using `setImmediate()` and multiple `PerformanceEntry` instance notifications will be buffered internally. If `false`, notifications will be immediate and synchronous. **Default:** `false`.",
+                          "name": "buffered",
+                          "type": "boolean",
+                          "default": "`false`",
+                          "desc": "If true, the notification callback will be called using `setImmediate()` and multiple `PerformanceEntry` instance notifications will be buffered internally. If `false`, notifications will be immediate and synchronous."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Subscribes the <code>PerformanceObserver</code> instance to notifications of new\n<code>PerformanceEntry</code> instances identified by <code>options.entryTypes</code>.</p>\n<p>When <code>options.buffered</code> is <code>false</code>, the <code>callback</code> will be invoked once for\nevery <code>PerformanceEntry</code> instance:</p>\n<pre><code class=\"language-js\">const {\n  performance,\n  PerformanceObserver\n} = require('perf_hooks');\n\nconst obs = new PerformanceObserver((list, observer) => {\n  // Called three times synchronously. `list` contains one item.\n});\nobs.observe({ entryTypes: ['mark'] });\n\nfor (let n = 0; n &#x3C; 3; n++)\n  performance.mark(`test${n}`);\n</code></pre>\n<pre><code class=\"language-js\">const {\n  performance,\n  PerformanceObserver\n} = require('perf_hooks');\n\nconst obs = new PerformanceObserver((list, observer) => {\n  // Called once. `list` contains three items.\n});\nobs.observe({ entryTypes: ['mark'], buffered: true });\n\nfor (let n = 0; n &#x3C; 3; n++)\n  performance.mark(`test${n}`);\n</code></pre>"
+            }
+          ],
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`callback` {Function}",
+                  "name": "callback",
+                  "type": "Function",
+                  "options": [
+                    {
+                      "textRaw": "`list` {PerformanceObserverEntryList}",
+                      "name": "list",
+                      "type": "PerformanceObserverEntryList"
+                    },
+                    {
+                      "textRaw": "`observer` {PerformanceObserver}",
+                      "name": "observer",
+                      "type": "PerformanceObserver"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p><code>PerformanceObserver</code> objects provide notifications when new\n<code>PerformanceEntry</code> instances have been added to the Performance Timeline.</p>\n<pre><code class=\"language-js\">const {\n  performance,\n  PerformanceObserver\n} = require('perf_hooks');\n\nconst obs = new PerformanceObserver((list, observer) => {\n  console.log(list.getEntries());\n  observer.disconnect();\n});\nobs.observe({ entryTypes: ['mark'], buffered: true });\n\nperformance.mark('test');\n</code></pre>\n<p>Because <code>PerformanceObserver</code> instances introduce their own additional\nperformance overhead, instances should not be left subscribed to notifications\nindefinitely. Users should disconnect observers as soon as they are no\nlonger needed.</p>\n<p>The <code>callback</code> is invoked when a <code>PerformanceObserver</code> is\nnotified about new <code>PerformanceEntry</code> instances. The callback receives a\n<code>PerformanceObserverEntryList</code> instance and a reference to the\n<code>PerformanceObserver</code>.</p>"
+            }
+          ]
+        },
+        {
+          "textRaw": "Class: `PerformanceObserverEntryList`",
+          "type": "class",
+          "name": "PerformanceObserverEntryList",
+          "meta": {
+            "added": [
+              "v8.5.0"
+            ],
+            "changes": []
+          },
+          "desc": "<p>The <code>PerformanceObserverEntryList</code> class is used to provide access to the\n<code>PerformanceEntry</code> instances passed to a <code>PerformanceObserver</code>.\nThe constructor of this class is not exposed to users.</p>",
+          "methods": [
+            {
+              "textRaw": "`performanceObserverEntryList.getEntries()`",
+              "type": "method",
+              "name": "getEntries",
+              "meta": {
+                "added": [
+                  "v8.5.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {PerformanceEntry[]}",
+                    "name": "return",
+                    "type": "PerformanceEntry[]"
+                  },
+                  "params": []
+                }
+              ],
+              "desc": "<p>Returns a list of <code>PerformanceEntry</code> objects in chronological order\nwith respect to <code>performanceEntry.startTime</code>.</p>"
+            },
+            {
+              "textRaw": "`performanceObserverEntryList.getEntriesByName(name[, type])`",
+              "type": "method",
+              "name": "getEntriesByName",
+              "meta": {
+                "added": [
+                  "v8.5.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {PerformanceEntry[]}",
+                    "name": "return",
+                    "type": "PerformanceEntry[]"
+                  },
+                  "params": [
+                    {
+                      "textRaw": "`name` {string}",
+                      "name": "name",
+                      "type": "string"
+                    },
+                    {
+                      "textRaw": "`type` {string}",
+                      "name": "type",
+                      "type": "string"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Returns a list of <code>PerformanceEntry</code> objects in chronological order\nwith respect to <code>performanceEntry.startTime</code> whose <code>performanceEntry.name</code> is\nequal to <code>name</code>, and optionally, whose <code>performanceEntry.entryType</code> is equal to\n<code>type</code>.</p>"
+            },
+            {
+              "textRaw": "`performanceObserverEntryList.getEntriesByType(type)`",
+              "type": "method",
+              "name": "getEntriesByType",
+              "meta": {
+                "added": [
+                  "v8.5.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {PerformanceEntry[]}",
+                    "name": "return",
+                    "type": "PerformanceEntry[]"
+                  },
+                  "params": [
+                    {
+                      "textRaw": "`type` {string}",
+                      "name": "type",
+                      "type": "string"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Returns a list of <code>PerformanceEntry</code> objects in chronological order\nwith respect to <code>performanceEntry.startTime</code> whose <code>performanceEntry.entryType</code>\nis equal to <code>type</code>.</p>"
+            }
+          ]
+        }
+      ],
+      "methods": [
+        {
+          "textRaw": "`perf_hooks.monitorEventLoopDelay([options])`",
+          "type": "method",
+          "name": "monitorEventLoopDelay",
+          "meta": {
+            "added": [
+              "v11.10.0"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "return": {
+                "textRaw": "Returns: {Histogram}",
+                "name": "return",
+                "type": "Histogram"
+              },
+              "params": [
+                {
+                  "textRaw": "`options` {Object}",
+                  "name": "options",
+                  "type": "Object",
+                  "options": [
+                    {
+                      "textRaw": "`resolution` {number} The sampling rate in milliseconds. Must be greater than zero. **Default:** `10`.",
+                      "name": "resolution",
+                      "type": "number",
+                      "default": "`10`",
+                      "desc": "The sampling rate in milliseconds. Must be greater than zero."
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "desc": "<p><em>This property is an extension by Node.js. It is not available in Web browsers.</em></p>\n<p>Creates a <code>Histogram</code> object that samples and reports the event loop delay\nover time. The delays will be reported in nanoseconds.</p>\n<p>Using a timer to detect approximate event loop delay works because the\nexecution of timers is tied specifically to the lifecycle of the libuv\nevent loop. That is, a delay in the loop will cause a delay in the execution\nof the timer, and those delays are specifically what this API is intended to\ndetect.</p>\n<pre><code class=\"language-js\">const { monitorEventLoopDelay } = require('perf_hooks');\nconst h = monitorEventLoopDelay({ resolution: 20 });\nh.enable();\n// Do something.\nh.disable();\nconsole.log(h.min);\nconsole.log(h.max);\nconsole.log(h.mean);\nconsole.log(h.stddev);\nconsole.log(h.percentiles);\nconsole.log(h.percentile(50));\nconsole.log(h.percentile(99));\n</code></pre>",
+          "classes": [
+            {
+              "textRaw": "Class: `Histogram`",
+              "type": "class",
+              "name": "Histogram",
+              "meta": {
+                "added": [
+                  "v11.10.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Tracks the event loop delay at a given sampling rate. The constructor of\nthis class not exposed to users.</p>\n<p><em>This property is an extension by Node.js. It is not available in Web browsers.</em></p>",
+              "methods": [
+                {
+                  "textRaw": "`histogram.disable()`",
+                  "type": "method",
+                  "name": "disable",
+                  "meta": {
+                    "added": [
+                      "v11.10.0"
+                    ],
+                    "changes": []
+                  },
+                  "signatures": [
+                    {
+                      "return": {
+                        "textRaw": "Returns: {boolean}",
+                        "name": "return",
+                        "type": "boolean"
+                      },
+                      "params": []
+                    }
+                  ],
+                  "desc": "<p>Disables the event loop delay sample timer. Returns <code>true</code> if the timer was\nstopped, <code>false</code> if it was already stopped.</p>"
+                },
+                {
+                  "textRaw": "`histogram.enable()`",
+                  "type": "method",
+                  "name": "enable",
+                  "meta": {
+                    "added": [
+                      "v11.10.0"
+                    ],
+                    "changes": []
+                  },
+                  "signatures": [
+                    {
+                      "return": {
+                        "textRaw": "Returns: {boolean}",
+                        "name": "return",
+                        "type": "boolean"
+                      },
+                      "params": []
+                    }
+                  ],
+                  "desc": "<p>Enables the event loop delay sample timer. Returns <code>true</code> if the timer was\nstarted, <code>false</code> if it was already started.</p>"
+                },
+                {
+                  "textRaw": "`histogram.percentile(percentile)`",
+                  "type": "method",
+                  "name": "percentile",
+                  "meta": {
+                    "added": [
+                      "v11.10.0"
+                    ],
+                    "changes": []
+                  },
+                  "signatures": [
+                    {
+                      "return": {
+                        "textRaw": "Returns: {number}",
+                        "name": "return",
+                        "type": "number"
+                      },
+                      "params": [
+                        {
+                          "textRaw": "`percentile` {number} A percentile value between 1 and 100.",
+                          "name": "percentile",
+                          "type": "number",
+                          "desc": "A percentile value between 1 and 100."
+                        }
+                      ]
+                    }
+                  ],
+                  "desc": "<p>Returns the value at the given percentile.</p>"
+                },
+                {
+                  "textRaw": "`histogram.reset()`",
+                  "type": "method",
+                  "name": "reset",
+                  "meta": {
+                    "added": [
+                      "v11.10.0"
+                    ],
+                    "changes": []
+                  },
+                  "signatures": [
+                    {
+                      "params": []
+                    }
+                  ],
+                  "desc": "<p>Resets the collected histogram data.</p>"
+                }
+              ],
+              "properties": [
+                {
+                  "textRaw": "`exceeds` {number}",
+                  "type": "number",
+                  "name": "exceeds",
+                  "meta": {
+                    "added": [
+                      "v11.10.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<p>The number of times the event loop delay exceeded the maximum 1 hour event\nloop delay threshold.</p>"
+                },
+                {
+                  "textRaw": "`max` {number}",
+                  "type": "number",
+                  "name": "max",
+                  "meta": {
+                    "added": [
+                      "v11.10.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<p>The maximum recorded event loop delay.</p>"
+                },
+                {
+                  "textRaw": "`mean` {number}",
+                  "type": "number",
+                  "name": "mean",
+                  "meta": {
+                    "added": [
+                      "v11.10.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<p>The mean of the recorded event loop delays.</p>"
+                },
+                {
+                  "textRaw": "`min` {number}",
+                  "type": "number",
+                  "name": "min",
+                  "meta": {
+                    "added": [
+                      "v11.10.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<p>The minimum recorded event loop delay.</p>"
+                },
+                {
+                  "textRaw": "`percentiles` {Map}",
+                  "type": "Map",
+                  "name": "percentiles",
+                  "meta": {
+                    "added": [
+                      "v11.10.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<p>Returns a <code>Map</code> object detailing the accumulated percentile distribution.</p>"
+                },
+                {
+                  "textRaw": "`stddev` {number}",
+                  "type": "number",
+                  "name": "stddev",
+                  "meta": {
+                    "added": [
+                      "v11.10.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<p>The standard deviation of the recorded event loop delays.</p>\n<h2>Examples</h2>"
+                }
+              ]
+            }
+          ],
+          "modules": [
+            {
+              "textRaw": "Measuring the duration of async operations",
+              "name": "measuring_the_duration_of_async_operations",
+              "desc": "<p>The following example uses the <a href=\"async_hooks.html\">Async Hooks</a> and Performance APIs to measure\nthe actual duration of a Timeout operation (including the amount of time it took\nto execute the callback).</p>\n<pre><code class=\"language-js\">'use strict';\nconst async_hooks = require('async_hooks');\nconst {\n  performance,\n  PerformanceObserver\n} = require('perf_hooks');\n\nconst set = new Set();\nconst hook = async_hooks.createHook({\n  init(id, type) {\n    if (type === 'Timeout') {\n      performance.mark(`Timeout-${id}-Init`);\n      set.add(id);\n    }\n  },\n  destroy(id) {\n    if (set.has(id)) {\n      set.delete(id);\n      performance.mark(`Timeout-${id}-Destroy`);\n      performance.measure(`Timeout-${id}`,\n                          `Timeout-${id}-Init`,\n                          `Timeout-${id}-Destroy`);\n    }\n  }\n});\nhook.enable();\n\nconst obs = new PerformanceObserver((list, observer) => {\n  console.log(list.getEntries()[0]);\n  performance.clearMarks();\n  observer.disconnect();\n});\nobs.observe({ entryTypes: ['measure'], buffered: true });\n\nsetTimeout(() => {}, 1000);\n</code></pre>",
+              "type": "module",
+              "displayName": "Measuring the duration of async operations"
+            },
+            {
+              "textRaw": "Measuring how long it takes to load dependencies",
+              "name": "measuring_how_long_it_takes_to_load_dependencies",
+              "desc": "<p>The following example measures the duration of <code>require()</code> operations to load\ndependencies:</p>\n<!-- eslint-disable no-global-assign -->\n<pre><code class=\"language-js\">'use strict';\nconst {\n  performance,\n  PerformanceObserver\n} = require('perf_hooks');\nconst mod = require('module');\n\n// Monkey patch the require function\nmod.Module.prototype.require =\n  performance.timerify(mod.Module.prototype.require);\nrequire = performance.timerify(require);\n\n// Activate the observer\nconst obs = new PerformanceObserver((list) => {\n  const entries = list.getEntries();\n  entries.forEach((entry) => {\n    console.log(`require('${entry[0]}')`, entry.duration);\n  });\n  obs.disconnect();\n});\nobs.observe({ entryTypes: ['function'], buffered: true });\n\nrequire('some-module');\n</code></pre>",
+              "type": "module",
+              "displayName": "Measuring how long it takes to load dependencies"
+            }
+          ]
+        }
+      ],
+      "type": "module",
+      "displayName": "Performance measurement APIs"
+    }
+  ]
+}

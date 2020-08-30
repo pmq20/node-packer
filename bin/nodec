@@ -1,23 +1,24 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
 # Copyright (c) 2017 - 2020 Minqi Pan et al.
-# 
+#
 # This file is part of Node.js Packer, distributed under the MIT License
 # For full terms see the included LICENSE file
 
-$LOAD_PATH.unshift File.expand_path("../../lib", __FILE__)
+$LOAD_PATH.unshift File.expand_path('../lib', __dir__)
 
-require "compiler"
+require 'compiler'
 require 'optparse'
 
 # took directly from https://github.com/nodejs/node/blob/master/configure#L47,L50
-VALID_OS = ['win', 'mac', 'solaris', 'freebsd', 'openbsd', 'linux', 'android', 'aix']
-VALID_CPU = [
-  'arm', 'arm64', 'ia32', 'mips', 'mipsel', 'ppc', 'ppc64', 'x32', 'x64', 'x86',
-  's390', 's390x'
-]
+VALID_OS = %w[win mac solaris freebsd openbsd linux android aix].freeze
+VALID_CPU = %w[
+  arm arm64 ia32 mips mipsel ppc ppc64 x32 x64 x86
+  s390 s390x
+].freeze
 
-USAGE = %Q{
+USAGE = %{
 
 Node.js Compiler (nodec) v#{::Compiler::VERSION}
 
@@ -26,7 +27,7 @@ Usage
 
 }.strip
 
-EXAMPLES = %Q{
+EXAMPLES = %{
 
 Note
 
@@ -35,24 +36,19 @@ Note
 Examples
 
   Compile a CLI tool:
-  
+
     git clone --depth 1 https://github.com/jashkenas/coffeescript.git
     cd coffeescript
     nodec bin/coffee
     ./a.out (or a.exe on Windows)
-  
+
   Compile a web application:
-  
+
     git clone --depth 1 https://github.com/eggjs/examples.git
     cd examples/helloworld
     npm install
     nodec node_modules/egg-bin/bin/egg-bin.js
     ./a.out dev (or a.exe dev on Windows)
-  
-  Compile a npm package:
-
-    nodec --npm-package=coffee-script coffee
-    ./a.out (or a.exe on Windows)
 
 }.strip
 
@@ -67,63 +63,63 @@ end
 OptionParser.new do |opts|
   opts.banner = USAGE
 
-  opts.on("-rDIR", "--root=DIR", "Specifies the path to the root of the application") do |dir|
+  opts.on('-rDIR', '--root=DIR', 'Specifies the path to the root of the application') do |dir|
     options[:root] = dir
   end
 
-  opts.on("-oFILE", "--output=FILE", "Specifies the path of the output file") do |file|
+  opts.on('-oFILE', '--output=FILE', 'Specifies the path of the output file') do |file|
     options[:output] = file
   end
 
-  opts.on("-dDIR", "--tmpdir=DIR", "Specifies the directory for temporary files") do |dir|
+  opts.on('-dDIR', '--tmpdir=DIR', 'Specifies the directory for temporary files') do |dir|
     options[:tmpdir] = dir
   end
 
-  opts.on("--clean-tmpdir", "Cleans all temporary files that were generated last time") do
+  opts.on('--clean-tmpdir', 'Cleans all temporary files that were generated last time') do
     options[:clean_tmpdir] = true
   end
 
-  opts.on("--keep-tmpdir", "Keeps all temporary files that were generated last time") do
+  opts.on('--keep-tmpdir', 'Keeps all temporary files that were generated last time') do
     options[:keep_tmpdir] = true
   end
 
-  opts.on("--make-args=ARGS", "Passes extra arguments to make") do |args|
+  opts.on('--make-args=ARGS', 'Passes extra arguments to make') do |args|
     options[:make_args] = args
   end
 
-  opts.on("--vcbuild-args=ARGS", "Passes extra arguments to vcbuild.bat") do |args|
+  opts.on('--vcbuild-args=ARGS', 'Passes extra arguments to vcbuild.bat') do |args|
     options[:vcbuild_args] = args
   end
 
-  opts.on('-nFILE', "--npm=FILE", "Specifies the path of npm") do |file|
+  opts.on('-nFILE', '--npm=FILE', 'Specifies the path of npm') do |file|
     options[:npm] = file
   end
 
-  opts.on("--skip-npm-install", "Skips the npm install process") do
+  opts.on('--skip-npm-install', 'Skips the npm install process') do
     options[:skip_npm_install] = true
   end
 
-  opts.on("--npm-package=NAME", "Downloads and compiles the specified npm package") do |name|
-    options[:npm_package] = name
-  end
-
-  opts.on("--npm-package-version=VER", "Downloads and compiles the specified version of the npm package") do |ver|
-    options[:npm_package_version] = ver
-  end
-
-  opts.on("--auto-update-url=URL", "Enables auto-update and specifies the URL to get the latest version") do |url|
+  opts.on('--auto-update-url=URL', 'Enables auto-update and specifies the URL to get the latest version') do |url|
     options[:auto_update_url] = url
   end
 
-  opts.on("--auto-update-base=STRING", "Enables auto-update and specifies the base version string") do |string|
+  opts.on('--auto-update-base=STRING', 'Enables auto-update and specifies the base version string') do |string|
     options[:auto_update_base] = string
   end
 
-  opts.on("--debug", "Enable debug mode") do
+  opts.on('--current', 'Uses the current Node.js release') do
+    options[:current] = true
+  end
+
+  opts.on('--lts', 'Uses the LTS Node.js release') do
+    options[:lts] = true
+  end
+
+  opts.on('--debug', 'Enables debug mode') do
     options[:debug] = true
   end
 
-  opts.on('-osOS', "--dest-os=OS", "Destination operating system (enum: #{VALID_OS.join(' ')})") do |os|
+  opts.on('-osOS', '--dest-os=OS', "Specifies the destination operating system (enum: #{VALID_OS.join(' ')})") do |os|
     unless VALID_OS.include? os
       puts "Invalid destination (got: --dest-os=#{os}), pick one of: #{VALID_OS.join(' ')}"
       exit 1
@@ -132,7 +128,7 @@ OptionParser.new do |opts|
     options[:os] = os
   end
 
-  opts.on('-archARCH', "--dest-arch=ARCH", "Destination CPU architecture (enum: #{VALID_CPU.join(' ')})") do |arch|
+  opts.on('-archARCH', '--dest-arch=ARCH', "Specifies the destination CPU architecture (enum: #{VALID_CPU.join(' ')})") do |arch|
     unless VALID_CPU.include? arch
       puts "Invalid destination (got: --dest-arch=#{arch}), pick one of: #{VALID_CPU.join(' ')}"
       exit 1
@@ -140,25 +136,20 @@ OptionParser.new do |opts|
 
     options[:arch] = arch
   end
-  
-  opts.on("--quiet", "Enable quiet mode") do
+
+  opts.on('--quiet', 'Enables quiet mode') do
     options[:quiet] = true
   end
 
-  opts.on("-v", "--version", "Prints the version of nodec and exit") do
+  opts.on('-v', '--version', 'Prints the version of nodec and exit') do
     puts ::Compiler::VERSION
     exit 0
   end
 
-  opts.on('-V', "--node-version", "Prints the version of the Node.js runtime and exit") do
-    puts ::Compiler.new(nil, quiet: true).node_version
-    exit 0
-  end
-
-  opts.on("-h", "--help", "Prints this help and exit") do
-    usage.call(STDOUT)
-    STDOUT.puts
-    STDOUT.puts EXAMPLES
+  opts.on('-h', '--help', 'Prints this help and exit') do
+    usage.call($stdout)
+    $stdout.puts
+    $stdout.puts EXAMPLES
     exit 0
   end
 
@@ -171,6 +162,6 @@ begin
   instance = ::Compiler.new entrance, options
   instance.run!
 rescue ::Compiler::Error => e
-  STDERR.puts e.message
+  warn e.message
   exit 1
 end

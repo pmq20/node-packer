@@ -1,0 +1,1638 @@
+{
+  "type": "module",
+  "source": "doc/api/cli.md",
+  "introduced_in": "v5.9.1",
+  "miscs": [
+    {
+      "textRaw": "Command line options",
+      "name": "Command line options",
+      "introduced_in": "v5.9.1",
+      "type": "misc",
+      "desc": "<p>Node.js comes with a variety of CLI options. These options expose built-in\ndebugging, multiple ways to execute scripts, and other helpful runtime options.</p>\n<p>To view this documentation as a manual page in a terminal, run <code>man node</code>.</p>",
+      "miscs": [
+        {
+          "textRaw": "Synopsis",
+          "name": "synopsis",
+          "desc": "<p><code>node [options] [V8 options] [script.js | -e \"script\" | -] [--] [arguments]</code></p>\n<p><code>node inspect [script.js | -e \"script\" | &#x3C;host>:&#x3C;port>] …</code></p>\n<p><code>node --v8-options</code></p>\n<p>Execute without arguments to start the <a href=\"repl.html\">REPL</a>.</p>\n<p><em>For more info about <code>node inspect</code>, please see the <a href=\"debugger.html\">debugger</a> documentation.</em></p>",
+          "type": "misc",
+          "displayName": "Synopsis"
+        },
+        {
+          "textRaw": "Options",
+          "name": "options",
+          "meta": {
+            "changes": [
+              {
+                "version": "v10.12.0",
+                "pr-url": "https://github.com/nodejs/node/pull/23020",
+                "description": "Underscores instead of dashes are now allowed for Node.js options as well, in addition to V8 options."
+              }
+            ]
+          },
+          "desc": "<p>All options, including V8 options, allow words to be separated by both\ndashes (<code>-</code>) or underscores (<code>_</code>).</p>\n<p>For example, <code>--pending-deprecation</code> is equivalent to <code>--pending_deprecation</code>.</p>",
+          "modules": [
+            {
+              "textRaw": "`-`",
+              "name": "`-`",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Alias for stdin. Analogous to the use of <code>-</code> in other command line utilities,\nmeaning that the script will be read from stdin, and the rest of the options\nare passed to that script.</p>",
+              "type": "module",
+              "displayName": "`-`"
+            },
+            {
+              "textRaw": "`--`",
+              "name": "`--`",
+              "meta": {
+                "added": [
+                  "v6.11.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Indicate the end of node options. Pass the rest of the arguments to the script.\nIf no script filename or eval/print script is supplied prior to this, then\nthe next argument will be used as a script filename.</p>",
+              "type": "module",
+              "displayName": "`--`"
+            },
+            {
+              "textRaw": "`--abort-on-uncaught-exception`",
+              "name": "`--abort-on-uncaught-exception`",
+              "meta": {
+                "added": [
+                  "v0.10.8"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Aborting instead of exiting causes a core file to be generated for post-mortem\nanalysis using a debugger (such as <code>lldb</code>, <code>gdb</code>, and <code>mdb</code>).</p>\n<p>If this flag is passed, the behavior can still be set to not abort through\n<a href=\"process.html#process_process_setuncaughtexceptioncapturecallback_fn\"><code>process.setUncaughtExceptionCaptureCallback()</code></a> (and through usage of the\n<code>domain</code> module that uses it).</p>",
+              "type": "module",
+              "displayName": "`--abort-on-uncaught-exception`"
+            },
+            {
+              "textRaw": "`--completion-bash`",
+              "name": "`--completion-bash`",
+              "meta": {
+                "added": [
+                  "v10.12.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Print source-able bash completion script for Node.js.</p>\n<pre><code class=\"language-console\">$ node --completion-bash > node_bash_completion\n$ source node_bash_completion\n</code></pre>",
+              "type": "module",
+              "displayName": "`--completion-bash`"
+            },
+            {
+              "textRaw": "`--cpu-prof`",
+              "name": "`--cpu-prof`",
+              "meta": {
+                "added": [
+                  "v12.0.0"
+                ],
+                "changes": []
+              },
+              "stability": 1,
+              "stabilityText": "Experimental",
+              "desc": "<p>Starts the V8 CPU profiler on start up, and writes the CPU profile to disk\nbefore exit.</p>\n<p>If <code>--cpu-prof-dir</code> is not specified, the generated profile will be placed\nin the current working directory.</p>\n<p>If <code>--cpu-prof-name</code> is not specified, the generated profile will be\nnamed <code>CPU.${yyyymmdd}.${hhmmss}.${pid}.${tid}.${seq}.cpuprofile</code>.</p>\n<pre><code class=\"language-console\">$ node --cpu-prof index.js\n$ ls *.cpuprofile\nCPU.20190409.202950.15293.0.0.cpuprofile\n</code></pre>",
+              "type": "module",
+              "displayName": "`--cpu-prof`"
+            },
+            {
+              "textRaw": "`--cpu-prof-dir`",
+              "name": "`--cpu-prof-dir`",
+              "meta": {
+                "added": [
+                  "v12.0.0"
+                ],
+                "changes": []
+              },
+              "stability": 1,
+              "stabilityText": "Experimental",
+              "desc": "<p>Specify the directory where the CPU profiles generated by <code>--cpu-prof</code> will\nbe placed.</p>",
+              "type": "module",
+              "displayName": "`--cpu-prof-dir`"
+            },
+            {
+              "textRaw": "`--cpu-prof-interval`",
+              "name": "`--cpu-prof-interval`",
+              "meta": {
+                "added": [
+                  "v12.2.0"
+                ],
+                "changes": []
+              },
+              "stability": 1,
+              "stabilityText": "Experimental",
+              "desc": "<p>Specify the sampling interval in microseconds for the CPU profiles generated\nby <code>--cpu-prof</code>. The default is 1000 microseconds.</p>",
+              "type": "module",
+              "displayName": "`--cpu-prof-interval`"
+            },
+            {
+              "textRaw": "`--cpu-prof-name`",
+              "name": "`--cpu-prof-name`",
+              "meta": {
+                "added": [
+                  "v12.0.0"
+                ],
+                "changes": []
+              },
+              "stability": 1,
+              "stabilityText": "Experimental",
+              "desc": "<p>Specify the file name of the CPU profile generated by <code>--cpu-prof</code>.</p>",
+              "type": "module",
+              "displayName": "`--cpu-prof-name`"
+            },
+            {
+              "textRaw": "`--disable-proto=mode`",
+              "name": "`--disable-proto=mode`",
+              "desc": "<!--YAML\nadded: v12.17.0\n-->\n<p>Disable the <code>Object.prototype.__proto__</code> property. If <code>mode</code> is <code>delete</code>, the\nproperty will be removed entirely. If <code>mode</code> is <code>throw</code>, accesses to the\nproperty will throw an exception with the code <code>ERR_PROTO_ACCESS</code>.</p>",
+              "type": "module",
+              "displayName": "`--disable-proto=mode`"
+            },
+            {
+              "textRaw": "`--disallow-code-generation-from-strings`",
+              "name": "`--disallow-code-generation-from-strings`",
+              "meta": {
+                "added": [
+                  "v9.8.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Make built-in language features like <code>eval</code> and <code>new Function</code> that generate\ncode from strings throw an exception instead. This does not affect the Node.js\n<code>vm</code> module.</p>",
+              "type": "module",
+              "displayName": "`--disallow-code-generation-from-strings`"
+            },
+            {
+              "textRaw": "`--enable-fips`",
+              "name": "`--enable-fips`",
+              "meta": {
+                "added": [
+                  "v6.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Enable FIPS-compliant crypto at startup. (Requires Node.js to be built with\n<code>./configure --openssl-fips</code>.)</p>",
+              "type": "module",
+              "displayName": "`--enable-fips`"
+            },
+            {
+              "textRaw": "`--enable-source-maps`",
+              "name": "`--enable-source-maps`",
+              "meta": {
+                "added": [
+                  "v12.12.0"
+                ],
+                "changes": []
+              },
+              "stability": 1,
+              "stabilityText": "Experimental",
+              "desc": "<p>Enable experimental Source Map v3 support for stack traces.</p>\n<p>Currently, overriding <code>Error.prepareStackTrace</code> is ignored when the\n<code>--enable-source-maps</code> flag is set.</p>",
+              "type": "module",
+              "displayName": "`--enable-source-maps`"
+            },
+            {
+              "textRaw": "`--experimental-import-meta-resolve`",
+              "name": "`--experimental-import-meta-resolve`",
+              "meta": {
+                "added": [
+                  "v12.16.2"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Enable experimental <code>import.meta.resolve()</code> support.</p>",
+              "type": "module",
+              "displayName": "`--experimental-import-meta-resolve`"
+            },
+            {
+              "textRaw": "`--experimental-json-modules`",
+              "name": "`--experimental-json-modules`",
+              "meta": {
+                "added": [
+                  "v12.9.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Enable experimental JSON support for the ES Module loader.</p>",
+              "type": "module",
+              "displayName": "`--experimental-json-modules`"
+            },
+            {
+              "textRaw": "`--experimental-loader=module`",
+              "name": "`--experimental-loader=module`",
+              "meta": {
+                "added": [
+                  "v9.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Specify the <code>module</code> of a custom <a href=\"esm.html#esm_experimental_loaders\">experimental ECMAScript Module loader</a>.\n<code>module</code> may be either a path to a file, or an ECMAScript Module name.</p>",
+              "type": "module",
+              "displayName": "`--experimental-loader=module`"
+            },
+            {
+              "textRaw": "`--experimental-modules`",
+              "name": "`--experimental-modules`",
+              "meta": {
+                "added": [
+                  "v8.5.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Enable latest experimental modules features (deprecated).</p>",
+              "type": "module",
+              "displayName": "`--experimental-modules`"
+            },
+            {
+              "textRaw": "`--experimental-policy`",
+              "name": "`--experimental-policy`",
+              "meta": {
+                "added": [
+                  "v11.8.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Use the specified file as a security policy.</p>",
+              "type": "module",
+              "displayName": "`--experimental-policy`"
+            },
+            {
+              "textRaw": "`--experimental-repl-await`",
+              "name": "`--experimental-repl-await`",
+              "meta": {
+                "added": [
+                  "v10.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Enable experimental top-level <code>await</code> keyword support in REPL.</p>",
+              "type": "module",
+              "displayName": "`--experimental-repl-await`"
+            },
+            {
+              "textRaw": "`--experimental-specifier-resolution=mode`",
+              "name": "`--experimental-specifier-resolution=mode`",
+              "meta": {
+                "added": [
+                  "v12.16.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Sets the resolution algorithm for resolving ES module specifiers. Valid options\nare <code>explicit</code> and <code>node</code>.</p>\n<p>The default is <code>explicit</code>, which requires providing the full path to a\nmodule. The <code>node</code> mode will enable support for optional file extensions and\nthe ability to import a directory that has an index file.</p>\n<p>Please see <a href=\"esm.html#esm_customizing_esm_specifier_resolution_algorithm\">customizing ESM specifier resolution</a> for example usage.</p>",
+              "type": "module",
+              "displayName": "`--experimental-specifier-resolution=mode`"
+            },
+            {
+              "textRaw": "`--experimental-vm-modules`",
+              "name": "`--experimental-vm-modules`",
+              "meta": {
+                "added": [
+                  "v9.6.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Enable experimental ES Module support in the <code>vm</code> module.</p>",
+              "type": "module",
+              "displayName": "`--experimental-vm-modules`"
+            },
+            {
+              "textRaw": "`--experimental-wasi-unstable-preview1`",
+              "name": "`--experimental-wasi-unstable-preview1`",
+              "meta": {
+                "added": [
+                  "v12.16.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Enable experimental WebAssembly System Interface (WASI) support.</p>",
+              "type": "module",
+              "displayName": "`--experimental-wasi-unstable-preview1`"
+            },
+            {
+              "textRaw": "`--experimental-wasm-modules`",
+              "name": "`--experimental-wasm-modules`",
+              "meta": {
+                "added": [
+                  "v12.3.0"
+                ],
+                "changes": []
+              },
+              "type": "module",
+              "displayName": "`--experimental-wasm-modules`"
+            },
+            {
+              "textRaw": "`--force-context-aware`",
+              "name": "`--force-context-aware`",
+              "meta": {
+                "added": [
+                  "v12.12.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Disable loading native addons that are not <a href=\"addons.html#addons_context_aware_addons\">context-aware</a>.</p>\n<p>Enable experimental WebAssembly module support.</p>",
+              "type": "module",
+              "displayName": "`--force-context-aware`"
+            },
+            {
+              "textRaw": "`--force-fips`",
+              "name": "`--force-fips`",
+              "meta": {
+                "added": [
+                  "v6.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Force FIPS-compliant crypto on startup. (Cannot be disabled from script code.)\n(Same requirements as <code>--enable-fips</code>.)</p>",
+              "type": "module",
+              "displayName": "`--force-fips`"
+            },
+            {
+              "textRaw": "`--frozen-intrinsics`",
+              "name": "`--frozen-intrinsics`",
+              "meta": {
+                "added": [
+                  "v11.12.0"
+                ],
+                "changes": []
+              },
+              "stability": 1,
+              "stabilityText": "Experimental",
+              "desc": "<p>Enable experimental frozen intrinsics like <code>Array</code> and <code>Object</code>.</p>\n<p>Support is currently only provided for the root context and no guarantees are\ncurrently provided that <code>global.Array</code> is indeed the default intrinsic\nreference. Code may break under this flag.</p>\n<p><code>--require</code> runs prior to freezing intrinsics in order to allow polyfills to\nbe added.</p>",
+              "type": "module",
+              "displayName": "`--frozen-intrinsics`"
+            },
+            {
+              "textRaw": "`--heapsnapshot-signal=signal`",
+              "name": "`--heapsnapshot-signal=signal`",
+              "meta": {
+                "added": [
+                  "v12.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Enables a signal handler that causes the Node.js process to write a heap dump\nwhen the specified signal is received. <code>signal</code> must be a valid signal name.\nDisabled by default.</p>\n<pre><code class=\"language-console\">$ node --heapsnapshot-signal=SIGUSR2 index.js &#x26;\n$ ps aux\nUSER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND\nnode         1  5.5  6.1 787252 247004 ?       Ssl  16:43   0:02 node --heapsnapshot-signal=SIGUSR2 index.js\n$ kill -USR2 1\n$ ls\nHeap.20190718.133405.15554.0.001.heapsnapshot\n</code></pre>",
+              "type": "module",
+              "displayName": "`--heapsnapshot-signal=signal`"
+            },
+            {
+              "textRaw": "`--heap-prof`",
+              "name": "`--heap-prof`",
+              "meta": {
+                "added": [
+                  "v12.4.0"
+                ],
+                "changes": []
+              },
+              "stability": 1,
+              "stabilityText": "Experimental",
+              "desc": "<p>Starts the V8 heap profiler on start up, and writes the heap profile to disk\nbefore exit.</p>\n<p>If <code>--heap-prof-dir</code> is not specified, the generated profile will be placed\nin the current working directory.</p>\n<p>If <code>--heap-prof-name</code> is not specified, the generated profile will be\nnamed <code>Heap.${yyyymmdd}.${hhmmss}.${pid}.${tid}.${seq}.heapprofile</code>.</p>\n<pre><code class=\"language-console\">$ node --heap-prof index.js\n$ ls *.heapprofile\nHeap.20190409.202950.15293.0.001.heapprofile\n</code></pre>",
+              "type": "module",
+              "displayName": "`--heap-prof`"
+            },
+            {
+              "textRaw": "`--heap-prof-dir`",
+              "name": "`--heap-prof-dir`",
+              "meta": {
+                "added": [
+                  "v12.4.0"
+                ],
+                "changes": []
+              },
+              "stability": 1,
+              "stabilityText": "Experimental",
+              "desc": "<p>Specify the directory where the heap profiles generated by <code>--heap-prof</code> will\nbe placed.</p>",
+              "type": "module",
+              "displayName": "`--heap-prof-dir`"
+            },
+            {
+              "textRaw": "`--heap-prof-interval`",
+              "name": "`--heap-prof-interval`",
+              "meta": {
+                "added": [
+                  "v12.4.0"
+                ],
+                "changes": []
+              },
+              "stability": 1,
+              "stabilityText": "Experimental",
+              "desc": "<p>Specify the average sampling interval in bytes for the heap profiles generated\nby <code>--heap-prof</code>. The default is 512 * 1024 bytes.</p>",
+              "type": "module",
+              "displayName": "`--heap-prof-interval`"
+            },
+            {
+              "textRaw": "`--heap-prof-name`",
+              "name": "`--heap-prof-name`",
+              "meta": {
+                "added": [
+                  "v12.4.0"
+                ],
+                "changes": []
+              },
+              "stability": 1,
+              "stabilityText": "Experimental",
+              "desc": "<p>Specify the file name of the heap profile generated by <code>--heap-prof</code>.</p>",
+              "type": "module",
+              "displayName": "`--heap-prof-name`"
+            },
+            {
+              "textRaw": "`--http-parser=library`",
+              "name": "`--http-parser=library`",
+              "meta": {
+                "added": [
+                  "v11.4.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Chooses an HTTP parser library. Available values are:</p>\n<ul>\n<li><code>llhttp</code> for <a href=\"https://llhttp.org/\">https://llhttp.org/</a></li>\n<li><code>legacy</code> for <a href=\"https://github.com/nodejs/http-parser\">https://github.com/nodejs/http-parser</a></li>\n</ul>\n<p>The default is <code>llhttp</code>, unless otherwise specified when building Node.js.</p>\n<p>This flag exists to aid in experimentation with the internal implementation of\nthe Node.js http parser.\nThis flag is likely to become a no-op and removed at some point in the future.</p>",
+              "type": "module",
+              "displayName": "`--http-parser=library`"
+            },
+            {
+              "textRaw": "`--http-server-default-timeout=milliseconds`",
+              "name": "`--http-server-default-timeout=milliseconds`",
+              "meta": {
+                "added": [
+                  "v12.4.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Overrides the default value of <code>http</code>, <code>https</code> and <code>http2</code> server socket\ntimeout. Setting the value to 0 disables server socket timeout. Unless\nprovided, http server sockets timeout after 120s (2 minutes). Programmatic\nsetting of the timeout takes precedence over the value set through this\nflag.</p>",
+              "type": "module",
+              "displayName": "`--http-server-default-timeout=milliseconds`"
+            },
+            {
+              "textRaw": "`--icu-data-dir=file`",
+              "name": "`--icu-data-dir=file`",
+              "meta": {
+                "added": [
+                  "v0.11.15"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Specify ICU data load path. (Overrides <code>NODE_ICU_DATA</code>.)</p>",
+              "type": "module",
+              "displayName": "`--icu-data-dir=file`"
+            },
+            {
+              "textRaw": "`--input-type=type`",
+              "name": "`--input-type=type`",
+              "meta": {
+                "added": [
+                  "v12.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>This configures Node.js to interpret string input as CommonJS or as an ES\nmodule. String input is input via <code>--eval</code>, <code>--print</code>, or <code>STDIN</code>.</p>\n<p>Valid values are <code>\"commonjs\"</code> and <code>\"module\"</code>. The default is <code>\"commonjs\"</code>.</p>",
+              "type": "module",
+              "displayName": "`--input-type=type`"
+            },
+            {
+              "textRaw": "`--inspect-brk[=[host:]port]`",
+              "name": "`--inspect-brk[=[host:]port]`",
+              "meta": {
+                "added": [
+                  "v7.6.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Activate inspector on <code>host:port</code> and break at start of user script.\nDefault <code>host:port</code> is <code>127.0.0.1:9229</code>.</p>",
+              "type": "module",
+              "displayName": "`--inspect-brk[=[host:]port]`"
+            },
+            {
+              "textRaw": "`--inspect-port=[host:]port`",
+              "name": "`--inspect-port=[host:]port`",
+              "meta": {
+                "added": [
+                  "v7.6.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Set the <code>host:port</code> to be used when the inspector is activated.\nUseful when activating the inspector by sending the <code>SIGUSR1</code> signal.</p>\n<p>Default host is <code>127.0.0.1</code>.</p>\n<p>See the <a href=\"#inspector_security\">security warning</a> below regarding the <code>host</code>\nparameter usage.</p>",
+              "type": "module",
+              "displayName": "`--inspect-port=[host:]port`"
+            },
+            {
+              "textRaw": "`--inspect[=[host:]port]`",
+              "name": "`--inspect[=[host:]port]`",
+              "meta": {
+                "added": [
+                  "v6.3.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Activate inspector on <code>host:port</code>. Default is <code>127.0.0.1:9229</code>.</p>\n<p>V8 inspector integration allows tools such as Chrome DevTools and IDEs to debug\nand profile Node.js instances. The tools attach to Node.js instances via a\ntcp port and communicate using the <a href=\"https://chromedevtools.github.io/devtools-protocol/\">Chrome DevTools Protocol</a>.</p>\n<p><a id=\"inspector_security\"></a></p>",
+              "modules": [
+                {
+                  "textRaw": "Warning: binding inspector to a public IP:port combination is insecure",
+                  "name": "warning:_binding_inspector_to_a_public_ip:port_combination_is_insecure",
+                  "desc": "<p>Binding the inspector to a public IP (including <code>0.0.0.0</code>) with an open port is\ninsecure, as it allows external hosts to connect to the inspector and perform\na <a href=\"https://www.owasp.org/index.php/Code_Injection\">remote code execution</a> attack.</p>\n<p>If specifying a host, make sure that either:</p>\n<ul>\n<li>The host is not accessible from public networks.</li>\n<li>A firewall disallows unwanted connections on the port.</li>\n</ul>\n<p><strong>More specifically, <code>--inspect=0.0.0.0</code> is insecure if the port (<code>9229</code> by\ndefault) is not firewall-protected.</strong></p>\n<p>See the <a href=\"https://nodejs.org/en/docs/guides/debugging-getting-started/#security-implications\">debugging security implications</a> section for more information.</p>",
+                  "type": "module",
+                  "displayName": "Warning: binding inspector to a public IP:port combination is insecure"
+                }
+              ],
+              "type": "module",
+              "displayName": "`--inspect[=[host:]port]`"
+            },
+            {
+              "textRaw": "`--inspect-publish-uid=stderr,http`",
+              "name": "`--inspect-publish-uid=stderr,http`",
+              "desc": "<p>Specify ways of the inspector web socket url exposure.</p>\n<p>By default inspector websocket url is available in stderr and under <code>/json/list</code>\nendpoint on <code>http://host:port/json/list</code>.</p>",
+              "type": "module",
+              "displayName": "`--inspect-publish-uid=stderr,http`"
+            },
+            {
+              "textRaw": "`--insecure-http-parser`",
+              "name": "`--insecure-http-parser`",
+              "meta": {
+                "added": [
+                  "v12.15.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Use an insecure HTTP parser that accepts invalid HTTP headers. This may allow\ninteroperability with non-conformant HTTP implementations. It may also allow\nrequest smuggling and other HTTP attacks that rely on invalid headers being\naccepted. Avoid using this option.</p>",
+              "type": "module",
+              "displayName": "`--insecure-http-parser`"
+            },
+            {
+              "textRaw": "`--jitless`",
+              "name": "`--jitless`",
+              "meta": {
+                "added": [
+                  "v12.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Disable <a href=\"https://v8.dev/blog/jitless\">runtime allocation of executable memory</a>. This may be\nrequired on some platforms for security reasons. It can also reduce attack\nsurface on other platforms, but the performance impact may be severe.</p>\n<p>This flag is inherited from V8 and is subject to change upstream. It may\ndisappear in a non-semver-major release.</p>",
+              "type": "module",
+              "displayName": "`--jitless`"
+            },
+            {
+              "textRaw": "`--max-http-header-size=size`",
+              "name": "`--max-http-header-size=size`",
+              "meta": {
+                "added": [
+                  "v11.6.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Specify the maximum size, in bytes, of HTTP headers. Defaults to 8KB.</p>",
+              "type": "module",
+              "displayName": "`--max-http-header-size=size`"
+            },
+            {
+              "textRaw": "`--napi-modules`",
+              "name": "`--napi-modules`",
+              "meta": {
+                "added": [
+                  "v7.10.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>This option is a no-op. It is kept for compatibility.</p>",
+              "type": "module",
+              "displayName": "`--napi-modules`"
+            },
+            {
+              "textRaw": "`--no-deprecation`",
+              "name": "`--no-deprecation`",
+              "meta": {
+                "added": [
+                  "v0.8.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Silence deprecation warnings.</p>",
+              "type": "module",
+              "displayName": "`--no-deprecation`"
+            },
+            {
+              "textRaw": "`--no-force-async-hooks-checks`",
+              "name": "`--no-force-async-hooks-checks`",
+              "meta": {
+                "added": [
+                  "v9.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Disables runtime checks for <code>async_hooks</code>. These will still be enabled\ndynamically when <code>async_hooks</code> is enabled.</p>",
+              "type": "module",
+              "displayName": "`--no-force-async-hooks-checks`"
+            },
+            {
+              "textRaw": "`--no-warnings`",
+              "name": "`--no-warnings`",
+              "meta": {
+                "added": [
+                  "v6.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Silence all process warnings (including deprecations).</p>",
+              "type": "module",
+              "displayName": "`--no-warnings`"
+            },
+            {
+              "textRaw": "`--openssl-config=file`",
+              "name": "`--openssl-config=file`",
+              "meta": {
+                "added": [
+                  "v6.9.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Load an OpenSSL configuration file on startup. Among other uses, this can be\nused to enable FIPS-compliant crypto if Node.js is built with\n<code>./configure --openssl-fips</code>.</p>",
+              "type": "module",
+              "displayName": "`--openssl-config=file`"
+            },
+            {
+              "textRaw": "`--pending-deprecation`",
+              "name": "`--pending-deprecation`",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Emit pending deprecation warnings.</p>\n<p>Pending deprecations are generally identical to a runtime deprecation with the\nnotable exception that they are turned <em>off</em> by default and will not be emitted\nunless either the <code>--pending-deprecation</code> command line flag, or the\n<code>NODE_PENDING_DEPRECATION=1</code> environment variable, is set. Pending deprecations\nare used to provide a kind of selective \"early warning\" mechanism that\ndevelopers may leverage to detect deprecated API usage.</p>",
+              "type": "module",
+              "displayName": "`--pending-deprecation`"
+            },
+            {
+              "textRaw": "`--policy-integrity=sri`",
+              "name": "`--policy-integrity=sri`",
+              "meta": {
+                "added": [
+                  "v12.7.0"
+                ],
+                "changes": []
+              },
+              "stability": 1,
+              "stabilityText": "Experimental",
+              "desc": "<p>Instructs Node.js to error prior to running any code if the policy does not have\nthe specified integrity. It expects a <a href=\"https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity\">Subresource Integrity</a> string as a\nparameter.</p>",
+              "type": "module",
+              "displayName": "`--policy-integrity=sri`"
+            },
+            {
+              "textRaw": "`--preserve-symlinks`",
+              "name": "`--preserve-symlinks`",
+              "meta": {
+                "added": [
+                  "v6.3.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Instructs the module loader to preserve symbolic links when resolving and\ncaching modules.</p>\n<p>By default, when Node.js loads a module from a path that is symbolically linked\nto a different on-disk location, Node.js will dereference the link and use the\nactual on-disk \"real path\" of the module as both an identifier and as a root\npath to locate other dependency modules. In most cases, this default behavior\nis acceptable. However, when using symbolically linked peer dependencies, as\nillustrated in the example below, the default behavior causes an exception to\nbe thrown if <code>moduleA</code> attempts to require <code>moduleB</code> as a peer dependency:</p>\n<pre><code class=\"language-text\">{appDir}\n ├── app\n │   ├── index.js\n │   └── node_modules\n │       ├── moduleA -> {appDir}/moduleA\n │       └── moduleB\n │           ├── index.js\n │           └── package.json\n └── moduleA\n     ├── index.js\n     └── package.json\n</code></pre>\n<p>The <code>--preserve-symlinks</code> command line flag instructs Node.js to use the\nsymlink path for modules as opposed to the real path, allowing symbolically\nlinked peer dependencies to be found.</p>\n<p>Note, however, that using <code>--preserve-symlinks</code> can have other side effects.\nSpecifically, symbolically linked <em>native</em> modules can fail to load if those\nare linked from more than one location in the dependency tree (Node.js would\nsee those as two separate modules and would attempt to load the module multiple\ntimes, causing an exception to be thrown).</p>\n<p>The <code>--preserve-symlinks</code> flag does not apply to the main module, which allows\n<code>node --preserve-symlinks node_module/.bin/&#x3C;foo></code> to work. To apply the same\nbehavior for the main module, also use <code>--preserve-symlinks-main</code>.</p>",
+              "type": "module",
+              "displayName": "`--preserve-symlinks`"
+            },
+            {
+              "textRaw": "`--preserve-symlinks-main`",
+              "name": "`--preserve-symlinks-main`",
+              "meta": {
+                "added": [
+                  "v10.2.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Instructs the module loader to preserve symbolic links when resolving and\ncaching the main module (<code>require.main</code>).</p>\n<p>This flag exists so that the main module can be opted-in to the same behavior\nthat <code>--preserve-symlinks</code> gives to all other imports; they are separate flags,\nhowever, for backward compatibility with older Node.js versions.</p>\n<p><code>--preserve-symlinks-main</code> does not imply <code>--preserve-symlinks</code>; it\nis expected that <code>--preserve-symlinks-main</code> will be used in addition to\n<code>--preserve-symlinks</code> when it is not desirable to follow symlinks before\nresolving relative paths.</p>\n<p>See <code>--preserve-symlinks</code> for more information.</p>",
+              "type": "module",
+              "displayName": "`--preserve-symlinks-main`"
+            },
+            {
+              "textRaw": "`--prof`",
+              "name": "`--prof`",
+              "meta": {
+                "added": [
+                  "v2.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Generate V8 profiler output.</p>",
+              "type": "module",
+              "displayName": "`--prof`"
+            },
+            {
+              "textRaw": "`--prof-process`",
+              "name": "`--prof-process`",
+              "meta": {
+                "added": [
+                  "v5.2.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Process V8 profiler output generated using the V8 option <code>--prof</code>.</p>",
+              "type": "module",
+              "displayName": "`--prof-process`"
+            },
+            {
+              "textRaw": "`--redirect-warnings=file`",
+              "name": "`--redirect-warnings=file`",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Write process warnings to the given file instead of printing to stderr. The\nfile will be created if it does not exist, and will be appended to if it does.\nIf an error occurs while attempting to write the warning to the file, the\nwarning will be written to stderr instead.</p>",
+              "type": "module",
+              "displayName": "`--redirect-warnings=file`"
+            },
+            {
+              "textRaw": "`--report-compact`",
+              "name": "`--report-compact`",
+              "meta": {
+                "added": [
+                  "v12.17.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Write reports in a compact format, single-line JSON, more easily consumable\nby log processing systems than the default multi-line format designed for\nhuman consumption.</p>",
+              "type": "module",
+              "displayName": "`--report-compact`"
+            },
+            {
+              "textRaw": "`--report-directory=directory`",
+              "name": "`--report-directory=directory`",
+              "meta": {
+                "added": [
+                  "v11.8.0"
+                ],
+                "changes": [
+                  {
+                    "version": "v12.17.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/32242",
+                    "description": "This option is no longer considered experimental."
+                  },
+                  {
+                    "version": "v12.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/27312",
+                    "description": "Changed from `--diagnostic-report-directory` to `--report-directory`"
+                  }
+                ]
+              },
+              "desc": "<p>Location at which the report will be generated.</p>",
+              "type": "module",
+              "displayName": "`--report-directory=directory`"
+            },
+            {
+              "textRaw": "`--report-filename=filename`",
+              "name": "`--report-filename=filename`",
+              "meta": {
+                "added": [
+                  "v11.8.0"
+                ],
+                "changes": [
+                  {
+                    "version": "v12.17.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/32242",
+                    "description": "This option is no longer considered experimental."
+                  },
+                  {
+                    "version": "v12.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/27312",
+                    "description": "changed from `--diagnostic-report-filename` to `--report-filename`"
+                  }
+                ]
+              },
+              "desc": "<p>Name of the file to which the report will be written.</p>",
+              "type": "module",
+              "displayName": "`--report-filename=filename`"
+            },
+            {
+              "textRaw": "`--report-on-fatalerror`",
+              "name": "`--report-on-fatalerror`",
+              "meta": {
+                "added": [
+                  "v11.8.0"
+                ],
+                "changes": [
+                  {
+                    "version": "v12.17.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/32496",
+                    "description": "This option is no longer considered experimental."
+                  },
+                  {
+                    "version": "v12.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/27312",
+                    "description": "changed from `--diagnostic-report-on-fatalerror` to `--report-on-fatalerror`"
+                  }
+                ]
+              },
+              "desc": "<p>Enables the report to be triggered on fatal errors (internal errors within\nthe Node.js runtime such as out of memory) that lead to termination of the\napplication. Useful to inspect various diagnostic data elements such as heap,\nstack, event loop state, resource consumption etc. to reason about the fatal\nerror.</p>",
+              "type": "module",
+              "displayName": "`--report-on-fatalerror`"
+            },
+            {
+              "textRaw": "`--report-on-signal`",
+              "name": "`--report-on-signal`",
+              "meta": {
+                "added": [
+                  "v11.8.0"
+                ],
+                "changes": [
+                  {
+                    "version": "v12.17.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/32242",
+                    "description": "This option is no longer considered experimental."
+                  },
+                  {
+                    "version": "v12.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/27312",
+                    "description": "changed from `--diagnostic-report-on-signal` to `--report-on-signal`"
+                  }
+                ]
+              },
+              "desc": "<p>Enables report to be generated upon receiving the specified (or predefined)\nsignal to the running Node.js process. The signal to trigger the report is\nspecified through <code>--report-signal</code>.</p>",
+              "type": "module",
+              "displayName": "`--report-on-signal`"
+            },
+            {
+              "textRaw": "`--report-signal=signal`",
+              "name": "`--report-signal=signal`",
+              "meta": {
+                "added": [
+                  "v11.8.0"
+                ],
+                "changes": [
+                  {
+                    "version": "v12.17.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/32242",
+                    "description": "This option is no longer considered experimental."
+                  },
+                  {
+                    "version": "v12.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/27312",
+                    "description": "changed from `--diagnostic-report-signal` to `--report-signal`"
+                  }
+                ]
+              },
+              "desc": "<p>Sets or resets the signal for report generation (not supported on Windows).\nDefault signal is <code>SIGUSR2</code>.</p>",
+              "type": "module",
+              "displayName": "`--report-signal=signal`"
+            },
+            {
+              "textRaw": "`--report-uncaught-exception`",
+              "name": "`--report-uncaught-exception`",
+              "meta": {
+                "added": [
+                  "v11.8.0"
+                ],
+                "changes": [
+                  {
+                    "version": "v12.17.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/32242",
+                    "description": "This option is no longer considered experimental."
+                  },
+                  {
+                    "version": "v12.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/27312",
+                    "description": "changed from `--diagnostic-report-uncaught-exception` to `--report-uncaught-exception`"
+                  }
+                ]
+              },
+              "desc": "<p>Enables report to be generated on uncaught exceptions. Useful when inspecting\nthe JavaScript stack in conjunction with native stack and other runtime\nenvironment data.</p>",
+              "type": "module",
+              "displayName": "`--report-uncaught-exception`"
+            },
+            {
+              "textRaw": "`--throw-deprecation`",
+              "name": "`--throw-deprecation`",
+              "meta": {
+                "added": [
+                  "v0.11.14"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Throw errors for deprecations.</p>",
+              "type": "module",
+              "displayName": "`--throw-deprecation`"
+            },
+            {
+              "textRaw": "`--title=title`",
+              "name": "`--title=title`",
+              "meta": {
+                "added": [
+                  "v10.7.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Set <code>process.title</code> on startup.</p>",
+              "type": "module",
+              "displayName": "`--title=title`"
+            },
+            {
+              "textRaw": "`--tls-cipher-list=list`",
+              "name": "`--tls-cipher-list=list`",
+              "meta": {
+                "added": [
+                  "v4.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Specify an alternative default TLS cipher list. Requires Node.js to be built\nwith crypto support (default).</p>",
+              "type": "module",
+              "displayName": "`--tls-cipher-list=list`"
+            },
+            {
+              "textRaw": "`--tls-keylog=file`",
+              "name": "`--tls-keylog=file`",
+              "meta": {
+                "added": [
+                  "v12.16.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Log TLS key material to a file. The key material is in NSS <code>SSLKEYLOGFILE</code>\nformat and can be used by software (such as Wireshark) to decrypt the TLS\ntraffic.</p>",
+              "type": "module",
+              "displayName": "`--tls-keylog=file`"
+            },
+            {
+              "textRaw": "`--tls-max-v1.2`",
+              "name": "`--tls-max-v1.2`",
+              "meta": {
+                "added": [
+                  "v12.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Set <a href=\"tls.html#tls_tls_default_max_version\"><code>tls.DEFAULT_MAX_VERSION</code></a> to 'TLSv1.2'. Use to disable support for\nTLSv1.3.</p>",
+              "type": "module",
+              "displayName": "`--tls-max-v1.2`"
+            },
+            {
+              "textRaw": "`--tls-max-v1.3`",
+              "name": "`--tls-max-v1.3`",
+              "meta": {
+                "added": [
+                  "v12.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Set default <a href=\"tls.html#tls_tls_default_max_version\"><code>tls.DEFAULT_MAX_VERSION</code></a> to 'TLSv1.3'. Use to enable support\nfor TLSv1.3.</p>",
+              "type": "module",
+              "displayName": "`--tls-max-v1.3`"
+            },
+            {
+              "textRaw": "`--tls-min-v1.0`",
+              "name": "`--tls-min-v1.0`",
+              "meta": {
+                "added": [
+                  "v12.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Set default <a href=\"tls.html#tls_tls_default_min_version\"><code>tls.DEFAULT_MIN_VERSION</code></a> to 'TLSv1'. Use for compatibility with\nold TLS clients or servers.</p>",
+              "type": "module",
+              "displayName": "`--tls-min-v1.0`"
+            },
+            {
+              "textRaw": "`--tls-min-v1.1`",
+              "name": "`--tls-min-v1.1`",
+              "meta": {
+                "added": [
+                  "v12.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Set default <a href=\"tls.html#tls_tls_default_min_version\"><code>tls.DEFAULT_MIN_VERSION</code></a> to 'TLSv1.1'. Use for compatibility\nwith old TLS clients or servers.</p>",
+              "type": "module",
+              "displayName": "`--tls-min-v1.1`"
+            },
+            {
+              "textRaw": "`--tls-min-v1.2`",
+              "name": "`--tls-min-v1.2`",
+              "meta": {
+                "added": [
+                  "v12.2.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Set default <a href=\"tls.html#tls_tls_default_min_version\"><code>tls.DEFAULT_MIN_VERSION</code></a> to 'TLSv1.2'. This is the default for\n12.x and later, but the option is supported for compatibility with older Node.js\nversions.</p>",
+              "type": "module",
+              "displayName": "`--tls-min-v1.2`"
+            },
+            {
+              "textRaw": "`--tls-min-v1.3`",
+              "name": "`--tls-min-v1.3`",
+              "meta": {
+                "added": [
+                  "v12.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Set default <a href=\"tls.html#tls_tls_default_min_version\"><code>tls.DEFAULT_MIN_VERSION</code></a> to 'TLSv1.3'. Use to disable support\nfor TLSv1.2, which is not as secure as TLSv1.3.</p>",
+              "type": "module",
+              "displayName": "`--tls-min-v1.3`"
+            },
+            {
+              "textRaw": "`--trace-deprecation`",
+              "name": "`--trace-deprecation`",
+              "meta": {
+                "added": [
+                  "v0.8.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Print stack traces for deprecations.</p>",
+              "type": "module",
+              "displayName": "`--trace-deprecation`"
+            },
+            {
+              "textRaw": "`--trace-event-categories`",
+              "name": "`--trace-event-categories`",
+              "meta": {
+                "added": [
+                  "v7.7.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>A comma separated list of categories that should be traced when trace event\ntracing is enabled using <code>--trace-events-enabled</code>.</p>",
+              "type": "module",
+              "displayName": "`--trace-event-categories`"
+            },
+            {
+              "textRaw": "`--trace-event-file-pattern`",
+              "name": "`--trace-event-file-pattern`",
+              "meta": {
+                "added": [
+                  "v9.8.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Template string specifying the filepath for the trace event data, it\nsupports <code>${rotation}</code> and <code>${pid}</code>.</p>",
+              "type": "module",
+              "displayName": "`--trace-event-file-pattern`"
+            },
+            {
+              "textRaw": "`--trace-events-enabled`",
+              "name": "`--trace-events-enabled`",
+              "meta": {
+                "added": [
+                  "v7.7.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Enables the collection of trace event tracing information.</p>",
+              "type": "module",
+              "displayName": "`--trace-events-enabled`"
+            },
+            {
+              "textRaw": "`--trace-exit`",
+              "name": "`--trace-exit`",
+              "meta": {
+                "added": [
+                  "v12.16.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Prints a stack trace whenever an environment is exited proactively,\ni.e. invoking <code>process.exit()</code>.</p>",
+              "type": "module",
+              "displayName": "`--trace-exit`"
+            },
+            {
+              "textRaw": "`--trace-sigint`",
+              "name": "`--trace-sigint`",
+              "meta": {
+                "added": [
+                  "v12.17.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Prints a stack trace on SIGINT.</p>",
+              "type": "module",
+              "displayName": "`--trace-sigint`"
+            },
+            {
+              "textRaw": "`--trace-sync-io`",
+              "name": "`--trace-sync-io`",
+              "meta": {
+                "added": [
+                  "v2.1.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Prints a stack trace whenever synchronous I/O is detected after the first turn\nof the event loop.</p>",
+              "type": "module",
+              "displayName": "`--trace-sync-io`"
+            },
+            {
+              "textRaw": "`--trace-tls`",
+              "name": "`--trace-tls`",
+              "meta": {
+                "added": [
+                  "v12.2.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Prints TLS packet trace information to <code>stderr</code>. This can be used to debug TLS\nconnection problems.</p>",
+              "type": "module",
+              "displayName": "`--trace-tls`"
+            },
+            {
+              "textRaw": "`--trace-uncaught`",
+              "name": "`--trace-uncaught`",
+              "meta": {
+                "added": [
+                  "v12.16.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Print stack traces for uncaught exceptions; usually, the stack trace associated\nwith the creation of an <code>Error</code> is printed, whereas this makes Node.js also\nprint the stack trace associated with throwing the value (which does not need\nto be an <code>Error</code> instance).</p>\n<p>Enabling this option may affect garbage collection behavior negatively.</p>",
+              "type": "module",
+              "displayName": "`--trace-uncaught`"
+            },
+            {
+              "textRaw": "`--trace-warnings`",
+              "name": "`--trace-warnings`",
+              "meta": {
+                "added": [
+                  "v6.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Print stack traces for process warnings (including deprecations).</p>",
+              "type": "module",
+              "displayName": "`--trace-warnings`"
+            },
+            {
+              "textRaw": "`--track-heap-objects`",
+              "name": "`--track-heap-objects`",
+              "meta": {
+                "added": [
+                  "v2.4.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Track heap object allocations for heap snapshots.</p>",
+              "type": "module",
+              "displayName": "`--track-heap-objects`"
+            },
+            {
+              "textRaw": "`--unhandled-rejections=mode`",
+              "name": "`--unhandled-rejections=mode`",
+              "meta": {
+                "added": [
+                  "v12.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>By default all unhandled rejections trigger a warning plus a deprecation warning\nfor the very first unhandled rejection in case no <a href=\"process.html#process_event_unhandledrejection\"><code>unhandledRejection</code></a> hook\nis used.</p>\n<p>Using this flag allows to change what should happen when an unhandled rejection\noccurs. One of three modes can be chosen:</p>\n<ul>\n<li><code>strict</code>: Raise the unhandled rejection as an uncaught exception.</li>\n<li><code>warn</code>: Always trigger a warning, no matter if the <a href=\"process.html#process_event_unhandledrejection\"><code>unhandledRejection</code></a>\nhook is set or not but do not print the deprecation warning.</li>\n<li><code>none</code>: Silence all warnings.</li>\n</ul>",
+              "type": "module",
+              "displayName": "`--unhandled-rejections=mode`"
+            },
+            {
+              "textRaw": "`--use-bundled-ca`, `--use-openssl-ca`",
+              "name": "`--use-bundled-ca`,_`--use-openssl-ca`",
+              "meta": {
+                "added": [
+                  "v6.11.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Use bundled Mozilla CA store as supplied by current Node.js version\nor use OpenSSL's default CA store. The default store is selectable\nat build-time.</p>\n<p>The bundled CA store, as supplied by Node.js, is a snapshot of Mozilla CA store\nthat is fixed at release time. It is identical on all supported platforms.</p>\n<p>Using OpenSSL store allows for external modifications of the store. For most\nLinux and BSD distributions, this store is maintained by the distribution\nmaintainers and system administrators. OpenSSL CA store location is dependent on\nconfiguration of the OpenSSL library but this can be altered at runtime using\nenvironment variables.</p>\n<p>See <code>SSL_CERT_DIR</code> and <code>SSL_CERT_FILE</code>.</p>",
+              "type": "module",
+              "displayName": "`--use-bundled-ca`, `--use-openssl-ca`"
+            },
+            {
+              "textRaw": "`--use-largepages=mode`",
+              "name": "`--use-largepages=mode`",
+              "meta": {
+                "added": [
+                  "v12.17.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Re-map the Node.js static code to large memory pages at startup. If supported on\nthe target system, this will cause the Node.js static code to be moved onto 2\nMiB pages instead of 4 KiB pages.</p>\n<p>The following values are valid for <code>mode</code>:</p>\n<ul>\n<li><code>off</code>: No mapping will be attempted. This is the default.</li>\n<li><code>on</code>: If supported by the OS, mapping will be attempted. Failure to map will\nbe ignored and a message will be printed to standard error.</li>\n<li><code>silent</code>: If supported by the OS, mapping will be attempted. Failure to map\nwill be ignored and will not be reported.</li>\n</ul>",
+              "type": "module",
+              "displayName": "`--use-largepages=mode`"
+            },
+            {
+              "textRaw": "`--v8-options`",
+              "name": "`--v8-options`",
+              "meta": {
+                "added": [
+                  "v0.1.3"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Print V8 command line options.</p>",
+              "type": "module",
+              "displayName": "`--v8-options`"
+            },
+            {
+              "textRaw": "`--v8-pool-size=num`",
+              "name": "`--v8-pool-size=num`",
+              "meta": {
+                "added": [
+                  "v5.10.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Set V8's thread pool size which will be used to allocate background jobs.</p>\n<p>If set to <code>0</code> then V8 will choose an appropriate size of the thread pool based\non the number of online processors.</p>\n<p>If the value provided is larger than V8's maximum, then the largest value\nwill be chosen.</p>",
+              "type": "module",
+              "displayName": "`--v8-pool-size=num`"
+            },
+            {
+              "textRaw": "`--zero-fill-buffers`",
+              "name": "`--zero-fill-buffers`",
+              "meta": {
+                "added": [
+                  "v6.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Automatically zero-fills all newly allocated <a href=\"buffer.html#buffer_class_buffer\"><code>Buffer</code></a> and <a href=\"buffer.html#buffer_class_slowbuffer\"><code>SlowBuffer</code></a>\ninstances.</p>",
+              "type": "module",
+              "displayName": "`--zero-fill-buffers`"
+            },
+            {
+              "textRaw": "`-c`, `--check`",
+              "name": "`-c`,_`--check`",
+              "meta": {
+                "added": [
+                  "v5.0.0",
+                  "v4.2.0"
+                ],
+                "changes": [
+                  {
+                    "version": "v10.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/19600",
+                    "description": "The `--require` option is now supported when checking a file."
+                  }
+                ]
+              },
+              "desc": "<p>Syntax check the script without executing.</p>",
+              "type": "module",
+              "displayName": "`-c`, `--check`"
+            },
+            {
+              "textRaw": "`-e`, `--eval \"script\"`",
+              "name": "`-e`,_`--eval_\"script\"`",
+              "meta": {
+                "added": [
+                  "v0.5.2"
+                ],
+                "changes": [
+                  {
+                    "version": "v5.11.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/5348",
+                    "description": "Built-in libraries are now available as predefined variables."
+                  }
+                ]
+              },
+              "desc": "<p>Evaluate the following argument as JavaScript. The modules which are\npredefined in the REPL can also be used in <code>script</code>.</p>\n<p>On Windows, using <code>cmd.exe</code> a single quote will not work correctly because it\nonly recognizes double <code>\"</code> for quoting. In Powershell or Git bash, both <code>'</code>\nand <code>\"</code> are usable.</p>",
+              "type": "module",
+              "displayName": "`-e`, `--eval \"script\"`"
+            },
+            {
+              "textRaw": "`-h`, `--help`",
+              "name": "`-h`,_`--help`",
+              "meta": {
+                "added": [
+                  "v0.1.3"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Print node command line options.\nThe output of this option is less detailed than this document.</p>",
+              "type": "module",
+              "displayName": "`-h`, `--help`"
+            },
+            {
+              "textRaw": "`-i`, `--interactive`",
+              "name": "`-i`,_`--interactive`",
+              "meta": {
+                "added": [
+                  "v0.7.7"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Opens the REPL even if stdin does not appear to be a terminal.</p>",
+              "type": "module",
+              "displayName": "`-i`, `--interactive`"
+            },
+            {
+              "textRaw": "`-p`, `--print \"script\"`",
+              "name": "`-p`,_`--print_\"script\"`",
+              "meta": {
+                "added": [
+                  "v0.6.4"
+                ],
+                "changes": [
+                  {
+                    "version": "v5.11.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/5348",
+                    "description": "Built-in libraries are now available as predefined variables."
+                  }
+                ]
+              },
+              "desc": "<p>Identical to <code>-e</code> but prints the result.</p>",
+              "type": "module",
+              "displayName": "`-p`, `--print \"script\"`"
+            },
+            {
+              "textRaw": "`-r`, `--require module`",
+              "name": "`-r`,_`--require_module`",
+              "meta": {
+                "added": [
+                  "v1.6.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Preload the specified module at startup.</p>\n<p>Follows <code>require()</code>'s module resolution\nrules. <code>module</code> may be either a path to a file, or a node module name.</p>",
+              "type": "module",
+              "displayName": "`-r`, `--require module`"
+            },
+            {
+              "textRaw": "`-v`, `--version`",
+              "name": "`-v`,_`--version`",
+              "meta": {
+                "added": [
+                  "v0.1.3"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Print node's version.</p>",
+              "type": "module",
+              "displayName": "`-v`, `--version`"
+            }
+          ],
+          "type": "misc",
+          "displayName": "Options"
+        },
+        {
+          "textRaw": "Environment variables",
+          "name": "environment_variables",
+          "modules": [
+            {
+              "textRaw": "`NODE_DEBUG=module[,…]`",
+              "name": "`node_debug=module[,…]`",
+              "meta": {
+                "added": [
+                  "v0.1.32"
+                ],
+                "changes": []
+              },
+              "desc": "<p><code>','</code>-separated list of core modules that should print debug information.</p>",
+              "type": "module",
+              "displayName": "`NODE_DEBUG=module[,…]`"
+            },
+            {
+              "textRaw": "`NODE_DEBUG_NATIVE=module[,…]`",
+              "name": "`node_debug_native=module[,…]`",
+              "desc": "<p><code>','</code>-separated list of core C++ modules that should print debug information.</p>",
+              "type": "module",
+              "displayName": "`NODE_DEBUG_NATIVE=module[,…]`"
+            },
+            {
+              "textRaw": "`NODE_DISABLE_COLORS=1`",
+              "name": "`node_disable_colors=1`",
+              "meta": {
+                "added": [
+                  "v0.3.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>When set, colors will not be used in the REPL.</p>",
+              "type": "module",
+              "displayName": "`NODE_DISABLE_COLORS=1`"
+            },
+            {
+              "textRaw": "`NODE_EXTRA_CA_CERTS=file`",
+              "name": "`node_extra_ca_certs=file`",
+              "meta": {
+                "added": [
+                  "v7.3.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>When set, the well known \"root\" CAs (like VeriSign) will be extended with the\nextra certificates in <code>file</code>. The file should consist of one or more trusted\ncertificates in PEM format. A message will be emitted (once) with\n<a href=\"process.html#process_process_emitwarning_warning_type_code_ctor\"><code>process.emitWarning()</code></a> if the file is missing or\nmalformed, but any errors are otherwise ignored.</p>\n<p>Neither the well known nor extra certificates are used when the <code>ca</code>\noptions property is explicitly specified for a TLS or HTTPS client or server.</p>\n<p>This environment variable is ignored when <code>node</code> runs as setuid root or\nhas Linux file capabilities set.</p>",
+              "type": "module",
+              "displayName": "`NODE_EXTRA_CA_CERTS=file`"
+            },
+            {
+              "textRaw": "`NODE_ICU_DATA=file`",
+              "name": "`node_icu_data=file`",
+              "meta": {
+                "added": [
+                  "v0.11.15"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Data path for ICU (<code>Intl</code> object) data. Will extend linked-in data when compiled\nwith small-icu support.</p>",
+              "type": "module",
+              "displayName": "`NODE_ICU_DATA=file`"
+            },
+            {
+              "textRaw": "`NODE_NO_WARNINGS=1`",
+              "name": "`node_no_warnings=1`",
+              "meta": {
+                "added": [
+                  "v6.11.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>When set to <code>1</code>, process warnings are silenced.</p>",
+              "type": "module",
+              "displayName": "`NODE_NO_WARNINGS=1`"
+            },
+            {
+              "textRaw": "`NODE_OPTIONS=options...`",
+              "name": "`node_options=options...`",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>A space-separated list of command line options. <code>options...</code> are interpreted\nbefore command line options, so command line options will override or\ncompound after anything in <code>options...</code>. Node.js will exit with an error if\nan option that is not allowed in the environment is used, such as <code>-p</code> or a\nscript file.</p>\n<p>In case an option value happens to contain a space (for example a path listed\nin <code>--require</code>), it must be escaped using double quotes. For example:</p>\n<pre><code class=\"language-bash\">NODE_OPTIONS='--require \"./my path/file.js\"'\n</code></pre>\n<p>A singleton flag passed as a command line option will override the same flag\npassed into <code>NODE_OPTIONS</code>:</p>\n<pre><code class=\"language-bash\"># The inspector will be available on port 5555\nNODE_OPTIONS='--inspect=localhost:4444' node --inspect=localhost:5555\n</code></pre>\n<p>A flag that can be passed multiple times will be treated as if its\n<code>NODE_OPTIONS</code> instances were passed first, and then its command line\ninstances afterwards:</p>\n<pre><code class=\"language-bash\">NODE_OPTIONS='--require \"./a.js\"' node --require \"./b.js\"\n# is equivalent to:\nnode --require \"./a.js\" --require \"./b.js\"\n</code></pre>\n<p>Node.js options that are allowed are:</p>\n<!-- node-options-node start -->\n<ul>\n<li><code>--disable-proto</code></li>\n<li><code>--enable-fips</code></li>\n<li><code>--enable-source-maps</code></li>\n<li><code>--experimental-import-meta-resolve</code></li>\n<li><code>--experimental-json-modules</code></li>\n<li><code>--experimental-loader</code></li>\n<li><code>--experimental-modules</code></li>\n<li><code>--experimental-policy</code></li>\n<li><code>--experimental-repl-await</code></li>\n<li><code>--experimental-specifier-resolution</code></li>\n<li><code>--experimental-vm-modules</code></li>\n<li><code>--experimental-wasi-unstable-preview1</code></li>\n<li><code>--experimental-wasm-modules</code></li>\n<li><code>--force-context-aware</code></li>\n<li><code>--force-fips</code></li>\n<li><code>--frozen-intrinsics</code></li>\n<li><code>--heapsnapshot-signal</code></li>\n<li><code>--http-parser</code></li>\n<li><code>--http-server-default-timeout</code></li>\n<li><code>--icu-data-dir</code></li>\n<li><code>--input-type</code></li>\n<li><code>--insecure-http-parser</code></li>\n<li><code>--inspect-brk</code></li>\n<li><code>--inspect-port</code>, <code>--debug-port</code></li>\n<li><code>--inspect-publish-uid</code></li>\n<li><code>--inspect</code></li>\n<li><code>--max-http-header-size</code></li>\n<li><code>--napi-modules</code></li>\n<li><code>--no-deprecation</code></li>\n<li><code>--no-force-async-hooks-checks</code></li>\n<li><code>--no-warnings</code></li>\n<li><code>--openssl-config</code></li>\n<li><code>--pending-deprecation</code></li>\n<li><code>--policy-integrity</code></li>\n<li><code>--preserve-symlinks-main</code></li>\n<li><code>--preserve-symlinks</code></li>\n<li><code>--prof-process</code></li>\n<li><code>--redirect-warnings</code></li>\n<li><code>--report-compact</code></li>\n<li><code>--report-directory</code></li>\n<li><code>--report-filename</code></li>\n<li><code>--report-on-fatalerror</code></li>\n<li><code>--report-on-signal</code></li>\n<li><code>--report-signal</code></li>\n<li><code>--report-uncaught-exception</code></li>\n<li><code>--require</code>, <code>-r</code></li>\n<li><code>--throw-deprecation</code></li>\n<li><code>--title</code></li>\n<li><code>--tls-cipher-list</code></li>\n<li><code>--tls-keylog</code></li>\n<li><code>--tls-max-v1.2</code></li>\n<li><code>--tls-max-v1.3</code></li>\n<li><code>--tls-min-v1.0</code></li>\n<li><code>--tls-min-v1.1</code></li>\n<li><code>--tls-min-v1.2</code></li>\n<li><code>--tls-min-v1.3</code></li>\n<li><code>--trace-deprecation</code></li>\n<li><code>--trace-event-categories</code></li>\n<li><code>--trace-event-file-pattern</code></li>\n<li><code>--trace-events-enabled</code></li>\n<li><code>--trace-exit</code></li>\n<li><code>--trace-sigint</code></li>\n<li><code>--trace-sync-io</code></li>\n<li><code>--trace-tls</code></li>\n<li><code>--trace-uncaught</code></li>\n<li><code>--trace-warnings</code></li>\n<li><code>--track-heap-objects</code></li>\n<li><code>--unhandled-rejections</code></li>\n<li><code>--use-bundled-ca</code></li>\n<li><code>--use-largepages</code></li>\n<li><code>--use-openssl-ca</code></li>\n<li><code>--v8-pool-size</code></li>\n<li>\n<p><code>--zero-fill-buffers</code></p>\n<!-- node-options-node end -->\n</li>\n</ul>\n<p>V8 options that are allowed are:</p>\n<!-- node-options-v8 start -->\n<ul>\n<li><code>--abort-on-uncaught-exception</code></li>\n<li><code>--disallow-code-generation-from-strings</code></li>\n<li><code>--huge-max-old-generation-size</code></li>\n<li><code>--interpreted-frames-native-stack</code></li>\n<li><code>--jitless</code></li>\n<li><code>--max-old-space-size</code></li>\n<li><code>--perf-basic-prof-only-functions</code></li>\n<li><code>--perf-basic-prof</code></li>\n<li><code>--perf-prof-unwinding-info</code></li>\n<li><code>--perf-prof</code></li>\n<li>\n<p><code>--stack-trace-limit</code></p>\n<!-- node-options-v8 end -->\n</li>\n</ul>\n<p><code>--perf-basic-prof-only-functions</code>, <code>--perf-basic-prof</code>,\n<code>--perf-prof-unwinding-info</code>, and <code>--perf-prof</code> are only available on Linux.</p>",
+              "type": "module",
+              "displayName": "`NODE_OPTIONS=options...`"
+            },
+            {
+              "textRaw": "`NODE_PATH=path[:…]`",
+              "name": "`node_path=path[:…]`",
+              "meta": {
+                "added": [
+                  "v0.1.32"
+                ],
+                "changes": []
+              },
+              "desc": "<p><code>':'</code>-separated list of directories prefixed to the module search path.</p>\n<p>On Windows, this is a <code>';'</code>-separated list instead.</p>",
+              "type": "module",
+              "displayName": "`NODE_PATH=path[:…]`"
+            },
+            {
+              "textRaw": "`NODE_PENDING_DEPRECATION=1`",
+              "name": "`node_pending_deprecation=1`",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>When set to <code>1</code>, emit pending deprecation warnings.</p>\n<p>Pending deprecations are generally identical to a runtime deprecation with the\nnotable exception that they are turned <em>off</em> by default and will not be emitted\nunless either the <code>--pending-deprecation</code> command line flag, or the\n<code>NODE_PENDING_DEPRECATION=1</code> environment variable, is set. Pending deprecations\nare used to provide a kind of selective \"early warning\" mechanism that\ndevelopers may leverage to detect deprecated API usage.</p>",
+              "type": "module",
+              "displayName": "`NODE_PENDING_DEPRECATION=1`"
+            },
+            {
+              "textRaw": "`NODE_PENDING_PIPE_INSTANCES=instances`",
+              "name": "`node_pending_pipe_instances=instances`",
+              "desc": "<p>Set the number of pending pipe instance handles when the pipe server is waiting\nfor connections. This setting applies to Windows only.</p>",
+              "type": "module",
+              "displayName": "`NODE_PENDING_PIPE_INSTANCES=instances`"
+            },
+            {
+              "textRaw": "`NODE_PRESERVE_SYMLINKS=1`",
+              "name": "`node_preserve_symlinks=1`",
+              "meta": {
+                "added": [
+                  "v7.1.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>When set to <code>1</code>, instructs the module loader to preserve symbolic links when\nresolving and caching modules.</p>",
+              "type": "module",
+              "displayName": "`NODE_PRESERVE_SYMLINKS=1`"
+            },
+            {
+              "textRaw": "`NODE_REDIRECT_WARNINGS=file`",
+              "name": "`node_redirect_warnings=file`",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>When set, process warnings will be emitted to the given file instead of\nprinting to stderr. The file will be created if it does not exist, and will be\nappended to if it does. If an error occurs while attempting to write the\nwarning to the file, the warning will be written to stderr instead. This is\nequivalent to using the <code>--redirect-warnings=file</code> command-line flag.</p>",
+              "type": "module",
+              "displayName": "`NODE_REDIRECT_WARNINGS=file`"
+            },
+            {
+              "textRaw": "`NODE_REPL_HISTORY=file`",
+              "name": "`node_repl_history=file`",
+              "meta": {
+                "added": [
+                  "v3.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Path to the file used to store the persistent REPL history. The default path is\n<code>~/.node_repl_history</code>, which is overridden by this variable. Setting the value\nto an empty string (<code>''</code> or <code>' '</code>) disables persistent REPL history.</p>",
+              "type": "module",
+              "displayName": "`NODE_REPL_HISTORY=file`"
+            },
+            {
+              "textRaw": "`NODE_REPL_EXTERNAL_MODULE=file`",
+              "name": "`node_repl_external_module=file`",
+              "meta": {
+                "added": [
+                  "v12.16.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Path to a Node.js module which will be loaded in place of the built-in REPL.\nOverriding this value to an empty string (<code>''</code>) will use the built-in REPL.</p>",
+              "type": "module",
+              "displayName": "`NODE_REPL_EXTERNAL_MODULE=file`"
+            },
+            {
+              "textRaw": "`NODE_TLS_REJECT_UNAUTHORIZED=value`",
+              "name": "`node_tls_reject_unauthorized=value`",
+              "desc": "<p>If <code>value</code> equals <code>'0'</code>, certificate validation is disabled for TLS connections.\nThis makes TLS, and HTTPS by extension, insecure. The use of this environment\nvariable is strongly discouraged.</p>",
+              "type": "module",
+              "displayName": "`NODE_TLS_REJECT_UNAUTHORIZED=value`"
+            },
+            {
+              "textRaw": "`NODE_V8_COVERAGE=dir`",
+              "name": "`node_v8_coverage=dir`",
+              "desc": "<p>When set, Node.js will begin outputting <a href=\"https://v8project.blogspot.com/2017/12/javascript-code-coverage.html\">V8 JavaScript code coverage</a> and\n<a href=\"https://sourcemaps.info/spec.html\">Source Map</a> data to the directory provided as an argument (coverage\ninformation is written as JSON to files with a <code>coverage</code> prefix).</p>\n<p><code>NODE_V8_COVERAGE</code> will automatically propagate to subprocesses, making it\neasier to instrument applications that call the <code>child_process.spawn()</code> family\nof functions. <code>NODE_V8_COVERAGE</code> can be set to an empty string, to prevent\npropagation.</p>",
+              "modules": [
+                {
+                  "textRaw": "Coverage output",
+                  "name": "coverage_output",
+                  "desc": "<p>Coverage is output as an array of <a href=\"https://chromedevtools.github.io/devtools-protocol/tot/Profiler#type-ScriptCoverage\">ScriptCoverage</a> objects on the top-level\nkey <code>result</code>:</p>\n<pre><code class=\"language-json\">{\n  \"result\": [\n    {\n      \"scriptId\": \"67\",\n      \"url\": \"internal/tty.js\",\n      \"functions\": []\n    }\n  ]\n}\n</code></pre>",
+                  "type": "module",
+                  "displayName": "Coverage output"
+                },
+                {
+                  "textRaw": "Source map cache",
+                  "name": "source_map_cache",
+                  "stability": 1,
+                  "stabilityText": "Experimental",
+                  "desc": "<p>If found, source map data is appended to the top-level key <code>source-map-cache</code>\non the JSON coverage object.</p>\n<p><code>source-map-cache</code> is an object with keys representing the files source maps\nwere extracted from, and values which include the raw source-map URL\n(in the key <code>url</code>), the parsed Source Map v3 information (in the key <code>data</code>),\nand the line lengths of the source file (in the key <code>lineLengths</code>).</p>\n<pre><code class=\"language-json\">{\n  \"result\": [\n    {\n      \"scriptId\": \"68\",\n      \"url\": \"file:///absolute/path/to/source.js\",\n      \"functions\": []\n    }\n  ],\n  \"source-map-cache\": {\n    \"file:///absolute/path/to/source.js\": {\n      \"url\": \"./path-to-map.json\",\n      \"data\": {\n        \"version\": 3,\n        \"sources\": [\n          \"file:///absolute/path/to/original.js\"\n        ],\n        \"names\": [\n          \"Foo\",\n          \"console\",\n          \"info\"\n        ],\n        \"mappings\": \"MAAMA,IACJC,YAAaC\",\n        \"sourceRoot\": \"./\"\n      },\n      \"lineLengths\": [\n        13,\n        62,\n        38,\n        27\n      ]\n    }\n  }\n}\n</code></pre>",
+                  "type": "module",
+                  "displayName": "Source map cache"
+                }
+              ],
+              "type": "module",
+              "displayName": "`NODE_V8_COVERAGE=dir`"
+            },
+            {
+              "textRaw": "`OPENSSL_CONF=file`",
+              "name": "`openssl_conf=file`",
+              "meta": {
+                "added": [
+                  "v6.11.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Load an OpenSSL configuration file on startup. Among other uses, this can be\nused to enable FIPS-compliant crypto if Node.js is built with <code>./configure --openssl-fips</code>.</p>\n<p>If the <a href=\"#cli_openssl_config_file\"><code>--openssl-config</code></a> command line option is used, the environment\nvariable is ignored.</p>",
+              "type": "module",
+              "displayName": "`OPENSSL_CONF=file`"
+            },
+            {
+              "textRaw": "`SSL_CERT_DIR=dir`",
+              "name": "`ssl_cert_dir=dir`",
+              "meta": {
+                "added": [
+                  "v7.7.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>If <code>--use-openssl-ca</code> is enabled, this overrides and sets OpenSSL's directory\ncontaining trusted certificates.</p>\n<p>Be aware that unless the child environment is explicitly set, this environment\nvariable will be inherited by any child processes, and if they use OpenSSL, it\nmay cause them to trust the same CAs as node.</p>",
+              "type": "module",
+              "displayName": "`SSL_CERT_DIR=dir`"
+            },
+            {
+              "textRaw": "`SSL_CERT_FILE=file`",
+              "name": "`ssl_cert_file=file`",
+              "meta": {
+                "added": [
+                  "v7.7.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>If <code>--use-openssl-ca</code> is enabled, this overrides and sets OpenSSL's file\ncontaining trusted certificates.</p>\n<p>Be aware that unless the child environment is explicitly set, this environment\nvariable will be inherited by any child processes, and if they use OpenSSL, it\nmay cause them to trust the same CAs as node.</p>",
+              "type": "module",
+              "displayName": "`SSL_CERT_FILE=file`"
+            },
+            {
+              "textRaw": "`UV_THREADPOOL_SIZE=size`",
+              "name": "`uv_threadpool_size=size`",
+              "desc": "<p>Set the number of threads used in libuv's threadpool to <code>size</code> threads.</p>\n<p>Asynchronous system APIs are used by Node.js whenever possible, but where they\ndo not exist, libuv's threadpool is used to create asynchronous node APIs based\non synchronous system APIs. Node.js APIs that use the threadpool are:</p>\n<ul>\n<li>all <code>fs</code> APIs, other than the file watcher APIs and those that are explicitly\nsynchronous</li>\n<li>asynchronous crypto APIs such as <code>crypto.pbkdf2()</code>, <code>crypto.scrypt()</code>,\n<code>crypto.randomBytes()</code>, <code>crypto.randomFill()</code>, <code>crypto.generateKeyPair()</code></li>\n<li><code>dns.lookup()</code></li>\n<li>all <code>zlib</code> APIs, other than those that are explicitly synchronous</li>\n</ul>\n<p>Because libuv's threadpool has a fixed size, it means that if for whatever\nreason any of these APIs takes a long time, other (seemingly unrelated) APIs\nthat run in libuv's threadpool will experience degraded performance. In order to\nmitigate this issue, one potential solution is to increase the size of libuv's\nthreadpool by setting the <code>'UV_THREADPOOL_SIZE'</code> environment variable to a value\ngreater than <code>4</code> (its current default value). For more information, see the\n<a href=\"http://docs.libuv.org/en/latest/threadpool.html\">libuv threadpool documentation</a>.</p>",
+              "type": "module",
+              "displayName": "`UV_THREADPOOL_SIZE=size`"
+            }
+          ],
+          "type": "misc",
+          "displayName": "Environment variables"
+        },
+        {
+          "textRaw": "Useful V8 options",
+          "name": "useful_v8_options",
+          "desc": "<p>V8 has its own set of CLI options. Any V8 CLI option that is provided to <code>node</code>\nwill be passed on to V8 to handle. V8's options have <em>no stability guarantee</em>.\nThe V8 team themselves don't consider them to be part of their formal API,\nand reserve the right to change them at any time. Likewise, they are not\ncovered by the Node.js stability guarantees. Many of the V8\noptions are of interest only to V8 developers. Despite this, there is a small\nset of V8 options that are widely applicable to Node.js, and they are\ndocumented here:</p>",
+          "modules": [
+            {
+              "textRaw": "`--max-old-space-size=SIZE` (in megabytes)",
+              "name": "`--max-old-space-size=size`_(in_megabytes)",
+              "desc": "<p>Sets the max memory size of V8's old memory section. As memory\nconsumption approaches the limit, V8 will spend more time on\ngarbage collection in an effort to free unused memory.</p>\n<p>On a machine with 2GB of memory, consider setting this to\n1536 (1.5GB) to leave some memory for other uses and avoid swapping.</p>\n<pre><code class=\"language-console\">$ node --max-old-space-size=1536 index.js\n</code></pre>",
+              "type": "module",
+              "displayName": "`--max-old-space-size=SIZE` (in megabytes)"
+            }
+          ],
+          "type": "misc",
+          "displayName": "Useful V8 options"
+        }
+      ]
+    }
+  ]
+}

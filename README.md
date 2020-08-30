@@ -13,10 +13,19 @@ http://enclose.io/nodec
 - Works on ![win](resource/win_sm.png) Windows, ![macOS](resource/apple_sm.png) macOS and ![linux](resource/linux_sm.png) Linux
 - Creates a binary distribution of your application
 - Supports natively any form of `require`, including dynamic ones (e.g. `require(myPath + 'module.js'`)
-- Supports any module, including direct download and compilation from npm
 - Native C++ modules are fully supported
 - Features zero-config auto-update capabilities to make your compiled project to stay updated
 - Open Source, MIT Licensed
+
+## Supported Node.js Versions
+
+We maintain support for both the latest *Current* Node.js release and the latest *LTS* Node.js release. Currently the `master` branch has been updated to the following versions.
+
+|               |  Updated till  |            How to Use               |
+|:-------------:|:--------------:|:-----------------------------------:|
+|  **Current**  |    14.8.0      |  `nodec --current` or just `nodec`  |
+|   **LTS**     |    12.18.3     |  `nodec --lts`                      |
+
 
 ## Get Started
 
@@ -126,10 +135,6 @@ The original maintainer did not specify how to build this repo into single execu
           --keep-tmpdir                Keeps all temporary files that were generated last time
           --make-args=ARGS             Passes extra arguments to make
           --vcbuild-args=ARGS          Passes extra arguments to vcbuild.bat
-      -n, --npm=FILE                   Specifies the path of npm
-          --skip-npm-install           Skips the npm install process
-          --npm-package=NAME           Downloads and compiles the specified npm package
-          --npm-package-version=VER    Downloads and compiles the specified version of the npm package
           --auto-update-url=URL        Enables auto-update and specifies the URL to get the latest version
           --auto-update-base=STRING    Enables auto-update and specifies the base version string
           --debug                      Enable debug mode
@@ -160,11 +165,6 @@ Note: To compile to 32-bit windows OS compatible programs on a 64-bit machine, y
     npm install
     nodec node_modules/egg-bin/bin/egg-bin.js
     ./a.out dev (or a.exe dev on Windows)
-
-### Compile a npm package
-
-    nodec --npm-package=coffee-script coffee
-    ./a.out (or a.exe on Windows)
 
 ## Learn More
 
@@ -238,14 +238,6 @@ An example (you may need to adjust values or specify additional variables):
 ## To-do
 
 - Eliminate dependending on an outside Node.js and npm when compiling
-- Support writing options down to package.json
-  - Select the correct Node.js version via `engines` of package.json
-    - Support arbitrary Node.js runtime versions
-    - https://github.com/pmq20/node-packer/issues/40
-  - Configure auto-update to enable/disable prompts when new versions were detected
-  - Enable/disable auto-update
-  - A option to exclude directory's and files.
-    - https://github.com/pmq20/node-packer/issues/51
 - Be able to use a custom icon and file description for the executable output. maybe an icon file in the package root directory.
   - https://github.com/pmq20/node-packer/issues/54
 - Add options to select items to deliver

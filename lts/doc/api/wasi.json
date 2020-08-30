@@ -1,0 +1,130 @@
+{
+  "type": "module",
+  "source": "doc/api/wasi.md",
+  "modules": [
+    {
+      "textRaw": "WebAssembly System Interface (WASI)",
+      "name": "webassembly_system_interface_(wasi)",
+      "introduced_in": "v12.16.0",
+      "stability": 1,
+      "stabilityText": "Experimental",
+      "desc": "<p>The WASI API provides an implementation of the <a href=\"https://wasi.dev/\">WebAssembly System Interface</a>\nspecification. WASI gives sandboxed WebAssembly applications access to the\nunderlying operating system via a collection of POSIX-like functions.</p>\n<pre><code class=\"language-js\">'use strict';\nconst fs = require('fs');\nconst { WASI } = require('wasi');\nconst wasi = new WASI({\n  args: process.argv,\n  env: process.env,\n  preopens: {\n    '/sandbox': '/some/real/path/that/wasm/can/access'\n  }\n});\nconst importObject = { wasi_snapshot_preview1: wasi.wasiImport };\n\n(async () => {\n  const wasm = await WebAssembly.compile(fs.readFileSync('./demo.wasm'));\n  const instance = await WebAssembly.instantiate(wasm, importObject);\n\n  wasi.start(instance);\n})();\n</code></pre>\n<p>To run the above example, create a new WebAssembly text format file named\n<code>demo.wat</code>:</p>\n<pre><code class=\"language-text\">(module\n    ;; Import the required fd_write WASI function which will write the given io vectors to stdout\n    ;; The function signature for fd_write is:\n    ;; (File Descriptor, *iovs, iovs_len, nwritten) -> Returns number of bytes written\n    (import \"wasi_snapshot_preview1\" \"fd_write\" (func $fd_write (param i32 i32 i32 i32) (result i32)))\n\n    (memory 1)\n    (export \"memory\" (memory 0))\n\n    ;; Write 'hello world\\n' to memory at an offset of 8 bytes\n    ;; Note the trailing newline which is required for the text to appear\n    (data (i32.const 8) \"hello world\\n\")\n\n    (func $main (export \"_start\")\n        ;; Creating a new io vector within linear memory\n        (i32.store (i32.const 0) (i32.const 8))  ;; iov.iov_base - This is a pointer to the start of the 'hello world\\n' string\n        (i32.store (i32.const 4) (i32.const 12))  ;; iov.iov_len - The length of the 'hello world\\n' string\n\n        (call $fd_write\n            (i32.const 1) ;; file_descriptor - 1 for stdout\n            (i32.const 0) ;; *iovs - The pointer to the iov array, which is stored at memory location 0\n            (i32.const 1) ;; iovs_len - We're printing 1 string stored in an iov - so one.\n            (i32.const 20) ;; nwritten - A place in memory to store the number of bytes written\n        )\n        drop ;; Discard the number of bytes written from the top of the stack\n    )\n)\n</code></pre>\n<p>Use <a href=\"https://github.com/WebAssembly/wabt\">wabt</a> to compile <code>.wat</code> to <code>.wasm</code></p>\n<pre><code class=\"language-console\">$ wat2wasm demo.wat\n</code></pre>\n<p>The <code>--experimental-wasi-unstable-preview1</code> and <code>--experimental-wasm-bigint</code>\nCLI arguments are needed for this example to run.</p>",
+      "classes": [
+        {
+          "textRaw": "Class: `WASI`",
+          "type": "class",
+          "name": "WASI",
+          "meta": {
+            "added": [
+              "v12.16.0"
+            ],
+            "changes": []
+          },
+          "desc": "<p>The <code>WASI</code> class provides the WASI system call API and additional convenience\nmethods for working with WASI-based applications. Each <code>WASI</code> instance\nrepresents a distinct sandbox environment. For security purposes, each <code>WASI</code>\ninstance must have its command line arguments, environment variables, and\nsandbox directory structure configured explicitly.</p>",
+          "methods": [
+            {
+              "textRaw": "`wasi.start(instance)`",
+              "type": "method",
+              "name": "start",
+              "meta": {
+                "added": [
+                  "v12.16.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`instance` {WebAssembly.Instance}",
+                      "name": "instance",
+                      "type": "WebAssembly.Instance"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Attempt to begin execution of <code>instance</code> as a WASI command by invoking its\n<code>_start()</code> export. If <code>instance</code> does not contain a <code>_start()</code> export, or if\n<code>instance</code> contains an <code>_initialize()</code> export, then an exception is thrown.</p>\n<p><code>start()</code> requires that <code>instance</code> exports a <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WebAssembly/Memory\"><code>WebAssembly.Memory</code></a> named\n<code>memory</code>. If <code>instance</code> does not have a <code>memory</code> export an exception is thrown.</p>\n<p>If <code>start()</code> is called more than once, an exception is thrown.</p>"
+            }
+          ],
+          "properties": [
+            {
+              "textRaw": "`wasiImport` {Object}",
+              "type": "Object",
+              "name": "wasiImport",
+              "meta": {
+                "added": [
+                  "v12.16.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p><code>wasiImport</code> is an object that implements the WASI system call API. This object\nshould be passed as the <code>wasi_snapshot_preview1</code> import during the instantiation\nof a <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WebAssembly/Instance\"><code>WebAssembly.Instance</code></a>.</p>"
+            }
+          ],
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`options` {Object}",
+                  "name": "options",
+                  "type": "Object",
+                  "options": [
+                    {
+                      "textRaw": "`args` {Array} An array of strings that the WebAssembly application will see as command line arguments. The first argument is the virtual path to the WASI command itself. **Default:** `[]`.",
+                      "name": "args",
+                      "type": "Array",
+                      "default": "`[]`",
+                      "desc": "An array of strings that the WebAssembly application will see as command line arguments. The first argument is the virtual path to the WASI command itself."
+                    },
+                    {
+                      "textRaw": "`env` {Object} An object similar to `process.env` that the WebAssembly application will see as its environment. **Default:** `{}`.",
+                      "name": "env",
+                      "type": "Object",
+                      "default": "`{}`",
+                      "desc": "An object similar to `process.env` that the WebAssembly application will see as its environment."
+                    },
+                    {
+                      "textRaw": "`preopens` {Object} This object represents the WebAssembly application's sandbox directory structure. The string keys of `preopens` are treated as directories within the sandbox. The corresponding values in `preopens` are the real paths to those directories on the host machine.",
+                      "name": "preopens",
+                      "type": "Object",
+                      "desc": "This object represents the WebAssembly application's sandbox directory structure. The string keys of `preopens` are treated as directories within the sandbox. The corresponding values in `preopens` are the real paths to those directories on the host machine."
+                    },
+                    {
+                      "textRaw": "`returnOnExit` {boolean} By default, WASI applications terminate the Node.js process via the `__wasi_proc_exit()` function. Setting this option to `true` causes `wasi.start()` to return the exit code rather than terminate the process. **Default:** `false`.",
+                      "name": "returnOnExit",
+                      "type": "boolean",
+                      "default": "`false`",
+                      "desc": "By default, WASI applications terminate the Node.js process via the `__wasi_proc_exit()` function. Setting this option to `true` causes `wasi.start()` to return the exit code rather than terminate the process."
+                    },
+                    {
+                      "textRaw": "`stdin` {integer} The file descriptor used as standard input in the WebAssembly application. **Default:** `0`.",
+                      "name": "stdin",
+                      "type": "integer",
+                      "default": "`0`",
+                      "desc": "The file descriptor used as standard input in the WebAssembly application."
+                    },
+                    {
+                      "textRaw": "`stdout` {integer} The file descriptor used as standard output in the WebAssembly application. **Default:** `1`.",
+                      "name": "stdout",
+                      "type": "integer",
+                      "default": "`1`",
+                      "desc": "The file descriptor used as standard output in the WebAssembly application."
+                    },
+                    {
+                      "textRaw": "`stderr` {integer} The file descriptor used as standard error in the WebAssembly application. **Default:** `2`.",
+                      "name": "stderr",
+                      "type": "integer",
+                      "default": "`2`",
+                      "desc": "The file descriptor used as standard error in the WebAssembly application."
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "type": "module",
+      "displayName": "WebAssembly System Interface (WASI)"
+    }
+  ]
+}

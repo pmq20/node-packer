@@ -34,10 +34,12 @@ jobs:
         shell: cmd
       - name: "[Enclose.IO] Set up Ruby"
         uses: ruby/setup-ruby@v1
+      - name: "[Enclose.IO] Install rubocop"
+        run: gem install rubocop
+      - name: "[Enclose.IO] Run rubocop"
+        run: rubocop
       - name: "[Enclose.IO] Install dependencies"
         run: bundle install
-      - name: "[Enclose.IO] Run rubocop"
-        run: bundle exec rubocop
       - name: "[Enclose.IO] Inspect Windows Environment"
         run: |
           call "C:\Program Files (x86)\Microsoft Visual Studio\${{ matrix.vs }}\Enterprise\VC\Auxiliary\Build\vcvars64.bat"

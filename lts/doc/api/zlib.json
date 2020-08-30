@@ -1,0 +1,2207 @@
+{
+  "type": "module",
+  "source": "doc/api/zlib.md",
+  "modules": [
+    {
+      "textRaw": "Zlib",
+      "name": "zlib",
+      "introduced_in": "v0.10.0",
+      "stability": 2,
+      "stabilityText": "Stable",
+      "desc": "<p>The <code>zlib</code> module provides compression functionality implemented using Gzip,\nDeflate/Inflate, and Brotli.</p>\n<p>To access it:</p>\n<pre><code class=\"language-js\">const zlib = require('zlib');\n</code></pre>\n<p>Compression and decompression are built around the Node.js <a href=\"stream.md\">Streams API</a>.</p>\n<p>Compressing or decompressing a stream (such as a file) can be accomplished by\npiping the source stream through a <code>zlib</code> <code>Transform</code> stream into a destination\nstream:</p>\n<pre><code class=\"language-js\">const { createGzip } = require('zlib');\nconst { pipeline } = require('stream');\nconst {\n  createReadStream,\n  createWriteStream\n} = require('fs');\n\nconst gzip = createGzip();\nconst source = createReadStream('input.txt');\nconst destination = createWriteStream('input.txt.gz');\n\npipeline(source, gzip, destination, (err) => {\n  if (err) {\n    console.error('An error occurred:', err);\n    process.exitCode = 1;\n  }\n});\n\n// Or, Promisified\n\nconst { promisify } = require('util');\nconst pipe = promisify(pipeline);\n\nasync function do_gzip(input, output) {\n  const gzip = createGzip();\n  const source = createReadStream(input);\n  const destination = createWriteStream(output);\n  await pipe(source, gzip, destination);\n}\n\ndo_gzip('input.txt', 'input.txt.gz')\n  .catch((err) => {\n    console.error('An error occurred:', err);\n    process.exitCode = 1;\n  });\n</code></pre>\n<p>It is also possible to compress or decompress data in a single step:</p>\n<pre><code class=\"language-js\">const { deflate, unzip } = require('zlib');\n\nconst input = '.................................';\ndeflate(input, (err, buffer) => {\n  if (err) {\n    console.error('An error occurred:', err);\n    process.exitCode = 1;\n  }\n  console.log(buffer.toString('base64'));\n});\n\nconst buffer = Buffer.from('eJzT0yMAAGTvBe8=', 'base64');\nunzip(buffer, (err, buffer) => {\n  if (err) {\n    console.error('An error occurred:', err);\n    process.exitCode = 1;\n  }\n  console.log(buffer.toString());\n});\n\n// Or, Promisified\n\nconst { promisify } = require('util');\nconst do_unzip = promisify(unzip);\n\ndo_unzip(buffer)\n  .then((buf) => console.log(buf.toString()))\n  .catch((err) => {\n    console.error('An error occurred:', err);\n    process.exitCode = 1;\n  });\n</code></pre>",
+      "modules": [
+        {
+          "textRaw": "Threadpool usage and performance considerations",
+          "name": "threadpool_usage_and_performance_considerations",
+          "desc": "<p>All <code>zlib</code> APIs, except those that are explicitly synchronous, use the Node.js\ninternal threadpool. This can lead to surprising effects and performance\nlimitations in some applications.</p>\n<p>Creating and using a large number of zlib objects simultaneously can cause\nsignificant memory fragmentation.</p>\n<pre><code class=\"language-js\">const zlib = require('zlib');\n\nconst payload = Buffer.from('This is some data');\n\n// WARNING: DO NOT DO THIS!\nfor (let i = 0; i &#x3C; 30000; ++i) {\n  zlib.deflate(payload, (err, buffer) => {});\n}\n</code></pre>\n<p>In the preceding example, 30,000 deflate instances are created concurrently.\nBecause of how some operating systems handle memory allocation and\ndeallocation, this may lead to to significant memory fragmentation.</p>\n<p>It is strongly recommended that the results of compression\noperations be cached to avoid duplication of effort.</p>",
+          "type": "module",
+          "displayName": "Threadpool usage and performance considerations"
+        },
+        {
+          "textRaw": "Compressing HTTP requests and responses",
+          "name": "compressing_http_requests_and_responses",
+          "desc": "<p>The <code>zlib</code> module can be used to implement support for the <code>gzip</code>, <code>deflate</code>\nand <code>br</code> content-encoding mechanisms defined by\n<a href=\"https://tools.ietf.org/html/rfc7230#section-4.2\">HTTP</a>.</p>\n<p>The HTTP <a href=\"https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.3\"><code>Accept-Encoding</code></a> header is used within an http request to identify\nthe compression encodings accepted by the client. The <a href=\"https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.11\"><code>Content-Encoding</code></a>\nheader is used to identify the compression encodings actually applied to a\nmessage.</p>\n<p>The examples given below are drastically simplified to show the basic concept.\nUsing <code>zlib</code> encoding can be expensive, and the results ought to be cached.\nSee <a href=\"#zlib_memory_usage_tuning\">Memory usage tuning</a> for more information on the speed/memory/compression\ntradeoffs involved in <code>zlib</code> usage.</p>\n<pre><code class=\"language-js\">// Client request example\nconst zlib = require('zlib');\nconst http = require('http');\nconst fs = require('fs');\nconst { pipeline } = require('stream');\n\nconst request = http.get({ host: 'example.com',\n                           path: '/',\n                           port: 80,\n                           headers: { 'Accept-Encoding': 'br,gzip,deflate' } });\nrequest.on('response', (response) => {\n  const output = fs.createWriteStream('example.com_index.html');\n\n  const onError = (err) => {\n    if (err) {\n      console.error('An error occurred:', err);\n      process.exitCode = 1;\n    }\n  };\n\n  switch (response.headers['content-encoding']) {\n    case 'br':\n      pipeline(response, zlib.createBrotliDecompress(), output, onError);\n      break;\n    // Or, just use zlib.createUnzip() to handle both of the following cases:\n    case 'gzip':\n      pipeline(response, zlib.createGunzip(), output, onError);\n      break;\n    case 'deflate':\n      pipeline(response, zlib.createInflate(), output, onError);\n      break;\n    default:\n      pipeline(response, output, onError);\n      break;\n  }\n});\n</code></pre>\n<pre><code class=\"language-js\">// server example\n// Running a gzip operation on every request is quite expensive.\n// It would be much more efficient to cache the compressed buffer.\nconst zlib = require('zlib');\nconst http = require('http');\nconst fs = require('fs');\nconst { pipeline } = require('stream');\n\nhttp.createServer((request, response) => {\n  const raw = fs.createReadStream('index.html');\n  // Store both a compressed and an uncompressed version of the resource.\n  response.setHeader('Vary', 'Accept-Encoding');\n  let acceptEncoding = request.headers['accept-encoding'];\n  if (!acceptEncoding) {\n    acceptEncoding = '';\n  }\n\n  const onError = (err) => {\n    if (err) {\n      // If an error occurs, there's not much we can do because\n      // the server has already sent the 200 response code and\n      // some amount of data has already been sent to the client.\n      // The best we can do is terminate the response immediately\n      // and log the error.\n      response.end();\n      console.error('An error occurred:', err);\n    }\n  };\n\n  // Note: This is not a conformant accept-encoding parser.\n  // See https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.3\n  if (/\\bdeflate\\b/.test(acceptEncoding)) {\n    response.writeHead(200, { 'Content-Encoding': 'deflate' });\n    pipeline(raw, zlib.createDeflate(), response, onError);\n  } else if (/\\bgzip\\b/.test(acceptEncoding)) {\n    response.writeHead(200, { 'Content-Encoding': 'gzip' });\n    pipeline(raw, zlib.createGzip(), response, onError);\n  } else if (/\\bbr\\b/.test(acceptEncoding)) {\n    response.writeHead(200, { 'Content-Encoding': 'br' });\n    pipeline(raw, zlib.createBrotliCompress(), response, onError);\n  } else {\n    response.writeHead(200, {});\n    pipeline(raw, response, onError);\n  }\n}).listen(1337);\n</code></pre>\n<p>By default, the <code>zlib</code> methods will throw an error when decompressing\ntruncated data. However, if it is known that the data is incomplete, or\nthe desire is to inspect only the beginning of a compressed file, it is\npossible to suppress the default error handling by changing the flushing\nmethod that is used to decompress the last chunk of input data:</p>\n<pre><code class=\"language-js\">// This is a truncated version of the buffer from the above examples\nconst buffer = Buffer.from('eJzT0yMA', 'base64');\n\nzlib.unzip(\n  buffer,\n  // For Brotli, the equivalent is zlib.constants.BROTLI_OPERATION_FLUSH.\n  { finishFlush: zlib.constants.Z_SYNC_FLUSH },\n  (err, buffer) => {\n    if (err) {\n      console.error('An error occurred:', err);\n      process.exitCode = 1;\n    }\n    console.log(buffer.toString());\n  });\n</code></pre>\n<p>This will not change the behavior in other error-throwing situations, e.g.\nwhen the input data has an invalid format. Using this method, it will not be\npossible to determine whether the input ended prematurely or lacks the\nintegrity checks, making it necessary to manually check that the\ndecompressed result is valid.</p>",
+          "type": "module",
+          "displayName": "Compressing HTTP requests and responses"
+        },
+        {
+          "textRaw": "Flushing",
+          "name": "flushing",
+          "desc": "<p>Calling <a href=\"#zlib_zlib_flush_kind_callback\"><code>.flush()</code></a> on a compression stream will make <code>zlib</code> return as much\noutput as currently possible. This may come at the cost of degraded compression\nquality, but can be useful when data needs to be available as soon as possible.</p>\n<p>In the following example, <code>flush()</code> is used to write a compressed partial\nHTTP response to the client:</p>\n<pre><code class=\"language-js\">const zlib = require('zlib');\nconst http = require('http');\nconst { pipeline } = require('stream');\n\nhttp.createServer((request, response) => {\n  // For the sake of simplicity, the Accept-Encoding checks are omitted.\n  response.writeHead(200, { 'content-encoding': 'gzip' });\n  const output = zlib.createGzip();\n  let i;\n\n  pipeline(output, response, (err) => {\n    if (err) {\n      // If an error occurs, there's not much we can do because\n      // the server has already sent the 200 response code and\n      // some amount of data has already been sent to the client.\n      // The best we can do is terminate the response immediately\n      // and log the error.\n      clearInterval(i);\n      response.end();\n      console.error('An error occurred:', err);\n    }\n  });\n\n  i = setInterval(() => {\n    output.write(`The current time is ${Date()}\\n`, () => {\n      // The data has been passed to zlib, but the compression algorithm may\n      // have decided to buffer the data for more efficient compression.\n      // Calling .flush() will make the data available as soon as the client\n      // is ready to receive it.\n      output.flush();\n    });\n  }, 1000);\n}).listen(1337);\n</code></pre>",
+          "type": "module",
+          "displayName": "Flushing"
+        }
+      ],
+      "miscs": [
+        {
+          "textRaw": "Memory usage tuning",
+          "name": "Memory usage tuning",
+          "type": "misc",
+          "miscs": [
+            {
+              "textRaw": "For zlib-based streams",
+              "name": "for_zlib-based_streams",
+              "desc": "<p>From <code>zlib/zconf.h</code>, modified for Node.js usage:</p>\n<p>The memory requirements for deflate are (in bytes):</p>\n<!-- eslint-disable semi -->\n<pre><code class=\"language-js\">(1 &#x3C;&#x3C; (windowBits + 2)) + (1 &#x3C;&#x3C; (memLevel + 9))\n</code></pre>\n<p>That is: 128K for <code>windowBits</code> = 15 + 128K for <code>memLevel</code> = 8\n(default values) plus a few kilobytes for small objects.</p>\n<p>For example, to reduce the default memory requirements from 256K to 128K, the\noptions should be set to:</p>\n<pre><code class=\"language-js\">const options = { windowBits: 14, memLevel: 7 };\n</code></pre>\n<p>This will, however, generally degrade compression.</p>\n<p>The memory requirements for inflate are (in bytes) <code>1 &#x3C;&#x3C; windowBits</code>.\nThat is, 32K for <code>windowBits</code> = 15 (default value) plus a few kilobytes\nfor small objects.</p>\n<p>This is in addition to a single internal output slab buffer of size\n<code>chunkSize</code>, which defaults to 16K.</p>\n<p>The speed of <code>zlib</code> compression is affected most dramatically by the\n<code>level</code> setting. A higher level will result in better compression, but\nwill take longer to complete. A lower level will result in less\ncompression, but will be much faster.</p>\n<p>In general, greater memory usage options will mean that Node.js has to make\nfewer calls to <code>zlib</code> because it will be able to process more data on\neach <code>write</code> operation. So, this is another factor that affects the\nspeed, at the cost of memory usage.</p>",
+              "type": "misc",
+              "displayName": "For zlib-based streams"
+            },
+            {
+              "textRaw": "For Brotli-based streams",
+              "name": "for_brotli-based_streams",
+              "desc": "<p>There are equivalents to the zlib options for Brotli-based streams, although\nthese options have different ranges than the zlib ones:</p>\n<ul>\n<li>zlib’s <code>level</code> option matches Brotli’s <code>BROTLI_PARAM_QUALITY</code> option.</li>\n<li>zlib’s <code>windowBits</code> option matches Brotli’s <code>BROTLI_PARAM_LGWIN</code> option.</li>\n</ul>\n<p>See <a href=\"#zlib_brotli_constants\">below</a> for more details on Brotli-specific options.</p>",
+              "type": "misc",
+              "displayName": "For Brotli-based streams"
+            }
+          ]
+        },
+        {
+          "textRaw": "Constants",
+          "name": "Constants",
+          "meta": {
+            "added": [
+              "v0.5.8"
+            ],
+            "changes": []
+          },
+          "type": "misc",
+          "miscs": [
+            {
+              "textRaw": "zlib constants",
+              "name": "zlib_constants",
+              "desc": "<p>All of the constants defined in <code>zlib.h</code> are also defined on\n<code>require('zlib').constants</code>. In the normal course of operations, it will not be\nnecessary to use these constants. They are documented so that their presence is\nnot surprising. This section is taken almost directly from the\n<a href=\"https://zlib.net/manual.html#Constants\">zlib documentation</a>.</p>\n<p>Previously, the constants were available directly from <code>require('zlib')</code>, for\ninstance <code>zlib.Z_NO_FLUSH</code>. Accessing the constants directly from the module is\ncurrently still possible but is deprecated.</p>\n<p>Allowed flush values.</p>\n<ul>\n<li><code>zlib.constants.Z_NO_FLUSH</code></li>\n<li><code>zlib.constants.Z_PARTIAL_FLUSH</code></li>\n<li><code>zlib.constants.Z_SYNC_FLUSH</code></li>\n<li><code>zlib.constants.Z_FULL_FLUSH</code></li>\n<li><code>zlib.constants.Z_FINISH</code></li>\n<li><code>zlib.constants.Z_BLOCK</code></li>\n<li><code>zlib.constants.Z_TREES</code></li>\n</ul>\n<p>Return codes for the compression/decompression functions. Negative\nvalues are errors, positive values are used for special but normal\nevents.</p>\n<ul>\n<li><code>zlib.constants.Z_OK</code></li>\n<li><code>zlib.constants.Z_STREAM_END</code></li>\n<li><code>zlib.constants.Z_NEED_DICT</code></li>\n<li><code>zlib.constants.Z_ERRNO</code></li>\n<li><code>zlib.constants.Z_STREAM_ERROR</code></li>\n<li><code>zlib.constants.Z_DATA_ERROR</code></li>\n<li><code>zlib.constants.Z_MEM_ERROR</code></li>\n<li><code>zlib.constants.Z_BUF_ERROR</code></li>\n<li><code>zlib.constants.Z_VERSION_ERROR</code></li>\n</ul>\n<p>Compression levels.</p>\n<ul>\n<li><code>zlib.constants.Z_NO_COMPRESSION</code></li>\n<li><code>zlib.constants.Z_BEST_SPEED</code></li>\n<li><code>zlib.constants.Z_BEST_COMPRESSION</code></li>\n<li><code>zlib.constants.Z_DEFAULT_COMPRESSION</code></li>\n</ul>\n<p>Compression strategy.</p>\n<ul>\n<li><code>zlib.constants.Z_FILTERED</code></li>\n<li><code>zlib.constants.Z_HUFFMAN_ONLY</code></li>\n<li><code>zlib.constants.Z_RLE</code></li>\n<li><code>zlib.constants.Z_FIXED</code></li>\n<li><code>zlib.constants.Z_DEFAULT_STRATEGY</code></li>\n</ul>",
+              "type": "misc",
+              "displayName": "zlib constants"
+            },
+            {
+              "textRaw": "Brotli constants",
+              "name": "brotli_constants",
+              "meta": {
+                "added": [
+                  "v11.7.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>There are several options and other constants available for Brotli-based\nstreams:</p>",
+              "modules": [
+                {
+                  "textRaw": "Flush operations",
+                  "name": "flush_operations",
+                  "desc": "<p>The following values are valid flush operations for Brotli-based streams:</p>\n<ul>\n<li><code>zlib.constants.BROTLI_OPERATION_PROCESS</code> (default for all operations)</li>\n<li><code>zlib.constants.BROTLI_OPERATION_FLUSH</code> (default when calling <code>.flush()</code>)</li>\n<li><code>zlib.constants.BROTLI_OPERATION_FINISH</code> (default for the last chunk)</li>\n<li>\n<p><code>zlib.constants.BROTLI_OPERATION_EMIT_METADATA</code></p>\n<ul>\n<li>This particular operation may be hard to use in a Node.js context,\nas the streaming layer makes it hard to know which data will end up\nin this frame. Also, there is currently no way to consume this data through\nthe Node.js API.</li>\n</ul>\n</li>\n</ul>",
+                  "type": "module",
+                  "displayName": "Flush operations"
+                },
+                {
+                  "textRaw": "Compressor options",
+                  "name": "compressor_options",
+                  "desc": "<p>There are several options that can be set on Brotli encoders, affecting\ncompression efficiency and speed. Both the keys and the values can be accessed\nas properties of the <code>zlib.constants</code> object.</p>\n<p>The most important options are:</p>\n<ul>\n<li>\n<p><code>BROTLI_PARAM_MODE</code></p>\n<ul>\n<li><code>BROTLI_MODE_GENERIC</code> (default)</li>\n<li><code>BROTLI_MODE_TEXT</code>, adjusted for UTF-8 text</li>\n<li><code>BROTLI_MODE_FONT</code>, adjusted for WOFF 2.0 fonts</li>\n</ul>\n</li>\n<li>\n<p><code>BROTLI_PARAM_QUALITY</code></p>\n<ul>\n<li>Ranges from <code>BROTLI_MIN_QUALITY</code> to <code>BROTLI_MAX_QUALITY</code>,\nwith a default of <code>BROTLI_DEFAULT_QUALITY</code>.</li>\n</ul>\n</li>\n<li>\n<p><code>BROTLI_PARAM_SIZE_HINT</code></p>\n<ul>\n<li>Integer value representing the expected input size;\ndefaults to <code>0</code> for an unknown input size.</li>\n</ul>\n</li>\n</ul>\n<p>The following flags can be set for advanced control over the compression\nalgorithm and memory usage tuning:</p>\n<ul>\n<li>\n<p><code>BROTLI_PARAM_LGWIN</code></p>\n<ul>\n<li>Ranges from <code>BROTLI_MIN_WINDOW_BITS</code> to <code>BROTLI_MAX_WINDOW_BITS</code>,\nwith a default of <code>BROTLI_DEFAULT_WINDOW</code>, or up to\n<code>BROTLI_LARGE_MAX_WINDOW_BITS</code> if the <code>BROTLI_PARAM_LARGE_WINDOW</code> flag\nis set.</li>\n</ul>\n</li>\n<li>\n<p><code>BROTLI_PARAM_LGBLOCK</code></p>\n<ul>\n<li>Ranges from <code>BROTLI_MIN_INPUT_BLOCK_BITS</code> to <code>BROTLI_MAX_INPUT_BLOCK_BITS</code>.</li>\n</ul>\n</li>\n<li>\n<p><code>BROTLI_PARAM_DISABLE_LITERAL_CONTEXT_MODELING</code></p>\n<ul>\n<li>Boolean flag that decreases compression ratio in favour of\ndecompression speed.</li>\n</ul>\n</li>\n<li>\n<p><code>BROTLI_PARAM_LARGE_WINDOW</code></p>\n<ul>\n<li>Boolean flag enabling “Large Window Brotli” mode (not compatible with the\nBrotli format as standardized in <a href=\"https://www.rfc-editor.org/rfc/rfc7932.txt\">RFC 7932</a>).</li>\n</ul>\n</li>\n<li>\n<p><code>BROTLI_PARAM_NPOSTFIX</code></p>\n<ul>\n<li>Ranges from <code>0</code> to <code>BROTLI_MAX_NPOSTFIX</code>.</li>\n</ul>\n</li>\n<li>\n<p><code>BROTLI_PARAM_NDIRECT</code></p>\n<ul>\n<li>Ranges from <code>0</code> to <code>15 &#x3C;&#x3C; NPOSTFIX</code> in steps of <code>1 &#x3C;&#x3C; NPOSTFIX</code>.</li>\n</ul>\n</li>\n</ul>",
+                  "type": "module",
+                  "displayName": "Compressor options"
+                },
+                {
+                  "textRaw": "Decompressor options",
+                  "name": "decompressor_options",
+                  "desc": "<p>These advanced options are available for controlling decompression:</p>\n<ul>\n<li>\n<p><code>BROTLI_DECODER_PARAM_DISABLE_RING_BUFFER_REALLOCATION</code></p>\n<ul>\n<li>Boolean flag that affects internal memory allocation patterns.</li>\n</ul>\n</li>\n<li>\n<p><code>BROTLI_DECODER_PARAM_LARGE_WINDOW</code></p>\n<ul>\n<li>Boolean flag enabling “Large Window Brotli” mode (not compatible with the\nBrotli format as standardized in <a href=\"https://www.rfc-editor.org/rfc/rfc7932.txt\">RFC 7932</a>).</li>\n</ul>\n</li>\n</ul>",
+                  "type": "module",
+                  "displayName": "Decompressor options"
+                }
+              ],
+              "type": "misc",
+              "displayName": "Brotli constants"
+            }
+          ]
+        },
+        {
+          "textRaw": "Class: `Options`",
+          "type": "misc",
+          "name": "Options",
+          "meta": {
+            "added": [
+              "v0.11.1"
+            ],
+            "changes": [
+              {
+                "version": "v9.4.0",
+                "pr-url": "https://github.com/nodejs/node/pull/16042",
+                "description": "The `dictionary` option can be an `ArrayBuffer`."
+              },
+              {
+                "version": "v8.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/12001",
+                "description": "The `dictionary` option can be an `Uint8Array` now."
+              },
+              {
+                "version": "v5.11.0",
+                "pr-url": "https://github.com/nodejs/node/pull/6069",
+                "description": "The `finishFlush` option is supported now."
+              }
+            ]
+          },
+          "desc": "<p>Each zlib-based class takes an <code>options</code> object. No options are required.</p>\n<p>Some options are only relevant when compressing and are\nignored by the decompression classes.</p>\n<ul>\n<li><code>flush</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;integer&gt;</a> <strong>Default:</strong> <code>zlib.constants.Z_NO_FLUSH</code></li>\n<li><code>finishFlush</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;integer&gt;</a> <strong>Default:</strong> <code>zlib.constants.Z_FINISH</code></li>\n<li><code>chunkSize</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;integer&gt;</a> <strong>Default:</strong> <code>16 * 1024</code></li>\n<li><code>windowBits</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;integer&gt;</a></li>\n<li><code>level</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;integer&gt;</a> (compression only)</li>\n<li><code>memLevel</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;integer&gt;</a> (compression only)</li>\n<li><code>strategy</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;integer&gt;</a> (compression only)</li>\n<li><code>dictionary</code> <a href=\"buffer.html#buffer_class_buffer\" class=\"type\">&lt;Buffer&gt;</a> | <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray\" class=\"type\">&lt;TypedArray&gt;</a> | <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView\" class=\"type\">&lt;DataView&gt;</a> | <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer\" class=\"type\">&lt;ArrayBuffer&gt;</a> (deflate/inflate only,\nempty dictionary by default)</li>\n<li><code>info</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type\" class=\"type\">&lt;boolean&gt;</a> (If <code>true</code>, returns an object with <code>buffer</code> and <code>engine</code>.)</li>\n</ul>\n<p>See the <a href=\"https://zlib.net/manual.html#Advanced\"><code>deflateInit2</code> and <code>inflateInit2</code></a> documentation for more\ninformation.</p>"
+        },
+        {
+          "textRaw": "Class: `BrotliOptions`",
+          "type": "misc",
+          "name": "BrotliOptions",
+          "meta": {
+            "added": [
+              "v11.7.0"
+            ],
+            "changes": []
+          },
+          "desc": "<p>Each Brotli-based class takes an <code>options</code> object. All options are optional.</p>\n<ul>\n<li><code>flush</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;integer&gt;</a> <strong>Default:</strong> <code>zlib.constants.BROTLI_OPERATION_PROCESS</code></li>\n<li><code>finishFlush</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;integer&gt;</a> <strong>Default:</strong> <code>zlib.constants.BROTLI_OPERATION_FINISH</code></li>\n<li><code>chunkSize</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;integer&gt;</a> <strong>Default:</strong> <code>16 * 1024</code></li>\n<li><code>params</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object\" class=\"type\">&lt;Object&gt;</a> Key-value object containing indexed <a href=\"#zlib_brotli_constants\">Brotli parameters</a>.</li>\n</ul>\n<p>For example:</p>\n<pre><code class=\"language-js\">const stream = zlib.createBrotliCompress({\n  chunkSize: 32 * 1024,\n  params: {\n    [zlib.constants.BROTLI_PARAM_MODE]: zlib.constants.BROTLI_MODE_TEXT,\n    [zlib.constants.BROTLI_PARAM_QUALITY]: 4,\n    [zlib.constants.BROTLI_PARAM_SIZE_HINT]: fs.statSync(inputFile).size\n  }\n});\n</code></pre>"
+        },
+        {
+          "textRaw": "Convenience methods",
+          "name": "Convenience methods",
+          "type": "misc",
+          "desc": "<p>All of these take a <a href=\"buffer.html#buffer_class_buffer\"><code>Buffer</code></a>, <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray\"><code>TypedArray</code></a>, <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView\"><code>DataView</code></a>,\n<a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer\"><code>ArrayBuffer</code></a> or string as the first argument, an optional second argument\nto supply options to the <code>zlib</code> classes and will call the supplied callback\nwith <code>callback(error, result)</code>.</p>\n<p>Every method has a <code>*Sync</code> counterpart, which accept the same arguments, but\nwithout a callback.</p>",
+          "methods": [
+            {
+              "textRaw": "`zlib.brotliCompress(buffer[, options], callback)`",
+              "type": "method",
+              "name": "brotliCompress",
+              "meta": {
+                "added": [
+                  "v11.7.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
+                      "name": "buffer",
+                      "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
+                    },
+                    {
+                      "textRaw": "`options` {brotli options}",
+                      "name": "options",
+                      "type": "brotli options"
+                    },
+                    {
+                      "textRaw": "`callback` {Function}",
+                      "name": "callback",
+                      "type": "Function"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "textRaw": "`zlib.brotliCompressSync(buffer[, options])`",
+              "type": "method",
+              "name": "brotliCompressSync",
+              "meta": {
+                "added": [
+                  "v11.7.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
+                      "name": "buffer",
+                      "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
+                    },
+                    {
+                      "textRaw": "`options` {brotli options}",
+                      "name": "options",
+                      "type": "brotli options"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Compress a chunk of data with <a href=\"#zlib_class_zlib_brotlicompress\"><code>BrotliCompress</code></a>.</p>"
+            },
+            {
+              "textRaw": "`zlib.brotliDecompress(buffer[, options], callback)`",
+              "type": "method",
+              "name": "brotliDecompress",
+              "meta": {
+                "added": [
+                  "v11.7.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
+                      "name": "buffer",
+                      "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
+                    },
+                    {
+                      "textRaw": "`options` {brotli options}",
+                      "name": "options",
+                      "type": "brotli options"
+                    },
+                    {
+                      "textRaw": "`callback` {Function}",
+                      "name": "callback",
+                      "type": "Function"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "textRaw": "`zlib.brotliDecompressSync(buffer[, options])`",
+              "type": "method",
+              "name": "brotliDecompressSync",
+              "meta": {
+                "added": [
+                  "v11.7.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
+                      "name": "buffer",
+                      "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
+                    },
+                    {
+                      "textRaw": "`options` {brotli options}",
+                      "name": "options",
+                      "type": "brotli options"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Decompress a chunk of data with <a href=\"#zlib_class_zlib_brotlidecompress\"><code>BrotliDecompress</code></a>.</p>"
+            },
+            {
+              "textRaw": "`zlib.deflate(buffer[, options], callback)`",
+              "type": "method",
+              "name": "deflate",
+              "meta": {
+                "added": [
+                  "v0.6.0"
+                ],
+                "changes": [
+                  {
+                    "version": "v9.4.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/16042",
+                    "description": "The `buffer` parameter can be an `ArrayBuffer`."
+                  },
+                  {
+                    "version": "v8.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/12223",
+                    "description": "The `buffer` parameter can be any `TypedArray` or `DataView`."
+                  },
+                  {
+                    "version": "v8.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/12001",
+                    "description": "The `buffer` parameter can be an `Uint8Array` now."
+                  }
+                ]
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
+                      "name": "buffer",
+                      "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
+                    },
+                    {
+                      "textRaw": "`options` {zlib options}",
+                      "name": "options",
+                      "type": "zlib options"
+                    },
+                    {
+                      "textRaw": "`callback` {Function}",
+                      "name": "callback",
+                      "type": "Function"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "textRaw": "`zlib.deflateSync(buffer[, options])`",
+              "type": "method",
+              "name": "deflateSync",
+              "meta": {
+                "added": [
+                  "v0.11.12"
+                ],
+                "changes": [
+                  {
+                    "version": "v9.4.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/16042",
+                    "description": "The `buffer` parameter can be an `ArrayBuffer`."
+                  },
+                  {
+                    "version": "v8.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/12223",
+                    "description": "The `buffer` parameter can be any `TypedArray` or `DataView`."
+                  },
+                  {
+                    "version": "v8.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/12001",
+                    "description": "The `buffer` parameter can be an `Uint8Array` now."
+                  }
+                ]
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
+                      "name": "buffer",
+                      "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
+                    },
+                    {
+                      "textRaw": "`options` {zlib options}",
+                      "name": "options",
+                      "type": "zlib options"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Compress a chunk of data with <a href=\"#zlib_class_zlib_deflate\"><code>Deflate</code></a>.</p>"
+            },
+            {
+              "textRaw": "`zlib.deflateRaw(buffer[, options], callback)`",
+              "type": "method",
+              "name": "deflateRaw",
+              "meta": {
+                "added": [
+                  "v0.6.0"
+                ],
+                "changes": [
+                  {
+                    "version": "v8.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/12223",
+                    "description": "The `buffer` parameter can be any `TypedArray` or `DataView`."
+                  },
+                  {
+                    "version": "v8.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/12001",
+                    "description": "The `buffer` parameter can be an `Uint8Array` now."
+                  }
+                ]
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
+                      "name": "buffer",
+                      "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
+                    },
+                    {
+                      "textRaw": "`options` {zlib options}",
+                      "name": "options",
+                      "type": "zlib options"
+                    },
+                    {
+                      "textRaw": "`callback` {Function}",
+                      "name": "callback",
+                      "type": "Function"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "textRaw": "`zlib.deflateRawSync(buffer[, options])`",
+              "type": "method",
+              "name": "deflateRawSync",
+              "meta": {
+                "added": [
+                  "v0.11.12"
+                ],
+                "changes": [
+                  {
+                    "version": "v9.4.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/16042",
+                    "description": "The `buffer` parameter can be an `ArrayBuffer`."
+                  },
+                  {
+                    "version": "v8.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/12223",
+                    "description": "The `buffer` parameter can be any `TypedArray` or `DataView`."
+                  },
+                  {
+                    "version": "v8.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/12001",
+                    "description": "The `buffer` parameter can be an `Uint8Array` now."
+                  }
+                ]
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
+                      "name": "buffer",
+                      "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
+                    },
+                    {
+                      "textRaw": "`options` {zlib options}",
+                      "name": "options",
+                      "type": "zlib options"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Compress a chunk of data with <a href=\"#zlib_class_zlib_deflateraw\"><code>DeflateRaw</code></a>.</p>"
+            },
+            {
+              "textRaw": "`zlib.gunzip(buffer[, options], callback)`",
+              "type": "method",
+              "name": "gunzip",
+              "meta": {
+                "added": [
+                  "v0.6.0"
+                ],
+                "changes": [
+                  {
+                    "version": "v9.4.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/16042",
+                    "description": "The `buffer` parameter can be an `ArrayBuffer`."
+                  },
+                  {
+                    "version": "v8.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/12223",
+                    "description": "The `buffer` parameter can be any `TypedArray` or `DataView`."
+                  },
+                  {
+                    "version": "v8.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/12001",
+                    "description": "The `buffer` parameter can be an `Uint8Array` now."
+                  }
+                ]
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
+                      "name": "buffer",
+                      "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
+                    },
+                    {
+                      "textRaw": "`options` {zlib options}",
+                      "name": "options",
+                      "type": "zlib options"
+                    },
+                    {
+                      "textRaw": "`callback` {Function}",
+                      "name": "callback",
+                      "type": "Function"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "textRaw": "`zlib.gunzipSync(buffer[, options])`",
+              "type": "method",
+              "name": "gunzipSync",
+              "meta": {
+                "added": [
+                  "v0.11.12"
+                ],
+                "changes": [
+                  {
+                    "version": "v9.4.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/16042",
+                    "description": "The `buffer` parameter can be an `ArrayBuffer`."
+                  },
+                  {
+                    "version": "v8.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/12223",
+                    "description": "The `buffer` parameter can be any `TypedArray` or `DataView`."
+                  },
+                  {
+                    "version": "v8.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/12001",
+                    "description": "The `buffer` parameter can be an `Uint8Array` now."
+                  }
+                ]
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
+                      "name": "buffer",
+                      "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
+                    },
+                    {
+                      "textRaw": "`options` {zlib options}",
+                      "name": "options",
+                      "type": "zlib options"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Decompress a chunk of data with <a href=\"#zlib_class_zlib_gunzip\"><code>Gunzip</code></a>.</p>"
+            },
+            {
+              "textRaw": "`zlib.gzip(buffer[, options], callback)`",
+              "type": "method",
+              "name": "gzip",
+              "meta": {
+                "added": [
+                  "v0.6.0"
+                ],
+                "changes": [
+                  {
+                    "version": "v9.4.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/16042",
+                    "description": "The `buffer` parameter can be an `ArrayBuffer`."
+                  },
+                  {
+                    "version": "v8.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/12223",
+                    "description": "The `buffer` parameter can be any `TypedArray` or `DataView`."
+                  },
+                  {
+                    "version": "v8.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/12001",
+                    "description": "The `buffer` parameter can be an `Uint8Array` now."
+                  }
+                ]
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
+                      "name": "buffer",
+                      "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
+                    },
+                    {
+                      "textRaw": "`options` {zlib options}",
+                      "name": "options",
+                      "type": "zlib options"
+                    },
+                    {
+                      "textRaw": "`callback` {Function}",
+                      "name": "callback",
+                      "type": "Function"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "textRaw": "`zlib.gzipSync(buffer[, options])`",
+              "type": "method",
+              "name": "gzipSync",
+              "meta": {
+                "added": [
+                  "v0.11.12"
+                ],
+                "changes": [
+                  {
+                    "version": "v9.4.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/16042",
+                    "description": "The `buffer` parameter can be an `ArrayBuffer`."
+                  },
+                  {
+                    "version": "v8.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/12223",
+                    "description": "The `buffer` parameter can be any `TypedArray` or `DataView`."
+                  },
+                  {
+                    "version": "v8.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/12001",
+                    "description": "The `buffer` parameter can be an `Uint8Array` now."
+                  }
+                ]
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
+                      "name": "buffer",
+                      "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
+                    },
+                    {
+                      "textRaw": "`options` {zlib options}",
+                      "name": "options",
+                      "type": "zlib options"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Compress a chunk of data with <a href=\"#zlib_class_zlib_gzip\"><code>Gzip</code></a>.</p>"
+            },
+            {
+              "textRaw": "`zlib.inflate(buffer[, options], callback)`",
+              "type": "method",
+              "name": "inflate",
+              "meta": {
+                "added": [
+                  "v0.6.0"
+                ],
+                "changes": [
+                  {
+                    "version": "v9.4.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/16042",
+                    "description": "The `buffer` parameter can be an `ArrayBuffer`."
+                  },
+                  {
+                    "version": "v8.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/12223",
+                    "description": "The `buffer` parameter can be any `TypedArray` or `DataView`."
+                  },
+                  {
+                    "version": "v8.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/12001",
+                    "description": "The `buffer` parameter can be an `Uint8Array` now."
+                  }
+                ]
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
+                      "name": "buffer",
+                      "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
+                    },
+                    {
+                      "textRaw": "`options` {zlib options}",
+                      "name": "options",
+                      "type": "zlib options"
+                    },
+                    {
+                      "textRaw": "`callback` {Function}",
+                      "name": "callback",
+                      "type": "Function"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "textRaw": "`zlib.inflateSync(buffer[, options])`",
+              "type": "method",
+              "name": "inflateSync",
+              "meta": {
+                "added": [
+                  "v0.11.12"
+                ],
+                "changes": [
+                  {
+                    "version": "v9.4.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/16042",
+                    "description": "The `buffer` parameter can be an `ArrayBuffer`."
+                  },
+                  {
+                    "version": "v8.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/12223",
+                    "description": "The `buffer` parameter can be any `TypedArray` or `DataView`."
+                  },
+                  {
+                    "version": "v8.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/12001",
+                    "description": "The `buffer` parameter can be an `Uint8Array` now."
+                  }
+                ]
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
+                      "name": "buffer",
+                      "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
+                    },
+                    {
+                      "textRaw": "`options` {zlib options}",
+                      "name": "options",
+                      "type": "zlib options"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Decompress a chunk of data with <a href=\"#zlib_class_zlib_inflate\"><code>Inflate</code></a>.</p>"
+            },
+            {
+              "textRaw": "`zlib.inflateRaw(buffer[, options], callback)`",
+              "type": "method",
+              "name": "inflateRaw",
+              "meta": {
+                "added": [
+                  "v0.6.0"
+                ],
+                "changes": [
+                  {
+                    "version": "v9.4.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/16042",
+                    "description": "The `buffer` parameter can be an `ArrayBuffer`."
+                  },
+                  {
+                    "version": "v8.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/12223",
+                    "description": "The `buffer` parameter can be any `TypedArray` or `DataView`."
+                  },
+                  {
+                    "version": "v8.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/12001",
+                    "description": "The `buffer` parameter can be an `Uint8Array` now."
+                  }
+                ]
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
+                      "name": "buffer",
+                      "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
+                    },
+                    {
+                      "textRaw": "`options` {zlib options}",
+                      "name": "options",
+                      "type": "zlib options"
+                    },
+                    {
+                      "textRaw": "`callback` {Function}",
+                      "name": "callback",
+                      "type": "Function"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "textRaw": "`zlib.inflateRawSync(buffer[, options])`",
+              "type": "method",
+              "name": "inflateRawSync",
+              "meta": {
+                "added": [
+                  "v0.11.12"
+                ],
+                "changes": [
+                  {
+                    "version": "v9.4.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/16042",
+                    "description": "The `buffer` parameter can be an `ArrayBuffer`."
+                  },
+                  {
+                    "version": "v8.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/12223",
+                    "description": "The `buffer` parameter can be any `TypedArray` or `DataView`."
+                  },
+                  {
+                    "version": "v8.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/12001",
+                    "description": "The `buffer` parameter can be an `Uint8Array` now."
+                  }
+                ]
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
+                      "name": "buffer",
+                      "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
+                    },
+                    {
+                      "textRaw": "`options` {zlib options}",
+                      "name": "options",
+                      "type": "zlib options"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Decompress a chunk of data with <a href=\"#zlib_class_zlib_inflateraw\"><code>InflateRaw</code></a>.</p>"
+            },
+            {
+              "textRaw": "`zlib.unzip(buffer[, options], callback)`",
+              "type": "method",
+              "name": "unzip",
+              "meta": {
+                "added": [
+                  "v0.6.0"
+                ],
+                "changes": [
+                  {
+                    "version": "v9.4.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/16042",
+                    "description": "The `buffer` parameter can be an `ArrayBuffer`."
+                  },
+                  {
+                    "version": "v8.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/12223",
+                    "description": "The `buffer` parameter can be any `TypedArray` or `DataView`."
+                  },
+                  {
+                    "version": "v8.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/12001",
+                    "description": "The `buffer` parameter can be an `Uint8Array` now."
+                  }
+                ]
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
+                      "name": "buffer",
+                      "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
+                    },
+                    {
+                      "textRaw": "`options` {zlib options}",
+                      "name": "options",
+                      "type": "zlib options"
+                    },
+                    {
+                      "textRaw": "`callback` {Function}",
+                      "name": "callback",
+                      "type": "Function"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "textRaw": "`zlib.unzipSync(buffer[, options])`",
+              "type": "method",
+              "name": "unzipSync",
+              "meta": {
+                "added": [
+                  "v0.11.12"
+                ],
+                "changes": [
+                  {
+                    "version": "v9.4.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/16042",
+                    "description": "The `buffer` parameter can be an `ArrayBuffer`."
+                  },
+                  {
+                    "version": "v8.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/12223",
+                    "description": "The `buffer` parameter can be any `TypedArray` or `DataView`."
+                  },
+                  {
+                    "version": "v8.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/12001",
+                    "description": "The `buffer` parameter can be an `Uint8Array` now."
+                  }
+                ]
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
+                      "name": "buffer",
+                      "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
+                    },
+                    {
+                      "textRaw": "`options` {zlib options}",
+                      "name": "options",
+                      "type": "zlib options"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Decompress a chunk of data with <a href=\"#zlib_class_zlib_unzip\"><code>Unzip</code></a>.</p>"
+            }
+          ]
+        }
+      ],
+      "meta": {
+        "added": [
+          "v0.5.8"
+        ],
+        "changes": []
+      },
+      "classes": [
+        {
+          "textRaw": "Class: `zlib.BrotliCompress`",
+          "type": "class",
+          "name": "zlib.BrotliCompress",
+          "meta": {
+            "added": [
+              "v11.7.0"
+            ],
+            "changes": []
+          },
+          "desc": "<p>Compress data using the Brotli algorithm.</p>"
+        },
+        {
+          "textRaw": "Class: `zlib.BrotliDecompress`",
+          "type": "class",
+          "name": "zlib.BrotliDecompress",
+          "meta": {
+            "added": [
+              "v11.7.0"
+            ],
+            "changes": []
+          },
+          "desc": "<p>Decompress data using the Brotli algorithm.</p>"
+        },
+        {
+          "textRaw": "Class: `zlib.Deflate`",
+          "type": "class",
+          "name": "zlib.Deflate",
+          "meta": {
+            "added": [
+              "v0.5.8"
+            ],
+            "changes": []
+          },
+          "desc": "<p>Compress data using deflate.</p>"
+        },
+        {
+          "textRaw": "Class: `zlib.DeflateRaw`",
+          "type": "class",
+          "name": "zlib.DeflateRaw",
+          "meta": {
+            "added": [
+              "v0.5.8"
+            ],
+            "changes": []
+          },
+          "desc": "<p>Compress data using deflate, and do not append a <code>zlib</code> header.</p>"
+        },
+        {
+          "textRaw": "Class: `zlib.Gunzip`",
+          "type": "class",
+          "name": "zlib.Gunzip",
+          "meta": {
+            "added": [
+              "v0.5.8"
+            ],
+            "changes": [
+              {
+                "version": "v6.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/5883",
+                "description": "Trailing garbage at the end of the input stream will now result in an `'error'` event."
+              },
+              {
+                "version": "v5.9.0",
+                "pr-url": "https://github.com/nodejs/node/pull/5120",
+                "description": "Multiple concatenated gzip file members are supported now."
+              },
+              {
+                "version": "v5.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/2595",
+                "description": "A truncated input stream will now result in an `'error'` event."
+              }
+            ]
+          },
+          "desc": "<p>Decompress a gzip stream.</p>"
+        },
+        {
+          "textRaw": "Class: `zlib.Gzip`",
+          "type": "class",
+          "name": "zlib.Gzip",
+          "meta": {
+            "added": [
+              "v0.5.8"
+            ],
+            "changes": []
+          },
+          "desc": "<p>Compress data using gzip.</p>"
+        },
+        {
+          "textRaw": "Class: `zlib.Inflate`",
+          "type": "class",
+          "name": "zlib.Inflate",
+          "meta": {
+            "added": [
+              "v0.5.8"
+            ],
+            "changes": [
+              {
+                "version": "v5.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/2595",
+                "description": "A truncated input stream will now result in an `'error'` event."
+              }
+            ]
+          },
+          "desc": "<p>Decompress a deflate stream.</p>"
+        },
+        {
+          "textRaw": "Class: `zlib.InflateRaw`",
+          "type": "class",
+          "name": "zlib.InflateRaw",
+          "meta": {
+            "added": [
+              "v0.5.8"
+            ],
+            "changes": [
+              {
+                "version": "v6.8.0",
+                "pr-url": "https://github.com/nodejs/node/pull/8512",
+                "description": "Custom dictionaries are now supported by `InflateRaw`."
+              },
+              {
+                "version": "v5.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/2595",
+                "description": "A truncated input stream will now result in an `'error'` event."
+              }
+            ]
+          },
+          "desc": "<p>Decompress a raw deflate stream.</p>"
+        },
+        {
+          "textRaw": "Class: `zlib.Unzip`",
+          "type": "class",
+          "name": "zlib.Unzip",
+          "meta": {
+            "added": [
+              "v0.5.8"
+            ],
+            "changes": []
+          },
+          "desc": "<p>Decompress either a Gzip- or Deflate-compressed stream by auto-detecting\nthe header.</p>"
+        },
+        {
+          "textRaw": "Class: `zlib.ZlibBase`",
+          "type": "class",
+          "name": "zlib.ZlibBase",
+          "meta": {
+            "added": [
+              "v0.5.8"
+            ],
+            "changes": [
+              {
+                "version": "v11.7.0",
+                "pr-url": "https://github.com/nodejs/node/pull/24939",
+                "description": "This class was renamed from `Zlib` to `ZlibBase`."
+              }
+            ]
+          },
+          "desc": "<p>Not exported by the <code>zlib</code> module. It is documented here because it is the base\nclass of the compressor/decompressor classes.</p>\n<p>This class inherits from <a href=\"stream.html#stream_class_stream_transform\"><code>stream.Transform</code></a>, allowing <code>zlib</code> objects to be\nused in pipes and similar stream operations.</p>",
+          "properties": [
+            {
+              "textRaw": "`bytesRead` {number}",
+              "type": "number",
+              "name": "bytesRead",
+              "meta": {
+                "added": [
+                  "v8.1.0"
+                ],
+                "deprecated": [
+                  "v10.0.0"
+                ],
+                "changes": []
+              },
+              "stability": 0,
+              "stabilityText": "Deprecated: Use [`zlib.bytesWritten`][] instead.",
+              "desc": "<p>Deprecated alias for <a href=\"#zlib_zlib_byteswritten\"><code>zlib.bytesWritten</code></a>. This original name was chosen\nbecause it also made sense to interpret the value as the number of bytes\nread by the engine, but is inconsistent with other streams in Node.js that\nexpose values under these names.</p>"
+            },
+            {
+              "textRaw": "`bytesWritten` {number}",
+              "type": "number",
+              "name": "bytesWritten",
+              "meta": {
+                "added": [
+                  "v10.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>The <code>zlib.bytesWritten</code> property specifies the number of bytes written to\nthe engine, before the bytes are processed (compressed or decompressed,\nas appropriate for the derived class).</p>"
+            }
+          ],
+          "methods": [
+            {
+              "textRaw": "`zlib.close([callback])`",
+              "type": "method",
+              "name": "close",
+              "meta": {
+                "added": [
+                  "v0.9.4"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`callback` {Function}",
+                      "name": "callback",
+                      "type": "Function"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Close the underlying handle.</p>"
+            },
+            {
+              "textRaw": "`zlib.flush([kind, ]callback)`",
+              "type": "method",
+              "name": "flush",
+              "meta": {
+                "added": [
+                  "v0.5.8"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`kind` **Default:** `zlib.constants.Z_FULL_FLUSH` for zlib-based streams, `zlib.constants.BROTLI_OPERATION_FLUSH` for Brotli-based streams.",
+                      "name": "kind",
+                      "default": "`zlib.constants.Z_FULL_FLUSH` for zlib-based streams, `zlib.constants.BROTLI_OPERATION_FLUSH` for Brotli-based streams"
+                    },
+                    {
+                      "textRaw": "`callback` {Function}",
+                      "name": "callback",
+                      "type": "Function"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Flush pending data. Don't call this frivolously, premature flushes negatively\nimpact the effectiveness of the compression algorithm.</p>\n<p>Calling this only flushes data from the internal <code>zlib</code> state, and does not\nperform flushing of any kind on the streams level. Rather, it behaves like a\nnormal call to <code>.write()</code>, i.e. it will be queued up behind other pending\nwrites and will only produce output when data is being read from the stream.</p>"
+            },
+            {
+              "textRaw": "`zlib.params(level, strategy, callback)`",
+              "type": "method",
+              "name": "params",
+              "meta": {
+                "added": [
+                  "v0.11.4"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`level` {integer}",
+                      "name": "level",
+                      "type": "integer"
+                    },
+                    {
+                      "textRaw": "`strategy` {integer}",
+                      "name": "strategy",
+                      "type": "integer"
+                    },
+                    {
+                      "textRaw": "`callback` {Function}",
+                      "name": "callback",
+                      "type": "Function"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>This function is only available for zlib-based streams, i.e. not Brotli.</p>\n<p>Dynamically update the compression level and compression strategy.\nOnly applicable to deflate algorithm.</p>"
+            },
+            {
+              "textRaw": "`zlib.reset()`",
+              "type": "method",
+              "name": "reset",
+              "meta": {
+                "added": [
+                  "v0.7.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": []
+                }
+              ],
+              "desc": "<p>Reset the compressor/decompressor to factory defaults. Only applicable to\nthe inflate and deflate algorithms.</p>"
+            }
+          ]
+        }
+      ],
+      "properties": [
+        {
+          "textRaw": "`zlib.constants`",
+          "name": "constants",
+          "meta": {
+            "added": [
+              "v7.0.0"
+            ],
+            "changes": []
+          },
+          "desc": "<p>Provides an object enumerating Zlib-related constants.</p>"
+        }
+      ],
+      "methods": [
+        {
+          "textRaw": "`zlib.createBrotliCompress([options])`",
+          "type": "method",
+          "name": "createBrotliCompress",
+          "meta": {
+            "added": [
+              "v11.7.0"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`options` {brotli options}",
+                  "name": "options",
+                  "type": "brotli options"
+                }
+              ]
+            }
+          ],
+          "desc": "<p>Creates and returns a new <a href=\"#zlib_class_zlib_brotlicompress\"><code>BrotliCompress</code></a> object.</p>"
+        },
+        {
+          "textRaw": "`zlib.createBrotliDecompress([options])`",
+          "type": "method",
+          "name": "createBrotliDecompress",
+          "meta": {
+            "added": [
+              "v11.7.0"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`options` {brotli options}",
+                  "name": "options",
+                  "type": "brotli options"
+                }
+              ]
+            }
+          ],
+          "desc": "<p>Creates and returns a new <a href=\"#zlib_class_zlib_brotlidecompress\"><code>BrotliDecompress</code></a> object.</p>"
+        },
+        {
+          "textRaw": "`zlib.createDeflate([options])`",
+          "type": "method",
+          "name": "createDeflate",
+          "meta": {
+            "added": [
+              "v0.5.8"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`options` {zlib options}",
+                  "name": "options",
+                  "type": "zlib options"
+                }
+              ]
+            }
+          ],
+          "desc": "<p>Creates and returns a new <a href=\"#zlib_class_zlib_deflate\"><code>Deflate</code></a> object.</p>"
+        },
+        {
+          "textRaw": "`zlib.createDeflateRaw([options])`",
+          "type": "method",
+          "name": "createDeflateRaw",
+          "meta": {
+            "added": [
+              "v0.5.8"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`options` {zlib options}",
+                  "name": "options",
+                  "type": "zlib options"
+                }
+              ]
+            }
+          ],
+          "desc": "<p>Creates and returns a new <a href=\"#zlib_class_zlib_deflateraw\"><code>DeflateRaw</code></a> object.</p>\n<p>An upgrade of zlib from 1.2.8 to 1.2.11 changed behavior when <code>windowBits</code>\nis set to 8 for raw deflate streams. zlib would automatically set <code>windowBits</code>\nto 9 if was initially set to 8. Newer versions of zlib will throw an exception,\nso Node.js restored the original behavior of upgrading a value of 8 to 9,\nsince passing <code>windowBits = 9</code> to zlib actually results in a compressed stream\nthat effectively uses an 8-bit window only.</p>"
+        },
+        {
+          "textRaw": "`zlib.createGunzip([options])`",
+          "type": "method",
+          "name": "createGunzip",
+          "meta": {
+            "added": [
+              "v0.5.8"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`options` {zlib options}",
+                  "name": "options",
+                  "type": "zlib options"
+                }
+              ]
+            }
+          ],
+          "desc": "<p>Creates and returns a new <a href=\"#zlib_class_zlib_gunzip\"><code>Gunzip</code></a> object.</p>"
+        },
+        {
+          "textRaw": "`zlib.createGzip([options])`",
+          "type": "method",
+          "name": "createGzip",
+          "meta": {
+            "added": [
+              "v0.5.8"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`options` {zlib options}",
+                  "name": "options",
+                  "type": "zlib options"
+                }
+              ]
+            }
+          ],
+          "desc": "<p>Creates and returns a new <a href=\"#zlib_class_zlib_gzip\"><code>Gzip</code></a> object.\nSee <a href=\"#zlib_zlib\">example</a>.</p>"
+        },
+        {
+          "textRaw": "`zlib.createInflate([options])`",
+          "type": "method",
+          "name": "createInflate",
+          "meta": {
+            "added": [
+              "v0.5.8"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`options` {zlib options}",
+                  "name": "options",
+                  "type": "zlib options"
+                }
+              ]
+            }
+          ],
+          "desc": "<p>Creates and returns a new <a href=\"#zlib_class_zlib_inflate\"><code>Inflate</code></a> object.</p>"
+        },
+        {
+          "textRaw": "`zlib.createInflateRaw([options])`",
+          "type": "method",
+          "name": "createInflateRaw",
+          "meta": {
+            "added": [
+              "v0.5.8"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`options` {zlib options}",
+                  "name": "options",
+                  "type": "zlib options"
+                }
+              ]
+            }
+          ],
+          "desc": "<p>Creates and returns a new <a href=\"#zlib_class_zlib_inflateraw\"><code>InflateRaw</code></a> object.</p>"
+        },
+        {
+          "textRaw": "`zlib.createUnzip([options])`",
+          "type": "method",
+          "name": "createUnzip",
+          "meta": {
+            "added": [
+              "v0.5.8"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`options` {zlib options}",
+                  "name": "options",
+                  "type": "zlib options"
+                }
+              ]
+            }
+          ],
+          "desc": "<p>Creates and returns a new <a href=\"#zlib_class_zlib_unzip\"><code>Unzip</code></a> object.</p>"
+        },
+        {
+          "textRaw": "`zlib.brotliCompress(buffer[, options], callback)`",
+          "type": "method",
+          "name": "brotliCompress",
+          "meta": {
+            "added": [
+              "v11.7.0"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
+                  "name": "buffer",
+                  "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
+                },
+                {
+                  "textRaw": "`options` {brotli options}",
+                  "name": "options",
+                  "type": "brotli options"
+                },
+                {
+                  "textRaw": "`callback` {Function}",
+                  "name": "callback",
+                  "type": "Function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "textRaw": "`zlib.brotliCompressSync(buffer[, options])`",
+          "type": "method",
+          "name": "brotliCompressSync",
+          "meta": {
+            "added": [
+              "v11.7.0"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
+                  "name": "buffer",
+                  "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
+                },
+                {
+                  "textRaw": "`options` {brotli options}",
+                  "name": "options",
+                  "type": "brotli options"
+                }
+              ]
+            }
+          ],
+          "desc": "<p>Compress a chunk of data with <a href=\"#zlib_class_zlib_brotlicompress\"><code>BrotliCompress</code></a>.</p>"
+        },
+        {
+          "textRaw": "`zlib.brotliDecompress(buffer[, options], callback)`",
+          "type": "method",
+          "name": "brotliDecompress",
+          "meta": {
+            "added": [
+              "v11.7.0"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
+                  "name": "buffer",
+                  "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
+                },
+                {
+                  "textRaw": "`options` {brotli options}",
+                  "name": "options",
+                  "type": "brotli options"
+                },
+                {
+                  "textRaw": "`callback` {Function}",
+                  "name": "callback",
+                  "type": "Function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "textRaw": "`zlib.brotliDecompressSync(buffer[, options])`",
+          "type": "method",
+          "name": "brotliDecompressSync",
+          "meta": {
+            "added": [
+              "v11.7.0"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
+                  "name": "buffer",
+                  "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
+                },
+                {
+                  "textRaw": "`options` {brotli options}",
+                  "name": "options",
+                  "type": "brotli options"
+                }
+              ]
+            }
+          ],
+          "desc": "<p>Decompress a chunk of data with <a href=\"#zlib_class_zlib_brotlidecompress\"><code>BrotliDecompress</code></a>.</p>"
+        },
+        {
+          "textRaw": "`zlib.deflate(buffer[, options], callback)`",
+          "type": "method",
+          "name": "deflate",
+          "meta": {
+            "added": [
+              "v0.6.0"
+            ],
+            "changes": [
+              {
+                "version": "v9.4.0",
+                "pr-url": "https://github.com/nodejs/node/pull/16042",
+                "description": "The `buffer` parameter can be an `ArrayBuffer`."
+              },
+              {
+                "version": "v8.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/12223",
+                "description": "The `buffer` parameter can be any `TypedArray` or `DataView`."
+              },
+              {
+                "version": "v8.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/12001",
+                "description": "The `buffer` parameter can be an `Uint8Array` now."
+              }
+            ]
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
+                  "name": "buffer",
+                  "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
+                },
+                {
+                  "textRaw": "`options` {zlib options}",
+                  "name": "options",
+                  "type": "zlib options"
+                },
+                {
+                  "textRaw": "`callback` {Function}",
+                  "name": "callback",
+                  "type": "Function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "textRaw": "`zlib.deflateSync(buffer[, options])`",
+          "type": "method",
+          "name": "deflateSync",
+          "meta": {
+            "added": [
+              "v0.11.12"
+            ],
+            "changes": [
+              {
+                "version": "v9.4.0",
+                "pr-url": "https://github.com/nodejs/node/pull/16042",
+                "description": "The `buffer` parameter can be an `ArrayBuffer`."
+              },
+              {
+                "version": "v8.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/12223",
+                "description": "The `buffer` parameter can be any `TypedArray` or `DataView`."
+              },
+              {
+                "version": "v8.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/12001",
+                "description": "The `buffer` parameter can be an `Uint8Array` now."
+              }
+            ]
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
+                  "name": "buffer",
+                  "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
+                },
+                {
+                  "textRaw": "`options` {zlib options}",
+                  "name": "options",
+                  "type": "zlib options"
+                }
+              ]
+            }
+          ],
+          "desc": "<p>Compress a chunk of data with <a href=\"#zlib_class_zlib_deflate\"><code>Deflate</code></a>.</p>"
+        },
+        {
+          "textRaw": "`zlib.deflateRaw(buffer[, options], callback)`",
+          "type": "method",
+          "name": "deflateRaw",
+          "meta": {
+            "added": [
+              "v0.6.0"
+            ],
+            "changes": [
+              {
+                "version": "v8.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/12223",
+                "description": "The `buffer` parameter can be any `TypedArray` or `DataView`."
+              },
+              {
+                "version": "v8.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/12001",
+                "description": "The `buffer` parameter can be an `Uint8Array` now."
+              }
+            ]
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
+                  "name": "buffer",
+                  "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
+                },
+                {
+                  "textRaw": "`options` {zlib options}",
+                  "name": "options",
+                  "type": "zlib options"
+                },
+                {
+                  "textRaw": "`callback` {Function}",
+                  "name": "callback",
+                  "type": "Function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "textRaw": "`zlib.deflateRawSync(buffer[, options])`",
+          "type": "method",
+          "name": "deflateRawSync",
+          "meta": {
+            "added": [
+              "v0.11.12"
+            ],
+            "changes": [
+              {
+                "version": "v9.4.0",
+                "pr-url": "https://github.com/nodejs/node/pull/16042",
+                "description": "The `buffer` parameter can be an `ArrayBuffer`."
+              },
+              {
+                "version": "v8.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/12223",
+                "description": "The `buffer` parameter can be any `TypedArray` or `DataView`."
+              },
+              {
+                "version": "v8.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/12001",
+                "description": "The `buffer` parameter can be an `Uint8Array` now."
+              }
+            ]
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
+                  "name": "buffer",
+                  "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
+                },
+                {
+                  "textRaw": "`options` {zlib options}",
+                  "name": "options",
+                  "type": "zlib options"
+                }
+              ]
+            }
+          ],
+          "desc": "<p>Compress a chunk of data with <a href=\"#zlib_class_zlib_deflateraw\"><code>DeflateRaw</code></a>.</p>"
+        },
+        {
+          "textRaw": "`zlib.gunzip(buffer[, options], callback)`",
+          "type": "method",
+          "name": "gunzip",
+          "meta": {
+            "added": [
+              "v0.6.0"
+            ],
+            "changes": [
+              {
+                "version": "v9.4.0",
+                "pr-url": "https://github.com/nodejs/node/pull/16042",
+                "description": "The `buffer` parameter can be an `ArrayBuffer`."
+              },
+              {
+                "version": "v8.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/12223",
+                "description": "The `buffer` parameter can be any `TypedArray` or `DataView`."
+              },
+              {
+                "version": "v8.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/12001",
+                "description": "The `buffer` parameter can be an `Uint8Array` now."
+              }
+            ]
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
+                  "name": "buffer",
+                  "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
+                },
+                {
+                  "textRaw": "`options` {zlib options}",
+                  "name": "options",
+                  "type": "zlib options"
+                },
+                {
+                  "textRaw": "`callback` {Function}",
+                  "name": "callback",
+                  "type": "Function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "textRaw": "`zlib.gunzipSync(buffer[, options])`",
+          "type": "method",
+          "name": "gunzipSync",
+          "meta": {
+            "added": [
+              "v0.11.12"
+            ],
+            "changes": [
+              {
+                "version": "v9.4.0",
+                "pr-url": "https://github.com/nodejs/node/pull/16042",
+                "description": "The `buffer` parameter can be an `ArrayBuffer`."
+              },
+              {
+                "version": "v8.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/12223",
+                "description": "The `buffer` parameter can be any `TypedArray` or `DataView`."
+              },
+              {
+                "version": "v8.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/12001",
+                "description": "The `buffer` parameter can be an `Uint8Array` now."
+              }
+            ]
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
+                  "name": "buffer",
+                  "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
+                },
+                {
+                  "textRaw": "`options` {zlib options}",
+                  "name": "options",
+                  "type": "zlib options"
+                }
+              ]
+            }
+          ],
+          "desc": "<p>Decompress a chunk of data with <a href=\"#zlib_class_zlib_gunzip\"><code>Gunzip</code></a>.</p>"
+        },
+        {
+          "textRaw": "`zlib.gzip(buffer[, options], callback)`",
+          "type": "method",
+          "name": "gzip",
+          "meta": {
+            "added": [
+              "v0.6.0"
+            ],
+            "changes": [
+              {
+                "version": "v9.4.0",
+                "pr-url": "https://github.com/nodejs/node/pull/16042",
+                "description": "The `buffer` parameter can be an `ArrayBuffer`."
+              },
+              {
+                "version": "v8.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/12223",
+                "description": "The `buffer` parameter can be any `TypedArray` or `DataView`."
+              },
+              {
+                "version": "v8.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/12001",
+                "description": "The `buffer` parameter can be an `Uint8Array` now."
+              }
+            ]
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
+                  "name": "buffer",
+                  "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
+                },
+                {
+                  "textRaw": "`options` {zlib options}",
+                  "name": "options",
+                  "type": "zlib options"
+                },
+                {
+                  "textRaw": "`callback` {Function}",
+                  "name": "callback",
+                  "type": "Function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "textRaw": "`zlib.gzipSync(buffer[, options])`",
+          "type": "method",
+          "name": "gzipSync",
+          "meta": {
+            "added": [
+              "v0.11.12"
+            ],
+            "changes": [
+              {
+                "version": "v9.4.0",
+                "pr-url": "https://github.com/nodejs/node/pull/16042",
+                "description": "The `buffer` parameter can be an `ArrayBuffer`."
+              },
+              {
+                "version": "v8.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/12223",
+                "description": "The `buffer` parameter can be any `TypedArray` or `DataView`."
+              },
+              {
+                "version": "v8.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/12001",
+                "description": "The `buffer` parameter can be an `Uint8Array` now."
+              }
+            ]
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
+                  "name": "buffer",
+                  "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
+                },
+                {
+                  "textRaw": "`options` {zlib options}",
+                  "name": "options",
+                  "type": "zlib options"
+                }
+              ]
+            }
+          ],
+          "desc": "<p>Compress a chunk of data with <a href=\"#zlib_class_zlib_gzip\"><code>Gzip</code></a>.</p>"
+        },
+        {
+          "textRaw": "`zlib.inflate(buffer[, options], callback)`",
+          "type": "method",
+          "name": "inflate",
+          "meta": {
+            "added": [
+              "v0.6.0"
+            ],
+            "changes": [
+              {
+                "version": "v9.4.0",
+                "pr-url": "https://github.com/nodejs/node/pull/16042",
+                "description": "The `buffer` parameter can be an `ArrayBuffer`."
+              },
+              {
+                "version": "v8.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/12223",
+                "description": "The `buffer` parameter can be any `TypedArray` or `DataView`."
+              },
+              {
+                "version": "v8.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/12001",
+                "description": "The `buffer` parameter can be an `Uint8Array` now."
+              }
+            ]
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
+                  "name": "buffer",
+                  "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
+                },
+                {
+                  "textRaw": "`options` {zlib options}",
+                  "name": "options",
+                  "type": "zlib options"
+                },
+                {
+                  "textRaw": "`callback` {Function}",
+                  "name": "callback",
+                  "type": "Function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "textRaw": "`zlib.inflateSync(buffer[, options])`",
+          "type": "method",
+          "name": "inflateSync",
+          "meta": {
+            "added": [
+              "v0.11.12"
+            ],
+            "changes": [
+              {
+                "version": "v9.4.0",
+                "pr-url": "https://github.com/nodejs/node/pull/16042",
+                "description": "The `buffer` parameter can be an `ArrayBuffer`."
+              },
+              {
+                "version": "v8.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/12223",
+                "description": "The `buffer` parameter can be any `TypedArray` or `DataView`."
+              },
+              {
+                "version": "v8.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/12001",
+                "description": "The `buffer` parameter can be an `Uint8Array` now."
+              }
+            ]
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
+                  "name": "buffer",
+                  "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
+                },
+                {
+                  "textRaw": "`options` {zlib options}",
+                  "name": "options",
+                  "type": "zlib options"
+                }
+              ]
+            }
+          ],
+          "desc": "<p>Decompress a chunk of data with <a href=\"#zlib_class_zlib_inflate\"><code>Inflate</code></a>.</p>"
+        },
+        {
+          "textRaw": "`zlib.inflateRaw(buffer[, options], callback)`",
+          "type": "method",
+          "name": "inflateRaw",
+          "meta": {
+            "added": [
+              "v0.6.0"
+            ],
+            "changes": [
+              {
+                "version": "v9.4.0",
+                "pr-url": "https://github.com/nodejs/node/pull/16042",
+                "description": "The `buffer` parameter can be an `ArrayBuffer`."
+              },
+              {
+                "version": "v8.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/12223",
+                "description": "The `buffer` parameter can be any `TypedArray` or `DataView`."
+              },
+              {
+                "version": "v8.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/12001",
+                "description": "The `buffer` parameter can be an `Uint8Array` now."
+              }
+            ]
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
+                  "name": "buffer",
+                  "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
+                },
+                {
+                  "textRaw": "`options` {zlib options}",
+                  "name": "options",
+                  "type": "zlib options"
+                },
+                {
+                  "textRaw": "`callback` {Function}",
+                  "name": "callback",
+                  "type": "Function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "textRaw": "`zlib.inflateRawSync(buffer[, options])`",
+          "type": "method",
+          "name": "inflateRawSync",
+          "meta": {
+            "added": [
+              "v0.11.12"
+            ],
+            "changes": [
+              {
+                "version": "v9.4.0",
+                "pr-url": "https://github.com/nodejs/node/pull/16042",
+                "description": "The `buffer` parameter can be an `ArrayBuffer`."
+              },
+              {
+                "version": "v8.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/12223",
+                "description": "The `buffer` parameter can be any `TypedArray` or `DataView`."
+              },
+              {
+                "version": "v8.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/12001",
+                "description": "The `buffer` parameter can be an `Uint8Array` now."
+              }
+            ]
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
+                  "name": "buffer",
+                  "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
+                },
+                {
+                  "textRaw": "`options` {zlib options}",
+                  "name": "options",
+                  "type": "zlib options"
+                }
+              ]
+            }
+          ],
+          "desc": "<p>Decompress a chunk of data with <a href=\"#zlib_class_zlib_inflateraw\"><code>InflateRaw</code></a>.</p>"
+        },
+        {
+          "textRaw": "`zlib.unzip(buffer[, options], callback)`",
+          "type": "method",
+          "name": "unzip",
+          "meta": {
+            "added": [
+              "v0.6.0"
+            ],
+            "changes": [
+              {
+                "version": "v9.4.0",
+                "pr-url": "https://github.com/nodejs/node/pull/16042",
+                "description": "The `buffer` parameter can be an `ArrayBuffer`."
+              },
+              {
+                "version": "v8.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/12223",
+                "description": "The `buffer` parameter can be any `TypedArray` or `DataView`."
+              },
+              {
+                "version": "v8.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/12001",
+                "description": "The `buffer` parameter can be an `Uint8Array` now."
+              }
+            ]
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
+                  "name": "buffer",
+                  "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
+                },
+                {
+                  "textRaw": "`options` {zlib options}",
+                  "name": "options",
+                  "type": "zlib options"
+                },
+                {
+                  "textRaw": "`callback` {Function}",
+                  "name": "callback",
+                  "type": "Function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "textRaw": "`zlib.unzipSync(buffer[, options])`",
+          "type": "method",
+          "name": "unzipSync",
+          "meta": {
+            "added": [
+              "v0.11.12"
+            ],
+            "changes": [
+              {
+                "version": "v9.4.0",
+                "pr-url": "https://github.com/nodejs/node/pull/16042",
+                "description": "The `buffer` parameter can be an `ArrayBuffer`."
+              },
+              {
+                "version": "v8.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/12223",
+                "description": "The `buffer` parameter can be any `TypedArray` or `DataView`."
+              },
+              {
+                "version": "v8.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/12001",
+                "description": "The `buffer` parameter can be an `Uint8Array` now."
+              }
+            ]
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
+                  "name": "buffer",
+                  "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
+                },
+                {
+                  "textRaw": "`options` {zlib options}",
+                  "name": "options",
+                  "type": "zlib options"
+                }
+              ]
+            }
+          ],
+          "desc": "<p>Decompress a chunk of data with <a href=\"#zlib_class_zlib_unzip\"><code>Unzip</code></a>.</p>"
+        }
+      ],
+      "type": "module",
+      "displayName": "Zlib"
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+prefix sequential
+
+# To mark a test as flaky, list the test name in the appropriate section
+# below, without ".js", followed by ": PASS,FLAKY". Example:
+# sample-test                       : PASS,FLAKY
+
+[true] # This section applies to all platforms
+# https://github.com/nodejs/node/issues/27611#issuecomment-613100468
+test-cpu-prof-dir-worker: PASS, FLAKY
+
+[$system==win32]
+# https://github.com/nodejs/node/issues/22327
+test-http2-large-file: PASS, FLAKY
+# https://github.com/nodejs/node/issues/26401
+test-worker-prof: PASS, FLAKY
+
+[$system==linux]
+
+[$system==macos]
+
+[$system==solaris] # Also applies to SmartOS
+
+[$system==freebsd]
+
+[$system==aix]
+# https://github.com/nodejs/node/pull/29054
+test-buffer-creation-regression: SKIP
+
+[$system==ibmi]
+# https://github.com/nodejs/node/pull/29054
+test-buffer-creation-regression: SKIP
+# https://github.com/nodejs/node/pull/30819
+test-perf-hooks: SKIP
+
+[$arch==arm]
+# https://github.com/nodejs/node/issues/26401#issuecomment-613095719
+test-worker-prof: PASS, FLAKY

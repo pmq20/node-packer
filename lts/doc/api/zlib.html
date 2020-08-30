@@ -1,0 +1,1312 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>Zlib | Node.js v12.18.3 Documentation</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="assets/hljs.css">
+  <link rel="canonical" href="https://nodejs.org/api/zlib.html">
+</head>
+<body class="alt apidoc" id="api-section-zlib">
+  <div id="content" class="clearfix">
+    <div id="column2" class="interior">
+      <div id="intro" class="interior">
+        <a href="/" title="Go back to the home page">
+          Node.js
+        </a>
+      </div>
+      <ul>
+<li><a href="documentation.html" class="nav-documentation">About these docs</a></li>
+<li><a href="synopsis.html" class="nav-synopsis">Usage and example</a></li>
+</ul>
+<div class="line"></div>
+<ul>
+<li><a href="assert.html" class="nav-assert">Assertion testing</a></li>
+<li><a href="async_hooks.html" class="nav-async_hooks">Async hooks</a></li>
+<li><a href="buffer.html" class="nav-buffer">Buffer</a></li>
+<li><a href="addons.html" class="nav-addons">C++ addons</a></li>
+<li><a href="n-api.html" class="nav-n-api">C/C++ addons with N-API</a></li>
+<li><a href="child_process.html" class="nav-child_process">Child processes</a></li>
+<li><a href="cluster.html" class="nav-cluster">Cluster</a></li>
+<li><a href="cli.html" class="nav-cli">Command line options</a></li>
+<li><a href="console.html" class="nav-console">Console</a></li>
+<li><a href="crypto.html" class="nav-crypto">Crypto</a></li>
+<li><a href="debugger.html" class="nav-debugger">Debugger</a></li>
+<li><a href="deprecations.html" class="nav-deprecations">Deprecated APIs</a></li>
+<li><a href="dns.html" class="nav-dns">DNS</a></li>
+<li><a href="domain.html" class="nav-domain">Domain</a></li>
+<li><a href="esm.html" class="nav-esm">ECMAScript modules</a></li>
+<li><a href="errors.html" class="nav-errors">Errors</a></li>
+<li><a href="events.html" class="nav-events">Events</a></li>
+<li><a href="fs.html" class="nav-fs">File system</a></li>
+<li><a href="globals.html" class="nav-globals">Globals</a></li>
+<li><a href="http.html" class="nav-http">HTTP</a></li>
+<li><a href="http2.html" class="nav-http2">HTTP/2</a></li>
+<li><a href="https.html" class="nav-https">HTTPS</a></li>
+<li><a href="inspector.html" class="nav-inspector">Inspector</a></li>
+<li><a href="intl.html" class="nav-intl">Internationalization</a></li>
+<li><a href="modules.html" class="nav-modules">Modules</a></li>
+<li><a href="net.html" class="nav-net">Net</a></li>
+<li><a href="os.html" class="nav-os">OS</a></li>
+<li><a href="path.html" class="nav-path">Path</a></li>
+<li><a href="perf_hooks.html" class="nav-perf_hooks">Performance hooks</a></li>
+<li><a href="policy.html" class="nav-policy">Policies</a></li>
+<li><a href="process.html" class="nav-process">Process</a></li>
+<li><a href="punycode.html" class="nav-punycode">Punycode</a></li>
+<li><a href="querystring.html" class="nav-querystring">Query strings</a></li>
+<li><a href="readline.html" class="nav-readline">Readline</a></li>
+<li><a href="repl.html" class="nav-repl">REPL</a></li>
+<li><a href="report.html" class="nav-report">Report</a></li>
+<li><a href="stream.html" class="nav-stream">Stream</a></li>
+<li><a href="string_decoder.html" class="nav-string_decoder">String decoder</a></li>
+<li><a href="timers.html" class="nav-timers">Timers</a></li>
+<li><a href="tls.html" class="nav-tls">TLS/SSL</a></li>
+<li><a href="tracing.html" class="nav-tracing">Trace events</a></li>
+<li><a href="tty.html" class="nav-tty">TTY</a></li>
+<li><a href="dgram.html" class="nav-dgram">UDP/datagram</a></li>
+<li><a href="url.html" class="nav-url">URL</a></li>
+<li><a href="util.html" class="nav-util">Utilities</a></li>
+<li><a href="v8.html" class="nav-v8">V8</a></li>
+<li><a href="vm.html" class="nav-vm">VM</a></li>
+<li><a href="wasi.html" class="nav-wasi">WASI</a></li>
+<li><a href="worker_threads.html" class="nav-worker_threads">Worker threads</a></li>
+<li><a href="zlib.html" class="nav-zlib active">Zlib</a></li>
+</ul>
+<div class="line"></div>
+<ul>
+<li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">Code repository and issue tracker</a></li>
+</ul>
+    </div>
+
+    <div id="column1" data-id="zlib" class="interior">
+      <header>
+        <h1>Node.js v12.18.3 Documentation</h1>
+        <div id="gtoc">
+          <ul>
+            <li>
+              <a href="index.html" name="toc">Index</a>
+            </li>
+            <li>
+              <a href="all.html">View on single page</a>
+            </li>
+            <li>
+              <a href="zlib.json">View as JSON</a>
+            </li>
+            
+    <li class="version-picker">
+      <a href="#">View another version <span>&#x25bc;</span></a>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v14.x/api/zlib.html">14.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v13.x/api/zlib.html">13.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v12.x/api/zlib.html">12.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v11.x/api/zlib.html">11.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v10.x/api/zlib.html">10.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v9.x/api/zlib.html">9.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v8.x/api/zlib.html">8.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v7.x/api/zlib.html">7.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v6.x/api/zlib.html">6.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v5.x/api/zlib.html">5.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v4.x/api/zlib.html">4.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v0.12.x/api/zlib.html">0.12.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v0.10.x/api/zlib.html">0.10.x</a></li></ol>
+    </li>
+  
+            <li class="edit_on_github"><a href="https://github.com/nodejs/node/edit/master/doc/api/zlib.md"><span class="github_icon"><svg height="16" width="16" viewBox="0 0 16.1 16.1" fill="currentColor"><path d="M8 0a8 8 0 0 0-2.5 15.6c.4 0 .5-.2.5-.4v-1.5c-2 .4-2.5-.5-2.7-1 0-.1-.5-.9-.8-1-.3-.2-.7-.6 0-.6.6 0 1 .6 1.2.8.7 1.2 1.9 1 2.4.7 0-.5.2-.9.5-1-1.8-.3-3.7-1-3.7-4 0-.9.3-1.6.8-2.2 0-.2-.3-1 .1-2 0 0 .7-.3 2.2.7a7.4 7.4 0 0 1 4 0c1.5-1 2.2-.8 2.2-.8.5 1.1.2 2 .1 2.1.5.6.8 1.3.8 2.2 0 3-1.9 3.7-3.6 4 .3.2.5.7.5 1.4v2.2c0 .2.1.5.5.4A8 8 0 0 0 16 8a8 8 0 0 0-8-8z"/></svg></span>Edit on GitHub</a></li>
+          </ul>
+        </div>
+        <hr>
+      </header>
+
+      <div id="toc">
+        <h2>Table of Contents</h2>
+        <ul>
+<li>
+<p><span class="stability_2"><a href="#zlib_zlib">Zlib</a></span></p>
+<ul>
+<li><a href="#zlib_threadpool_usage_and_performance_considerations">Threadpool usage and performance considerations</a></li>
+<li><a href="#zlib_compressing_http_requests_and_responses">Compressing HTTP requests and responses</a></li>
+<li>
+<p><a href="#zlib_memory_usage_tuning">Memory usage tuning</a></p>
+<ul>
+<li><a href="#zlib_for_zlib_based_streams">For zlib-based streams</a></li>
+<li><a href="#zlib_for_brotli_based_streams">For Brotli-based streams</a></li>
+</ul>
+</li>
+<li><a href="#zlib_flushing">Flushing</a></li>
+<li>
+<p><a href="#zlib_constants">Constants</a></p>
+<ul>
+<li><a href="#zlib_zlib_constants">zlib constants</a></li>
+<li>
+<p><a href="#zlib_brotli_constants">Brotli constants</a></p>
+<ul>
+<li><a href="#zlib_flush_operations">Flush operations</a></li>
+<li><a href="#zlib_compressor_options">Compressor options</a></li>
+<li><a href="#zlib_decompressor_options">Decompressor options</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#zlib_class_options">Class: <code>Options</code></a></li>
+<li><a href="#zlib_class_brotlioptions">Class: <code>BrotliOptions</code></a></li>
+<li><a href="#zlib_class_zlib_brotlicompress">Class: <code>zlib.BrotliCompress</code></a></li>
+<li><a href="#zlib_class_zlib_brotlidecompress">Class: <code>zlib.BrotliDecompress</code></a></li>
+<li><a href="#zlib_class_zlib_deflate">Class: <code>zlib.Deflate</code></a></li>
+<li><a href="#zlib_class_zlib_deflateraw">Class: <code>zlib.DeflateRaw</code></a></li>
+<li><a href="#zlib_class_zlib_gunzip">Class: <code>zlib.Gunzip</code></a></li>
+<li><a href="#zlib_class_zlib_gzip">Class: <code>zlib.Gzip</code></a></li>
+<li><a href="#zlib_class_zlib_inflate">Class: <code>zlib.Inflate</code></a></li>
+<li><a href="#zlib_class_zlib_inflateraw">Class: <code>zlib.InflateRaw</code></a></li>
+<li><a href="#zlib_class_zlib_unzip">Class: <code>zlib.Unzip</code></a></li>
+<li>
+<p><a href="#zlib_class_zlib_zlibbase">Class: <code>zlib.ZlibBase</code></a></p>
+<ul>
+<li><span class="stability_0"><a href="#zlib_zlib_bytesread"><code>zlib.bytesRead</code></a></span></li>
+<li><a href="#zlib_zlib_byteswritten"><code>zlib.bytesWritten</code></a></li>
+<li><a href="#zlib_zlib_close_callback"><code>zlib.close([callback])</code></a></li>
+<li><a href="#zlib_zlib_flush_kind_callback"><code>zlib.flush([kind, ]callback)</code></a></li>
+<li><a href="#zlib_zlib_params_level_strategy_callback"><code>zlib.params(level, strategy, callback)</code></a></li>
+<li><a href="#zlib_zlib_reset"><code>zlib.reset()</code></a></li>
+</ul>
+</li>
+<li><a href="#zlib_zlib_constants_1"><code>zlib.constants</code></a></li>
+<li><a href="#zlib_zlib_createbrotlicompress_options"><code>zlib.createBrotliCompress([options])</code></a></li>
+<li><a href="#zlib_zlib_createbrotlidecompress_options"><code>zlib.createBrotliDecompress([options])</code></a></li>
+<li><a href="#zlib_zlib_createdeflate_options"><code>zlib.createDeflate([options])</code></a></li>
+<li><a href="#zlib_zlib_createdeflateraw_options"><code>zlib.createDeflateRaw([options])</code></a></li>
+<li><a href="#zlib_zlib_creategunzip_options"><code>zlib.createGunzip([options])</code></a></li>
+<li><a href="#zlib_zlib_creategzip_options"><code>zlib.createGzip([options])</code></a></li>
+<li><a href="#zlib_zlib_createinflate_options"><code>zlib.createInflate([options])</code></a></li>
+<li><a href="#zlib_zlib_createinflateraw_options"><code>zlib.createInflateRaw([options])</code></a></li>
+<li><a href="#zlib_zlib_createunzip_options"><code>zlib.createUnzip([options])</code></a></li>
+<li>
+<p><a href="#zlib_convenience_methods">Convenience methods</a></p>
+<ul>
+<li><a href="#zlib_zlib_brotlicompress_buffer_options_callback"><code>zlib.brotliCompress(buffer[, options], callback)</code></a></li>
+<li><a href="#zlib_zlib_brotlicompresssync_buffer_options"><code>zlib.brotliCompressSync(buffer[, options])</code></a></li>
+<li><a href="#zlib_zlib_brotlidecompress_buffer_options_callback"><code>zlib.brotliDecompress(buffer[, options], callback)</code></a></li>
+<li><a href="#zlib_zlib_brotlidecompresssync_buffer_options"><code>zlib.brotliDecompressSync(buffer[, options])</code></a></li>
+<li><a href="#zlib_zlib_deflate_buffer_options_callback"><code>zlib.deflate(buffer[, options], callback)</code></a></li>
+<li><a href="#zlib_zlib_deflatesync_buffer_options"><code>zlib.deflateSync(buffer[, options])</code></a></li>
+<li><a href="#zlib_zlib_deflateraw_buffer_options_callback"><code>zlib.deflateRaw(buffer[, options], callback)</code></a></li>
+<li><a href="#zlib_zlib_deflaterawsync_buffer_options"><code>zlib.deflateRawSync(buffer[, options])</code></a></li>
+<li><a href="#zlib_zlib_gunzip_buffer_options_callback"><code>zlib.gunzip(buffer[, options], callback)</code></a></li>
+<li><a href="#zlib_zlib_gunzipsync_buffer_options"><code>zlib.gunzipSync(buffer[, options])</code></a></li>
+<li><a href="#zlib_zlib_gzip_buffer_options_callback"><code>zlib.gzip(buffer[, options], callback)</code></a></li>
+<li><a href="#zlib_zlib_gzipsync_buffer_options"><code>zlib.gzipSync(buffer[, options])</code></a></li>
+<li><a href="#zlib_zlib_inflate_buffer_options_callback"><code>zlib.inflate(buffer[, options], callback)</code></a></li>
+<li><a href="#zlib_zlib_inflatesync_buffer_options"><code>zlib.inflateSync(buffer[, options])</code></a></li>
+<li><a href="#zlib_zlib_inflateraw_buffer_options_callback"><code>zlib.inflateRaw(buffer[, options], callback)</code></a></li>
+<li><a href="#zlib_zlib_inflaterawsync_buffer_options"><code>zlib.inflateRawSync(buffer[, options])</code></a></li>
+<li><a href="#zlib_zlib_unzip_buffer_options_callback"><code>zlib.unzip(buffer[, options], callback)</code></a></li>
+<li><a href="#zlib_zlib_unzipsync_buffer_options"><code>zlib.unzipSync(buffer[, options])</code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+      </div>
+
+      <div id="apicontent">
+        <h1>Zlib<span><a class="mark" href="#zlib_zlib" id="zlib_zlib">#</a></span></h1>
+
+<p></p><div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p></p>
+<p>The <code>zlib</code> module provides compression functionality implemented using Gzip,
+Deflate/Inflate, and Brotli.</p>
+<p>To access it:</p>
+<pre><code class="language-js">const zlib = require('zlib');
+</code></pre>
+<p>Compression and decompression are built around the Node.js <a href="stream.md">Streams API</a>.</p>
+<p>Compressing or decompressing a stream (such as a file) can be accomplished by
+piping the source stream through a <code>zlib</code> <code>Transform</code> stream into a destination
+stream:</p>
+<pre><code class="language-js">const { createGzip } = require('zlib');
+const { pipeline } = require('stream');
+const {
+  createReadStream,
+  createWriteStream
+} = require('fs');
+
+const gzip = createGzip();
+const source = createReadStream('input.txt');
+const destination = createWriteStream('input.txt.gz');
+
+pipeline(source, gzip, destination, (err) => {
+  if (err) {
+    console.error('An error occurred:', err);
+    process.exitCode = 1;
+  }
+});
+
+// Or, Promisified
+
+const { promisify } = require('util');
+const pipe = promisify(pipeline);
+
+async function do_gzip(input, output) {
+  const gzip = createGzip();
+  const source = createReadStream(input);
+  const destination = createWriteStream(output);
+  await pipe(source, gzip, destination);
+}
+
+do_gzip('input.txt', 'input.txt.gz')
+  .catch((err) => {
+    console.error('An error occurred:', err);
+    process.exitCode = 1;
+  });
+</code></pre>
+<p>It is also possible to compress or decompress data in a single step:</p>
+<pre><code class="language-js">const { deflate, unzip } = require('zlib');
+
+const input = '.................................';
+deflate(input, (err, buffer) => {
+  if (err) {
+    console.error('An error occurred:', err);
+    process.exitCode = 1;
+  }
+  console.log(buffer.toString('base64'));
+});
+
+const buffer = Buffer.from('eJzT0yMAAGTvBe8=', 'base64');
+unzip(buffer, (err, buffer) => {
+  if (err) {
+    console.error('An error occurred:', err);
+    process.exitCode = 1;
+  }
+  console.log(buffer.toString());
+});
+
+// Or, Promisified
+
+const { promisify } = require('util');
+const do_unzip = promisify(unzip);
+
+do_unzip(buffer)
+  .then((buf) => console.log(buf.toString()))
+  .catch((err) => {
+    console.error('An error occurred:', err);
+    process.exitCode = 1;
+  });
+</code></pre>
+<h2>Threadpool usage and performance considerations<span><a class="mark" href="#zlib_threadpool_usage_and_performance_considerations" id="zlib_threadpool_usage_and_performance_considerations">#</a></span></h2>
+<p>All <code>zlib</code> APIs, except those that are explicitly synchronous, use the Node.js
+internal threadpool. This can lead to surprising effects and performance
+limitations in some applications.</p>
+<p>Creating and using a large number of zlib objects simultaneously can cause
+significant memory fragmentation.</p>
+<pre><code class="language-js">const zlib = require('zlib');
+
+const payload = Buffer.from('This is some data');
+
+// WARNING: DO NOT DO THIS!
+for (let i = 0; i &#x3C; 30000; ++i) {
+  zlib.deflate(payload, (err, buffer) => {});
+}
+</code></pre>
+<p>In the preceding example, 30,000 deflate instances are created concurrently.
+Because of how some operating systems handle memory allocation and
+deallocation, this may lead to to significant memory fragmentation.</p>
+<p>It is strongly recommended that the results of compression
+operations be cached to avoid duplication of effort.</p>
+<h2>Compressing HTTP requests and responses<span><a class="mark" href="#zlib_compressing_http_requests_and_responses" id="zlib_compressing_http_requests_and_responses">#</a></span></h2>
+<p>The <code>zlib</code> module can be used to implement support for the <code>gzip</code>, <code>deflate</code>
+and <code>br</code> content-encoding mechanisms defined by
+<a href="https://tools.ietf.org/html/rfc7230#section-4.2">HTTP</a>.</p>
+<p>The HTTP <a href="https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.3"><code>Accept-Encoding</code></a> header is used within an http request to identify
+the compression encodings accepted by the client. The <a href="https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.11"><code>Content-Encoding</code></a>
+header is used to identify the compression encodings actually applied to a
+message.</p>
+<p>The examples given below are drastically simplified to show the basic concept.
+Using <code>zlib</code> encoding can be expensive, and the results ought to be cached.
+See <a href="#zlib_memory_usage_tuning">Memory usage tuning</a> for more information on the speed/memory/compression
+tradeoffs involved in <code>zlib</code> usage.</p>
+<pre><code class="language-js">// Client request example
+const zlib = require('zlib');
+const http = require('http');
+const fs = require('fs');
+const { pipeline } = require('stream');
+
+const request = http.get({ host: 'example.com',
+                           path: '/',
+                           port: 80,
+                           headers: { 'Accept-Encoding': 'br,gzip,deflate' } });
+request.on('response', (response) => {
+  const output = fs.createWriteStream('example.com_index.html');
+
+  const onError = (err) => {
+    if (err) {
+      console.error('An error occurred:', err);
+      process.exitCode = 1;
+    }
+  };
+
+  switch (response.headers['content-encoding']) {
+    case 'br':
+      pipeline(response, zlib.createBrotliDecompress(), output, onError);
+      break;
+    // Or, just use zlib.createUnzip() to handle both of the following cases:
+    case 'gzip':
+      pipeline(response, zlib.createGunzip(), output, onError);
+      break;
+    case 'deflate':
+      pipeline(response, zlib.createInflate(), output, onError);
+      break;
+    default:
+      pipeline(response, output, onError);
+      break;
+  }
+});
+</code></pre>
+<pre><code class="language-js">// server example
+// Running a gzip operation on every request is quite expensive.
+// It would be much more efficient to cache the compressed buffer.
+const zlib = require('zlib');
+const http = require('http');
+const fs = require('fs');
+const { pipeline } = require('stream');
+
+http.createServer((request, response) => {
+  const raw = fs.createReadStream('index.html');
+  // Store both a compressed and an uncompressed version of the resource.
+  response.setHeader('Vary', 'Accept-Encoding');
+  let acceptEncoding = request.headers['accept-encoding'];
+  if (!acceptEncoding) {
+    acceptEncoding = '';
+  }
+
+  const onError = (err) => {
+    if (err) {
+      // If an error occurs, there's not much we can do because
+      // the server has already sent the 200 response code and
+      // some amount of data has already been sent to the client.
+      // The best we can do is terminate the response immediately
+      // and log the error.
+      response.end();
+      console.error('An error occurred:', err);
+    }
+  };
+
+  // Note: This is not a conformant accept-encoding parser.
+  // See https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.3
+  if (/\bdeflate\b/.test(acceptEncoding)) {
+    response.writeHead(200, { 'Content-Encoding': 'deflate' });
+    pipeline(raw, zlib.createDeflate(), response, onError);
+  } else if (/\bgzip\b/.test(acceptEncoding)) {
+    response.writeHead(200, { 'Content-Encoding': 'gzip' });
+    pipeline(raw, zlib.createGzip(), response, onError);
+  } else if (/\bbr\b/.test(acceptEncoding)) {
+    response.writeHead(200, { 'Content-Encoding': 'br' });
+    pipeline(raw, zlib.createBrotliCompress(), response, onError);
+  } else {
+    response.writeHead(200, {});
+    pipeline(raw, response, onError);
+  }
+}).listen(1337);
+</code></pre>
+<p>By default, the <code>zlib</code> methods will throw an error when decompressing
+truncated data. However, if it is known that the data is incomplete, or
+the desire is to inspect only the beginning of a compressed file, it is
+possible to suppress the default error handling by changing the flushing
+method that is used to decompress the last chunk of input data:</p>
+<pre><code class="language-js">// This is a truncated version of the buffer from the above examples
+const buffer = Buffer.from('eJzT0yMA', 'base64');
+
+zlib.unzip(
+  buffer,
+  // For Brotli, the equivalent is zlib.constants.BROTLI_OPERATION_FLUSH.
+  { finishFlush: zlib.constants.Z_SYNC_FLUSH },
+  (err, buffer) => {
+    if (err) {
+      console.error('An error occurred:', err);
+      process.exitCode = 1;
+    }
+    console.log(buffer.toString());
+  });
+</code></pre>
+<p>This will not change the behavior in other error-throwing situations, e.g.
+when the input data has an invalid format. Using this method, it will not be
+possible to determine whether the input ended prematurely or lacks the
+integrity checks, making it necessary to manually check that the
+decompressed result is valid.</p>
+<h2>Memory usage tuning<span><a class="mark" href="#zlib_memory_usage_tuning" id="zlib_memory_usage_tuning">#</a></span></h2>
+
+<h3>For zlib-based streams<span><a class="mark" href="#zlib_for_zlib_based_streams" id="zlib_for_zlib_based_streams">#</a></span></h3>
+<p>From <code>zlib/zconf.h</code>, modified for Node.js usage:</p>
+<p>The memory requirements for deflate are (in bytes):</p>
+<!-- eslint-disable semi -->
+<pre><code class="language-js">(1 &#x3C;&#x3C; (windowBits + 2)) + (1 &#x3C;&#x3C; (memLevel + 9))
+</code></pre>
+<p>That is: 128K for <code>windowBits</code> = 15 + 128K for <code>memLevel</code> = 8
+(default values) plus a few kilobytes for small objects.</p>
+<p>For example, to reduce the default memory requirements from 256K to 128K, the
+options should be set to:</p>
+<pre><code class="language-js">const options = { windowBits: 14, memLevel: 7 };
+</code></pre>
+<p>This will, however, generally degrade compression.</p>
+<p>The memory requirements for inflate are (in bytes) <code>1 &#x3C;&#x3C; windowBits</code>.
+That is, 32K for <code>windowBits</code> = 15 (default value) plus a few kilobytes
+for small objects.</p>
+<p>This is in addition to a single internal output slab buffer of size
+<code>chunkSize</code>, which defaults to 16K.</p>
+<p>The speed of <code>zlib</code> compression is affected most dramatically by the
+<code>level</code> setting. A higher level will result in better compression, but
+will take longer to complete. A lower level will result in less
+compression, but will be much faster.</p>
+<p>In general, greater memory usage options will mean that Node.js has to make
+fewer calls to <code>zlib</code> because it will be able to process more data on
+each <code>write</code> operation. So, this is another factor that affects the
+speed, at the cost of memory usage.</p>
+<h3>For Brotli-based streams<span><a class="mark" href="#zlib_for_brotli_based_streams" id="zlib_for_brotli_based_streams">#</a></span></h3>
+<p>There are equivalents to the zlib options for Brotli-based streams, although
+these options have different ranges than the zlib ones:</p>
+<ul>
+<li>zlib’s <code>level</code> option matches Brotli’s <code>BROTLI_PARAM_QUALITY</code> option.</li>
+<li>zlib’s <code>windowBits</code> option matches Brotli’s <code>BROTLI_PARAM_LGWIN</code> option.</li>
+</ul>
+<p>See <a href="#zlib_brotli_constants">below</a> for more details on Brotli-specific options.</p>
+<h2>Flushing<span><a class="mark" href="#zlib_flushing" id="zlib_flushing">#</a></span></h2>
+<p>Calling <a href="#zlib_zlib_flush_kind_callback"><code>.flush()</code></a> on a compression stream will make <code>zlib</code> return as much
+output as currently possible. This may come at the cost of degraded compression
+quality, but can be useful when data needs to be available as soon as possible.</p>
+<p>In the following example, <code>flush()</code> is used to write a compressed partial
+HTTP response to the client:</p>
+<pre><code class="language-js">const zlib = require('zlib');
+const http = require('http');
+const { pipeline } = require('stream');
+
+http.createServer((request, response) => {
+  // For the sake of simplicity, the Accept-Encoding checks are omitted.
+  response.writeHead(200, { 'content-encoding': 'gzip' });
+  const output = zlib.createGzip();
+  let i;
+
+  pipeline(output, response, (err) => {
+    if (err) {
+      // If an error occurs, there's not much we can do because
+      // the server has already sent the 200 response code and
+      // some amount of data has already been sent to the client.
+      // The best we can do is terminate the response immediately
+      // and log the error.
+      clearInterval(i);
+      response.end();
+      console.error('An error occurred:', err);
+    }
+  });
+
+  i = setInterval(() => {
+    output.write(`The current time is ${Date()}\n`, () => {
+      // The data has been passed to zlib, but the compression algorithm may
+      // have decided to buffer the data for more efficient compression.
+      // Calling .flush() will make the data available as soon as the client
+      // is ready to receive it.
+      output.flush();
+    });
+  }, 1000);
+}).listen(1337);
+</code></pre>
+<h2>Constants<span><a class="mark" href="#zlib_constants" id="zlib_constants">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.5.8</span>
+</div>
+
+<h3>zlib constants<span><a class="mark" href="#zlib_zlib_constants" id="zlib_zlib_constants">#</a></span></h3>
+<p>All of the constants defined in <code>zlib.h</code> are also defined on
+<code>require('zlib').constants</code>. In the normal course of operations, it will not be
+necessary to use these constants. They are documented so that their presence is
+not surprising. This section is taken almost directly from the
+<a href="https://zlib.net/manual.html#Constants">zlib documentation</a>.</p>
+<p>Previously, the constants were available directly from <code>require('zlib')</code>, for
+instance <code>zlib.Z_NO_FLUSH</code>. Accessing the constants directly from the module is
+currently still possible but is deprecated.</p>
+<p>Allowed flush values.</p>
+<ul>
+<li><code>zlib.constants.Z_NO_FLUSH</code></li>
+<li><code>zlib.constants.Z_PARTIAL_FLUSH</code></li>
+<li><code>zlib.constants.Z_SYNC_FLUSH</code></li>
+<li><code>zlib.constants.Z_FULL_FLUSH</code></li>
+<li><code>zlib.constants.Z_FINISH</code></li>
+<li><code>zlib.constants.Z_BLOCK</code></li>
+<li><code>zlib.constants.Z_TREES</code></li>
+</ul>
+<p>Return codes for the compression/decompression functions. Negative
+values are errors, positive values are used for special but normal
+events.</p>
+<ul>
+<li><code>zlib.constants.Z_OK</code></li>
+<li><code>zlib.constants.Z_STREAM_END</code></li>
+<li><code>zlib.constants.Z_NEED_DICT</code></li>
+<li><code>zlib.constants.Z_ERRNO</code></li>
+<li><code>zlib.constants.Z_STREAM_ERROR</code></li>
+<li><code>zlib.constants.Z_DATA_ERROR</code></li>
+<li><code>zlib.constants.Z_MEM_ERROR</code></li>
+<li><code>zlib.constants.Z_BUF_ERROR</code></li>
+<li><code>zlib.constants.Z_VERSION_ERROR</code></li>
+</ul>
+<p>Compression levels.</p>
+<ul>
+<li><code>zlib.constants.Z_NO_COMPRESSION</code></li>
+<li><code>zlib.constants.Z_BEST_SPEED</code></li>
+<li><code>zlib.constants.Z_BEST_COMPRESSION</code></li>
+<li><code>zlib.constants.Z_DEFAULT_COMPRESSION</code></li>
+</ul>
+<p>Compression strategy.</p>
+<ul>
+<li><code>zlib.constants.Z_FILTERED</code></li>
+<li><code>zlib.constants.Z_HUFFMAN_ONLY</code></li>
+<li><code>zlib.constants.Z_RLE</code></li>
+<li><code>zlib.constants.Z_FIXED</code></li>
+<li><code>zlib.constants.Z_DEFAULT_STRATEGY</code></li>
+</ul>
+<h3>Brotli constants<span><a class="mark" href="#zlib_brotli_constants" id="zlib_brotli_constants">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v11.7.0</span>
+</div>
+<p>There are several options and other constants available for Brotli-based
+streams:</p>
+<h4>Flush operations<span><a class="mark" href="#zlib_flush_operations" id="zlib_flush_operations">#</a></span></h4>
+<p>The following values are valid flush operations for Brotli-based streams:</p>
+<ul>
+<li><code>zlib.constants.BROTLI_OPERATION_PROCESS</code> (default for all operations)</li>
+<li><code>zlib.constants.BROTLI_OPERATION_FLUSH</code> (default when calling <code>.flush()</code>)</li>
+<li><code>zlib.constants.BROTLI_OPERATION_FINISH</code> (default for the last chunk)</li>
+<li>
+<p><code>zlib.constants.BROTLI_OPERATION_EMIT_METADATA</code></p>
+<ul>
+<li>This particular operation may be hard to use in a Node.js context,
+as the streaming layer makes it hard to know which data will end up
+in this frame. Also, there is currently no way to consume this data through
+the Node.js API.</li>
+</ul>
+</li>
+</ul>
+<h4>Compressor options<span><a class="mark" href="#zlib_compressor_options" id="zlib_compressor_options">#</a></span></h4>
+<p>There are several options that can be set on Brotli encoders, affecting
+compression efficiency and speed. Both the keys and the values can be accessed
+as properties of the <code>zlib.constants</code> object.</p>
+<p>The most important options are:</p>
+<ul>
+<li>
+<p><code>BROTLI_PARAM_MODE</code></p>
+<ul>
+<li><code>BROTLI_MODE_GENERIC</code> (default)</li>
+<li><code>BROTLI_MODE_TEXT</code>, adjusted for UTF-8 text</li>
+<li><code>BROTLI_MODE_FONT</code>, adjusted for WOFF 2.0 fonts</li>
+</ul>
+</li>
+<li>
+<p><code>BROTLI_PARAM_QUALITY</code></p>
+<ul>
+<li>Ranges from <code>BROTLI_MIN_QUALITY</code> to <code>BROTLI_MAX_QUALITY</code>,
+with a default of <code>BROTLI_DEFAULT_QUALITY</code>.</li>
+</ul>
+</li>
+<li>
+<p><code>BROTLI_PARAM_SIZE_HINT</code></p>
+<ul>
+<li>Integer value representing the expected input size;
+defaults to <code>0</code> for an unknown input size.</li>
+</ul>
+</li>
+</ul>
+<p>The following flags can be set for advanced control over the compression
+algorithm and memory usage tuning:</p>
+<ul>
+<li>
+<p><code>BROTLI_PARAM_LGWIN</code></p>
+<ul>
+<li>Ranges from <code>BROTLI_MIN_WINDOW_BITS</code> to <code>BROTLI_MAX_WINDOW_BITS</code>,
+with a default of <code>BROTLI_DEFAULT_WINDOW</code>, or up to
+<code>BROTLI_LARGE_MAX_WINDOW_BITS</code> if the <code>BROTLI_PARAM_LARGE_WINDOW</code> flag
+is set.</li>
+</ul>
+</li>
+<li>
+<p><code>BROTLI_PARAM_LGBLOCK</code></p>
+<ul>
+<li>Ranges from <code>BROTLI_MIN_INPUT_BLOCK_BITS</code> to <code>BROTLI_MAX_INPUT_BLOCK_BITS</code>.</li>
+</ul>
+</li>
+<li>
+<p><code>BROTLI_PARAM_DISABLE_LITERAL_CONTEXT_MODELING</code></p>
+<ul>
+<li>Boolean flag that decreases compression ratio in favour of
+decompression speed.</li>
+</ul>
+</li>
+<li>
+<p><code>BROTLI_PARAM_LARGE_WINDOW</code></p>
+<ul>
+<li>Boolean flag enabling “Large Window Brotli” mode (not compatible with the
+Brotli format as standardized in <a href="https://www.rfc-editor.org/rfc/rfc7932.txt">RFC 7932</a>).</li>
+</ul>
+</li>
+<li>
+<p><code>BROTLI_PARAM_NPOSTFIX</code></p>
+<ul>
+<li>Ranges from <code>0</code> to <code>BROTLI_MAX_NPOSTFIX</code>.</li>
+</ul>
+</li>
+<li>
+<p><code>BROTLI_PARAM_NDIRECT</code></p>
+<ul>
+<li>Ranges from <code>0</code> to <code>15 &#x3C;&#x3C; NPOSTFIX</code> in steps of <code>1 &#x3C;&#x3C; NPOSTFIX</code>.</li>
+</ul>
+</li>
+</ul>
+<h4>Decompressor options<span><a class="mark" href="#zlib_decompressor_options" id="zlib_decompressor_options">#</a></span></h4>
+<p>These advanced options are available for controlling decompression:</p>
+<ul>
+<li>
+<p><code>BROTLI_DECODER_PARAM_DISABLE_RING_BUFFER_REALLOCATION</code></p>
+<ul>
+<li>Boolean flag that affects internal memory allocation patterns.</li>
+</ul>
+</li>
+<li>
+<p><code>BROTLI_DECODER_PARAM_LARGE_WINDOW</code></p>
+<ul>
+<li>Boolean flag enabling “Large Window Brotli” mode (not compatible with the
+Brotli format as standardized in <a href="https://www.rfc-editor.org/rfc/rfc7932.txt">RFC 7932</a>).</li>
+</ul>
+</li>
+</ul>
+<h2>Class: <code>Options</code><span><a class="mark" href="#zlib_class_options" id="zlib_class_options">#</a></span></h2>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v9.4.0</td>
+<td><p>The <code>dictionary</code> option can be an <code>ArrayBuffer</code>.</p></td></tr>
+<tr><td>v8.0.0</td>
+<td><p>The <code>dictionary</code> option can be an <code>Uint8Array</code> now.</p></td></tr>
+<tr><td>v5.11.0</td>
+<td><p>The <code>finishFlush</code> option is supported now.</p></td></tr>
+<tr><td>v0.11.1</td>
+<td><p><span>Added in: v0.11.1</span></p></td></tr>
+</tbody></table>
+</details>
+</div>
+
+<p>Each zlib-based class takes an <code>options</code> object. No options are required.</p>
+<p>Some options are only relevant when compressing and are
+ignored by the decompression classes.</p>
+<ul>
+<li><code>flush</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> <strong>Default:</strong> <code>zlib.constants.Z_NO_FLUSH</code></li>
+<li><code>finishFlush</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> <strong>Default:</strong> <code>zlib.constants.Z_FINISH</code></li>
+<li><code>chunkSize</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> <strong>Default:</strong> <code>16 * 1024</code></li>
+<li><code>windowBits</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
+<li><code>level</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> (compression only)</li>
+<li><code>memLevel</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> (compression only)</li>
+<li><code>strategy</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> (compression only)</li>
+<li><code>dictionary</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&#x3C;ArrayBuffer></a> (deflate/inflate only,
+empty dictionary by default)</li>
+<li><code>info</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> (If <code>true</code>, returns an object with <code>buffer</code> and <code>engine</code>.)</li>
+</ul>
+<p>See the <a href="https://zlib.net/manual.html#Advanced"><code>deflateInit2</code> and <code>inflateInit2</code></a> documentation for more
+information.</p>
+<h2>Class: <code>BrotliOptions</code><span><a class="mark" href="#zlib_class_brotlioptions" id="zlib_class_brotlioptions">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v11.7.0</span>
+</div>
+
+<p>Each Brotli-based class takes an <code>options</code> object. All options are optional.</p>
+<ul>
+<li><code>flush</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> <strong>Default:</strong> <code>zlib.constants.BROTLI_OPERATION_PROCESS</code></li>
+<li><code>finishFlush</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> <strong>Default:</strong> <code>zlib.constants.BROTLI_OPERATION_FINISH</code></li>
+<li><code>chunkSize</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> <strong>Default:</strong> <code>16 * 1024</code></li>
+<li><code>params</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> Key-value object containing indexed <a href="#zlib_brotli_constants">Brotli parameters</a>.</li>
+</ul>
+<p>For example:</p>
+<pre><code class="language-js">const stream = zlib.createBrotliCompress({
+  chunkSize: 32 * 1024,
+  params: {
+    [zlib.constants.BROTLI_PARAM_MODE]: zlib.constants.BROTLI_MODE_TEXT,
+    [zlib.constants.BROTLI_PARAM_QUALITY]: 4,
+    [zlib.constants.BROTLI_PARAM_SIZE_HINT]: fs.statSync(inputFile).size
+  }
+});
+</code></pre>
+<h2>Class: <code>zlib.BrotliCompress</code><span><a class="mark" href="#zlib_class_zlib_brotlicompress" id="zlib_class_zlib_brotlicompress">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v11.7.0</span>
+</div>
+<p>Compress data using the Brotli algorithm.</p>
+<h2>Class: <code>zlib.BrotliDecompress</code><span><a class="mark" href="#zlib_class_zlib_brotlidecompress" id="zlib_class_zlib_brotlidecompress">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v11.7.0</span>
+</div>
+<p>Decompress data using the Brotli algorithm.</p>
+<h2>Class: <code>zlib.Deflate</code><span><a class="mark" href="#zlib_class_zlib_deflate" id="zlib_class_zlib_deflate">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.5.8</span>
+</div>
+<p>Compress data using deflate.</p>
+<h2>Class: <code>zlib.DeflateRaw</code><span><a class="mark" href="#zlib_class_zlib_deflateraw" id="zlib_class_zlib_deflateraw">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.5.8</span>
+</div>
+<p>Compress data using deflate, and do not append a <code>zlib</code> header.</p>
+<h2>Class: <code>zlib.Gunzip</code><span><a class="mark" href="#zlib_class_zlib_gunzip" id="zlib_class_zlib_gunzip">#</a></span></h2>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v6.0.0</td>
+<td><p>Trailing garbage at the end of the input stream will now result in an <code>'error'</code> event.</p></td></tr>
+<tr><td>v5.9.0</td>
+<td><p>Multiple concatenated gzip file members are supported now.</p></td></tr>
+<tr><td>v5.0.0</td>
+<td><p>A truncated input stream will now result in an <code>'error'</code> event.</p></td></tr>
+<tr><td>v0.5.8</td>
+<td><p><span>Added in: v0.5.8</span></p></td></tr>
+</tbody></table>
+</details>
+</div>
+<p>Decompress a gzip stream.</p>
+<h2>Class: <code>zlib.Gzip</code><span><a class="mark" href="#zlib_class_zlib_gzip" id="zlib_class_zlib_gzip">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.5.8</span>
+</div>
+<p>Compress data using gzip.</p>
+<h2>Class: <code>zlib.Inflate</code><span><a class="mark" href="#zlib_class_zlib_inflate" id="zlib_class_zlib_inflate">#</a></span></h2>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v5.0.0</td>
+<td><p>A truncated input stream will now result in an <code>'error'</code> event.</p></td></tr>
+<tr><td>v0.5.8</td>
+<td><p><span>Added in: v0.5.8</span></p></td></tr>
+</tbody></table>
+</details>
+</div>
+<p>Decompress a deflate stream.</p>
+<h2>Class: <code>zlib.InflateRaw</code><span><a class="mark" href="#zlib_class_zlib_inflateraw" id="zlib_class_zlib_inflateraw">#</a></span></h2>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v6.8.0</td>
+<td><p>Custom dictionaries are now supported by <code>InflateRaw</code>.</p></td></tr>
+<tr><td>v5.0.0</td>
+<td><p>A truncated input stream will now result in an <code>'error'</code> event.</p></td></tr>
+<tr><td>v0.5.8</td>
+<td><p><span>Added in: v0.5.8</span></p></td></tr>
+</tbody></table>
+</details>
+</div>
+<p>Decompress a raw deflate stream.</p>
+<h2>Class: <code>zlib.Unzip</code><span><a class="mark" href="#zlib_class_zlib_unzip" id="zlib_class_zlib_unzip">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.5.8</span>
+</div>
+<p>Decompress either a Gzip- or Deflate-compressed stream by auto-detecting
+the header.</p>
+<h2>Class: <code>zlib.ZlibBase</code><span><a class="mark" href="#zlib_class_zlib_zlibbase" id="zlib_class_zlib_zlibbase">#</a></span></h2>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v11.7.0</td>
+<td><p>This class was renamed from <code>Zlib</code> to <code>ZlibBase</code>.</p></td></tr>
+<tr><td>v0.5.8</td>
+<td><p><span>Added in: v0.5.8</span></p></td></tr>
+</tbody></table>
+</details>
+</div>
+<p>Not exported by the <code>zlib</code> module. It is documented here because it is the base
+class of the compressor/decompressor classes.</p>
+<p>This class inherits from <a href="stream.html#stream_class_stream_transform"><code>stream.Transform</code></a>, allowing <code>zlib</code> objects to be
+used in pipes and similar stream operations.</p>
+<h3><code>zlib.bytesRead</code><span><a class="mark" href="#zlib_zlib_bytesread" id="zlib_zlib_bytesread">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.1.0</span><span>Deprecated since: v10.0.0</span>
+</div>
+<p></p><div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="#zlib_zlib_byteswritten"><code>zlib.bytesWritten</code></a> instead.</div><p></p>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
+</ul>
+<p>Deprecated alias for <a href="#zlib_zlib_byteswritten"><code>zlib.bytesWritten</code></a>. This original name was chosen
+because it also made sense to interpret the value as the number of bytes
+read by the engine, but is inconsistent with other streams in Node.js that
+expose values under these names.</p>
+<h3><code>zlib.bytesWritten</code><span><a class="mark" href="#zlib_zlib_byteswritten" id="zlib_zlib_byteswritten">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v10.0.0</span>
+</div>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
+</ul>
+<p>The <code>zlib.bytesWritten</code> property specifies the number of bytes written to
+the engine, before the bytes are processed (compressed or decompressed,
+as appropriate for the derived class).</p>
+<h3><code>zlib.close([callback])</code><span><a class="mark" href="#zlib_zlib_close_callback" id="zlib_zlib_close_callback">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.9.4</span>
+</div>
+<ul>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
+</ul>
+<p>Close the underlying handle.</p>
+<h3><code>zlib.flush([kind, ]callback)</code><span><a class="mark" href="#zlib_zlib_flush_kind_callback" id="zlib_zlib_flush_kind_callback">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.5.8</span>
+</div>
+<ul>
+<li><code>kind</code> <strong>Default:</strong> <code>zlib.constants.Z_FULL_FLUSH</code> for zlib-based streams,
+<code>zlib.constants.BROTLI_OPERATION_FLUSH</code> for Brotli-based streams.</li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
+</ul>
+<p>Flush pending data. Don't call this frivolously, premature flushes negatively
+impact the effectiveness of the compression algorithm.</p>
+<p>Calling this only flushes data from the internal <code>zlib</code> state, and does not
+perform flushing of any kind on the streams level. Rather, it behaves like a
+normal call to <code>.write()</code>, i.e. it will be queued up behind other pending
+writes and will only produce output when data is being read from the stream.</p>
+<h3><code>zlib.params(level, strategy, callback)</code><span><a class="mark" href="#zlib_zlib_params_level_strategy_callback" id="zlib_zlib_params_level_strategy_callback">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.11.4</span>
+</div>
+<ul>
+<li><code>level</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
+<li><code>strategy</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
+</ul>
+<p>This function is only available for zlib-based streams, i.e. not Brotli.</p>
+<p>Dynamically update the compression level and compression strategy.
+Only applicable to deflate algorithm.</p>
+<h3><code>zlib.reset()</code><span><a class="mark" href="#zlib_zlib_reset" id="zlib_zlib_reset">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.7.0</span>
+</div>
+<p>Reset the compressor/decompressor to factory defaults. Only applicable to
+the inflate and deflate algorithms.</p>
+<h2><code>zlib.constants</code><span><a class="mark" href="#zlib_zlib_constants_1" id="zlib_zlib_constants_1">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v7.0.0</span>
+</div>
+<p>Provides an object enumerating Zlib-related constants.</p>
+<h2><code>zlib.createBrotliCompress([options])</code><span><a class="mark" href="#zlib_zlib_createbrotlicompress_options" id="zlib_zlib_createbrotlicompress_options">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v11.7.0</span>
+</div>
+<ul>
+<li><code>options</code> <a href="zlib.html#zlib_class_brotlioptions" class="type">&#x3C;brotli options></a></li>
+</ul>
+<p>Creates and returns a new <a href="#zlib_class_zlib_brotlicompress"><code>BrotliCompress</code></a> object.</p>
+<h2><code>zlib.createBrotliDecompress([options])</code><span><a class="mark" href="#zlib_zlib_createbrotlidecompress_options" id="zlib_zlib_createbrotlidecompress_options">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v11.7.0</span>
+</div>
+<ul>
+<li><code>options</code> <a href="zlib.html#zlib_class_brotlioptions" class="type">&#x3C;brotli options></a></li>
+</ul>
+<p>Creates and returns a new <a href="#zlib_class_zlib_brotlidecompress"><code>BrotliDecompress</code></a> object.</p>
+<h2><code>zlib.createDeflate([options])</code><span><a class="mark" href="#zlib_zlib_createdeflate_options" id="zlib_zlib_createdeflate_options">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.5.8</span>
+</div>
+<ul>
+<li><code>options</code> <a href="zlib.html#zlib_class_options" class="type">&#x3C;zlib options></a></li>
+</ul>
+<p>Creates and returns a new <a href="#zlib_class_zlib_deflate"><code>Deflate</code></a> object.</p>
+<h2><code>zlib.createDeflateRaw([options])</code><span><a class="mark" href="#zlib_zlib_createdeflateraw_options" id="zlib_zlib_createdeflateraw_options">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.5.8</span>
+</div>
+<ul>
+<li><code>options</code> <a href="zlib.html#zlib_class_options" class="type">&#x3C;zlib options></a></li>
+</ul>
+<p>Creates and returns a new <a href="#zlib_class_zlib_deflateraw"><code>DeflateRaw</code></a> object.</p>
+<p>An upgrade of zlib from 1.2.8 to 1.2.11 changed behavior when <code>windowBits</code>
+is set to 8 for raw deflate streams. zlib would automatically set <code>windowBits</code>
+to 9 if was initially set to 8. Newer versions of zlib will throw an exception,
+so Node.js restored the original behavior of upgrading a value of 8 to 9,
+since passing <code>windowBits = 9</code> to zlib actually results in a compressed stream
+that effectively uses an 8-bit window only.</p>
+<h2><code>zlib.createGunzip([options])</code><span><a class="mark" href="#zlib_zlib_creategunzip_options" id="zlib_zlib_creategunzip_options">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.5.8</span>
+</div>
+<ul>
+<li><code>options</code> <a href="zlib.html#zlib_class_options" class="type">&#x3C;zlib options></a></li>
+</ul>
+<p>Creates and returns a new <a href="#zlib_class_zlib_gunzip"><code>Gunzip</code></a> object.</p>
+<h2><code>zlib.createGzip([options])</code><span><a class="mark" href="#zlib_zlib_creategzip_options" id="zlib_zlib_creategzip_options">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.5.8</span>
+</div>
+<ul>
+<li><code>options</code> <a href="zlib.html#zlib_class_options" class="type">&#x3C;zlib options></a></li>
+</ul>
+<p>Creates and returns a new <a href="#zlib_class_zlib_gzip"><code>Gzip</code></a> object.
+See <a href="#zlib_zlib">example</a>.</p>
+<h2><code>zlib.createInflate([options])</code><span><a class="mark" href="#zlib_zlib_createinflate_options" id="zlib_zlib_createinflate_options">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.5.8</span>
+</div>
+<ul>
+<li><code>options</code> <a href="zlib.html#zlib_class_options" class="type">&#x3C;zlib options></a></li>
+</ul>
+<p>Creates and returns a new <a href="#zlib_class_zlib_inflate"><code>Inflate</code></a> object.</p>
+<h2><code>zlib.createInflateRaw([options])</code><span><a class="mark" href="#zlib_zlib_createinflateraw_options" id="zlib_zlib_createinflateraw_options">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.5.8</span>
+</div>
+<ul>
+<li><code>options</code> <a href="zlib.html#zlib_class_options" class="type">&#x3C;zlib options></a></li>
+</ul>
+<p>Creates and returns a new <a href="#zlib_class_zlib_inflateraw"><code>InflateRaw</code></a> object.</p>
+<h2><code>zlib.createUnzip([options])</code><span><a class="mark" href="#zlib_zlib_createunzip_options" id="zlib_zlib_createunzip_options">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.5.8</span>
+</div>
+<ul>
+<li><code>options</code> <a href="zlib.html#zlib_class_options" class="type">&#x3C;zlib options></a></li>
+</ul>
+<p>Creates and returns a new <a href="#zlib_class_zlib_unzip"><code>Unzip</code></a> object.</p>
+<h2>Convenience methods<span><a class="mark" href="#zlib_convenience_methods" id="zlib_convenience_methods">#</a></span></h2>
+
+<p>All of these take a <a href="buffer.html#buffer_class_buffer"><code>Buffer</code></a>, <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray"><code>TypedArray</code></a>, <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView"><code>DataView</code></a>,
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer"><code>ArrayBuffer</code></a> or string as the first argument, an optional second argument
+to supply options to the <code>zlib</code> classes and will call the supplied callback
+with <code>callback(error, result)</code>.</p>
+<p>Every method has a <code>*Sync</code> counterpart, which accept the same arguments, but
+without a callback.</p>
+<h3><code>zlib.brotliCompress(buffer[, options], callback)</code><span><a class="mark" href="#zlib_zlib_brotlicompress_buffer_options_callback" id="zlib_zlib_brotlicompress_buffer_options_callback">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v11.7.0</span>
+</div>
+<ul>
+<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&#x3C;ArrayBuffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>options</code> <a href="zlib.html#zlib_class_brotlioptions" class="type">&#x3C;brotli options></a></li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
+</ul>
+<h3><code>zlib.brotliCompressSync(buffer[, options])</code><span><a class="mark" href="#zlib_zlib_brotlicompresssync_buffer_options" id="zlib_zlib_brotlicompresssync_buffer_options">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v11.7.0</span>
+</div>
+<ul>
+<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&#x3C;ArrayBuffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>options</code> <a href="zlib.html#zlib_class_brotlioptions" class="type">&#x3C;brotli options></a></li>
+</ul>
+<p>Compress a chunk of data with <a href="#zlib_class_zlib_brotlicompress"><code>BrotliCompress</code></a>.</p>
+<h3><code>zlib.brotliDecompress(buffer[, options], callback)</code><span><a class="mark" href="#zlib_zlib_brotlidecompress_buffer_options_callback" id="zlib_zlib_brotlidecompress_buffer_options_callback">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v11.7.0</span>
+</div>
+<ul>
+<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&#x3C;ArrayBuffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>options</code> <a href="zlib.html#zlib_class_brotlioptions" class="type">&#x3C;brotli options></a></li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
+</ul>
+<h3><code>zlib.brotliDecompressSync(buffer[, options])</code><span><a class="mark" href="#zlib_zlib_brotlidecompresssync_buffer_options" id="zlib_zlib_brotlidecompresssync_buffer_options">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v11.7.0</span>
+</div>
+<ul>
+<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&#x3C;ArrayBuffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>options</code> <a href="zlib.html#zlib_class_brotlioptions" class="type">&#x3C;brotli options></a></li>
+</ul>
+<p>Decompress a chunk of data with <a href="#zlib_class_zlib_brotlidecompress"><code>BrotliDecompress</code></a>.</p>
+<h3><code>zlib.deflate(buffer[, options], callback)</code><span><a class="mark" href="#zlib_zlib_deflate_buffer_options_callback" id="zlib_zlib_deflate_buffer_options_callback">#</a></span></h3>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v9.4.0</td>
+<td><p>The <code>buffer</code> parameter can be an <code>ArrayBuffer</code>.</p></td></tr>
+<tr><td>v8.0.0</td>
+<td><p>The <code>buffer</code> parameter can be any <code>TypedArray</code> or <code>DataView</code>.</p></td></tr>
+<tr><td>v8.0.0</td>
+<td><p>The <code>buffer</code> parameter can be an <code>Uint8Array</code> now.</p></td></tr>
+<tr><td>v0.6.0</td>
+<td><p><span>Added in: v0.6.0</span></p></td></tr>
+</tbody></table>
+</details>
+</div>
+<ul>
+<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&#x3C;ArrayBuffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>options</code> <a href="zlib.html#zlib_class_options" class="type">&#x3C;zlib options></a></li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
+</ul>
+<h3><code>zlib.deflateSync(buffer[, options])</code><span><a class="mark" href="#zlib_zlib_deflatesync_buffer_options" id="zlib_zlib_deflatesync_buffer_options">#</a></span></h3>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v9.4.0</td>
+<td><p>The <code>buffer</code> parameter can be an <code>ArrayBuffer</code>.</p></td></tr>
+<tr><td>v8.0.0</td>
+<td><p>The <code>buffer</code> parameter can be any <code>TypedArray</code> or <code>DataView</code>.</p></td></tr>
+<tr><td>v8.0.0</td>
+<td><p>The <code>buffer</code> parameter can be an <code>Uint8Array</code> now.</p></td></tr>
+<tr><td>v0.11.12</td>
+<td><p><span>Added in: v0.11.12</span></p></td></tr>
+</tbody></table>
+</details>
+</div>
+<ul>
+<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&#x3C;ArrayBuffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>options</code> <a href="zlib.html#zlib_class_options" class="type">&#x3C;zlib options></a></li>
+</ul>
+<p>Compress a chunk of data with <a href="#zlib_class_zlib_deflate"><code>Deflate</code></a>.</p>
+<h3><code>zlib.deflateRaw(buffer[, options], callback)</code><span><a class="mark" href="#zlib_zlib_deflateraw_buffer_options_callback" id="zlib_zlib_deflateraw_buffer_options_callback">#</a></span></h3>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v8.0.0</td>
+<td><p>The <code>buffer</code> parameter can be any <code>TypedArray</code> or <code>DataView</code>.</p></td></tr>
+<tr><td>v8.0.0</td>
+<td><p>The <code>buffer</code> parameter can be an <code>Uint8Array</code> now.</p></td></tr>
+<tr><td>v0.6.0</td>
+<td><p><span>Added in: v0.6.0</span></p></td></tr>
+</tbody></table>
+</details>
+</div>
+<ul>
+<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&#x3C;ArrayBuffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>options</code> <a href="zlib.html#zlib_class_options" class="type">&#x3C;zlib options></a></li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
+</ul>
+<h3><code>zlib.deflateRawSync(buffer[, options])</code><span><a class="mark" href="#zlib_zlib_deflaterawsync_buffer_options" id="zlib_zlib_deflaterawsync_buffer_options">#</a></span></h3>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v9.4.0</td>
+<td><p>The <code>buffer</code> parameter can be an <code>ArrayBuffer</code>.</p></td></tr>
+<tr><td>v8.0.0</td>
+<td><p>The <code>buffer</code> parameter can be any <code>TypedArray</code> or <code>DataView</code>.</p></td></tr>
+<tr><td>v8.0.0</td>
+<td><p>The <code>buffer</code> parameter can be an <code>Uint8Array</code> now.</p></td></tr>
+<tr><td>v0.11.12</td>
+<td><p><span>Added in: v0.11.12</span></p></td></tr>
+</tbody></table>
+</details>
+</div>
+<ul>
+<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&#x3C;ArrayBuffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>options</code> <a href="zlib.html#zlib_class_options" class="type">&#x3C;zlib options></a></li>
+</ul>
+<p>Compress a chunk of data with <a href="#zlib_class_zlib_deflateraw"><code>DeflateRaw</code></a>.</p>
+<h3><code>zlib.gunzip(buffer[, options], callback)</code><span><a class="mark" href="#zlib_zlib_gunzip_buffer_options_callback" id="zlib_zlib_gunzip_buffer_options_callback">#</a></span></h3>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v9.4.0</td>
+<td><p>The <code>buffer</code> parameter can be an <code>ArrayBuffer</code>.</p></td></tr>
+<tr><td>v8.0.0</td>
+<td><p>The <code>buffer</code> parameter can be any <code>TypedArray</code> or <code>DataView</code>.</p></td></tr>
+<tr><td>v8.0.0</td>
+<td><p>The <code>buffer</code> parameter can be an <code>Uint8Array</code> now.</p></td></tr>
+<tr><td>v0.6.0</td>
+<td><p><span>Added in: v0.6.0</span></p></td></tr>
+</tbody></table>
+</details>
+</div>
+<ul>
+<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&#x3C;ArrayBuffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>options</code> <a href="zlib.html#zlib_class_options" class="type">&#x3C;zlib options></a></li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
+</ul>
+<h3><code>zlib.gunzipSync(buffer[, options])</code><span><a class="mark" href="#zlib_zlib_gunzipsync_buffer_options" id="zlib_zlib_gunzipsync_buffer_options">#</a></span></h3>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v9.4.0</td>
+<td><p>The <code>buffer</code> parameter can be an <code>ArrayBuffer</code>.</p></td></tr>
+<tr><td>v8.0.0</td>
+<td><p>The <code>buffer</code> parameter can be any <code>TypedArray</code> or <code>DataView</code>.</p></td></tr>
+<tr><td>v8.0.0</td>
+<td><p>The <code>buffer</code> parameter can be an <code>Uint8Array</code> now.</p></td></tr>
+<tr><td>v0.11.12</td>
+<td><p><span>Added in: v0.11.12</span></p></td></tr>
+</tbody></table>
+</details>
+</div>
+<ul>
+<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&#x3C;ArrayBuffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>options</code> <a href="zlib.html#zlib_class_options" class="type">&#x3C;zlib options></a></li>
+</ul>
+<p>Decompress a chunk of data with <a href="#zlib_class_zlib_gunzip"><code>Gunzip</code></a>.</p>
+<h3><code>zlib.gzip(buffer[, options], callback)</code><span><a class="mark" href="#zlib_zlib_gzip_buffer_options_callback" id="zlib_zlib_gzip_buffer_options_callback">#</a></span></h3>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v9.4.0</td>
+<td><p>The <code>buffer</code> parameter can be an <code>ArrayBuffer</code>.</p></td></tr>
+<tr><td>v8.0.0</td>
+<td><p>The <code>buffer</code> parameter can be any <code>TypedArray</code> or <code>DataView</code>.</p></td></tr>
+<tr><td>v8.0.0</td>
+<td><p>The <code>buffer</code> parameter can be an <code>Uint8Array</code> now.</p></td></tr>
+<tr><td>v0.6.0</td>
+<td><p><span>Added in: v0.6.0</span></p></td></tr>
+</tbody></table>
+</details>
+</div>
+<ul>
+<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&#x3C;ArrayBuffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>options</code> <a href="zlib.html#zlib_class_options" class="type">&#x3C;zlib options></a></li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
+</ul>
+<h3><code>zlib.gzipSync(buffer[, options])</code><span><a class="mark" href="#zlib_zlib_gzipsync_buffer_options" id="zlib_zlib_gzipsync_buffer_options">#</a></span></h3>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v9.4.0</td>
+<td><p>The <code>buffer</code> parameter can be an <code>ArrayBuffer</code>.</p></td></tr>
+<tr><td>v8.0.0</td>
+<td><p>The <code>buffer</code> parameter can be any <code>TypedArray</code> or <code>DataView</code>.</p></td></tr>
+<tr><td>v8.0.0</td>
+<td><p>The <code>buffer</code> parameter can be an <code>Uint8Array</code> now.</p></td></tr>
+<tr><td>v0.11.12</td>
+<td><p><span>Added in: v0.11.12</span></p></td></tr>
+</tbody></table>
+</details>
+</div>
+<ul>
+<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&#x3C;ArrayBuffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>options</code> <a href="zlib.html#zlib_class_options" class="type">&#x3C;zlib options></a></li>
+</ul>
+<p>Compress a chunk of data with <a href="#zlib_class_zlib_gzip"><code>Gzip</code></a>.</p>
+<h3><code>zlib.inflate(buffer[, options], callback)</code><span><a class="mark" href="#zlib_zlib_inflate_buffer_options_callback" id="zlib_zlib_inflate_buffer_options_callback">#</a></span></h3>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v9.4.0</td>
+<td><p>The <code>buffer</code> parameter can be an <code>ArrayBuffer</code>.</p></td></tr>
+<tr><td>v8.0.0</td>
+<td><p>The <code>buffer</code> parameter can be any <code>TypedArray</code> or <code>DataView</code>.</p></td></tr>
+<tr><td>v8.0.0</td>
+<td><p>The <code>buffer</code> parameter can be an <code>Uint8Array</code> now.</p></td></tr>
+<tr><td>v0.6.0</td>
+<td><p><span>Added in: v0.6.0</span></p></td></tr>
+</tbody></table>
+</details>
+</div>
+<ul>
+<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&#x3C;ArrayBuffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>options</code> <a href="zlib.html#zlib_class_options" class="type">&#x3C;zlib options></a></li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
+</ul>
+<h3><code>zlib.inflateSync(buffer[, options])</code><span><a class="mark" href="#zlib_zlib_inflatesync_buffer_options" id="zlib_zlib_inflatesync_buffer_options">#</a></span></h3>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v9.4.0</td>
+<td><p>The <code>buffer</code> parameter can be an <code>ArrayBuffer</code>.</p></td></tr>
+<tr><td>v8.0.0</td>
+<td><p>The <code>buffer</code> parameter can be any <code>TypedArray</code> or <code>DataView</code>.</p></td></tr>
+<tr><td>v8.0.0</td>
+<td><p>The <code>buffer</code> parameter can be an <code>Uint8Array</code> now.</p></td></tr>
+<tr><td>v0.11.12</td>
+<td><p><span>Added in: v0.11.12</span></p></td></tr>
+</tbody></table>
+</details>
+</div>
+<ul>
+<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&#x3C;ArrayBuffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>options</code> <a href="zlib.html#zlib_class_options" class="type">&#x3C;zlib options></a></li>
+</ul>
+<p>Decompress a chunk of data with <a href="#zlib_class_zlib_inflate"><code>Inflate</code></a>.</p>
+<h3><code>zlib.inflateRaw(buffer[, options], callback)</code><span><a class="mark" href="#zlib_zlib_inflateraw_buffer_options_callback" id="zlib_zlib_inflateraw_buffer_options_callback">#</a></span></h3>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v9.4.0</td>
+<td><p>The <code>buffer</code> parameter can be an <code>ArrayBuffer</code>.</p></td></tr>
+<tr><td>v8.0.0</td>
+<td><p>The <code>buffer</code> parameter can be any <code>TypedArray</code> or <code>DataView</code>.</p></td></tr>
+<tr><td>v8.0.0</td>
+<td><p>The <code>buffer</code> parameter can be an <code>Uint8Array</code> now.</p></td></tr>
+<tr><td>v0.6.0</td>
+<td><p><span>Added in: v0.6.0</span></p></td></tr>
+</tbody></table>
+</details>
+</div>
+<ul>
+<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&#x3C;ArrayBuffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>options</code> <a href="zlib.html#zlib_class_options" class="type">&#x3C;zlib options></a></li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
+</ul>
+<h3><code>zlib.inflateRawSync(buffer[, options])</code><span><a class="mark" href="#zlib_zlib_inflaterawsync_buffer_options" id="zlib_zlib_inflaterawsync_buffer_options">#</a></span></h3>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v9.4.0</td>
+<td><p>The <code>buffer</code> parameter can be an <code>ArrayBuffer</code>.</p></td></tr>
+<tr><td>v8.0.0</td>
+<td><p>The <code>buffer</code> parameter can be any <code>TypedArray</code> or <code>DataView</code>.</p></td></tr>
+<tr><td>v8.0.0</td>
+<td><p>The <code>buffer</code> parameter can be an <code>Uint8Array</code> now.</p></td></tr>
+<tr><td>v0.11.12</td>
+<td><p><span>Added in: v0.11.12</span></p></td></tr>
+</tbody></table>
+</details>
+</div>
+<ul>
+<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&#x3C;ArrayBuffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>options</code> <a href="zlib.html#zlib_class_options" class="type">&#x3C;zlib options></a></li>
+</ul>
+<p>Decompress a chunk of data with <a href="#zlib_class_zlib_inflateraw"><code>InflateRaw</code></a>.</p>
+<h3><code>zlib.unzip(buffer[, options], callback)</code><span><a class="mark" href="#zlib_zlib_unzip_buffer_options_callback" id="zlib_zlib_unzip_buffer_options_callback">#</a></span></h3>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v9.4.0</td>
+<td><p>The <code>buffer</code> parameter can be an <code>ArrayBuffer</code>.</p></td></tr>
+<tr><td>v8.0.0</td>
+<td><p>The <code>buffer</code> parameter can be any <code>TypedArray</code> or <code>DataView</code>.</p></td></tr>
+<tr><td>v8.0.0</td>
+<td><p>The <code>buffer</code> parameter can be an <code>Uint8Array</code> now.</p></td></tr>
+<tr><td>v0.6.0</td>
+<td><p><span>Added in: v0.6.0</span></p></td></tr>
+</tbody></table>
+</details>
+</div>
+<ul>
+<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&#x3C;ArrayBuffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>options</code> <a href="zlib.html#zlib_class_options" class="type">&#x3C;zlib options></a></li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
+</ul>
+<h3><code>zlib.unzipSync(buffer[, options])</code><span><a class="mark" href="#zlib_zlib_unzipsync_buffer_options" id="zlib_zlib_unzipsync_buffer_options">#</a></span></h3>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v9.4.0</td>
+<td><p>The <code>buffer</code> parameter can be an <code>ArrayBuffer</code>.</p></td></tr>
+<tr><td>v8.0.0</td>
+<td><p>The <code>buffer</code> parameter can be any <code>TypedArray</code> or <code>DataView</code>.</p></td></tr>
+<tr><td>v8.0.0</td>
+<td><p>The <code>buffer</code> parameter can be an <code>Uint8Array</code> now.</p></td></tr>
+<tr><td>v0.11.12</td>
+<td><p><span>Added in: v0.11.12</span></p></td></tr>
+</tbody></table>
+</details>
+</div>
+<ul>
+<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&#x3C;ArrayBuffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>options</code> <a href="zlib.html#zlib_class_options" class="type">&#x3C;zlib options></a></li>
+</ul>
+<p>Decompress a chunk of data with <a href="#zlib_class_zlib_unzip"><code>Unzip</code></a>.</p>
+      </div>
+    </div>
+  </div>
+  <script src="assets/highlight.pack.js"></script>
+  <script>document.addEventListener('DOMContentLoaded', () => { hljs.initHighlightingOnLoad(); });</script>
+</body>
+</html>

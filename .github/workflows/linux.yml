@@ -24,6 +24,10 @@ jobs:
           mv rubyc /usr/local/bin
       - name: "[Enclose.IO] Set up Ruby"
         uses: ruby/setup-ruby@v1
+      - name: "[Enclose.IO] Install rubocop"
+        run: gem install rubocop
+      - name: "[Enclose.IO] Run rubocop"
+        run: rubocop
       - name: "[Enclose.IO] Check dependencies"
         run: |
           cat /etc/issue
@@ -39,8 +43,6 @@ jobs:
           rubyc --version
       - name: "[Enclose.IO] Bundle install"
         run: bundle install
-      - name: "[Enclose.IO] Run rubocop"
-        run: bundle exec rubocop
       - name: "[Enclose.IO] Rake"
         run: bundle exec rake
       - name: "[Enclose.IO] Create Linux Release"

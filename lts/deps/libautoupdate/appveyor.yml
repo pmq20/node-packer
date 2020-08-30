@@ -1,0 +1,26 @@
+version: '{build}'
+
+environment:
+  matrix:
+  - GENERATOR: "Visual Studio 14 2015 Win64"
+    ARCH: 64
+    PlatformToolset: v140
+    Platform: x64
+  - GENERATOR: "Visual Studio 12 2013 Win64"
+    ARCH: 64
+    PlatformToolset: v120
+    Platform: x64
+
+build_script:
+- ps: |
+    nuget install zlib.$env:PlatformToolset.windesktop.msvcstl.dyn.rt-dyn
+
+    cmake --version
+
+    mkdir build
+
+    cd build
+
+    cmake -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release -G"$env:GENERATOR" -DZLIB_INCLUDE_DIR:PATH=C:\projects\libautoupdate\zlib.$env:PlatformToolset.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\include -DZLIB_LIBRARY_RELEASE:FILEPATH=C:\projects\libautoupdate\zlib.$env:PlatformToolset.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\lib\native\$env:PlatformToolset\windesktop\msvcstl\dyn\rt-dyn\$env:Platform\RelWithDebInfo\zlib.lib ..
+
+    cmake --build . --config Release

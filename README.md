@@ -21,11 +21,10 @@ http://enclose.io/nodec
 
 We maintain support for both the latest *Current* Node.js release and the latest *LTS* Node.js release. Currently the `master` branch has been updated to the following versions.
 
-|               |  Updated till  |            How to Use               |
-|:-------------:|:--------------:|:-----------------------------------:|
-|  **Current**  |    14.8.0      |  `nodec --current` or just `nodec`  |
-|   **LTS**     |    12.18.3     |  `nodec --lts`                      |
-
+|                       |  Master Branch Updated to  |            How to Use               |
+|:---------------------:|:--------------------------:|:-----------------------------------:|
+|  **Current Node.js**  |          14.8.0            |  `nodec --current` or just `nodec`  |
+|    **LTS Node.js**    |          12.18.3           |  `nodec --lts`                      |
 
 ## Get Started
 

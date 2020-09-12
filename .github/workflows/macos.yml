@@ -21,7 +21,7 @@ jobs:
         run: |
           curl -OL https://github.com/pmq20/ruby-packer/releases/download/darwin-x64/rubyc
           chmod +x rubyc
-          mv rubyc /usr/local/bin
+          echo "::add-path::."
       - name: "[Enclose.IO] Set up Ruby"
         uses: ruby/setup-ruby@v1
       - name: "[Enclose.IO] Install rubocop"

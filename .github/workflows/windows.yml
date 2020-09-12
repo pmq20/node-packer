@@ -24,14 +24,11 @@ jobs:
           echo "##[add-path]C:\strawberry\c\bin;C:\strawberry\perl\site\bin;C:\strawberry\perl\bin"
       - name: "[Enclose.IO] Install libraries"
         run: |
-          choco install --no-progress squashfs
+          choco install --no-progress squashfs wget
       - name: "[Enclose.IO] Set up rubyc"
         run: |
           wget https://github.com/pmq20/ruby-packer/releases/download/windows-x64/rubyc.exe
-          mkdir C:\rubyc
-          move rubyc.exe C:\rubyc
-          echo "##[add-path]C:\rubyc"
-        shell: cmd
+          echo "::add-path::."
       - name: "[Enclose.IO] Set up Ruby"
         uses: ruby/setup-ruby@v1
       - name: "[Enclose.IO] Install rubocop"

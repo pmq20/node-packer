@@ -67,7 +67,7 @@ jobs:
         run: |
           call "C:\Program Files (x86)\Microsoft Visual Studio\${{ matrix.vs }}\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           mkdir C:\rubyc_tmp
-          echo "::add-path::%CD%"
+          set PATH=%CD%;%PATH%
           cd src
           where rubyc
           rubyc --version

@@ -50,7 +50,7 @@ jobs:
           bundle install
       - name: "[Enclose.IO] Rake"
         run: |
-          echo "::add-path::$(pwd)"
+          export PATH="$(pwd):$PATH"
           cd src
           which rubyc
           rubyc --version

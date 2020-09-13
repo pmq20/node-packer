@@ -35,6 +35,8 @@ Whenever the `master` branch CI succeeded, a Node.js Packer pre-release binary w
 
 ### Stable Releases
 
+For the list of all stable releases, see https://enclose.io/nodec
+
 Here is the latest stable Node.js Packer release:
 
 |    OS     | Arch. |                                              Executable                                                      |
@@ -42,8 +44,6 @@ Here is the latest stable Node.js Packer release:
 |  Windows  |  x64  | https://gw.alipayobjects.com/os/enclose-prod/0d0ec8fd-dc9c-4b0a-85df-8bf4af0e8b8d/nodec-v1.5.0-x64.zip       |
 |   macOS   |  x64  | https://gw.alipayobjects.com/os/enclose-prod/bc2022ef-4b88-4c12-9980-394945c9c198/nodec-v1.5.0-darwin-x64.gz |
 |   Linux   |  x64  | https://gw.alipayobjects.com/os/enclose-prod/b6aa41a6-f6b5-4542-b777-06e4bc292c5e/nodec-v1.5.0-linux-x64.gz  |
-
-For a list of all previous stable releases, see https://enclose.io/nodec
 
 ## Install
 

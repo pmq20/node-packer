@@ -31,7 +31,9 @@ jobs:
       - name: "[Enclose.IO] Install rubocop"
         run: gem install rubocop
       - name: "[Enclose.IO] Run rubocop"
-        run: rubocop
+        run: |
+          cd src
+          rubocop
       - name: "[Enclose.IO] Check dependencies"
         run: |
           cat /etc/issue

@@ -38,7 +38,9 @@ jobs:
       - name: "[Enclose.IO] Install rubocop"
         run: gem install rubocop
       - name: "[Enclose.IO] Run rubocop"
-        run: rubocop
+        run: |
+          cd src
+          rubocop
       - name: "[Enclose.IO] Inspect Windows Environment"
         run: |
           call "C:\Program Files (x86)\Microsoft Visual Studio\${{ matrix.vs }}\Enterprise\VC\Auxiliary\Build\vcvars64.bat"

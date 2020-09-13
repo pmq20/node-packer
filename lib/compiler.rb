@@ -63,6 +63,7 @@ class Compiler
   def init_options
     @current_or_lts = 'current'
     raise Error, 'Please specify either --current or --lts' if @options[:current] && @options[:lts]
+
     @current_or_lts = 'lts' if @options[:lts]
 
     @options[:npm] ||= 'npm'

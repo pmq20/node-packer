@@ -1,6 +1,6 @@
 # Node.js Packer
 
-http://enclose.io/nodec
+http://enclose.io/
 
 *Packing your Node.js application into a single executable.*
 
@@ -10,6 +10,10 @@ http://enclose.io/nodec
 
 ## Features
 
+It takes less than 5 minutes to compile any project with `node-packer`.
+
+You won't need to modify a single line of code in your application, no matter how you developed it as long as it works in plain node.js!
+
 - Works on ![win](resource/win_sm.png) Windows, ![macOS](resource/apple_sm.png) macOS and ![linux](resource/linux_sm.png) Linux
 - Creates a binary distribution of your application
 - Supports natively any form of `require`, including dynamic ones (e.g. `require(myPath + 'module.js'`)
@@ -17,26 +21,31 @@ http://enclose.io/nodec
 - Features zero-config auto-update capabilities to make your compiled project to stay updated
 - Open Source, MIT Licensed
 
-## Supported Node.js Versions
+## Download
 
-We maintain support for both the latest Current Node.js release and the latest LTS Node.js release. At the moment, the `master` branch has been updated to support the following Node.js versions.
+### Unstable Pre-release
 
-|                       |  Master Branch Updated to  |            How to Use               |
-|:---------------------:|:--------------------------:|:-----------------------------------:|
-|  **Current Node.js**  |          14.8.0            |  `nodec --current` or just `nodec`  |
-|    **LTS Node.js**    |          12.18.3           |  `nodec --lts`                      |
+Whenever the `master` branch CI succeeded, a Node.js Packer pre-release binary would be automatically generated. Here is the latest unstable pre-release build:
 
-## Get Started
+|    OS     | Arch. |                               Executable                                      |
+|:---------:|:-----:|-------------------------------------------------------------------------------|
+|  Windows  |  x64  | https://github.com/pmq20/node-packer/releases/download/windows-x64/nodec.exe  |
+|   macOS   |  x64  | https://github.com/pmq20/node-packer/releases/download/darwin-x64/nodec       |
+|   Linux   |  x64  | https://github.com/pmq20/node-packer/releases/download/linux-x64/nodec        |
 
-It takes less than 5 minutes to compile any project with `node-packer`.
+### Stable Releases
 
-You won't need to modify a single line of code in your application, no matter how you developed it as long as it works in plain node.js!
+Here is the latest stable Node.js Packer release:
 
-|    Operating System   | Architecture |                                          Latest&#160;Stable                                                  |
-|:---------------------:|:------------:|--------------------------------------------------------------------------------------------------------------|
-|        Windows        |    x86-64    | https://gw.alipayobjects.com/os/enclose-prod/0d0ec8fd-dc9c-4b0a-85df-8bf4af0e8b8d/nodec-v1.5.0-x64.zip       |
-|         macOS         |    x86-64    | https://gw.alipayobjects.com/os/enclose-prod/bc2022ef-4b88-4c12-9980-394945c9c198/nodec-v1.5.0-darwin-x64.gz |
-|         Linux         |    x86-64    | https://gw.alipayobjects.com/os/enclose-prod/b6aa41a6-f6b5-4542-b777-06e4bc292c5e/nodec-v1.5.0-linux-x64.gz  |
+|    OS     | Arch. |                                              Executable                                                      |
+|:---------:|:-----:|--------------------------------------------------------------------------------------------------------------|
+|  Windows  |  x64  | https://gw.alipayobjects.com/os/enclose-prod/0d0ec8fd-dc9c-4b0a-85df-8bf4af0e8b8d/nodec-v1.5.0-x64.zip       |
+|   macOS   |  x64  | https://gw.alipayobjects.com/os/enclose-prod/bc2022ef-4b88-4c12-9980-394945c9c198/nodec-v1.5.0-darwin-x64.gz |
+|   Linux   |  x64  | https://gw.alipayobjects.com/os/enclose-prod/b6aa41a6-f6b5-4542-b777-06e4bc292c5e/nodec-v1.5.0-linux-x64.gz  |
+
+For a list of all previous stable releases, see https://enclose.io/nodec
+
+## Install
 
 ### ![win](resource/win_med.png) Install on Windows
 
@@ -50,10 +59,10 @@ First install the prerequisites:
   "Common Tools for Visual C++ 2015" feature during installation).
   - [Visual Studio 2017](https://www.visualstudio.com/downloads/), any edition (including the Build Tools SKU).
   __Required Components:__ "MSbuild", "VC++ 2017 v141 toolset" and one of the Windows SDKs (10 or 8.1).
-  
-Please take note that Visual Studio 2019 is NOT supported for now.
 
-Then download [nodec-x64.zip](https://gw.alipayobjects.com/os/enclose-prod/0d0ec8fd-dc9c-4b0a-85df-8bf4af0e8b8d/nodec-v1.5.0-x64.zip), and this zip file contains only one executable. Unzip it. Optionally, rename it to `nodec.exe` and put it under `C:\Windows` (or any other directory that is part of `PATH`). Execute `nodec` from the command line.
+Then download `nodec.exe` from either [Unstable Pre-release](#unstable-pre-release) or [Stable Releases](#stable-releases).
+Optionally, put it under `C:\Windows` or any other `PATH` directories.
+Open Visual Studio's "x64 Native Tools Command Prompt" and execute `nodec --help` therein.
 
 ### ![macOS](resource/apple_med.png) Install on macOS
 
@@ -67,11 +76,8 @@ First install the prerequisites:
 * Python 2.6 or 2.7
 * GNU Make 3.81 or newer
 
-Then,
-
-    curl -L https://gw.alipayobjects.com/os/enclose-prod/bc2022ef-4b88-4c12-9980-394945c9c198/nodec-v1.5.0-darwin-x64.gz | gunzip > nodec
-    chmod +x nodec
-    ./nodec
+Then download `nodec` from either [Unstable Pre-release](#unstable-pre-release) or [Stable Releases](#stable-releases).
+Run `chmod +x` to give it execution permissions and execute `./nodec --help`.
 
 #### Additional Notes on Build failure in macOS XCode 11
 
@@ -91,11 +97,8 @@ First install the prerequisites:
 * Python 2.6 or 2.7
 * GNU Make 3.81 or newer
 
-Then,
-
-    curl -L https://gw.alipayobjects.com/os/enclose-prod/b6aa41a6-f6b5-4542-b777-06e4bc292c5e/nodec-v1.5.0-linux-x64.gz | gunzip > nodec
-    chmod +x nodec
-    ./nodec
+Then download `nodec` from either [Unstable Pre-release](#unstable-pre-release) or [Stable Releases](#stable-releases).
+Run `chmod +x` to give it execution permissions and execute `./nodec --help`.
 
 #### Additional Notes on the compatibility between RHEL based (CentOS) / Ubuntu
 

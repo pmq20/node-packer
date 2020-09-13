@@ -54,6 +54,7 @@ jobs:
       - name: "[Enclose.IO] Rake"
         run: |
           cd src
+          echo "::add-path::.."
           bundle exec rake
       - name: "[Enclose.IO] Create Linux Release"
         if: ${{ github.ref == 'refs/heads/master' && success() }}

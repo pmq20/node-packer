@@ -70,6 +70,8 @@ jobs:
         run: |
           call "C:\Program Files (x86)\Microsoft Visual Studio\${{ matrix.vs }}\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           mkdir C:\rubyc_tmp
+          cd src
+          echo "::add-path::.."
           bundle exec rake
         shell: cmd
       - name: "[Enclose.IO] Create Windows Release"

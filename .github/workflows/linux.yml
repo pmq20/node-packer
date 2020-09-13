@@ -44,15 +44,16 @@ jobs:
           mksquashfs -version
           which ruby
           ruby -v
-          which rubyc
-          rubyc --version
       - name: "[Enclose.IO] Bundle install"
         run: |
           cd src
           bundle install
       - name: "[Enclose.IO] Rake"
         run: |
+          echo "::add-path::$(pwd)"
           cd src
+          which rubyc
+          rubyc --version
           bundle exec rake
       - name: "[Enclose.IO] Create Linux Release"
         if: ${{ github.ref == 'refs/heads/master' && success() }}

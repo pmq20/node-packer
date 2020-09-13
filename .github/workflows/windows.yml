@@ -55,8 +55,6 @@ jobs:
           mksquashfs -version
           where ruby
           ruby -v
-          where rubyc
-          rubyc --version
           where bundle
           bundle -v
         shell: cmd
@@ -69,7 +67,10 @@ jobs:
         run: |
           call "C:\Program Files (x86)\Microsoft Visual Studio\${{ matrix.vs }}\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           mkdir C:\rubyc_tmp
+          echo "::add-path::%CD%"
           cd src
+          where rubyc
+          rubyc --version
           bundle exec rake
         shell: cmd
       - name: "[Enclose.IO] Create Windows Release"

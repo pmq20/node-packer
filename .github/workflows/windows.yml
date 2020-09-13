@@ -18,6 +18,8 @@ jobs:
     steps:
       - uses: ilammy/setup-nasm@v1
       - uses: actions/checkout@v2
+        with:
+          path: src
       - name: "[Enclose.IO] Set up Perl"
         run: |
           choco install strawberryperl
@@ -35,8 +37,6 @@ jobs:
         run: gem install rubocop
       - name: "[Enclose.IO] Run rubocop"
         run: rubocop
-      - name: "[Enclose.IO] Install dependencies"
-        run: bundle install
       - name: "[Enclose.IO] Inspect Windows Environment"
         run: |
           call "C:\Program Files (x86)\Microsoft Visual Studio\${{ matrix.vs }}\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
@@ -56,6 +56,11 @@ jobs:
           rubyc --version
           where bundle
           bundle -v
+        shell: cmd
+      - name: "[Enclose.IO] Install dependencies"
+        run: |
+          cd src
+          bundle install
         shell: cmd
       - name: "[Enclose.IO] Rake"
         run: |
@@ -82,6 +87,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_windows_release.outputs.upload_url }}
-          asset_path: ./nodec.exe
+          asset_path: src/nodec.exe
           asset_name: nodec.exe
           asset_content_type: application/octet-stream

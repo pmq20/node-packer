@@ -17,6 +17,8 @@ jobs:
           sudo apt update
           sudo apt install -y build-essential squashfs-tools
       - uses: actions/checkout@v2
+        with:
+          path: src
       - name: "[Enclose.IO] Set up rubyc"
         run: |
           curl -OL https://github.com/pmq20/ruby-packer/releases/download/linux-x64/rubyc
@@ -42,9 +44,13 @@ jobs:
           which rubyc
           rubyc --version
       - name: "[Enclose.IO] Bundle install"
-        run: bundle install
+        run: |
+          cd src
+          bundle install
       - name: "[Enclose.IO] Rake"
-        run: bundle exec rake
+        run: |
+          cd src
+          bundle exec rake
       - name: "[Enclose.IO] Create Linux Release"
         if: ${{ github.ref == 'refs/heads/master' && success() }}
         id: create_linux_release
@@ -64,6 +70,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_linux_release.outputs.upload_url }}
-          asset_path: ./nodec
+          asset_path: src/nodec
           asset_name: nodec
           asset_content_type: application/octet-stream

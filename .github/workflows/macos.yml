@@ -13,6 +13,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
+        with:
+          path: src
       - name: "[Enclose.IO] Install dependencies"
         run: |
           brew upgrade
@@ -41,10 +43,14 @@ jobs:
           ruby -v
           which rubyc
           rubyc --version
-      - name: "[Enclose.IO] Install dependencies"
-        run: bundle install
+      - name: "[Enclose.IO] Bundle install"
+        run: |
+          cd src
+          bundle install
       - name: "[Enclose.IO] Rake"
-        run: bundle exec rake
+        run: |
+          cd src
+          bundle exec rake
       - name: "[Enclose.IO] Create macOS Release"
         if: ${{ github.ref == 'refs/heads/master' && success() }}
         id: create_macos_release
@@ -64,6 +70,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_macos_release.outputs.upload_url }}
-          asset_path: ./nodec
+          asset_path: src/nodec
           asset_name: nodec
           asset_content_type: application/octet-stream

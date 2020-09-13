@@ -26,6 +26,8 @@ jobs:
           echo "::add-path::."
       - name: "[Enclose.IO] Set up Ruby"
         uses: ruby/setup-ruby@v1
+        with:
+          working-directory: src
       - name: "[Enclose.IO] Install rubocop"
         run: gem install rubocop
       - name: "[Enclose.IO] Run rubocop"

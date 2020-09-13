@@ -30,7 +30,6 @@ jobs:
       - name: "[Enclose.IO] Set up rubyc"
         run: |
           wget https://github.com/pmq20/ruby-packer/releases/download/windows-x64/rubyc.exe
-          echo "::add-path::."
       - name: "[Enclose.IO] Set up Ruby"
         uses: ruby/setup-ruby@v1
         with:
@@ -71,7 +70,6 @@ jobs:
           call "C:\Program Files (x86)\Microsoft Visual Studio\${{ matrix.vs }}\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           mkdir C:\rubyc_tmp
           cd src
-          echo "::add-path::.."
           bundle exec rake
         shell: cmd
       - name: "[Enclose.IO] Create Windows Release"

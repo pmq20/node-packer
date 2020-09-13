@@ -23,7 +23,6 @@ jobs:
         run: |
           curl -OL https://github.com/pmq20/ruby-packer/releases/download/darwin-x64/rubyc
           chmod +x rubyc
-          echo "::add-path::."
       - name: "[Enclose.IO] Set up Ruby"
         uses: ruby/setup-ruby@v1
         with:
@@ -54,7 +53,6 @@ jobs:
       - name: "[Enclose.IO] Rake"
         run: |
           cd src
-          echo "::add-path::.."
           bundle exec rake
       - name: "[Enclose.IO] Create macOS Release"
         if: ${{ github.ref == 'refs/heads/master' && success() }}

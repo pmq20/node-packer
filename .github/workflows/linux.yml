@@ -63,9 +63,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: linux-x64
-          release_name: Latest Linux Build
+          release_name: Latest Linux Pre-release
           draft: false
-          prerelease: false
+          prerelease: true
           replace_old_tag: true
       - name: "[Enclose.IO] Upload Linux Release"
         if: ${{ github.ref == 'refs/heads/master' && success() }}

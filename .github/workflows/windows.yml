@@ -20,10 +20,6 @@ jobs:
       - uses: actions/checkout@v2
         with:
           path: src
-      - name: "[Enclose.IO] Set up Perl"
-        run: |
-          choco install strawberryperl
-          echo "##[add-path]C:\strawberry\c\bin;C:\strawberry\perl\site\bin;C:\strawberry\perl\bin"
       - name: "[Enclose.IO] Install libraries"
         run: |
           choco install --no-progress squashfs wget
@@ -40,6 +36,10 @@ jobs:
         run: |
           cd src
           rubocop
+      - name: "[Enclose.IO] Set up Perl"
+        run: |
+          choco install strawberryperl
+          echo "##[add-path]C:\strawberry\c\bin;C:\strawberry\perl\site\bin;C:\strawberry\perl\bin"
       - name: "[Enclose.IO] Inspect Windows Environment"
         run: |
           call "C:\Program Files (x86)\Microsoft Visual Studio\${{ matrix.vs }}\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
@@ -81,9 +81,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: windows-x64
-          release_name: Latest Windows Build
+          release_name: Latest Windows Pre-release
           draft: false
-          prerelease: false
+          prerelease: true
           replace_old_tag: true
       - name: "[Enclose.IO] Upload Windows Release"
         if: ${{ github.ref == 'refs/heads/master' && success() }}

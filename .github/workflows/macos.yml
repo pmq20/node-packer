@@ -63,9 +63,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: darwin-x64
-          release_name: Latest macOS Build
+          release_name: Latest macOS Pre-release
           draft: false
-          prerelease: false
+          prerelease: true
           replace_old_tag: true
       - name: "[Enclose.IO] Upload macOS Release"
         if: ${{ github.ref == 'refs/heads/master' && success() }}

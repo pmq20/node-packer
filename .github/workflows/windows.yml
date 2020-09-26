@@ -13,8 +13,6 @@ jobs:
             vs: 2019
       fail-fast: false
     runs-on: ${{ matrix.os }}
-    env:
-      ENCLOSE_IO_RUBYC_ADDTIONAL_ARGS: --tmpdir=C:\rubyc_tmp
     steps:
       - uses: ilammy/setup-nasm@v1
       - uses: actions/checkout@v2
@@ -63,7 +61,7 @@ jobs:
           cd src
           bundle install
         shell: cmd
-      - name: "[Enclose.IO] Rake"
+      - name: "[Enclose.IO] MAIN"
         run: |
           call "C:\Program Files (x86)\Microsoft Visual Studio\${{ matrix.vs }}\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           mkdir C:\rubyc_tmp
@@ -71,7 +69,7 @@ jobs:
           cd src
           where rubyc
           rubyc --version
-          bundle exec rake
+          rubyc bin/nodec -o pre-release-nodec-v140800.121803-x64.exe --tmpdir=C:\rubyc_tmp
         shell: cmd
       - name: "[Enclose.IO] Create Windows Release"
         if: ${{ github.ref == 'refs/heads/master' && success() }}
@@ -92,6 +90,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_windows_release.outputs.upload_url }}
-          asset_path: src/nodec.exe
-          asset_name: nodec.exe
+          asset_path: src/pre-release-nodec-v140800.121803-x64.exe
+          asset_name: pre-release-nodec-v140800.121803-x64.exe
           asset_content_type: application/octet-stream

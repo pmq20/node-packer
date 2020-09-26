@@ -7,7 +7,7 @@
 
 class Compiler
   # The version is prefixed by the supported versions of the Current & LTS Node.js
-  VERSION = '140800.121803.dev'
+  VERSION = '140800.121803'
   PRJ_ROOT = File.expand_path('../..', __dir__)
   MEMFS = '/__enclose_io_memfs__'
 end

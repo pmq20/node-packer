@@ -25,7 +25,6 @@
 // --------- [Enclose.IO Hack start] ---------
 extern "C" {
   #include "enclose_io.h"
-  #include "autoupdate.h"
 }
 // --------- [Enclose.IO Hack end] ---------
 #ifdef _WIN32
@@ -39,22 +38,9 @@ extern "C" {
 
 int wmain(int argc, wchar_t* wargv[]) {
 // --------- [Enclose.IO Hack start] ---------
-  int autoupdate_result;
   sqfs_err enclose_io_ret;
   int new_argc;
   wchar_t **new_argv;
-
-  #if ENCLOSE_IO_AUTO_UPDATE
-    autoupdate_result = autoupdate(
-      argc,
-      wargv,
-      ENCLOSE_IO_AUTO_UPDATE_URL_Host,
-      ENCLOSE_IO_AUTO_UPDATE_URL_Port,
-      ENCLOSE_IO_AUTO_UPDATE_URL_Path,
-      ENCLOSE_IO_AUTO_UPDATE_BASE,
-      0
-    );
-  #endif
 
   enclose_io_ret = squash_start();
   assert(SQFS_OK == enclose_io_ret);
@@ -189,23 +175,10 @@ int main(int argc, char* argv[]) {
   }
 #endif
 // --------- [Enclose.IO Hack start] ---------
-  int autoupdate_result;
   sqfs_err enclose_io_ret;
   char *argv_memory;
   int new_argc;
   char **new_argv;
-  
-  #if ENCLOSE_IO_AUTO_UPDATE
-    autoupdate_result = autoupdate(
-      argc,
-      argv,
-      ENCLOSE_IO_AUTO_UPDATE_URL_Host,
-      ENCLOSE_IO_AUTO_UPDATE_URL_Port,
-      ENCLOSE_IO_AUTO_UPDATE_URL_Path,
-      ENCLOSE_IO_AUTO_UPDATE_BASE,
-      0
-    );
-  #endif
   
   enclose_io_ret = squash_start();
   assert(SQFS_OK == enclose_io_ret);

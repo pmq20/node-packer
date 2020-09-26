@@ -141,6 +141,7 @@ short enclose_io_is_relative_w(wchar_t *pathname);
 			} \
 		} while (0)
 
+int enclose_io_exepath(char* buffer, size_t* size);
 int enclose_io_dos_return(int statement);
 short enclose_io_if(const char* path);
 SQUASH_OS_PATH enclose_io_ifextract(const char* path, const char* ext_name);

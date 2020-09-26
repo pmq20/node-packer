@@ -18,34 +18,9 @@ You won't need to modify a single line of code in your application, no matter ho
 - Creates a binary distribution of your application
 - Supports natively any form of `require`, including dynamic ones (e.g. `require(myPath + 'module.js'`)
 - Native C++ modules are fully supported
-- Features zero-config auto-update capabilities to make your compiled project to stay updated
 - Open Source, MIT Licensed
 
-## Download
-
-### Unstable Pre-release
-
-Whenever the `master` branch CI succeeded, a Node.js Packer pre-release binary would be automatically generated. Here is the latest unstable pre-release build:
-
-|    OS     | Arch. |                               Executable                                      |
-|:---------:|:-----:|-------------------------------------------------------------------------------|
-|  Windows  |  x64  | https://github.com/pmq20/node-packer/releases/download/windows-x64/nodec.exe  |
-|   macOS   |  x64  | https://github.com/pmq20/node-packer/releases/download/darwin-x64/nodec       |
-|   Linux   |  x64  | https://github.com/pmq20/node-packer/releases/download/linux-x64/nodec        |
-
-### Stable Releases
-
-For the list of all stable releases, see https://enclose.io/nodec
-
-Here is the latest stable Node.js Packer release:
-
-|    OS     | Arch. |                                              Executable                                                      |
-|:---------:|:-----:|--------------------------------------------------------------------------------------------------------------|
-|  Windows  |  x64  | https://gw.alipayobjects.com/os/enclose-prod/0d0ec8fd-dc9c-4b0a-85df-8bf4af0e8b8d/nodec-v1.5.0-x64.zip       |
-|   macOS   |  x64  | https://gw.alipayobjects.com/os/enclose-prod/bc2022ef-4b88-4c12-9980-394945c9c198/nodec-v1.5.0-darwin-x64.gz |
-|   Linux   |  x64  | https://gw.alipayobjects.com/os/enclose-prod/b6aa41a6-f6b5-4542-b777-06e4bc292c5e/nodec-v1.5.0-linux-x64.gz  |
-
-## Install
+## Download & Install
 
 ### ![win](resource/win_med.png) Install on Windows
 
@@ -60,9 +35,9 @@ First install the prerequisites:
   - [Visual Studio 2017](https://www.visualstudio.com/downloads/), any edition (including the Build Tools SKU).
   __Required Components:__ "MSbuild", "VC++ 2017 v141 toolset" and one of the Windows SDKs (10 or 8.1).
 
-Then download `nodec.exe` from either [Unstable Pre-release](#unstable-pre-release) or [Stable Releases](#stable-releases).
-Optionally, put it under `C:\Windows` or any other `PATH` directories.
-Open Visual Studio's "x64 Native Tools Command Prompt" and execute `nodec --help` therein.
+Then download `nodec-x64.exe` from https://enclose.io/nodec
+
+Optionally, put it under `C:\Windows` or any other `PATH` directories. Open Visual Studio's "x64 Native Tools Command Prompt" and execute `nodec --help` therein.
 
 ### ![macOS](resource/apple_med.png) Install on macOS
 
@@ -76,7 +51,8 @@ First install the prerequisites:
 * Python 2.6 or 2.7
 * GNU Make 3.81 or newer
 
-Then download `nodec` from either [Unstable Pre-release](#unstable-pre-release) or [Stable Releases](#stable-releases).
+Then download `nodec-darwin-x64` from https://enclose.io/nodec
+
 Run `chmod +x` to give it execution permissions and execute `./nodec --help`.
 
 #### Additional Notes on Build failure in macOS XCode 11
@@ -97,7 +73,8 @@ First install the prerequisites:
 * Python 2.6 or 2.7
 * GNU Make 3.81 or newer
 
-Then download `nodec` from either [Unstable Pre-release](#unstable-pre-release) or [Stable Releases](#stable-releases).
+Then download `nodec-linux-x64` from https://enclose.io/nodec
+
 Run `chmod +x` to give it execution permissions and execute `./nodec --help`.
 
 #### Additional Notes on the compatibility between RHEL based (CentOS) / Ubuntu
@@ -141,8 +118,6 @@ The original maintainer did not specify how to build this repo into single execu
           --vcbuild-args=ARGS          Passes extra arguments to vcbuild.bat
       -n, --npm=FILE                   Specifies the path of npm
           --skip-npm-install           Skips the npm install process
-          --auto-update-url=URL        Enables auto-update and specifies the URL to get the latest version
-          --auto-update-base=STRING    Enables auto-update and specifies the base version string
           --debug                      Enables debug mode
       -o, --dest-os=OS                 Specifies the destination operating system (enum: win mac solaris freebsd openbsd linux android aix)
       -a, --dest-arch=ARCH             Specifies the destination CPU architecture (enum: arm arm64 ia32 mips mipsel ppc ppc64 x32 x64 x86 s390 s390x)
@@ -278,5 +253,4 @@ An example (you may need to adjust values or specify additional variables):
 ## See Also
 
 - [Libsquash](https://github.com/pmq20/libsquash): portable, user-land SquashFS that can be easily linked and embedded within your application.
-- [Libautoupdate](https://github.com/pmq20/libautoupdate): cross-platform C library to enable your application to auto-update itself in place.
 - [Squashfs Tools](https://github.com/plougher/squashfs-tools): tools to create and extract Squashfs filesystems.

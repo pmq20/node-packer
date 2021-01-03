@@ -1,7 +1,5 @@
 # Node.js Packer
 
-http://enclose.io/
-
 *Packing your Node.js application into a single executable.*
 
 [![Windows](https://github.com/pmq20/node-packer/workflows/Windows/badge.svg)](https://github.com/pmq20/node-packer/actions?query=workflow%3A"Windows")
@@ -20,7 +18,29 @@ You won't need to modify a single line of code in your application, no matter ho
 - Native C++ modules are fully supported
 - Open Source, MIT Licensed
 
-## Download & Install
+## Download
+
+### Stable Releases
+
+Here is the latest stable Node.js Packer release:
+
+|    OS     | Arch. |                                              Executable                                                        |
+|:---------:|:-----:|----------------------------------------------------------------------------------------------------------------|
+|  Windows  |  x64  | https://gw.alipayobjects.com/os/enclose-prod/0d0ec8fd-dc9c-4b0a-85df-8bf4af0e8b8d/nodec-v1.5.0-x64.zip         |
+|   macOS   |  x64  | https://gw.alipayobjects.com/os/enclose-prod/bc2022ef-4b88-4c12-9980-394945c9c198/nodec-v1.5.0-darwin-x64.gz   |
+|   Linux   |  x64  | https://gw.alipayobjects.com/os/enclose-prod/b6aa41a6-f6b5-4542-b777-06e4bc292c5e/nodec-v1.5.0-linux-x64.gz    |
+
+### Unstable Pre-release
+
+Whenever the `master` branch CI succeeded, a Node.js Packer pre-release binary would be automatically generated. Here is the latest unstable pre-release build:
+
+|    OS     | Arch. |                                              Executable                                                        |
+|:---------:|:-----:|----------------------------------------------------------------------------------------------------------------|
+|  Windows  |  x64  | https://github.com/pmq20/node-packer/releases/download/windows-x64/pre-release-nodec-v140800.121803-x64.exe    |
+|   macOS   |  x64  | https://github.com/pmq20/node-packer/releases/download/darwin-x64/pre-release-nodec-v140800.121803-darwin-x64  |
+|   Linux   |  x64  | https://github.com/pmq20/node-packer/releases/download/linux-x64/pre-release-nodec-v140800.121803-linux-x64    |
+
+## Install
 
 ### ![win](resource/win_med.png) Install on Windows
 
@@ -35,7 +55,7 @@ First install the prerequisites:
   - [Visual Studio 2017](https://www.visualstudio.com/downloads/), any edition (including the Build Tools SKU).
   __Required Components:__ "MSbuild", "VC++ 2017 v141 toolset" and one of the Windows SDKs (10 or 8.1).
 
-Then download `nodec-x64.exe` from https://enclose.io/nodec
+Then download `nodec-x64.exe`.
 
 Optionally, put it under `C:\Windows` or any other `PATH` directories. Open Visual Studio's "x64 Native Tools Command Prompt" and execute `nodec --help` therein.
 
@@ -51,7 +71,7 @@ First install the prerequisites:
 * Python 2.6 or 2.7
 * GNU Make 3.81 or newer
 
-Then download `nodec-darwin-x64` from https://enclose.io/nodec
+Then download `nodec-darwin-x64`.
 
 Run `chmod +x` to give it execution permissions and execute `./nodec --help`.
 
@@ -73,7 +93,7 @@ First install the prerequisites:
 * Python 2.6 or 2.7
 * GNU Make 3.81 or newer
 
-Then download `nodec-linux-x64` from https://enclose.io/nodec
+Then download `nodec-linux-x64`.
 
 Run `chmod +x` to give it execution permissions and execute `./nodec --help`.
 

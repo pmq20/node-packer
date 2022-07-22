@@ -18,7 +18,7 @@ GEM
       method_source (~> 1.0)
     rake (13.0.1)
     thread_safe (0.3.6)
-    tzinfo (1.2.7)
+    tzinfo (1.2.10)
       thread_safe (~> 0.1)
     zeitwerk (2.4.0)
 
